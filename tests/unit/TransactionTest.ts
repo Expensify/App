@@ -1,17 +1,19 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
+import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {RecentWaypoint, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions, ReportNextStep, Transaction} from '../../src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -40,14 +42,22 @@ const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
 
-const baseNewReport = createExpenseReportForTest(FAKE_NEW_REPORT_ID, {
+const newReport = {
+    reportID: FAKE_NEW_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
-});
-const baseSelfDMReport = createSelfDMReportForTest(FAKE_SELF_DM_REPORT_ID, CURRENT_USER_ID);
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const selfDM = {
+    reportID: FAKE_SELF_DM_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+};
 
 const reportCollectionDataSet: ReportCollectionDataSet = {
-    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: baseNewReport,
-    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: baseSelfDMReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: newReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: selfDM,
 };
 
 const emptyNextStepsCollection = {} as OnyxCollection<ReportNextStep>;
@@ -80,14 +90,19 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
-                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: '0',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
@@ -112,13 +127,19 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
@@ -145,13 +166,19 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
 
             const mockReportNextStep = {
                 type: 'neutral' as const,
@@ -167,6 +194,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
             changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, mockReportNextStep, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
@@ -186,21 +214,22 @@ describe('Transaction', () => {
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const oldReport = createExpenseReportForTest(FAKE_OLD_REPORT_ID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 100,
-            });
-
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
 
             const mockReportNextStep = {
                 type: 'alert' as const,
@@ -213,16 +242,8 @@ describe('Transaction', () => {
                 requiresUserAction: true,
             };
 
-            // Create a dummy unreported report so the new logic can find it
-            const unreportedReport = createExpenseReportForTest(CONST.REPORT.UNREPORTED_REPORT_ID, {
-                ownerAccountID: CURRENT_USER_ID,
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONST.REPORT.UNREPORTED_REPORT_ID}`, unreportedReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            await waitForBatchedUpdates();
 
             const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
 
@@ -245,24 +266,23 @@ describe('Transaction', () => {
         it('correctly handles undefined reportNextStep parameter', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const oldReport = createExpenseReportForTest(FAKE_OLD_REPORT_ID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 100,
-            });
-
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {...baseNewReport});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
@@ -286,29 +306,29 @@ describe('Transaction', () => {
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const oldReport = createExpenseReportForTest(FAKE_OLD_REPORT_ID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 100,
-            });
-
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {...baseNewReport});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            const transactionID = transaction.transactionID;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], true, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
+            changeTransactionsReport([transactionID], true, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -318,7 +338,7 @@ describe('Transaction', () => {
 
             expect(parameters).toBeDefined();
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
-            expect(parameters.transactionList).toBe(transaction.transactionID);
+            expect(parameters.transactionList).toBe(transactionID);
 
             mockAPIWrite.mockRestore();
         });
@@ -326,33 +346,32 @@ describe('Transaction', () => {
         it('correctly handles different account IDs and emails when moving transactions', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            const oldReport = createExpenseReportForTest(FAKE_OLD_REPORT_ID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 100,
-            });
-
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: FAKE_OLD_REPORT_ID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
-            });
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {...baseNewReport});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            const transactionID = transaction.transactionID;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            await waitForBatchedUpdates();
 
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], false, customAccountID, customEmail, report, undefined, undefined, undefined, emptyNextStepsCollection);
+            changeTransactionsReport([transactionID], false, customAccountID, customEmail, report, undefined, undefined, undefined, emptyNextStepsCollection);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -362,7 +381,7 @@ describe('Transaction', () => {
 
             expect(parameters).toBeDefined();
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
-            expect(parameters.transactionList).toBe(transaction.transactionID);
+            expect(parameters.transactionList).toBe(transactionID);
 
             mockAPIWrite.mockRestore();
         });
@@ -373,294 +392,22 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: '1',
             });
-            const IOUAction = {
-                ...createIOUReportActionForTest({
-                    reportID: FAKE_OLD_REPORT_ID,
-                    transactionID: transaction.transactionID,
+            const IOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
-                    actorAccountID: CURRENT_USER_ID,
-                }),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            } satisfies ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            };
             const result = getAllNonDeletedTransactions({[transaction.transactionID]: transaction}, [IOUAction], true);
             expect(result.at(0)).toEqual(transaction);
-        });
-    });
-
-    describe('changeTransactionsReport - Next Step Updates', () => {
-        it('should update next step message when removing last expense from report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const oldReportID = '100';
-            const oldReport = createExpenseReportForTest(oldReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 100,
-            });
-
-            const transaction = generateTransaction({
-                reportID: oldReportID,
-                amount: 100,
-            });
-
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: oldReportID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
-                actorAccountID: CURRENT_USER_ID,
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {...baseNewReport});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            await waitForBatchedUpdates();
-
-            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
-            await waitForBatchedUpdates();
-
-            expect(mockAPIWrite).toHaveBeenCalled();
-
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: unknown}>})?.optimisticData;
-
-            // Verify next step is updated for old report (source)
-            const oldReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${oldReportID}`);
-            expect(oldReportNextStep).toBeDefined();
-
-            // Verify next step is updated for new report (destination)
-            const newReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
-            expect(newReportNextStep).toBeDefined();
-
-            mockAPIWrite.mockRestore();
-        });
-
-        it('should maintain submit message when removing expense from multi-expense report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const oldReportID = '101';
-            const oldReport = createExpenseReportForTest(oldReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 300,
-            });
-
-            const transaction1 = generateTransaction({
-                reportID: oldReportID,
-                amount: 100,
-            });
-
-            const transaction2 = generateTransaction({
-                reportID: oldReportID,
-                amount: 200,
-            });
-
-            const oldIOUAction1 = createIOUReportActionForTest({
-                reportID: oldReportID,
-                transactionID: transaction1.transactionID,
-                amount: transaction1.amount,
-                currency: transaction1.currency,
-                actorAccountID: CURRENT_USER_ID,
-            });
-
-            const oldIOUAction2 = createIOUReportActionForTest({
-                reportID: oldReportID,
-                transactionID: transaction2.transactionID,
-                amount: transaction2.amount,
-                currency: transaction2.currency,
-                actorAccountID: CURRENT_USER_ID,
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`, oldReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {...baseNewReport});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, {
-                [oldIOUAction1.reportActionID]: oldIOUAction1,
-                [oldIOUAction2.reportActionID]: oldIOUAction2,
-            });
-            await waitForBatchedUpdates();
-
-            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
-            // Move only one transaction, leaving the other in the old report
-            changeTransactionsReport([transaction1.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
-            await waitForBatchedUpdates();
-
-            expect(mockAPIWrite).toHaveBeenCalled();
-
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: unknown}>})?.optimisticData;
-
-            // Verify next step is still present for old report (should still have submit message)
-            const oldReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${oldReportID}`);
-            expect(oldReportNextStep).toBeDefined();
-
-            // Verify next step is updated for new report
-            const newReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
-            expect(newReportNextStep).toBeDefined();
-
-            mockAPIWrite.mockRestore();
-        });
-
-        it('should update next steps for both source and destination reports', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const sourceReportID = '102';
-            const destinationReportID = '103';
-
-            const sourceReport = createExpenseReportForTest(sourceReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 150,
-            });
-
-            const destinationReport = createExpenseReportForTest(destinationReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 250,
-            });
-
-            const transaction = generateTransaction({
-                reportID: sourceReportID,
-                amount: 150,
-            });
-
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: sourceReportID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
-                actorAccountID: CURRENT_USER_ID,
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            await waitForBatchedUpdates();
-
-            const report = await getReportFromUseOnyx(destinationReportID);
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, emptyNextStepsCollection);
-            await waitForBatchedUpdates();
-
-            expect(mockAPIWrite).toHaveBeenCalled();
-
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: unknown}>})?.optimisticData;
-
-            // Verify next step is updated for source report
-            const sourceReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`);
-            expect(sourceReportNextStep).toBeDefined();
-            expect(sourceReportNextStep?.value).toBeDefined();
-
-            // Verify next step is updated for destination report
-            const destinationReportNextStep = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`);
-            expect(destinationReportNextStep).toBeDefined();
-            expect(destinationReportNextStep?.value).toBeDefined();
-
-            // Verify that failure data restores both reports to their previous next step values
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
-            const destinationReportNextStepFailure = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`);
-            const sourceReportNextStepFailure = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`);
-
-            expect(destinationReportNextStepFailure).toBeDefined();
-            expect(destinationReportNextStepFailure?.value).toBeNull();
-            expect(sourceReportNextStepFailure).toBeDefined();
-            expect(sourceReportNextStepFailure?.value).toBeNull();
-
-            mockAPIWrite.mockRestore();
-        });
-
-        it('should revert next steps for all affected reports when the request fails', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const sourceReportID = '200';
-            const destinationReportID = '201';
-
-            const sourceReport = createExpenseReportForTest(sourceReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 500,
-            });
-
-            const destinationReport = createExpenseReportForTest(destinationReportID, {
-                ownerAccountID: CURRENT_USER_ID,
-                total: 0,
-            });
-
-            const sourceNextStep = {
-                type: 'neutral' as const,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Submit expenses for approval'}],
-            };
-
-            const destinationNextStep = {
-                type: 'neutral' as const,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Waiting for new expenses'}],
-            };
-
-            const transaction = generateTransaction({
-                reportID: sourceReportID,
-                amount: 500,
-            });
-
-            const oldIOUAction = createIOUReportActionForTest({
-                reportID: sourceReportID,
-                transactionID: transaction.transactionID,
-                amount: transaction.amount,
-                currency: transaction.currency,
-                actorAccountID: CURRENT_USER_ID,
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`, sourceNextStep);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`, destinationNextStep);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            await waitForBatchedUpdates();
-
-            const getNextStep = (reportID: string) =>
-                new Promise<OnyxEntry<ReportNextStep>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-                        callback: (value) => {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        },
-                    });
-                });
-
-            expect(await getNextStep(sourceReportID)).toEqual(sourceNextStep);
-            expect(await getNextStep(destinationReportID)).toEqual(destinationNextStep);
-
-            const nextStepsCollection = {
-                [`${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`]: sourceNextStep,
-                [`${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`]: destinationNextStep,
-            } satisfies OnyxCollection<ReportNextStep>;
-
-            const report = await getReportFromUseOnyx(destinationReportID);
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, destinationNextStep, undefined, nextStepsCollection);
-            await waitForBatchedUpdates();
-
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const {optimisticData = [], failureData = []} = (apiWriteCall?.[2] as {optimisticData?: OnyxUpdate[]; failureData?: OnyxUpdate[]}) ?? {};
-
-            const optimisticSourceNextStepUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`);
-            const optimisticDestinationNextStepUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`);
-
-            expect(optimisticSourceNextStepUpdate).toBeDefined();
-            expect(optimisticDestinationNextStepUpdate).toBeDefined();
-
-            expect(failureData).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${sourceReportID}`, value: sourceNextStep}),
-                    expect.objectContaining({key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`, value: destinationNextStep}),
-                ]),
-            );
-
-            await Onyx.update(failureData);
-            await waitForBatchedUpdates();
-
-            expect(await getNextStep(sourceReportID)).toEqual(sourceNextStep);
-            expect(await getNextStep(destinationReportID)).toEqual(destinationNextStep);
-
-            mockAPIWrite.mockRestore();
         });
     });
 
