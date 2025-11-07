@@ -208,6 +208,9 @@ type SelectionListHandle = {
 
     /** Scrolls to the item at the specified index */
     scrollToIndex: (index: number) => void;
+
+    /** Updates the focused index and optionally scrolls to it */
+    updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {

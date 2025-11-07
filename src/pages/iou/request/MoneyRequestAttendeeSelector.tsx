@@ -70,6 +70,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList({
@@ -96,6 +97,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             attendees,
             recentAttendees: recentAttendees ?? [],
             draftComments: draftComments ?? {},
+            nvpDismissedProductTraining,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
             includeP2P: true,
             includeInvoiceRooms: false,
@@ -121,11 +123,12 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         attendees,
         recentAttendees,
         draftComments,
+        nvpDismissedProductTraining,
         iouType,
         action,
+        countryCode,
         isPaidGroupPolicy,
         searchTerm,
-        countryCode,
     ]);
 
     const chatOptions = useMemo(() => {
