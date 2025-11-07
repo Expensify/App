@@ -78,7 +78,7 @@ function ChooseTransferAccountPage() {
                     </View>
                 ) : null,
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccountID?.toString() ?? `${bankAccountNumber}-${index}`,
+                keyForList: `${bankAccountID}-${index}`,
                 isSelected: bankAccountID?.toString() === selectedAccountID,
                 bankAccount,
             };
