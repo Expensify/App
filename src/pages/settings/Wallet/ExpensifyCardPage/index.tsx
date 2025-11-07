@@ -1,6 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
@@ -58,7 +58,7 @@ type LimitTypeTranslationKeys = {
  * before revealing their card details (for UK/EU cards only).
  */
 function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard =  card?.nameValuePairs?.feedCountry === 'GB';
+    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === 'GB';
     const hasMissingDetails =
         !privatePersonalDetails?.legalFirstName ||
         !privatePersonalDetails?.legalLastName ||

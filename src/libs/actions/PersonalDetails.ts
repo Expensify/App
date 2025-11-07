@@ -593,7 +593,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.CARD_LIST,
                 value: {[cardID]: {errors: null}},
-            }
+            },
         ];
 
         const failureData: OnyxUpdate[] = [
