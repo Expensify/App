@@ -1,58 +1,71 @@
 import 'core-js/proposals/promise-with-resolvers';
-// eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
-import React, {useMemo, useState} from 'react';
+import React, {Suspense, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import ensurePdfJsInitialized from './pdfSetup';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-}
+const Document = React.lazy(() => import(/* webpackPreload: true */ 'react-pdf').then((m) => ({default: m.Document})));
+
+const Thumbnail = React.lazy(() => import(/* webpackPreload: true */ 'react-pdf').then((m) => ({default: m.Thumbnail})));
 
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        ensurePdfJsInitialized().then(() => {
+            setReady(true);
+        });
+    }, []);
 
     const thumbnail = useMemo(
         () => (
-            <Document
-                loading={<FullScreenLoadingIndicator />}
-                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
-                options={{
-                    cMapUrl: 'cmaps/',
-                    cMapPacked: true,
-                }}
-                externalLinkTarget="_blank"
-                onPassword={onPassword}
-                onLoad={() => {
-                    setFailedToLoad(false);
-                }}
-                onLoadSuccess={() => {
-                    if (!onLoadSuccess) {
-                        return;
-                    }
-                    onLoadSuccess();
-                }}
-                onLoadError={() => {
-                    if (onLoadError) {
-                        onLoadError();
-                    }
-                    setFailedToLoad(true);
-                }}
-                error={() => null}
-            >
-                <View pointerEvents="none">
-                    <Thumbnail pageIndex={0} />
-                </View>
-            </Document>
+            <Suspense fallback={null}>
+                <Document
+                    loading={<FullScreenLoadingIndicator />}
+                    file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
+                    options={{
+                        cMapUrl: 'cmaps/',
+                        cMapPacked: true,
+                    }}
+                    externalLinkTarget="_blank"
+                    onPassword={onPassword}
+                    onLoad={() => {
+                        setFailedToLoad(false);
+                    }}
+                    onLoadSuccess={() => {
+                        if (!onLoadSuccess) {
+                            return;
+                        }
+                        onLoadSuccess();
+                    }}
+                    onLoadError={() => {
+                        if (onLoadError) {
+                            onLoadError();
+                        }
+                        setFailedToLoad(true);
+                    }}
+                    error={() => null}
+                >
+                    <View pointerEvents="none">
+                        <Suspense fallback={null}>
+                            <Thumbnail pageIndex={0} />
+                        </Suspense>
+                    </View>
+                </Document>
+            </Suspense>
         ),
         [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
+
+    if (!ready) {
+        return null;
+    }
 
     return (
         <View style={[style, styles.overflowHidden, failedToLoad && styles.h100]}>

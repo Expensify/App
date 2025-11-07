@@ -392,6 +392,11 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         name: 'reactFastPdf',
                         chunks: 'all',
                     },
+                    reactPdf: {
+                        test: /[\\/]node_modules[\\/](react-pdf)[\\/]/,
+                        name: 'reactPdf',
+                        chunks: 'all',
+                    },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {
                         test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]expensify-icons\.chunk\.ts$/,
