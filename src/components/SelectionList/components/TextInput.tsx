@@ -63,14 +63,14 @@ function TextInput({
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const headerMessage = options?.headerMessage;
+    const {label, value, onChangeText, errorText, headerMessage, hint, placeholder, maxLength, inputMode} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
 
     const handleTextInputChange = useCallback(
         (text: string) => {
-            options?.onChangeText?.(text);
+            onChangeText?.(text);
 
             if (text === '') {
                 setFocusedIndex(-1);
@@ -78,7 +78,7 @@ function TextInput({
                 setFocusedIndex(0);
             }
         },
-        [options, setFocusedIndex],
+        [onChangeText, setFocusedIndex],
     );
 
     if (!shouldShowTextInput) {
@@ -92,22 +92,22 @@ function TextInput({
                     onKeyPress={onKeyPress}
                     onFocus={() => onFocusChange?.(true)}
                     onBlur={() => onFocusChange?.(false)}
-                    label={options?.label}
+                    label={label}
                     accessibilityLabel={accessibilityLabel}
-                    hint={options?.hint}
+                    hint={hint}
                     role={CONST.ROLE.PRESENTATION}
-                    value={options?.value}
-                    placeholder={options?.placeholder}
-                    maxLength={options?.maxLength}
+                    value={value}
+                    placeholder={placeholder}
+                    maxLength={maxLength}
                     onChangeText={handleTextInputChange}
-                    inputMode={options?.inputMode}
+                    inputMode={inputMode}
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}
                     submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoading}
                     testID="selection-list-text-input"
-                    errorText={options?.errorText}
+                    errorText={errorText}
                     shouldInterceptSwipe={false}
                 />
             </View>
