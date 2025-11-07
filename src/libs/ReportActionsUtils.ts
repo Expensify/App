@@ -842,6 +842,7 @@ function isActionableWhisper(
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+// eslint-disable-next-line unicorn/prefer-set-has
 const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
 /**
@@ -1084,14 +1085,7 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    // The free trial message can be duplicated due to this change https://github.com/Expensify/App/pull/68630 without the backend change
-    // So we need to filter out the duplicate free trial message
-    const freeTrialMessages = actions.filter((action) => {
-        const html = getReportActionHtml(action);
-        return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
-    });
-    const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
-    return actions.filter(isVisiblePreviewOrMoneyRequest).filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
+    return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
 /**
