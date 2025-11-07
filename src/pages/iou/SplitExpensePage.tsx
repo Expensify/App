@@ -262,11 +262,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 return `${text}${getTranslatedText(currentKey)}`;
             }, '');
 
+            const splitAmount = Number(item.amount);
             return {
                 ...item,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+                amount: splitAmount,
                 merchant: item?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -275,7 +276,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
-            };
+            } as SplitListItemType;
         });
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
