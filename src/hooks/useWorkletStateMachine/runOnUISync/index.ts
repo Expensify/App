@@ -1,7 +1,4 @@
-// runOnUISync crashes on web not because browsers lack a UI thread concept,
-// but because this specific function attempts to use direct, synchronous thread communication
-// methods that don't exist in browsers
-// scheduleOnUI works on web because it's designed with proper cross-platform compatibility
+// runOnUISync isn't supported in web by react-native-worklets, so we use the async alternative on web.
 import {scheduleOnUI} from 'react-native-worklets';
 
 export default scheduleOnUI;
