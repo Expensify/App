@@ -157,7 +157,7 @@ const expenseReportHeaders: SearchColumnConfig[] = [
         translationKey: 'common.to',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
     },
     {
