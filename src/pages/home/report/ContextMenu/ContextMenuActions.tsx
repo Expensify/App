@@ -51,8 +51,8 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportActionMessageText,
-    getSetAutoJoinMessage,
     getRoomAvatarUpdatedMessage,
+    getSetAutoJoinMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -62,6 +62,7 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
+    getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -774,6 +775,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedDefaultTitleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
                     setClipboardMessage(getUpdatedAutoHarvestingMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION)) {
+                    setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {

@@ -100,6 +100,7 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
+    getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -1454,6 +1455,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedDefaultTitleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
             children = <ReportActionItemBasicMessage message={getUpdatedAutoHarvestingMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getUpdatedIndividualBudgetNotificationMessage(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP)) {
             children = (
                 <ReportActionItemBasicMessage message="">

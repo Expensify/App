@@ -625,6 +625,42 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old owner name */
     oldOwnerName?: string;
+
+    /** Budget amount */
+    budgetAmount?: string;
+
+    /** Budget frequency */
+    budgetFrequency?: string;
+
+    /** Budget name */
+    budgetName?: string;
+
+    /** Budget type for notification message */
+    budgetTypeForNotificationMessage?: string;
+
+    /** Is new DOT */
+    isNewDot?: boolean;
+
+    /** Summary link message */
+    summaryLinkMessage?: string;
+
+    /** Threshold percentage */
+    thresholdPercentage?: number;
+
+    /** Total spend */
+    totalSpend?: number;
+
+    /** Unsubmitted spend */
+    unsubmittedSpend?: number;
+
+    /** User email */
+    userEmail?: string;
+
+    /** Approved reimbursed closed spend */
+    approvedReimbursedClosedSpend?: number;
+
+    /** Awaiting approval spend */
+    awaitingApprovalSpend?: number;
 };
 
 /** Model of `join policy` report action */

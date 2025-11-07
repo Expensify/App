@@ -263,6 +263,7 @@ import type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
+    UpdatedPolicyIndividualBudgetNotificationParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -3666,6 +3667,10 @@ const translations = {
                 monthly: 'monthly',
                 yearly: 'yearly',
             },
+            budgetFrequencyUnit: {
+                monthly: 'month',
+                yearly: 'year',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
@@ -6226,6 +6231,21 @@ const translations = {
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `took over ownership of <strong>${policyName}</strong>'s Workspace from ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `turned Scheduled Submit ${enabled ? 'on' : 'off'}`,
+
+        updatedIndividualBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLinkMessage,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            userEmail,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyIndividualBudgetNotificationParams) =>
+            `Heads up! This workspace has a ${budgetAmount} per person per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. ${userEmail} is currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLinkMessage}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

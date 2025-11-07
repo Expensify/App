@@ -54,8 +54,8 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRetractedMessage,
-    getSetAutoJoinMessage,
     getRoomAvatarUpdatedMessage,
+    getSetAutoJoinMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -65,6 +65,7 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
+    getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -973,6 +974,8 @@ function getOptionData({
             result.alternateText = getUpdatedDefaultTitleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
             result.alternateText = getUpdatedAutoHarvestingMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
+            result.alternateText = getUpdatedIndividualBudgetNotificationMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

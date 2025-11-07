@@ -3349,6 +3349,53 @@ function getUpdatedAutoHarvestingMessage(reportAction: OnyxEntry<ReportAction>) 
     return getReportActionText(reportAction);
 }
 
+function getUpdatedIndividualBudgetNotificationMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {
+        approvedReimbursedClosedSpend,
+        awaitingApprovalSpend,
+        budgetAmount,
+        budgetFrequency,
+        budgetName,
+        budgetTypeForNotificationMessage,
+        summaryLinkMessage,
+        thresholdPercentage,
+        totalSpend,
+        unsubmittedSpend,
+        userEmail,
+    } = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION>) ?? {};
+
+    if (
+        !budgetAmount ||
+        !budgetFrequency ||
+        !budgetName ||
+        !budgetTypeForNotificationMessage ||
+        !summaryLinkMessage ||
+        !thresholdPercentage ||
+        !totalSpend ||
+        !unsubmittedSpend ||
+        !userEmail ||
+        !awaitingApprovalSpend ||
+        !approvedReimbursedClosedSpend
+    ) {
+        return getReportActionText(reportAction);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedIndividualBudgetNotification', {
+        budgetAmount,
+        budgetFrequency: translateLocal(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
+        budgetName,
+        budgetTypeForNotificationMessage,
+        summaryLinkMessage,
+        thresholdPercentage,
+        totalSpend,
+        unsubmittedSpend,
+        userEmail,
+        awaitingApprovalSpend,
+        approvedReimbursedClosedSpend,
+    });
+}
+
 function getUpdatedOwnershipMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
     const {oldOwnerEmail, oldOwnerName} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP>) ?? {};
 
@@ -3765,6 +3812,7 @@ export {
     getUpdatedOwnershipMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedAutoHarvestingMessage,
+    getUpdatedIndividualBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
