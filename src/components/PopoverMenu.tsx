@@ -452,7 +452,7 @@ function BasePopoverMenu({
     useLayoutEffect(() => {
         // We add a check here using JSON.stringify, because elements may contain fields that are functions (functions or components)
         // which, when compared using deepEqual, will differ even though they are actually the same and have not changed
-        if (menuItems.length === 0 || JSON.stringify(menuItems) === JSON.stringify(prevMenuItems)) {
+        if (menuItems.length === 0 || deepEqual(menuItems, prevMenuItems)) {
             return;
         }
 
