@@ -68,13 +68,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
-            source: currentAttachment?.content,
+            source: fileSource,
             headerTitle: validateFileName,
             originalFileName: validateFileName,
             fallbackSource: FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, currentAttachment?.content, validateFileName]);
+    }, [reportAttachmentsContext, fileSource, validateFileName]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
