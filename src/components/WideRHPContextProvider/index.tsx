@@ -22,6 +22,7 @@ import type {WideRHPContextType} from './types';
 
 // 0 is folded/hidden, 1 is expanded/shown
 const expandedRHPProgress = new Animated.Value(0);
+const innerRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
@@ -336,10 +337,16 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useEffect(() => {
         if (superWideRHPRouteKeys.length > 0) {
             expandedRHPProgress.setValue(2);
+            if (wideRHPRouteKeys.length > 0) {
+                innerRHPProgress.setValue(1);
+            } else {
+                innerRHPProgress.setValue(0);
+            }
         } else if (wideRHPRouteKeys.length > 0) {
             expandedRHPProgress.setValue(1);
         } else {
             expandedRHPProgress.setValue(0);
+            innerRHPProgress.setValue(0);
         }
     }, [superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
 
@@ -540,4 +547,5 @@ export {
     useShowWideRHPVersion,
     WideRHPContext,
     wideRHPWidth,
+    innerRHPProgress,
 };

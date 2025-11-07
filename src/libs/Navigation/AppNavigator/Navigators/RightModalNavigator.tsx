@@ -1,18 +1,21 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, innerRHPProgress, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -30,11 +33,12 @@ const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
+    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
@@ -249,6 +253,21 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             component={ModalStackNavigators.SearchReportModalStackNavigator}
+                            options={{
+                                presentation: Presentation.TRANSPARENT_MODAL,
+                                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
+                                    // Add 1 to change range from [0, 1] to [1, 2]
+                                    // Don't use outputMultiplier for the narrow layout
+                                    modalCardStyleInterpolator({
+                                        props,
+                                        shouldAnimateSidePanel: true,
+
+                                        // Adjust output range to match the wide RHP size
+                                        outputRangeMultiplier: isSmallScreenWidth
+                                            ? undefined
+                                            : Animated.add(Animated.multiply(innerRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
+                                    }),
+                            }}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}

@@ -4,7 +4,7 @@ import {useContext} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {calculateSuperWideRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,7 +72,7 @@ const useRootNavigatorScreenOptions = () => {
                                       Animated.multiply(Animated.subtract(1, abs(Animated.subtract(1, expandedRHPProgress))), variables.receiptPaneRHPMaxWidth / variables.sideBarWidth),
                                       Animated.multiply(
                                           expandedRHPProgress.interpolate({inputRange: [1, 2], outputRange: [0, 1], extrapolate: 'clamp'}),
-                                          (windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth - variables.sideBarWidth) / variables.sideBarWidth,
+                                          (calculateSuperWideRHPWidth(windowWidth) - variables.sideBarWidth) / variables.sideBarWidth,
                                       ),
                                   ),
                                   1,
