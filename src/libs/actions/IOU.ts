@@ -9013,6 +9013,7 @@ function deleteMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
+                reportID: null,
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
