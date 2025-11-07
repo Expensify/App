@@ -3,7 +3,7 @@
  * Provides implementations for getRandomValues and SHA-512 hashing.
  * @see https://github.com/paulmillr/noble-ed25519?tab=readme-ov-file#react-native-polyfill-getrandomvalues-and-sha512
  */
-import * as ed from '@noble/ed25519';
+import {verify, keygen, sign, etc, hashes} from '@noble/ed25519';
 import type {Bytes} from '@noble/ed25519';
 import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
@@ -12,8 +12,10 @@ import 'react-native-get-random-values';
 import type {Base64URL, BinaryData, ChallengeFlag, MFAChallenge, SignedChallenge} from './ED25519.types';
 import VALUES from './VALUES';
 
-ed.hashes.sha512 = sha512;
-ed.hashes.sha512Async = (m: Uint8Array) => Promise.resolve(sha512(m));
+hashes.sha512 = sha512;
+hashes.sha512Async = (m: Uint8Array) => Promise.resolve(sha512(m));
+
+const {hexToBytes, concatBytes, bytesToHex, randomBytes} = etc;
 
 /** RN polyfill for base64url encoding */
 const base64URL = <T>(value: string): Base64URL<T> => {
@@ -25,11 +27,11 @@ const base64URL = <T>(value: string): Base64URL<T> => {
  * Returns both private and public keys encoded as hexadecimal strings.
  */
 function generateKeyPair() {
-    const {secretKey, publicKey} = ed.keygen();
+    const {secretKey, publicKey} = keygen();
 
     return {
-        privateKey: ed.etc.bytesToHex(secretKey),
-        publicKey: ed.etc.bytesToHex(publicKey),
+        privateKey: bytesToHex(secretKey),
+        publicKey: bytesToHex(publicKey),
     };
 }
 
@@ -59,7 +61,7 @@ const createBinaryData = (rpId: string): Bytes => {
     view.setUint32(0, signCount, false); // writing the signCount as a big-endian 32-bit integer
     const signCountArray = new Uint8Array(buffer);
 
-    return ed.etc.concatBytes(RPID, flagsArray, signCountArray);
+    return concatBytes(RPID, flagsArray, signCountArray);
 };
 
 /**
@@ -72,15 +74,15 @@ const signToken = (accountID: number, token: MFAChallenge, key: string): SignedC
     const type = VALUES.ED25519_TYPE;
 
     const binaryData = createBinaryData(token.rpId);
-    const authenticatorData: Base64URL<BinaryData> = base64URL(ed.etc.bytesToHex(binaryData));
+    const authenticatorData: Base64URL<BinaryData> = base64URL(bytesToHex(binaryData));
 
     const tokenBytes = utf8ToBytes(JSON.stringify(token));
 
-    const message = ed.etc.concatBytes(binaryData, sha256(tokenBytes));
-    const keyInBytes = ed.etc.hexToBytes(key);
+    const message = concatBytes(binaryData, sha256(tokenBytes));
+    const keyInBytes = hexToBytes(key);
 
-    const signatureRaw = ed.sign(message, keyInBytes);
-    const signature: Base64URL<string> = base64URL(ed.etc.bytesToHex(signatureRaw));
+    const signatureRaw = sign(message, keyInBytes);
+    const signature: Base64URL<string> = base64URL(bytesToHex(signatureRaw));
 
     return {
         rawId,
@@ -93,4 +95,4 @@ const signToken = (accountID: number, token: MFAChallenge, key: string): SignedC
     };
 };
 
-export {generateKeyPair, signToken, createBinaryData as __doNotUseCreateBinaryData};
+export {generateKeyPair, signToken, createBinaryData, hexToBytes, concatBytes, sha256, utf8ToBytes, verify, bytesToHex, randomBytes};

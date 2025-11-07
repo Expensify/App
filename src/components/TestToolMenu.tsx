@@ -32,15 +32,13 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {setup} = useNativeBiometrics();
 
-    const transactionID = '5053749577858718685'; // TODO: delete - here only for testing purposes
-
     useEffect(() => MFA.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID));
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST);
         }),
     );
 

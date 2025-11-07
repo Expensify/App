@@ -1,5 +1,5 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -30,9 +30,11 @@ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -57,6 +59,7 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
+    displayTestMFAButton = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -198,6 +201,16 @@ function TransactionPreviewContent({
         action,
         actorAccountID,
     ]);
+
+    const navigateToMFA = useCallback(() => {
+        const {transactionID} = transaction ?? {};
+
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID));
+    }, [transaction]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
@@ -378,6 +391,14 @@ function TransactionPreviewContent({
                             success
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
+                        />
+                    )}
+                    {displayTestMFAButton && (
+                        <Button
+                            text={translate('iou.approve', {formattedAmount: '(MFA test)'})}
+                            success
+                            style={[styles.ph4, styles.pb4]}
+                            onPress={navigateToMFA}
                         />
                     )}
                 </View>

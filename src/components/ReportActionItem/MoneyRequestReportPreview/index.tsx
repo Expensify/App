@@ -111,6 +111,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
+            displayTestMFAButton
             allReports={allReports}
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}

@@ -11,6 +11,8 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
+    displayTestMFAButton?: boolean;
+
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
@@ -75,6 +77,8 @@ type TransactionPreviewProps = {
 };
 
 type TransactionPreviewContentProps = {
+    displayTestMFAButton?: boolean;
+
     /** Handles the UI response and data clean-up when the transaction goes offline. */
     offlineWithFeedbackOnClose: () => void;
 
