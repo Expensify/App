@@ -53,7 +53,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -65,13 +65,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 personalDetails: options.personalDetails,
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports, countryCode]);
+    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

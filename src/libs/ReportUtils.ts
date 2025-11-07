@@ -925,6 +925,12 @@ type GetReportNameParams = {
     isReportArchived?: boolean;
 };
 
+type GetReportStatusParams = {
+    stateNum?: number;
+    statusNum?: number;
+    translate: LocaleContextProps['translate'];
+};
+
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
 
 let currentUserEmail: string | undefined;
@@ -1171,23 +1177,6 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let unavailableTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
-    },
-});
-
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1331,7 +1320,8 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
  * Get the policy name from a given report
  */
 function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const noPolicyFound: string = returnEmptyIfNotFound ? '' : translateLocal('workspace.common.unavailable');
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
@@ -3116,8 +3106,9 @@ function getDisplayNameForParticipant({
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return formatPhoneNumber(longName);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    if (shouldFallbackToHidden && longName === translateLocal('common.hidden')) {
+        return longName;
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
@@ -12340,34 +12331,29 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation(stateNum?: number, statusNum?: number): string {
+function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('common.draft');
+        return translate('common.draft');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('common.outstanding');
+        return translate('common.outstanding');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('common.done');
+        return translate('common.done');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.approved');
+        return translate('iou.approved');
     }
     if (
         (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
         (stateNum === CONST.REPORT.STATE_NUM.BILLING && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
         (stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
     ) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.settledExpensify');
+        return translate('iou.settledExpensify');
     }
 
     return '';
