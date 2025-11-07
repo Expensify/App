@@ -99,6 +99,7 @@ function TagPicker({
             });
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const selectedNames = selectedOptions.map((s) => s.name);
 
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
