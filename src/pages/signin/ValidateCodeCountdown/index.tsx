@@ -15,11 +15,11 @@ const ValidateCodeCountdown = forwardRef<ValidateCodeCountdownHandle, ValidateCo
 
     const {translate} = useLocalize();
 
-    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
+    const [timeRemaining, setTimeRemaining] = useState<number>(CONST.REQUEST_CODE_DELAY);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(ref, () => ({
-        resetCountdown: () => setTimeRemaining(CONST.REQUEST_CODE_DELAY as number),
+        resetCountdown: () => setTimeRemaining(CONST.REQUEST_CODE_DELAY),
     }));
 
     useEffect(() => {
