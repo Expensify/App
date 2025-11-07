@@ -1,10 +1,11 @@
-import {differenceInDays, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import type {SubscriptionType} from '@src/CONST';
@@ -13,8 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -63,24 +62,10 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let billingDisputePending: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
-    callback: (value) => (billingDisputePending = value),
-});
-
 let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     callback: (value) => (billingStatus = value),
-});
-
-let hasManualTeam2025Pricing: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
-    callback: (value) => {
-        hasManualTeam2025Pricing = value;
-    },
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -185,7 +170,7 @@ function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>
 /**
  * @returns Whether there is a billing dispute pending.
  */
-function hasBillingDisputePending() {
+function hasBillingDisputePending(billingDisputePending: number | undefined) {
     return !!billingDisputePending;
 }
 
@@ -319,7 +304,11 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): SubscriptionStatus | undefined {
+function getSubscriptionStatus(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -356,7 +345,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, re
         }
     }
     // 5. Billing disputed by cardholder
-    if (hasBillingDisputePending()) {
+    if (hasBillingDisputePending(billingDisputePending)) {
         return {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
             isError: true,
@@ -416,15 +405,15 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>, re
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful)?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError === false;
 }
 
 /**
@@ -447,19 +436,22 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): string | undefined {
+function getFreeTrialText(
+    translate: LocalizedTranslate,
+    policies: OnyxCollection<Policy> | null,
+    introSelected: OnyxEntry<IntroSelected>,
+    firstDayFreeTrial: string | undefined,
+): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
     if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.preTrial.title');
+        return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
 
     return undefined;
@@ -546,29 +538,15 @@ function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): b
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
-function checkIfHasTeam2025Pricing(firstPolicyDate: string | undefined) {
-    if (hasManualTeam2025Pricing) {
-        return true;
-    }
-
-    if (!firstPolicyDate) {
-        return true;
-    }
-
-    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
-}
-
 function getSubscriptionPrice(
     plan: PersonalPolicyTypeExcludedProps | null,
     preferredCurrency: PreferredCurrency,
     privateSubscriptionType: SubscriptionType | undefined,
-    firstPolicyDate: string | undefined,
+    hasTeam2025Pricing: boolean,
 ): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
-
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
@@ -578,91 +556,65 @@ function getSubscriptionPrice(
 }
 
 function getSubscriptionPlanInfo(
+    translate: LocalizedTranslate,
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
-    firstPolicyDate: string | undefined,
+    hasTeam2025Pricing: boolean,
 ): SubscriptionPlanInfo {
-    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, firstPolicyDate);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing(firstPolicyDate);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let subtitle = translateLocal('subscription.yourPlan.customPricing');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
+        let subtitle = translate('subscription.yourPlan.customPricing');
+        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {price});
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                note = translateLocal('subscription.yourPlan.perMemberMonth');
+                note = translate('subscription.yourPlan.perMemberMonth');
             } else {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
+                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {price});
                 note = undefined;
             }
         }
 
         return {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('subscription.yourPlan.collect.title'),
+            title: translate('subscription.yourPlan.collect.title'),
             subtitle,
             note,
             benefits: [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit1'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit2'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit3'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit4'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit5'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit6'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit7'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit8'),
+                translate('subscription.yourPlan.collect.benefit1'),
+                translate('subscription.yourPlan.collect.benefit2'),
+                translate('subscription.yourPlan.collect.benefit3'),
+                translate('subscription.yourPlan.collect.benefit4'),
+                translate('subscription.yourPlan.collect.benefit5'),
+                translate('subscription.yourPlan.collect.benefit6'),
+                translate('subscription.yourPlan.collect.benefit7'),
+                translate('subscription.yourPlan.collect.benefit8'),
             ],
             src: Illustrations.Mailbox,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description: translateLocal('subscription.yourPlan.collect.description'),
+            description: translate('subscription.yourPlan.collect.description'),
         };
     }
 
     return {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('subscription.yourPlan.control.title'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        subtitle: translateLocal('subscription.yourPlan.customPricing'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        note: translateLocal('subscription.yourPlan.asLowAs', {price}),
+        title: translate('subscription.yourPlan.control.title'),
+        subtitle: translate('subscription.yourPlan.customPricing'),
+        note: translate('subscription.yourPlan.asLowAs', {price}),
         benefits: [
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit1'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit2'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit3'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit4'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit5'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit6'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit7'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit8'),
+            translate('subscription.yourPlan.control.benefit1'),
+            translate('subscription.yourPlan.control.benefit2'),
+            translate('subscription.yourPlan.control.benefit3'),
+            translate('subscription.yourPlan.control.benefit4'),
+            translate('subscription.yourPlan.control.benefit5'),
+            translate('subscription.yourPlan.control.benefit6'),
+            translate('subscription.yourPlan.control.benefit7'),
+            translate('subscription.yourPlan.control.benefit8'),
         ],
         src: Illustrations.ShieldYellow,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        description: translateLocal('subscription.yourPlan.control.description'),
+        description: translate('subscription.yourPlan.control.description'),
     };
 }
 
@@ -688,5 +640,4 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
-    checkIfHasTeam2025Pricing,
 };

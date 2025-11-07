@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Log from '@libs/Log';
 import type {Options} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
@@ -180,6 +181,7 @@ function SearchAutocompleteList({
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const taxRates = getAllTaxRates();
@@ -192,6 +194,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             options,
             draftComments,
+            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
@@ -203,7 +206,7 @@ function SearchAutocompleteList({
             countryCode,
             shouldShowGBR: false,
         });
-    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -328,6 +331,7 @@ function SearchAutocompleteList({
             }
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const alreadyAutocompletedKeys = ranges
             .filter((range) => {
                 return autocompleteKey && range.key === autocompleteKey;
@@ -358,10 +362,13 @@ function SearchAutocompleteList({
                     .sort()
                     .slice(0, 10);
 
-                return filteredCategories.map((categoryName) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY,
-                    text: categoryName,
-                }));
+                return filteredCategories.map((categoryName) => {
+                    const decodedCategoryName = getDecodedCategoryName(categoryName);
+                    return {
+                        filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY,
+                        text: decodedCategoryName,
+                    };
+                });
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
@@ -399,6 +406,7 @@ function SearchAutocompleteList({
                 const participants = getSearchOptions({
                     options,
                     draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -422,6 +430,7 @@ function SearchAutocompleteList({
                 const filteredReports = getSearchOptions({
                     options,
                     draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -590,6 +599,7 @@ function SearchAutocompleteList({
         taxAutocompleteList,
         options,
         draftComments,
+        nvpDismissedProductTraining,
         betas,
         countryCode,
         currentUserLogin,
@@ -602,8 +612,8 @@ function SearchAutocompleteList({
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        isAutocompleteList,
         hasAutocompleteList,
+        isAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -801,7 +811,14 @@ function SearchAutocompleteList({
                 const keyIndex = autocompleteQueryValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
 
                 if (keyIndex !== -1) {
-                    trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
+                    const afterFieldKey = autocompleteQueryValue.substring(keyIndex + fieldPattern.length);
+                    const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+                    if (lastCommaIndex !== -1) {
+                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+                    } else {
+                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
+                    }
                 } else {
                     trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
                 }
