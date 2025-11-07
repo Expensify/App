@@ -432,7 +432,7 @@ type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
 
 type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
 
-type UpdatedPolicyIndividualBudgetNotificationParams = {
+type UpdatedPolicyBudgetNotificationParams = {
     budgetAmount: string;
     budgetFrequency: string;
     budgetName: string;
@@ -441,7 +441,7 @@ type UpdatedPolicyIndividualBudgetNotificationParams = {
     thresholdPercentage: number;
     totalSpend: number;
     unsubmittedSpend: number;
-    userEmail: string;
+    userEmail?: string;
     awaitingApprovalSpend: number;
     approvedReimbursedClosedSpend: number;
 };
@@ -1347,7 +1347,7 @@ export type {
     FocusModeUpdateParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyAutoHarvestingParams,
-    UpdatedPolicyIndividualBudgetNotificationParams,
+    UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyDefaultTitleParams,
     UpdatedPolicySetAutoJoinParams,

@@ -245,6 +245,7 @@ import type {
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
@@ -263,7 +264,6 @@ import type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
-    UpdatedPolicyIndividualBudgetNotificationParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6248,8 +6248,21 @@ const translations = {
             userEmail,
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
-        }: UpdatedPolicyIndividualBudgetNotificationParams) =>
+        }: UpdatedPolicyBudgetNotificationParams) =>
             `Heads up! This workspace has a ${budgetAmount} per person per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. ${userEmail} is currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Here is a report</a> with all those expenses for your records!` : ''}`,
+        updatedSharedBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyBudgetNotificationParams) =>
+            `Heads up! This workspace has a ${budgetAmount} per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. You are currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Here is a report</a> with all those expenses for your records!` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

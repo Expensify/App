@@ -3418,6 +3418,52 @@ function getUpdatedIndividualBudgetNotificationMessage(reportAction: OnyxEntry<R
     });
 }
 
+function getUpdatedSharedBudgetNotificationMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {
+        approvedReimbursedClosedSpend,
+        awaitingApprovalSpend,
+        budgetAmount,
+        budgetFrequency,
+        budgetName,
+        budgetTypeForNotificationMessage,
+        thresholdPercentage,
+        totalSpend,
+        unsubmittedSpend,
+        summaryLinkMessage,
+    } = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION>) ?? {};
+
+    if (
+        !budgetAmount ||
+        !budgetFrequency ||
+        !budgetName ||
+        !budgetTypeForNotificationMessage ||
+        !summaryLinkMessage ||
+        !thresholdPercentage ||
+        !totalSpend ||
+        !unsubmittedSpend ||
+        !awaitingApprovalSpend ||
+        !approvedReimbursedClosedSpend
+    ) {
+        return getReportActionText(reportAction);
+    }
+
+    const summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedSharedBudgetNotification', {
+        budgetAmount,
+        budgetFrequency: translateLocal(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
+        budgetName,
+        budgetTypeForNotificationMessage: translateLocal(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
+        summaryLink,
+        thresholdPercentage,
+        totalSpend,
+        unsubmittedSpend,
+        awaitingApprovalSpend,
+        approvedReimbursedClosedSpend,
+    });
+}
+
 function getUpdatedOwnershipMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
     const {oldOwnerEmail, oldOwnerName} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP>) ?? {};
 
@@ -3836,6 +3882,7 @@ export {
     getUpdatedDefaultTitleMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedIndividualBudgetNotificationMessage,
+    getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
