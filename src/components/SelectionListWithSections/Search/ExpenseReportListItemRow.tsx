@@ -178,7 +178,7 @@ function ExpenseReportListItemRow({
                         />
                     )}
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                     <TotalCell
                         total={total}
                         currency={currency}
