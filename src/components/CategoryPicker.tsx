@@ -60,6 +60,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             categories,
             localeCompare,
             recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+            translate,
         });
 
         const categoryData = categoryOptions?.at(0)?.data ?? [];
@@ -69,7 +70,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft, localeCompare]);
+    }, [policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, localeCompare, translate]);
 
     const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
 
