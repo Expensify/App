@@ -50,7 +50,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
      * Show Report page with selected report id
      */
     const showReportPage = useCallback(
-        (option: Report) => {
+        (reportID: string) => {
             // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
@@ -61,14 +61,10 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
             // before the first one is displayed.
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
 
-            if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
-                shouldBlockReportNavigation
-            ) {
+            if ((reportID === Navigation.getTopmostReportId() && !reportActionID) || (shouldUseNarrowLayout && isActiveReport(reportID) && !reportActionID) || shouldBlockReportNavigation) {
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         },
         [shouldUseNarrowLayout, isActiveReport],
     );
