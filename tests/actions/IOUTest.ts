@@ -2903,7 +2903,7 @@ describe('actions/IOU', () => {
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                 },
                 searchContext: {
-                    currentSearchHash: 1,
+                    currentSearchHash: -2,
                 },
                 policyCategories: undefined,
                 policy: undefined,
