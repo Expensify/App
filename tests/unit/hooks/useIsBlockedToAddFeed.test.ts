@@ -232,7 +232,7 @@ describe('useIsBlockedToAddFeed', () => {
             },
             {status: 'loaded'},
         ]);
-        rerender('plaid.ins_19');
+        rerender({policyID: mockPolicyID});
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });
 });
