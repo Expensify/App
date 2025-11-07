@@ -220,7 +220,7 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with random expenses on each report', async () => {
         const policyID = '1';
-       
+
         // Link report to the policy
         const reports = Object.values(getMockedReports(1000)).map((report) => ({
             ...report,
@@ -240,7 +240,6 @@ describe('ReportUtils', () => {
                 requiresTag: false,
             },
             transactionsAndViolations: reports.reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report, reportIndex) => {
-                
                 // Random number of transactions between 2 and 8
                 const numOfTransactionsInReport = randomInt(2, 8);
 
