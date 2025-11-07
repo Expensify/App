@@ -132,7 +132,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/66821
 - PR introducing patch: https://github.com/Expensify/App/pull/69820
 
-### [react-native-web+0.20.0+013+fix-inverted-flatlist-scroll.patch](react-native-web+0.20.0+013+fix-inverted-flatlist-scroll.patch)
+### [react-native-web+0.21.2+012+fix-inverted-flatlist-scroll.patch](react-native-web+0.21.2+012+fix-inverted-flatlist-scroll.patch)
 
 - Reason:
   
