@@ -77,13 +77,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
-    beforeEach(() => {
-        jest.useFakeTimers();
-    });
-
     afterEach(async () => {
-        jest.useRealTimers();
-
         await act(async () => {
             await Onyx.clear();
         });
@@ -234,6 +228,14 @@ describe('ReportActionCompose Integration Tests', () => {
     });
 
     describe('Message validation', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
         it('should send when length is within the limit', async () => {
             renderReportActionCompose();
             const composer = screen.getByTestId('composer');
