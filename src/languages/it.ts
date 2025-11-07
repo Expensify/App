@@ -5505,7 +5505,6 @@ ${amount} per ${merchant} - ${date}`,
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Le tasse devono essere abilitate nello spazio di lavoro per utilizzare questa funzione. Vai su <a href="#">Più funzionalità</a> per apportare quella modifica. </muted-text>',
-            changePromptMessage: 'per apportare quella modifica.',
             deleteDistanceRate: 'Elimina tariffa distanza',
             areYouSureDelete: () => ({
                 one: 'Sei sicuro di voler eliminare questa tariffa?',
