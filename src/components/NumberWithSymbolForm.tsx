@@ -477,7 +477,7 @@ function NumberWithSymbolForm({
                         )}
                         {!!errorText && (
                             <FormHelpMessage
-                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb5 : styles.mb3, styles.ph5, styles.w100]}
                                 isError
                                 message={errorText}
                             />
@@ -488,31 +488,29 @@ function NumberWithSymbolForm({
                 textInputComponent
             )}
 
-            <View>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    {isSymbolPressable && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onSymbolButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-                    {allowFlippingAmount && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.PlusMinus}
-                            onPress={toggleNegative}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={translate('iou.flip')}
-                        />
-                    )}
-                </View>
+            <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
+                {isSymbolPressable && canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.DownArrow}
+                        onPress={onSymbolButtonPress}
+                        style={styles.minWidth18}
+                        isContentCentered
+                        text={currency}
+                    />
+                )}
+                {allowFlippingAmount && canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.PlusMinus}
+                        onPress={toggleNegative}
+                        style={styles.minWidth18}
+                        isContentCentered
+                        text={translate('iou.flip')}
+                    />
+                )}
             </View>
 
             {shouldShowBigNumberPad || !!footer ? (
