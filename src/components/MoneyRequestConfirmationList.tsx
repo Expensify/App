@@ -40,7 +40,7 @@ import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} fro
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -896,8 +896,7 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidTagLength');
                 return;
             }
-
-            if (transactionTag && policy?.areTagsEnabled && policyTags && !hasMatchingTag(policyTags, transactionTag)) {
+            if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
                 setFormError('violations.tagOutOfPolicy');
                 return;
             }
