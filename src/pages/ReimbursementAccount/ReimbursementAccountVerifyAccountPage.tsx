@@ -9,7 +9,12 @@ type ReimbursementAccountVerifyAccountPageProps = PlatformStackScreenProps<Setti
 
 function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVerifyAccountPageProps) {
     const {policyID, backTo} = route.params;
-    return <VerifyAccountPageBase navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo)} />;
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo)}
+            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo, 'CountryStep')}
+        />
+    );
 }
 
 ReimbursementAccountVerifyAccountPage.displayName = 'ReimbursementAccountVerifyAccountPage';

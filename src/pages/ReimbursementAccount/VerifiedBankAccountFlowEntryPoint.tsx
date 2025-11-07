@@ -51,17 +51,11 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Back to url passed from page */
     backTo?: string;
 
-    /** Goes to the previous step */
-    onBackButtonPress: () => void;
-
     /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
-
-    /** Should ValidateCodeActionModal be displayed or not */
-    isValidateCodeActionModalVisible?: boolean;
 
     /** Set step for non USD flow */
     setNonUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
@@ -79,12 +73,10 @@ function VerifiedBankAccountFlowEntryPoint({
     policyName = '',
     policyID = '',
     backTo = '',
-    onBackButtonPress,
     reimbursementAccount,
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
-    isValidateCodeActionModalVisible,
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
@@ -192,12 +184,12 @@ function VerifiedBankAccountFlowEntryPoint({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={VerifiedBankAccountFlowEntryPoint.displayName}
-            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
                 subtitle={policyName}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
 
             <ScrollView style={styles.flex1}>
