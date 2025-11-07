@@ -8,6 +8,7 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() => {
