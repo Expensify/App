@@ -11803,10 +11803,9 @@ function convertToNumber(value) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const DEFAULT_REPO_IDENTIFIER = 'Expensify/App';
 const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? DEFAULT_REPO_IDENTIFIER).split('/').at(1) ?? '',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
     DEFAULT_BASE_REF: 'main',
 };
@@ -12139,6 +12138,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
+                // eslint-disable-next-line unicorn/prefer-set-has
                 const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
@@ -12797,7 +12797,7 @@ class Git {
         }
     }
     static async getMainBranchCommitHash(remote) {
-        const baseRefName = GITHUB_BASE_REF ?? CONST_1.default.DEFAULT_BASE_REF;
+        const baseRefName = GITHUB_BASE_REF ?? 'main';
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
             await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
@@ -12860,7 +12860,7 @@ class Git {
             return false;
         }
     }
-    static async getChangedFileNames(fromRef, toRef = 'HEAD') {
+    static async getChangedFileNames(fromRef, toRef) {
         if (IS_CI) {
             const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
                 owner: CONST_1.default.GITHUB_OWNER,

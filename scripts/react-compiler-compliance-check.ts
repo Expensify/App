@@ -24,6 +24,12 @@ const SUPPRESSED_COMPILER_ERRORS = [
     '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
 ] as const satisfies string[];
 
+const ESLINT_DISABLE_PATTERNS = {
+    FILE_KEYWORDS: ['// eslint-disable ', '/* eslint-disable '],
+    LINE_KEYWORDS: ['// eslint-disable-next-line ', '/* eslint-disable-next-line '],
+    LINT_RULES: ['react-compiler/react-compiler', 'react-hooks'],
+} as const;
+
 const VERBOSE_OUTPUT_LINE_REGEXES = {
     SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
     FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
@@ -47,8 +53,8 @@ type CompilerFailure = {
 };
 
 type DiffFilteringCommits = {
-    from: string;
-    to: string;
+    fromRef: string;
+    toRef?: string;
 };
 
 type PrintResultsOptions = {
@@ -87,7 +93,7 @@ async function check({
 
     if (shouldFilterByDiff) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: 'HEAD'};
+        const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
 
         results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
     }
@@ -270,24 +276,23 @@ function createFilesGlob(files?: string[]): string | undefined {
  * Filters compiler results to only include failures for lines that were changed in the git diff.
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
  *
+ * Additionally includes failures when:
+ * - Any chunk in a file contains eslint-disable react-compiler/react-compiler comment
+ * - A line contains eslint-disable-next-line react-compiler/react-compiler comment (includes the next line)
+ *
  * @param results - The compiler results to filter
  * @param diffFilteringCommits - The commit range to diff (from and to)
- * @returns Filtered compiler results containing only failures in changed lines
+ * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
  */
 async function filterResultsByDiff(
     results: CompilerResults,
     diffFilteringCommits: DiffFilteringCommits,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
 ): Promise<CompilerResults> {
-    // Check for uncommitted changes and warn if any exist
-    if (await Git.hasUncommittedChanges()) {
-        logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
-    }
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
-    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
-
-    // Get the diff between the two commits
-    const diffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
+    // Get the diff between the base ref and the working tree
+    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
@@ -300,41 +305,95 @@ async function filterResultsByDiff(
 
     // Create a map of file paths to changed line numbers for quick lookup
     const changedLinesMap = new Map<string, Set<number>>();
+
+    // Track files with eslint-disable comments and lines with eslint-disable-next-line
+    const filesWithEslintDisable = new Set<string>();
+    const linesWithEslintDisableNextLine = new Map<string, Set<number>>();
+
     for (const file of diffResult.files) {
         const changedLines = new Set([...file.addedLines, ...file.modifiedLines]);
         changedLinesMap.set(file.filePath, changedLines);
+
+        for (const hunk of file.hunks) {
+            for (const line of hunk.lines) {
+                function doesLineIncludeEslintDisableComment(isFileLevel: boolean): boolean {
+                    const trimmedContent = line.content.trim();
+
+                    let includesKeyword = false;
+                    if (isFileLevel) {
+                        includesKeyword = ESLINT_DISABLE_PATTERNS.FILE_KEYWORDS.some((keyword) => trimmedContent.startsWith(keyword));
+                    } else {
+                        includesKeyword = ESLINT_DISABLE_PATTERNS.LINE_KEYWORDS.some((keyword) => trimmedContent.startsWith(keyword));
+                    }
+
+                    return includesKeyword && ESLINT_DISABLE_PATTERNS.LINT_RULES.some((rule) => trimmedContent.includes(rule));
+                }
+
+                // Check for file-level eslint-disable comment
+                if (doesLineIncludeEslintDisableComment(true)) {
+                    filesWithEslintDisable.add(file.filePath);
+                }
+
+                // Check for line-level eslint-disable-next-line comment
+                if (doesLineIncludeEslintDisableComment(false)) {
+                    if (!linesWithEslintDisableNextLine.has(file.filePath)) {
+                        linesWithEslintDisableNextLine.set(file.filePath, new Set());
+                    }
+                    // Include the next line (current line + 1)
+                    const disabledLines = linesWithEslintDisableNextLine.get(file.filePath);
+
+                    if (!disabledLines) {
+                        continue;
+                    }
+
+                    // When the eslint-disable-next-line comment is removed, the react compiler error line number is the line number of the next line
+                    const reactCompilerErrorLineNumber = line.type === 'removed' ? line.number + hunk.newCount : line.number + hunk.newCount + 1;
+                    disabledLines.add(reactCompilerErrorLineNumber);
+                }
+            }
+        }
+    }
+
+    // Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
+    function filterFailuresByChangedLines(failures: Map<string, CompilerFailure>) {
+        // Filter failures to only include those on changed lines
+        const filteredFailures = new Map<string, CompilerFailure>();
+
+        failures.forEach((failure, key) => {
+            const changedLines = changedLinesMap.get(failure.file);
+
+            // If the file is not in the diff, skip this failure
+            if (!changedLines) {
+                return;
+            }
+
+            // If the file has eslint-disable comment, include ALL failures for this file
+            if (filesWithEslintDisable.has(failure.file)) {
+                filteredFailures.set(key, failure);
+                return;
+            }
+
+            // If the failure has a line number, check if it's in the changed lines or eslint-disable-next-line
+            if (failure.line !== undefined) {
+                const isLineChanged = changedLines.has(failure.line);
+                const isLineEslintDisabled = linesWithEslintDisableNextLine.get(failure.file)?.has(failure.line);
+
+                if (isLineChanged || isLineEslintDisabled) {
+                    filteredFailures.set(key, failure);
+                }
+                return;
+            }
+
+            // If there's no line number, include the failure if the file has changes
+            filteredFailures.set(key, failure);
+        });
+
+        return filteredFailures;
     }
 
     // Filter failures to only include those on changed lines
-    const filteredFailures = new Map<string, CompilerFailure>();
-    results.failures.forEach((failure, key) => {
-        const changedLines = changedLinesMap.get(failure.file);
-
-        // If the file is not in the diff, skip this failure
-        if (!changedLines) {
-            return;
-        }
-
-        // If the failure has a line number, check if it's in the changed lines
-        if (failure.line !== undefined) {
-            const isLineChanged = changedLines.has(failure.line);
-            if (isLineChanged) {
-                filteredFailures.set(key, failure);
-            }
-            return;
-        }
-
-        // If there's no line number, include the failure if the file has changes
-        filteredFailures.set(key, failure);
-    });
-
-    const filteredSuppressedFailures = new Map<string, CompilerFailure>();
-    results.suppressedFailures.forEach((failure, key) => {
-        if (filteredFailures.has(key)) {
-            return;
-        }
-        filteredSuppressedFailures.set(key, failure);
-    });
+    const filteredFailures = filterFailuresByChangedLines(results.failures);
+    const filteredSuppressedFailures = filterFailuresByChangedLines(results.suppressedFailures);
 
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));

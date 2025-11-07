@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -173,10 +173,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     <SelectionList
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}
-                        sections={[{data}]}
+                        data={data}
                         shouldUpdateFocusedIndex
-                        isAlternateTextMultilineSupported
-                        initiallyFocusedOptionKey={typeSelected}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={typeSelected}
                     />
                     <ConfirmModal
                         title={translate('workspace.expensifyCard.changeCardLimitType')}
