@@ -10,7 +10,6 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import type {CombinedCardFeed, CombinedFeedKey} from '@hooks/useCardFeeds';
-import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -28,6 +27,7 @@ import {
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isCollectPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -62,7 +62,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const isCollect = isCollectPolicy(policy);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CombinedFeedKey, CombinedCardFeed]>).map(([key, feedSettings]) => {
         const filteredFeedCards = filterInactiveCards(
@@ -99,7 +99,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
-        if (isBlockedToAddNewFeeds) {
+        if (isCollect && feeds.length === 1) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );

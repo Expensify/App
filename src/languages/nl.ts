@@ -1132,7 +1132,6 @@ const translations = {
         splitExpense: 'Uitgave splitsen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
         addSplit: 'Splits toevoegen',
-        makeSplitsEven: 'Verdelingen gelijk maken',
         editSplits: 'Splits bewerken',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} meer dan de oorspronkelijke uitgave.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} minder dan de oorspronkelijke uitgave.`,
@@ -4944,6 +4943,7 @@ ${amount} voor ${merchant} - ${date}`,
             existingReportFieldNameError: 'Er bestaat al een rapportveld met deze naam',
             reportFieldNameRequiredError: 'Voer een rapportveldnaam in alstublieft',
             reportFieldTypeRequiredError: 'Kies een rapportveldtype aub',
+            circularReferenceError: 'Dit veld kan niet naar zichzelf verwijzen. Werk het bij.',
             reportFieldInitialValueRequiredError: 'Kies een initiële waarde voor een rapportveld alstublieft.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },
@@ -5502,8 +5502,8 @@ ${amount} voor ${merchant} - ${date}`,
             enableRate: 'Tarief inschakelen',
             status: 'Status',
             unit: 'Eenheid',
-            taxFeatureNotEnabledMessage: 'Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar',
-            changePromptMessage: 'om die wijziging door te voeren.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Belastingen moeten zijn ingeschakeld in de werkruimte om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om die wijziging door te voeren.</muted-text>',
             deleteDistanceRate: 'Verwijder afstandstarief',
             areYouSureDelete: () => ({
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',
@@ -5701,6 +5701,12 @@ ${amount} voor ${merchant} - ${date}`,
                 description: 'Maak en beheer je eigen tarieven, volg in mijlen of kilometers, en stel standaardcategorieën in voor afstandskosten.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Afstandstarieven zijn beschikbaar op het Collect-abonnement, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Auditor',
+                description: 'Auditors krijgen alleen-lezen toegang tot alle rapporten voor volledige zichtbaarheid en nalevingscontrole.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Auditors zijn alleen beschikbaar in het Control-plan, beginnend bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Meerdere goedkeuringsniveaus',
@@ -6860,7 +6866,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,
-        reportContainsExpensesWithViolations: 'Het rapport bevat uitgaven met overtredingen.',
     },
     violationDismissal: {
         rter: {
@@ -7385,6 +7390,28 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Er is iets misgegaan...',
         subtitle: `We hebben niet al uw gegevens kunnen laden. We zijn op de hoogte gesteld en onderzoeken het probleem. Als dit aanhoudt, neem dan contact op met`,
         refreshAndTryAgain: 'Vernieuw en probeer het opnieuw',
+    },
+    domain: {
+        notVerified: 'Niet geverifieerd',
+        retry: 'Opnieuw proberen',
+        verifyDomain: {
+            title: 'Domein verifiëren',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Controleer voordat je verdergaat of je eigenaar bent van <strong>${domainName}</strong> door de DNS-instellingen bij te werken.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Ga naar je DNS-provider en open de DNS-instellingen voor <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Voeg het volgende TXT-record toe:',
+            saveChanges: 'Sla wijzigingen op en kom hier terug om je domein te verifiëren.',
+            youMayNeedToConsult: `Misschien moet je contact opnemen met de IT-afdeling van je organisatie om de verificatie te voltooien. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Meer informatie</a>.`,
+            warning: 'Na verificatie ontvangen alle Expensify-leden op je domein een e-mail waarin staat dat hun account onder je domein wordt beheerd.',
+            codeFetchError: 'Kon de verificatiecode niet ophalen',
+            genericError: 'We konden uw domein niet verifiëren. Probeer het opnieuw en neem contact op met Concierge als het probleem aanhoudt.',
+        },
+        domainVerified: {
+            title: 'Domein geverifieerd',
+            header: 'Woehoe! Je domein is geverifieerd',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Het domein <strong>${domainName}</strong> is succesvol geverifieerd en je kunt nu SAML en andere beveiligingsfuncties instellen.</centered-text></muted-text>`,
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

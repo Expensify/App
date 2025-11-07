@@ -542,6 +542,7 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    // eslint-disable-next-line unicorn/prefer-set-has
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
     // Get cards assigned across all workspaces
@@ -589,6 +590,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 }
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
+    // eslint-disable-next-line unicorn/prefer-set-has
     const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
     return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }

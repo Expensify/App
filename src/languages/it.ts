@@ -1132,7 +1132,6 @@ const translations = {
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
         addSplit: 'Aggiungi divisione',
-        makeSplitsEven: 'Uniformare le suddivisioni',
         editSplits: 'Modifica suddivisioni',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} maggiore della spesa originale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} inferiore alla spesa originale.`,
@@ -4950,6 +4949,7 @@ ${amount} per ${merchant} - ${date}`,
             existingReportFieldNameError: 'Un campo del report con questo nome esiste già',
             reportFieldNameRequiredError: 'Inserisci un nome per il campo del report',
             reportFieldTypeRequiredError: 'Si prega di scegliere un tipo di campo del report',
+            circularReferenceError: 'Questo campo non può fare riferimento a se stesso. Aggiorna.',
             reportFieldInitialValueRequiredError: 'Si prega di scegliere un valore iniziale per il campo del report',
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento del campo del report. Per favore riprova.",
         },
@@ -5510,7 +5510,8 @@ ${amount} per ${merchant} - ${date}`,
             enableRate: 'Abilita tariffa',
             status: 'Stato',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Le tasse devono essere abilitate nello spazio di lavoro per utilizzare questa funzione. Vai su',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Le tasse devono essere abilitate nello spazio di lavoro per utilizzare questa funzione. Vai su <a href="#">Più funzionalità</a> per apportare quella modifica. </muted-text>',
             changePromptMessage: 'per apportare quella modifica.',
             deleteDistanceRate: 'Elimina tariffa distanza',
             areYouSureDelete: () => ({
@@ -5711,6 +5712,12 @@ ${amount} per ${merchant} - ${date}`,
                 description: 'Crea e gestisci le tue tariffe, traccia in miglia o chilometri e imposta categorie predefinite per le spese di distanza.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le tariffe a distanza sono disponibili con il piano Collect, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Revisore',
+                description: 'I revisori hanno accesso in sola lettura a tutti i report per piena visibilità e monitoraggio della conformità.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>I revisori sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',
@@ -6876,7 +6883,6 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
-        reportContainsExpensesWithViolations: 'Il report contiene spese con violazioni.',
     },
     violationDismissal: {
         rter: {
@@ -7410,6 +7416,28 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Qualcosa è andato storto...',
         subtitle: `Non siamo riusciti a caricare tutti i tuoi dati. Siamo stati avvisati e stiamo esaminando il problema. Se il problema persiste, contatta`,
         refreshAndTryAgain: 'Aggiorna e riprova',
+    },
+    domain: {
+        notVerified: 'Non verificato',
+        retry: 'Riprova',
+        verifyDomain: {
+            title: 'Verifica dominio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Prima di procedere, verifica di essere il proprietario di <strong>${domainName}</strong> aggiornando le impostazioni DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Accedi al tuo provider DNS e apri le impostazioni DNS per <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Aggiungi il seguente record TXT:',
+            saveChanges: 'Salva le modifiche e torna qui per verificare il tuo dominio.',
+            youMayNeedToConsult: `Potresti dover contattare il reparto IT della tua organizzazione per completare la verifica. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Scopri di più</a>.`,
+            warning: "Dopo la verifica, tutti i membri di Expensify del tuo dominio riceveranno un'email che li informa che il loro account sarà gestito all'interno del tuo dominio.",
+            codeFetchError: 'Impossibile recuperare il codice di verifica',
+            genericError: 'Non siamo riusciti a verificare il tuo dominio. Riprova e contatta Concierge se il problema persiste.',
+        },
+        domainVerified: {
+            title: 'Dominio verificato',
+            header: 'Wooo! Il tuo dominio è stato verificato',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Il dominio <strong>${domainName}</strong> è stato verificato con successo e ora puoi configurare SAML e altre funzionalità di sicurezza.</centered-text></muted-text>`,
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

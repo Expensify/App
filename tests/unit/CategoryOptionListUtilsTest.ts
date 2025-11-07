@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('CategoryOptionListUtils', () => {
@@ -512,16 +512,17 @@ describe('CategoryOptionListUtils', () => {
             searchValue: emptySearch,
             localeCompare,
             categories: smallCategoriesList,
+            translate: translateLocal,
         });
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList, localeCompare});
+        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList, localeCompare, translate: translateLocal});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList, localeCompare});
+        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList, localeCompare, translate: translateLocal});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList, localeCompare});
+        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList, localeCompare, translate: translateLocal});
         expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
         const largeResult = getCategoryListSections({
@@ -530,6 +531,7 @@ describe('CategoryOptionListUtils', () => {
             categories: largeCategoriesList,
             recentlyUsedCategories,
             localeCompare,
+            translate: translateLocal,
         });
         expect(largeResult).toStrictEqual(largeResultList);
 
@@ -539,6 +541,7 @@ describe('CategoryOptionListUtils', () => {
             categories: largeCategoriesList,
             recentlyUsedCategories,
             localeCompare,
+            translate: translateLocal,
         });
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
@@ -548,10 +551,11 @@ describe('CategoryOptionListUtils', () => {
             categories: largeCategoriesList,
             recentlyUsedCategories,
             localeCompare,
+            translate: translateLocal,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList, localeCompare});
+        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList, localeCompare, translate: translateLocal});
         expect(emptyResult).toStrictEqual(emptySelectedResultList);
     });
 
