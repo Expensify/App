@@ -1174,23 +1174,6 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let unavailableTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
-    },
-});
-
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1334,7 +1317,8 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
  * Get the policy name from a given report
  */
 function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const noPolicyFound: string = returnEmptyIfNotFound ? '' : translateLocal('workspace.common.unavailable');
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
@@ -3189,8 +3173,9 @@ function getDisplayNameForParticipant({
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return formatPhoneNumber(longName);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    if (shouldFallbackToHidden && longName === translateLocal('common.hidden')) {
+        return longName;
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
