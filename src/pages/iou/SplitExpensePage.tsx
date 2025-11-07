@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -27,8 +28,8 @@ import {
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    saveSplitTransactions,
     updateSplitExpenseAmountField,
+    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -54,7 +55,6 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -74,6 +74,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
@@ -93,9 +95,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
+    const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -117,7 +123,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction, transaction, transactionID]);
 
     const onSaveSplitExpense = useCallback(() => {
-        if (splitExpenses.length <= 1 && (!childTransactions.length || !isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS))) {
+        if (splitExpenses.length <= 1 && !childTransactions.length) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
@@ -159,41 +165,60 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(
-            originalTransactionID,
-            draftTransaction,
-            currentSearchHash,
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                splitExpenses,
+                splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
+            },
+            hash: currentSearchHash,
             policyCategories,
-            expenseReportPolicy,
+            policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
             iouReport,
             chatReport,
-            iouActions.at(0),
-            isChatIOUReportArchived,
-        );
+            firstIOU: iouActions.at(0),
+            isChatReportArchived: isChatIOUReportArchived,
+            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+            currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
+            transactionViolations,
+            isASAPSubmitBetaEnabled,
+        });
     }, [
         splitExpenses,
         childTransactions.length,
-        isBetaEnabled,
-        draftTransaction,
+        draftTransaction?.errors,
+        draftTransaction?.reportID,
+        draftTransaction?.comment?.originalTransactionID,
+        draftTransaction?.comment?.splitExpensesTotal,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
         isCard,
         splitFieldDataFromChildTransactions,
+        allTransactions,
+        allReports,
+        allReportNameValuePairs,
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
         policyRecentlyUsedCategories,
+        iouReport,
+        chatReport,
+        iouActions,
+        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
-        isChatIOUReportArchived,
-        iouReport,
-        iouActions,
-        chatReport,
-        originalTransactionID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
+        transactionViolations,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -343,6 +368,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
+
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
                         renderScrollComponent={(props) => (

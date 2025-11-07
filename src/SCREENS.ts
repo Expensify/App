@@ -41,9 +41,12 @@ const SCREENS = {
     },
     SEARCH: {
         ROOT: 'Search_Root',
+        ROOT_VERIFY_ACCOUNT: 'Search_Root_Verify_Account',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
+        MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: 'Search_Money_Request_Report_Verify_Account',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
+        REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
@@ -83,6 +86,7 @@ const SCREENS = {
         ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP: 'Search_Advanced_Filters_Purchase_Currency_RHP',
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
         ADVANCED_FILTERS_ATTENDEE_RHP: 'Search_Advanced_Filters_Attendee_RHP',
+        ADVANCED_FILTERS_REPORT_FIELD_RHP: 'Search_Advanced_Filters_Report_Field_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
@@ -211,6 +215,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
+        SET_DEFAULT_WORKSPACE: 'Set_Default_Workspace',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -251,7 +256,9 @@ const SCREENS = {
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
+        REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
+        DOMAIN: 'Domain',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -266,6 +273,7 @@ const SCREENS = {
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
+        STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -353,6 +361,8 @@ const SCREENS = {
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
+        DOMAIN_CARD_UPDATE_ADDRESS: 'Domain_Card_Update_Address',
+        DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Domain_Card_Confirm_Magic_Code',
     },
 
     SETTINGS_TAGS: {
@@ -399,6 +409,8 @@ const SCREENS = {
     NEW_REPORT_WORKSPACE_SELECTION: {
         ROOT: 'NewReportWorkspaceSelection_Root',
     },
+
+    SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
@@ -550,7 +562,6 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
-        COMPANY_CARDS_TRANSACTION_START_DATE: 'Workspace_CompanyCards_TransactionStartDate',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
@@ -668,6 +679,7 @@ const SCREENS = {
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
         RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
+        RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: 'Workspace_Receipt_Partners_Change_Billing_Account',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -774,6 +786,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
+    REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',
@@ -806,6 +819,8 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
+    WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
+    WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

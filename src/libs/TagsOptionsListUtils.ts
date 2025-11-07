@@ -1,9 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
@@ -57,6 +56,7 @@ function getTagListSections({
     selectedOptions = [],
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -64,12 +64,15 @@ function getTagListSections({
     selectedOptions?: SelectedTagOption[];
     searchValue?: string;
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
@@ -143,7 +146,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
@@ -151,7 +154,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });

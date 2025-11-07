@@ -43,16 +43,18 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    const sectionData = sections[0]?.data;
     const selectedItems = useMemo(
         () =>
             selectedItemsProp ??
-            sections[0].data.filter((item) => {
+            sectionData?.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
                 }
                 return !!item.isSelected;
-            }),
-        [isSelected, sections, selectedItemsProp],
+            }) ??
+            [],
+        [isSelected, sectionData, selectedItemsProp],
     );
 
     useHandleSelectionMode(selectedItems);

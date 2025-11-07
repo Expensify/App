@@ -367,6 +367,9 @@ type OriginalMessageChangeLog = {
 
     /** Name of the added category */
     categoryName?: string;
+
+    /** Avatar URL of workspace room */
+    avatarURL?: string;
 };
 
 /** Model of change log */
@@ -658,6 +661,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The list of attendees */
     newAttendees?: Attendee[];
+
+    /** Source of category change (agentZero, mccMapping, or manual) */
+    source?: string;
 };
 
 /** Model of a `travel update` report action */
@@ -697,6 +703,12 @@ type OriginalMessageConciergeCategoryOptions = {
 
     /** Agent Zero metadata (optional) */
     agentZero?: Record<string, unknown>;
+};
+
+/** Model of `concierge auto map mcc groups` report action */
+type OriginalMessageConciergeAutoMapMccGroups = {
+    /** The policy ID for which MCC groups were auto-mapped */
+    policyID: string;
 };
 
 /** Model of `reimbursement queued` report action */
@@ -1074,6 +1086,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
@@ -1102,5 +1115,6 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageReimbursementDirectorInformationRequired,
 };

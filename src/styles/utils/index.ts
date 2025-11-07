@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -15,6 +16,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
@@ -50,26 +52,7 @@ import type {
     TextColorStyle,
 } from './types';
 
-const workspaceColorOptions: SVGAvatarColorStyle[] = [
-    {backgroundColor: colors.blue100, fill: colors.blue600},
-    {backgroundColor: colors.blue400, fill: colors.blue700},
-    {backgroundColor: colors.blue700, fill: colors.blue200},
-    {backgroundColor: colors.green100, fill: colors.green600},
-    {backgroundColor: colors.green400, fill: colors.green700},
-    {backgroundColor: colors.green700, fill: colors.green200},
-    {backgroundColor: colors.yellow100, fill: colors.yellow600},
-    {backgroundColor: colors.yellow400, fill: colors.yellow700},
-    {backgroundColor: colors.yellow700, fill: colors.yellow200},
-    {backgroundColor: colors.tangerine100, fill: colors.tangerine600},
-    {backgroundColor: colors.tangerine400, fill: colors.tangerine700},
-    {backgroundColor: colors.tangerine700, fill: colors.tangerine200},
-    {backgroundColor: colors.pink100, fill: colors.pink600},
-    {backgroundColor: colors.pink400, fill: colors.pink700},
-    {backgroundColor: colors.pink700, fill: colors.pink200},
-    {backgroundColor: colors.ice100, fill: colors.ice600},
-    {backgroundColor: colors.ice400, fill: colors.ice700},
-    {backgroundColor: colors.ice700, fill: colors.ice200},
-];
+const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
 
 const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
 
@@ -400,36 +383,36 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
-function getZoomSizingStyle(
-    isZoomed: boolean,
-    imgWidth: number,
-    imgHeight: number,
-    zoomScale: number,
-    containerHeight: number,
-    containerWidth: number,
-    isLoading: boolean,
-): ViewStyle | undefined {
+type GetZoomSizingStyleParams = {
+    isZoomed: boolean;
+    imageSize: Dimensions;
+    containerSize: Dimensions;
+    zoomScale: number;
+    isLoading: boolean;
+};
+
+function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLoading}: GetZoomSizingStyleParams): ViewStyle | undefined {
     // Hide image until finished loading to prevent showing preview with wrong dimensions
-    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+    if (isLoading || imageSize.width === 0 || imageSize.height === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
+    const top = `${Math.max((containerSize.height - imageSize.height) / 2, 0)}px`;
+    const left = `${Math.max((containerSize.width - imageSize.width) / 2, 0)}px`;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px`,
-                width: `${imgWidth * zoomScale}px`,
+                height: `${imageSize.height * zoomScale}px`,
+                width: `${imageSize.width * zoomScale}px`,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -438,8 +421,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -447,11 +430,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
+    const scaledTop = `${Math.max((containerSize.height - imageSize.height * zoomScale) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerSize.width - imageSize.width * zoomScale) / 2, 0)}px`;
     return {
-        height: `${imgHeight * zoomScale}px`,
-        width: `${imgWidth * zoomScale}px`,
+        height: `${imageSize.height * zoomScale}px`,
+        width: `${imageSize.width * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -548,10 +531,20 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(
+    extraSmall: boolean,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    width: number,
+    height: number,
+    isButtonIcon: boolean,
+): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
+        case extraSmall:
+            return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
         case small:
-            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
         case medium:
             return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
@@ -564,6 +557,7 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
 
 function getButtonStyleWithIcon(
     styles: ThemeStyles,
+    extraSmall: boolean,
     small: boolean,
     medium: boolean,
     large: boolean,
@@ -573,6 +567,10 @@ function getButtonStyleWithIcon(
 ): ViewStyle | undefined {
     const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
+        case extraSmall: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
+        }
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
             return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
@@ -754,6 +752,7 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
+    // eslint-disable-next-line unicorn/prefer-set-has
     const heightsIPhonesWithNotches = [812, 896, 844, 926];
     return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
 }
@@ -1095,6 +1094,12 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
         return {
             height: variables.componentSizeSmall,
+        };
+    }
+
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL) {
+        return {
+            height: variables.componentSizeXSmall,
         };
     }
 

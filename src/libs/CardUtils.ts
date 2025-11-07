@@ -14,6 +14,7 @@ import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -64,6 +65,7 @@ function getCardDescription(card?: Card) {
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
     return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
@@ -416,6 +418,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     }
 
     const feedName = getBankName(feed);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
@@ -526,6 +529,7 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    // eslint-disable-next-line unicorn/prefer-set-has
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
     // Get cards assigned across all workspaces
@@ -573,6 +577,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 }
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
+    // eslint-disable-next-line unicorn/prefer-set-has
     const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
     return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }
