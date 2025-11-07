@@ -1342,11 +1342,9 @@ const translations: TranslationDeepObject<typeof en> = {
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Halten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericUnholdExpenseFailureMessage: 'Unerwarteter Fehler beim Entfernen dieser Ausgabe von der Warteschleife. Bitte versuchen Sie es später erneut.',
             receiptDeleteFailureError: 'Unerwarteter Fehler beim Löschen dieser Quittung. Bitte versuchen Sie es später erneut.',
-            receiptFailureMessage: 'Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte',
+            receiptFailureMessage:
+                '<rbr>Beim Hochladen Ihrer Quittung ist ein Fehler aufgetreten. Bitte <a href="download">den Beleg speichern</a> und <a href="retry">es erneut versuchen</a> später.</rbr>',
             receiptFailureMessageShort: 'Beim Hochladen Ihres Belegs ist ein Fehler aufgetreten.',
-            tryAgainMessage: 'nochmals versuchen',
-            saveFileMessage: 'Beleg speichern',
-            uploadLaterMessage: 'später hochladen.',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericSmartscanFailureMessage: 'Transaktion fehlt Felder',

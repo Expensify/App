@@ -1339,11 +1339,9 @@ const translations: TranslationDeepObject<typeof en> = {
             genericHoldExpenseFailureMessage: 'Errore imprevisto nel trattenere questa spesa. Per favore riprova più tardi.',
             genericUnholdExpenseFailureMessage: 'Errore imprevisto nel rimuovere questa spesa dalla sospensione. Per favore riprova più tardi.',
             receiptDeleteFailureError: "Errore imprevisto durante l'eliminazione di questa ricevuta. Per favore, riprova più tardi.",
-            receiptFailureMessage: 'Si è verificato un errore durante il caricamento della tua ricevuta. Per favore',
+            receiptFailureMessage:
+                '<rbr>Si è verificato un errore durante il caricamento della tua ricevuta. Per favore <a href="download">salva la ricevuta</a> e <a href="retry">riprova</a> più tardi.</rbr>',
             receiptFailureMessageShort: 'Si è verificato un errore durante il caricamento della tua ricevuta.',
-            tryAgainMessage: 'riprova',
-            saveFileMessage: 'salva la ricevuta',
-            uploadLaterMessage: 'da caricare più tardi.',
             genericDeleteFailureMessage: "Errore imprevisto nell'eliminazione di questa spesa. Per favore riprova più tardi.",
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Per favore riprova più tardi.',
             genericSmartscanFailureMessage: 'La transazione manca di campi',
