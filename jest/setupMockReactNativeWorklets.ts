@@ -21,6 +21,7 @@ function setupMockReactNativeWorklets() {
         shareableMappingCache: new Map(),
         getStaticFeatureFlag: () => false,
         setDynamicFeatureFlag: NOOP,
+        // cspell:disable-next-line
         isSynchronizable: () => false,
         getRuntimeKind: () => 1,
         createWorkletRuntime: NOOP_FACTORY,
@@ -29,6 +30,7 @@ function setupMockReactNativeWorklets() {
         createSerializable: ID,
         isSerializableRef: ID,
         serializableMappingCache: new Map(),
+        // cspell:disable-next-line
         createSynchronizable: ID,
         callMicrotasks: NOOP,
         executeOnUIRuntimeSync: ID,
