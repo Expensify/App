@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {SafeAreaView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
@@ -17,6 +17,7 @@ import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -212,16 +213,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 <View style={[styles.pt6, styles.pb2]}>
                                     <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
                                 </View>
-                                <SafeAreaView>
-                                    <AttachmentPreview
-                                        source={fileSource ?? ''}
-                                        aspectRatio={currentAttachment?.aspectRatio}
-                                        onPress={showAttachmentModalScreen}
-                                        onLoadError={() => {
-                                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                        }}
-                                    />
-                                </SafeAreaView>
+                                <AttachmentPreview
+                                    source={fileSource ?? ''}
+                                    aspectRatio={currentAttachment?.aspectRatio}
+                                    onPress={showAttachmentModalScreen}
+                                    onLoadError={() => {
+                                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                    }}
+                                />
                             </>
                         )}
                     </PressableWithoutFeedback>
