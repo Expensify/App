@@ -4,14 +4,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import * as IOUActions from '@libs/actions/IOU';
-import * as MergeTransactionActions from '@libs/actions/MergeTransaction';
-import * as ReportActions from '@libs/actions/Report';
+import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportSecondaryActionUtils from '@libs/ReportSecondaryActionUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -213,8 +209,8 @@ describe('useSelectedTransactionsActions', () => {
 
         basicExportOption?.onSelected?.();
 
-        expect(ReportActions.exportReportToCSV).toHaveBeenCalledTimes(1);
-        const mockExportReportToCSV = ReportActions.exportReportToCSV as jest.MockedFunction<typeof ReportActions.exportReportToCSV>;
+        expect(exportReportToCSV).toHaveBeenCalledTimes(1);
+        const mockExportReportToCSV = exportReportToCSV as jest.MockedFunction<typeof exportReportToCSV>;
         const exportCall = mockExportReportToCSV.mock.calls.at(0);
         expect(exportCall).toBeDefined();
         if (!exportCall) {
@@ -267,7 +263,7 @@ describe('useSelectedTransactionsActions', () => {
         basicExportOption?.onSelected?.();
 
         expect(mockOnExportOffline).toHaveBeenCalled();
-        expect(ReportActions.exportReportToCSV).not.toHaveBeenCalled();
+        expect(exportReportToCSV).not.toHaveBeenCalled();
     });
 
     it('should show delete option when transactions can be deleted', async () => {
@@ -296,10 +292,10 @@ describe('useSelectedTransactionsActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
         // Mock canDeleteTransaction and canDeleteCardTransactionByLiabilityType
-        jest.spyOn(ReportUtils, 'canDeleteTransaction').mockReturnValue(true);
-        jest.spyOn(ReportUtils, 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
-        jest.spyOn(ReportActionsUtils, 'isDeletedAction').mockReturnValue(false);
-        jest.spyOn(ReportActionsUtils, 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
@@ -446,8 +442,8 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(ReportUtils, 'isMoneyRequestReport').mockReturnValue(true);
-        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValue({
+        jest.spyOn(require('@libs/ReportUtils'), 'isMoneyRequestReport').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canHoldUnholdReportAction').mockReturnValue({
             canHoldRequest: true,
             canUnholdRequest: false,
         });
@@ -495,12 +491,12 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(ReportUtils, 'isMoneyRequestReport').mockReturnValue(true);
-        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValue({
+        jest.spyOn(require('@libs/ReportUtils'), 'isMoneyRequestReport').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canHoldUnholdReportAction').mockReturnValue({
             canHoldRequest: false,
             canUnholdRequest: true,
         });
-        jest.spyOn(ReportActionsUtils, 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
@@ -521,7 +517,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(IOUActions.unholdRequest).toHaveBeenCalledWith(transactionID, 'child123');
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123');
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -549,8 +545,8 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
@@ -583,8 +579,8 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(ReportSecondaryActionUtils, 'isSplitAction').mockReturnValue(true);
-        jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
             isBillSplit: false,
             isExpenseSplit: false,
             originalTransaction: transaction,
@@ -610,7 +606,7 @@ describe('useSelectedTransactionsActions', () => {
 
         splitOption?.onSelected?.();
 
-        expect(IOUActions.initSplitExpense).toHaveBeenCalled();
+        expect(initSplitExpense).toHaveBeenCalled();
     });
 
     it('should show merge option when transaction can be merged', async () => {
@@ -626,7 +622,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(ReportSecondaryActionUtils, 'isMergeAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeAction').mockReturnValue(true);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
@@ -648,7 +644,7 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(MergeTransactionActions.setupMergeTransactionData).toHaveBeenCalledWith(transactionID, {targetTransactionID: transactionID});
+        expect(setupMergeTransactionData).toHaveBeenCalledWith(transactionID, {targetTransactionID: transactionID});
         expect(Navigation.navigate).toHaveBeenCalled();
     });
 });
