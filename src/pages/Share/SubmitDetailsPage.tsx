@@ -105,7 +105,7 @@ function SubmitDetailsPage({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: GpsPoint) => {
+    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
             return;
         }
@@ -141,7 +141,7 @@ function SubmitDetailsPage({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories},
-                gpsPoints,
+                gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,
