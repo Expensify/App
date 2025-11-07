@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'カウント',
         cancel: 'キャンセル',
@@ -452,7 +452,7 @@ const translations = {
         send: '送信',
         na: 'N/A',
         noResultsFound: '結果が見つかりませんでした',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `「${searchString}」に一致する結果は見つかりませんでした。`,
+        noResultsFoundMatching: (searchString: string) => `「${searchString}」に一致する結果は見つかりませんでした。`,
         recentDestinations: '最近の目的地',
         timePrefix: 'それは',
         conjunctionFor: 'のために',
@@ -1069,10 +1069,6 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
-        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
-        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
-        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         alternativeMethodsTitle: '領収書を追加する別の方法:',
@@ -1275,7 +1271,6 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
-        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1346,11 +1341,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'この経費を保留する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留を解除する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'この領収書の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
-            receiptFailureMessage: '領収書のアップロード中にエラーが発生しました。どうぞ',
+            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。<a href="download">領収書を保存</a>し、<a href="retry">もう一度お試しください</a> 後で。</rbr>`,
             receiptFailureMessageShort: '領収書のアップロード中にエラーが発生しました。',
-            tryAgainMessage: 'もう一度試してください。',
-            saveFileMessage: '領収書を保存',
-            uploadLaterMessage: '後でアップロードする。',
             genericDeleteFailureMessage: 'この経費を削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: 'トランザクションにフィールドが欠けています',
@@ -2112,7 +2104,6 @@ ${date} - ${merchant}に${amount}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -4876,7 +4867,7 @@ ${date} - ${merchant}に${amount}`,
             textType: 'テキスト',
             dateType: '日付',
             dropdownType: 'リスト',
-            formulaType: 'Formula',
+            formulaType: '数式',
             textAlternateText: '自由入力フィールドを追加してください。',
             dateAlternateText: '日付選択用のカレンダーを追加します。',
             dropdownAlternateText: '選択肢のリストを追加してください。',
@@ -4906,6 +4897,7 @@ ${date} - ${merchant}に${amount}`,
             existingReportFieldNameError: 'この名前のレポートフィールドは既に存在します',
             reportFieldNameRequiredError: 'レポートフィールド名を入力してください',
             reportFieldTypeRequiredError: 'レポートフィールドのタイプを選択してください',
+            circularReferenceError: 'このフィールドは自身を参照できません。更新してください。',
             reportFieldInitialValueRequiredError: 'レポートフィールドの初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
@@ -5461,8 +5453,8 @@ ${date} - ${merchant}に${amount}`,
             enableRate: 'レートを有効にする',
             status: 'ステータス',
             unit: '単位',
-            taxFeatureNotEnabledMessage: 'この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して',
-            changePromptMessage: 'その変更を行うために。',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して <a href="#">さらに多くの機能</a> に行ってその変更を行ってください。</muted-text>',
             deleteDistanceRate: '距離料金を削除',
             areYouSureDelete: () => ({
                 one: 'このレートを削除してもよろしいですか？',
@@ -7333,7 +7325,7 @@ ${date} - ${merchant}に${amount}`,
         upload: 'アップロード',
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
-        chooseCustomAvatar: 'またはカスタムアバターを選択',
+        choosePresetAvatar: 'またはカスタムアバターを選択',
     },
     openAppFailureModal: {
         title: '問題が発生しました...',
@@ -7364,4 +7356,4 @@ ${date} - ${merchant}に${amount}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

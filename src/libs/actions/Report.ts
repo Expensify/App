@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -72,17 +71,12 @@ import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
-import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
-import normalizePath from '@libs/Navigation/helpers/normalizePath';
-import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import type {NetworkStatus} from '@libs/NetworkConnection';
 import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -137,7 +131,6 @@ import {
     getPolicyExpenseChat,
     getReportFieldKey,
     getReportFieldsByPolicyID,
-    getReportIDFromLink,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
     getReportMetadata,
@@ -146,7 +139,6 @@ import {
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
-    getRouteFromLink,
     getTitleReportField,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
@@ -168,7 +160,6 @@ import {
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
-import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -176,13 +167,10 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Account,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -224,9 +212,9 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from './RequestConflictUtils';
-import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
-import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
+import {isAnonymousUser} from './Session';
+import {onServerDataReady} from './Welcome';
+import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
@@ -336,12 +324,10 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
-let networkStatus: NetworkStatus;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         isNetworkOffline = value?.isOffline ?? false;
-        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
     },
 });
 
@@ -350,14 +336,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-    },
-});
-
-let account: OnyxEntry<Account> = {};
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value ?? {};
     },
 });
 
@@ -1105,7 +1083,7 @@ function openReport(
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
     if (transactionID && !parentReportActionID) {
-        const transaction = allTransactions?.[transactionID];
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction) {
             const selfDMReportID = findSelfDMReportID();
@@ -1131,13 +1109,22 @@ function openReport(
                     },
                 });
 
+                // Log how often the legacy transaction fallback path is taken
+                Log.info('[Report] Legacy transaction fallback: creating money request preview in self DM', false, {
+                    selfDMReportID,
+                    transactionID,
+                    reportID,
+                });
+
                 optimisticData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${generatedReportActionID}`,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                     value: {
-                        ...optimisticParentAction,
-                        reportActionID: generatedReportActionID,
-                        childReportID: reportID,
+                        [generatedReportActionID]: {
+                            ...optimisticParentAction,
+                            reportActionID: generatedReportActionID,
+                            childReportID: reportID,
+                        },
                     },
                 });
 
@@ -3510,160 +3497,6 @@ function toggleEmojiReaction(
 
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
-}
-
-function openReportFromDeepLink(
-    url: string,
-    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: OnyxEntry<string>,
-    reports: OnyxCollection<Report>,
-    isAuthenticated: boolean,
-) {
-    const reportID = getReportIDFromLink(url);
-
-    if (reportID && !isAuthenticated) {
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
-
-        // Show the sign-in page if the app is offline
-        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
-            doneCheckingPublicRoom();
-        }
-    } else {
-        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
-        doneCheckingPublicRoom();
-    }
-
-    let route = getRouteFromLink(url);
-
-    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
-    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
-        route = '';
-    }
-
-    // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
-    if (!isAuthenticated && isPublicScreenRoute(route)) {
-        return;
-    }
-
-    // If the route is the transition route, we don't want to navigate and start the onboarding flow
-    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
-        return;
-    }
-
-    // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (val) => {
-                    if (!val && !isAnonymousUser()) {
-                        return;
-                    }
-
-                    Navigation.waitForProtectedRoutes().then(() => {
-                        if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                            signOutAndRedirectToSignIn(true);
-                            return;
-                        }
-
-                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                        // which is already called when AuthScreens mounts.
-                        if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                            return;
-                        }
-
-                        const handleDeeplinkNavigation = () => {
-                            // We want to disconnect the connection so it won't trigger the deeplink again
-                            // every time the data is changed, for example, when re-login.
-                            Onyx.disconnect(connection);
-
-                            const state = navigationRef.getRootState();
-                            const currentFocusedRoute = findFocusedRoute(state);
-
-                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
-                                return;
-                            }
-
-                            if (shouldSkipDeepLinkNavigation(route)) {
-                                return;
-                            }
-
-                            // Navigation for signed users is handled by react-navigation.
-                            if (isAuthenticated) {
-                                return;
-                            }
-
-                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
-                                // Check if the report exists in the collection
-                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                                // If the report does not exist, navigate to the last accessed report or Concierge chat
-                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
-                                    if (lastAccessedReportID) {
-                                        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute);
-                                        return;
-                                    }
-                                    navigateToConciergeChat(false, () => true);
-                                    return;
-                                }
-
-                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
-                                const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                                Navigation.navigate(route as Route, {forceReplace});
-                            };
-                            // If we log with deeplink with reportID and data for this report is not available yet,
-                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (
-                                reportID &&
-                                !isAuthenticated &&
-                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
-                            ) {
-                                const reportConnection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                    // eslint-disable-next-line rulesdir/prefer-early-return
-                                    callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID) {
-                                            Onyx.disconnect(reportConnection);
-                                            navigateHandler(report);
-                                        }
-                                    },
-                                });
-                            } else {
-                                navigateHandler();
-                            }
-                        };
-
-                        if (isAnonymousUser()) {
-                            handleDeeplinkNavigation();
-                            return;
-                        }
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        isOnboardingFlowCompleted({
-                            onNotCompleted: () =>
-                                startOnboardingFlow({
-                                    onboardingValuesParam: val,
-                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                                    currentOnboardingPurposeSelected,
-                                    currentOnboardingCompanySize,
-                                    onboardingInitialPath,
-                                    onboardingValues: val,
-                                }),
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
-                        });
-                    });
-                },
-            });
-        });
-    });
 }
 
 function getCurrentUserAccountID(): number {
@@ -6198,7 +6031,6 @@ export {
     clearCreateChatError,
     notifyNewAction,
     openReport,
-    openReportFromDeepLink,
     openRoomMembersPage,
     readNewestAction,
     markAllMessagesAsRead,
