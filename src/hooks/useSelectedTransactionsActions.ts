@@ -288,6 +288,7 @@ function useSelectedTransactionsActions({
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(selectedTransactionsList.at(0));
         const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, selectedTransactionsList, policy);
+
         if (canSplitTransaction) {
             options.push({
                 text: translate('iou.split'),

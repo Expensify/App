@@ -16,10 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction, Session} from '@src/types/onyx';
+import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
-import createRandomPolicy from '../../utils/collections/policies';
 
 // Mock dependencies
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -229,7 +229,7 @@ describe('useSelectedTransactionsActions', () => {
         expect(typeof onDownloadFailed).toBe('function');
         onDownloadFailed();
         expect(mockOnExportFailed).toHaveBeenCalledTimes(1);
-        
+
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -343,13 +343,7 @@ describe('useSelectedTransactionsActions', () => {
 
         result.current.handleDeleteTransactions();
 
-        expect(mockDeleteTransactions).toHaveBeenCalledWith(
-            [transactionID],
-            mockDuplicateTransactions,
-            mockDuplicateTransactionViolations,
-            mockCurrentSearchHash,
-            false,
-        );
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
         expect(result.current.isDeleteModalVisible).toBe(false);
@@ -474,9 +468,7 @@ describe('useSelectedTransactionsActions', () => {
         const holdOption = result.current.options.find((option) => option.value === 'HOLD');
         holdOption?.onSelected?.();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: report.reportID}),
-        );
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: report.reportID}));
     });
 
     it('should show unhold option and handle unhold action', async () => {
@@ -660,4 +652,3 @@ describe('useSelectedTransactionsActions', () => {
         expect(Navigation.navigate).toHaveBeenCalled();
     });
 });
-
