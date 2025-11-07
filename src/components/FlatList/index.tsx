@@ -43,7 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, ref, ...restProps}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, initialNumToRender, ref, ...restProps}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -242,6 +242,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             onScroll={handleScroll}
             scrollEventThrottle={1}
             ref={onRef}
+            initialNumToRender={Math.max(0, initialNumToRender ?? 0) || undefined}
             onLayout={(e) => {
                 isListRenderedRef.current = true;
                 if (!mutationObserverRef.current) {

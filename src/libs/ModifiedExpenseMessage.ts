@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -188,11 +189,13 @@ function getForReportAction({
     policyID,
     movedFromReport,
     movedToReport,
+    policyForMovingExpensesID,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    policyForMovingExpensesID?: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -271,11 +274,22 @@ function getForReportAction({
 
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage?.category ?? '',
-            reportActionOriginalMessage?.oldCategory ?? '',
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let categoryLabel = translateLocal('common.category');
+
+        // Add attribution suffix based on source
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.category'),
+            categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+        }
+
+        buildMessageFragmentForValue(
+            getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
+            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
+            categoryLabel,
             true,
             setFragments,
             removalFragments,
@@ -285,7 +299,8 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const policyIDForTags = policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : policyID;
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`] ?? CONST.POLICY.DEFAULT_TAG_LIST;
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);

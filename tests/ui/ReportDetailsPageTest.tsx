@@ -50,15 +50,13 @@ describe('ReportDetailsPage', () => {
         const transactionID = '3';
         const transaction = createRandomTransaction(1);
         const trackExpenseReport: Report = {
-            ...createRandomReport(Number(trackExpenseReportID)),
-            chatType: '' as Report['chatType'],
+            ...createRandomReport(Number(trackExpenseReportID), undefined),
             parentReportID: selfDMReportID,
             parentReportActionID: trackExpenseActionID,
         };
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
-                ...createRandomReport(Number(selfDMReportID)),
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ...createRandomReport(Number(selfDMReportID), CONST.REPORT.CHAT_TYPE.SELF_DM),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, trackExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);

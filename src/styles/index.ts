@@ -17,6 +17,7 @@ import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
@@ -54,10 +55,7 @@ import variables from './variables';
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
 
-type AnchorDimensions = {
-    width: number;
-    height: number;
-};
+type AnchorDimensions = Dimensions;
 
 type AnchorPosition = {
     horizontal: number;
@@ -135,6 +133,8 @@ const link = (theme: ThemeColors) =>
         textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        // We do not want to have underline on links
+        textDecorationLine: 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
@@ -755,6 +755,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
+        buttonExtraSmall: {
+            borderRadius: variables.buttonBorderRadius,
+            minHeight: variables.componentSizeXSmall,
+            minWidth: variables.componentSizeXSmall,
+            paddingHorizontal: 8,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
@@ -773,6 +781,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonSmallText: {
             fontSize: variables.fontSizeSmall,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            textAlign: 'center',
+        },
+
+        buttonExtraSmallText: {
+            fontSize: variables.fontSizeExtraSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             textAlign: 'center',
         },
@@ -2363,6 +2377,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        borderBottomHovered: {
+            borderBottomWidth: 1,
+            borderColor: theme.buttonHoveredBG,
+        },
+
         borderNone: {
             borderWidth: 0,
             borderBottomWidth: 0,
@@ -2397,11 +2416,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportSearchHeaderBar: {
-            overflow: 'hidden',
             justifyContent: 'center',
             display: 'flex',
             width: '100%',
-            height: 52,
+            height: 40,
         },
 
         searchResultsHeaderBar: {
@@ -4148,6 +4166,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiPickerButtonDropdownIcon: {
             fontSize: 30,
+            overflow: 'visible',
         },
 
         moneyRequestImage: {
@@ -5450,10 +5469,22 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         },
+        loadingMessage: {
+            alignItems: 'center',
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
         domainIcon: {
             backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+        },
+        copyableTextField: {
+            color: theme.textSupporting,
+            flex: 1,
+            ...wordBreak.breakWord,
         },
     }) satisfies StaticStyles;
 
