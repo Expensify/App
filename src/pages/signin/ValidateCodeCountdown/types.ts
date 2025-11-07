@@ -10,4 +10,3 @@ type ValidateCodeCountdownHandle = {
 };
 
 export type {ValidateCodeCountdownHandle, ValidateCodeCountdownProps};
-
