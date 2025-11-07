@@ -3,7 +3,13 @@ import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -463,8 +469,7 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, TransactionReportGroupListItemType> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &

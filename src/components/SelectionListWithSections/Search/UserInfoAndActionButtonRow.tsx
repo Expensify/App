@@ -11,7 +11,6 @@ import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
@@ -39,7 +38,7 @@ function UserInfoAndActionButtonRow({
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as TransactionReportGroupListItemType;
     }, [snapshot, transactionItem.reportID]);
 
     return (
