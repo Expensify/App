@@ -296,13 +296,10 @@ function MoneyReportHeader({
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
 
     const messagePDF = useMemo(() => {
-        if (!reportPDFFilename) {
-            return translate('reportDetailsPage.waitForPDF');
-        }
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
         }
-        return translate('reportDetailsPage.generatedPDF');
+        return translate('reportDetailsPage.waitForPDF');
     }, [reportPDFFilename, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
@@ -486,15 +483,6 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
-            if (currentSearchQueryJSON) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isOffline,
-                });
-            }
         }
     };
 
@@ -1133,6 +1121,14 @@ function MoneyReportHeader({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 
+    useEffect(() => {
+        if (!isPDFModalVisible || !reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR || isDownloadingPDF) {
+            return;
+        }
+        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
+        setIsPDFModalVisible(false);
+    }, [isPDFModalVisible, reportPDFFilename, isDownloadingPDF, moneyRequestReport?.reportName]);
+
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
@@ -1154,7 +1150,7 @@ function MoneyReportHeader({
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled) {
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
@@ -1472,37 +1468,26 @@ function MoneyReportHeader({
                 innerContainerStyle={styles.pv0}
             >
                 <View style={[styles.m5]}>
-                    <View>
-                        <View style={[styles.flexRow, styles.mb4]}>
-                            <Header
-                                title={translate('reportDetailsPage.generatingPDF')}
-                                containerStyles={[styles.alignItemsCenter]}
+                    <View style={[styles.flexRow, styles.mb4]}>
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.flexRow]}>
+                                <Header title={translate('reportDetailsPage.generatingPDF')} />
+                            </View>
+                            <Text style={[styles.mt3]}>{messagePDF}</Text>
+                        </View>
+                        <View style={[styles.dFlex, styles.justifyContentCenter]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                color={theme.textSupporting}
+                                style={styles.ml3}
                             />
                         </View>
-                        <View>
-                            <Text>{messagePDF}</Text>
-                            {!reportPDFFilename && (
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    color={theme.textSupporting}
-                                    style={styles.mt3}
-                                />
-                            )}
-                        </View>
                     </View>
-                    {!!reportPDFFilename && reportPDFFilename !== 'error' && (
-                        <Button
-                            isLoading={isDownloadingPDF}
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={() => downloadReportPDF(reportPDFFilename ?? '', moneyRequestReport?.reportName ?? '')}
-                            text={translate('common.download')}
-                        />
-                    )}
                     {(!reportPDFFilename || reportPDFFilename === 'error') && (
                         <Button
                             style={[styles.mt3, styles.noSelect]}
                             onPress={() => setIsPDFModalVisible(false)}
-                            text={translate('common.close')}
+                            text={translate('common.cancel')}
                         />
                     )}
                 </View>
