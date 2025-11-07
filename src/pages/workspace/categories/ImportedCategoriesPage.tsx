@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -46,7 +46,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         roles.push(
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
-            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
+            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED},
         );
 
         if (isControlPolicy(policy)) {
@@ -138,6 +138,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
@@ -155,15 +156,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );

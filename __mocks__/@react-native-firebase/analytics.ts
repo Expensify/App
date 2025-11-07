@@ -1,5 +1,4 @@
-export default function analytics() {
-    return {
-        logEvent: jest.fn(),
-    };
-}
+const logEvent = jest.fn();
+const getAnalytics = jest.fn();
+
+export {logEvent, getAnalytics};

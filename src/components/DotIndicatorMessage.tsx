@@ -7,9 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isReceiptError} from '@libs/ErrorUtils';
+import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
@@ -25,7 +26,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string | ReceiptError | ReactElement | null>;
+    messages: Record<string, string | ReceiptError | TranslationKeyError | ReactElement | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -68,7 +69,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 <>
                     <Text
                         key={index}
-                        style={styles.offlineFeedback.text}
+                        style={styles.offlineFeedbackText}
                     >
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
                         <TextLink
@@ -109,20 +110,20 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
             >
-                {message}
+                {isTranslationKeyError(message) ? translate(message.translationKey) : message}
             </Text>
         );
     };
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>{uniqueMessages.map(renderMessage)}</View>
+            <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
 }

@@ -30,6 +30,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
                 <MenuItemWithTopDescription
+                    key={fieldName}
                     description={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
                     title={
                         fieldName === INPUT_IDS.MAPPING && values[fieldName]

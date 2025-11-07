@@ -39,7 +39,7 @@ function Finish() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('finishStep.connect')}
+                title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>

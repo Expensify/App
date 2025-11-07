@@ -8,7 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let queuedOnyxUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-Onyx.connect({
+// We use `connectWithoutView` because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         currentAccountID = session?.accountID;
@@ -31,7 +32,9 @@ function flushQueue(): Promise<void> {
     queuedOnyxUpdates = [];
 
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
+        // eslint-disable-next-line unicorn/prefer-set-has
         const preservedKeys: OnyxKey[] = [
+            ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,

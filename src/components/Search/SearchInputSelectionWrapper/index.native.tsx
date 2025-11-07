@@ -1,20 +1,24 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React, {Suspense} from 'react';
+import Deferred from '@components/Deferred';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import type {SearchAutocompleteInputProps} from '@components/Search/SearchAutocompleteInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import SearchInputSelectionSkeleton from '@components/Skeletons/SearchInputSelectionSkeleton';
 
-function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function SearchInputSelectionWrapper({ref, ...props}: SearchAutocompleteInputProps) {
     return (
-        <SearchAutocompleteInput
-            ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            selection={undefined}
-        />
+        <Suspense fallback={<SearchInputSelectionSkeleton />}>
+            <Deferred>
+                <SearchAutocompleteInput
+                    ref={ref}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    selection={undefined}
+                />
+            </Deferred>
+        </Suspense>
     );
 }
 
 SearchInputSelectionWrapper.displayName = 'SearchInputSelectionWrapper';
 
-export default forwardRef(SearchInputSelectionWrapper);
+export default SearchInputSelectionWrapper;

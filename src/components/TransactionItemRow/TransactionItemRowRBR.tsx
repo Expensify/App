@@ -5,16 +5,26 @@ import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Parser from '@libs/Parser';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
-import type {TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, TransactionViolation} from '@src/types/onyx';
+import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
     /** Transaction item */
-    transactionViolations?: TransactionViolations;
+    transaction: Transaction;
+
+    /** Transaction violations */
+    violations?: TransactionViolation[];
+
+    /** Report item */
+    report?: Report;
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
@@ -23,29 +33,28 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-/** This component is lighter version of TransactionItemRowRBRWithOnyx that doesn't use onyx but uses transactionViolations data computed from search,
- *  thus it doesn't include violations taken from reportActions like its counterpart does. */
-function TransactionItemRowRBR({transactionViolations, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
+        canBeMissing: true,
+    });
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
+    const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`, {
+        canBeMissing: true,
+    });
 
-    if (!transactionViolations && !missingFieldError) {
-        return null;
-    }
+    const RBRMessages = ViolationsUtils.getRBRMessages(
+        transaction,
+        isSettled(report) ? [] : (violations ?? []),
+        translate,
+        missingFieldError,
+        Object.values(transactionThreadActions ?? {}),
+        policyTags,
+    );
 
-    const RBRMessages = [
-        ...(missingFieldError ? [`${missingFieldError}.`] : []),
-        // Some violations end with a period already so lets make sure the connected messages have only single period between them
-        // and end with a single dot.
-        ...(transactionViolations
-            ? transactionViolations.map((violation) => {
-                  const message = ViolationsUtils.getViolationTranslation(violation, translate);
-                  const textMessage = Parser.htmlToText(message);
-                  return textMessage.endsWith('.') ? message : `${message}.`;
-              })
-            : []),
-    ].join(' ');
     return (
         RBRMessages.length > 0 && (
             <View

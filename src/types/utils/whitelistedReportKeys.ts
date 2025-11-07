@@ -31,6 +31,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         statusNum: unknown;
         writeCapability: unknown;
         type: unknown;
+        created: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
@@ -50,6 +51,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
+        hasReportBeenRetracted: unknown;
+        hasReportBeenReopened: unknown;
+        isExportedToIntegration: unknown;
+        hasExportError: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;

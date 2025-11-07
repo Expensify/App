@@ -11,6 +11,7 @@ import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
 import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
 import DateOfBirthUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/DateOfBirthUBO';
@@ -33,8 +34,8 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -60,7 +61,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {
-                    acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
+                    acc[fieldName] = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                     return acc;
                 },
                 {} as Record<string, string | undefined>,
@@ -215,12 +216,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
+            shouldShowOfflineIndicatorInWideScreen={currentUBOSubStep === SUBSTEP.UBOS_LIST}
+            startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doYouOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
@@ -230,7 +232,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
@@ -250,7 +252,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}

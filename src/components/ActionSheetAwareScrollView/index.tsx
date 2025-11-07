@@ -1,13 +1,12 @@
 // this whole file is just for other platforms
 // iOS version has everything implemented
-import type {PropsWithChildren} from 'react';
 import React, {forwardRef} from 'react';
-import type {ScrollViewProps} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView} from 'react-native';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>((props, ref) => (
+const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>((props, ref) => (
     <ScrollView
         ref={ref}
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -26,6 +25,6 @@ export default ActionSheetAwareScrollView;
  * @param {Object} props - props that will be passed to the ScrollView from FlatList
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
-const renderScrollComponent = undefined;
+const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = undefined;
 
 export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};

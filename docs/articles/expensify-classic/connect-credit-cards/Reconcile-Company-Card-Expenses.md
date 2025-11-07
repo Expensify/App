@@ -3,7 +3,6 @@ title: Reconcile Company Card Expenses
 description: Learn how to reconcile company card expenses in Expensify, including troubleshooting discrepancies, managing approvals, and preparing accruals
 keywords: [Expensify Classic, reconcile company cards]
 ---
-<div id="expensify-classic" markdown="1">
 
 This guide explains how to reconcile corporate card transactions imported into Expensify using the reconciliation dashboard feature.
 
@@ -97,4 +96,3 @@ Only Domain Admins can access the Reconciliation tool.
 
 **Note: Only posted transactions will be imported.**
 
-</div>

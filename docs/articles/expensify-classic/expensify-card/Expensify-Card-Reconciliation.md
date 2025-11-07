@@ -3,7 +3,6 @@ title: Expensify Card Reconciliation
 description: Learn how to reconcile expenses from Expensify Cards through Continuous Reconciliation or manual methods.
 keywords: [Expensify Classic, Expensify Card reconciliation]
 ---
-<div id="expensify-classic" markdown="1">
 
 To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **Continuous Reconciliation** with an accounting integration or **manually reconcile** the expenses. 
 
@@ -152,4 +151,3 @@ A Domain Admin can set export accounts for individual cards via:
 
 Due to the highly customizable nature of Sage Intacct Smart Rules, Continuous Reconciliation may encounter conflicts, especially when Expensify attempts to create vendor accounts during the reconciliation process. To resolve this, you can temporarily disable all Smart Rules in Sage Intacct, allow Expensify to create the necessary vendor accounts, and then re-enable the Smart Rules. However, if some Smart Rules are implemented via a Sage Intacct Package and cannot be easily disabled, you may need to manually adjust the rules after account creation. This process might need to be repeated if new employees submit reports in the future. Expensify creates vendor accounts to associate reports with the email addresses that submitted them, and the "vendor" field is included in the journal entries posted via Continuous Reconciliation.
 
-</div>

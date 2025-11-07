@@ -2,11 +2,11 @@ import type {ViewStyle} from 'react-native';
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
 import variables from '@styles/variables';
-import type {AnimationInType, AnimationOutType} from './types';
+import type {AnimationIn, AnimationOut} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps {
+function getModalInAnimation(animationType: AnimationIn): ValidKeyframeProps {
     switch (animationType) {
         case 'slideInRight':
             return {
@@ -40,7 +40,7 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
 /**
  * @returns A function that takes a number between 0 and 1 and returns a ViewStyle object.
  */
-function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle {
+function getModalInAnimationStyle(animationType: AnimationIn): (progress: number) => ViewStyle {
     switch (animationType) {
         case 'slideInRight':
             return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});
@@ -53,7 +53,7 @@ function getModalInAnimationStyle(animationType: AnimationInType): (progress: nu
     }
 }
 
-function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframeProps {
+function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
     switch (animationType) {
         case 'slideOutRight':
             return {

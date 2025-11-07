@@ -1,7 +1,12 @@
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
+import {
+    createTransactionPreviewConditionals,
+    getTransactionPreviewTextAndTranslationPaths,
+    getUniqueActionErrorsForTransaction,
+    getViolationTranslatePath,
+} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -377,33 +382,33 @@ describe('TransactionPreviewUtils', () => {
             ].slice(0, count);
 
         test('returns translationPath when there is at least one violation and transaction is on hold', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath if violation message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there are multiple violations', () => {
-            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there is at least one violation and there are field errors', () => {
-            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false, false)).toEqual({text: message});
         });
 
         test('returns translationPath when there are no violations but message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
         });
     });
 
-    describe('getUniqueActionErrors', () => {
+    describe('getUniqueActionErrorsForTransaction', () => {
         test('returns an empty array if there are no actions', () => {
-            expect(getUniqueActionErrors({})).toEqual([]);
+            expect(getUniqueActionErrorsForTransaction({}, undefined)).toEqual([]);
         });
 
         test('returns unique error messages from report actions', () => {
@@ -416,7 +421,7 @@ describe('TransactionPreviewUtils', () => {
             } as unknown as ReportActions;
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
-            expect(getUniqueActionErrors(actions).sort()).toEqual(expectedErrors.sort());
+            expect(getUniqueActionErrorsForTransaction(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
@@ -426,7 +431,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error Z2']);
+            expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
@@ -437,7 +442,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error B', 'Error D']);
+            expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
     });
 });

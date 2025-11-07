@@ -1,18 +1,22 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, getFormattedCreated} from '@libs/TransactionUtils';
+import {getFormattedCreated} from '@libs/TransactionUtils';
 import {setDraftSplitTransaction, setMoneyRequestCreated, updateMoneyRequestDate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,45 +46,24 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const reportActionsReportID = useMemo(() => {
-        let actionsReportID;
-        if (action === CONST.IOU.ACTION.EDIT) {
-            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-        }
-        return actionsReportID;
-    }, [action, iouType, report?.reportID, report?.parentReportID]);
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
-        canEvict: false,
-        canBeMissing: true,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        selector: (reportActions) => reportActions?.[`${report?.parentReportActionID || reportActionID}`],
-    });
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
-    const canEditingSplitBill = isEditingSplit && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
-    const canEditSplitExpense = isSplitExpense && !!transaction;
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFound = false;
-
-    if (!isValidMoneyRequestType(iouType)) {
-        shouldShowNotFound = true;
-    } else if (isEditing) {
-        if (isSplitBill) {
-            shouldShowNotFound = !canEditMoneyRequest && !canEditingSplitBill;
-        } else if (isSplitExpense) {
-            shouldShowNotFound = !canEditSplitExpense;
-        }
-    }
+    const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -97,7 +80,7 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, {created: newCreated});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
             navigateBack();
             return;
         }
@@ -107,7 +90,19 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReportID: reportID,
+                transactions: duplicateTransactions,
+                transactionViolations: duplicateTransactionViolations,
+                value: newCreated,
+                policy,
+                policyTags,
+                policyCategories,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                isASAPSubmitBetaEnabled,
+            });
         }
 
         navigateBack();

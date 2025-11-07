@@ -3,7 +3,6 @@ title: Admin Offboarding Checklist
 description: Steps to follow when the main workspace admin leaves the business.
 keywords: [Expensify Classic, admin offboarding, switch admins]
 ---
-<div id="expensify-classic" markdown="1">
 
 Many Expensify customers have one person managing key roles in Expensify Classic: **Billing Owner, Workspace Admin, Domain Admin, Technical Contact,** and **Bank Account Owner**. If this person leaves the company or changes roles, their responsibilities must be reassigned to another employee.
 
@@ -79,4 +78,3 @@ Head to **Settings > Workspace > [Workspace Name] > Accounting**:
 
 By following this checklist, you can ensure a seamless transition when offboarding an admin from Expensify. Taking these steps proactively helps maintain financial oversight and prevents unnecessary billing issues. If you have any questions, feel free to contact Concierge Support! 
 
-</div>

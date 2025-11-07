@@ -1,12 +1,13 @@
 import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 /** Pending onyx actions */
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;
 
 /** Mapping of form fields with pending actions */
-type PendingFields<TKey extends string> = {[key in Exclude<TKey, 'pendingAction' | 'pendingFields' | 'errorFields'>]?: PendingAction};
+type PendingFields<TKey extends string> = Partial<Record<Exclude<TKey, 'pendingAction' | 'pendingFields' | 'errorFields'>, PendingAction>>;
 
 /** Offline properties that store information about data that was written while the app was offline */
 type OfflineFeedback<TKey extends string> = {
@@ -25,6 +26,21 @@ type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | un
 
 /** Mapping of form fields with error translation keys and variables */
 type Errors = Record<string, string | null>;
+
+/**
+ * Error object for a translation key
+ */
+type TranslationKeyError = {
+    /**
+     * The translation key
+     */
+    translationKey: TranslationPaths;
+};
+
+/**
+ * Mapping of form fields with key and translation key error variables
+ */
+type TranslationKeyErrors = Record<string, TranslationKeyError>;
 
 /**
  * Types of avatars
@@ -54,4 +70,4 @@ type Icon = {
     fill?: string;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, TranslationKeyError, TranslationKeyErrors};

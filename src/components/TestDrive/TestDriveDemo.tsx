@@ -1,10 +1,14 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,24 +27,39 @@ function TestDriveDemo() {
     const styles = useThemeStyles();
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const {
+        taskReport: viewTourTaskReport,
+        taskParentReport: viewTourTaskParentReport,
+        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
+
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+        canBeMissing: true,
+    });
 
     useEffect(() => {
+        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+            return;
+        }
+
+        completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
+    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
-            completeTestDriveTask(viewTourReport, viewTourReportID);
         });
-
-        // This should fire only during mount.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack();
 
@@ -59,12 +78,11 @@ function TestDriveDemo() {
                     type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
                     style={styles.backgroundWhite}
                     innerContainerStyle={{...styles.flex1, marginTop: paddingTop, marginBottom: paddingBottom}}
-                    useNativeDriver={false} // We need to disable native driver in order to prevent https://github.com/Expensify/App/issues/61032
                 >
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
-                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected)}
+                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>

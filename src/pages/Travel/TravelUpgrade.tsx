@@ -8,6 +8,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -15,6 +16,7 @@ import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import CONST from '@src/CONST';
 import {createDraftWorkspace, createWorkspace} from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type TravelUpgradeProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.UPGRADE>;
@@ -24,15 +26,24 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [shouldShowConfirmation, setShouldShowConfirmation] = useState(false);
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createDraftWorkspace('', false, params.name, params.policyID, params.currency, params.avatarFile as File);
+        createDraftWorkspace(introSelected, '', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         setShouldShowConfirmation(false);
         setIsUpgraded(true);
-        createWorkspace('', false, params.name, params.policyID, undefined, params.currency, params.avatarFile as File);
+        createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            engagementChoice: undefined,
+            currency: params.currency,
+            file: params.avatarFile as File,
+        });
     };
 
     const onClose = () => {
@@ -44,6 +55,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             shouldShowOfflineIndicator
             testID={TravelUpgrade.displayName}
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
@@ -59,7 +71,6 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                     Navigation.dismissModal();
                 }}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
@@ -77,7 +88,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={() => Navigation.goBack()}
+                        afterUpgradeAcknowledged={() => Navigation.goBack()}
                         policyName=""
                         isTravelUpgrade
                     />

@@ -1,13 +1,16 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,16 +24,21 @@ import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateLegalName = (values: PrivatePersonalDetails) => {
-    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
+const updateLegalName = (
+    values: PrivatePersonalDetails,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
+) => {
+    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetail);
 };
 
 function LegalNamePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
 
@@ -95,7 +103,14 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={updateLegalName}
+                        onSubmit={(values) =>
+                            updateLegalName(values, formatPhoneNumber, {
+                                firstName: currentUserPersonalDetails.firstName,
+                                lastName: currentUserPersonalDetails.lastName,
+                                accountID: currentUserPersonalDetails.accountID,
+                                email: currentUserPersonalDetails.email,
+                            })
+                        }
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >

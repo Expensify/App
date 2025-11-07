@@ -1,13 +1,13 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import localeCompare from './LocaleCompare';
-import {translateLocal} from './Localize';
+import {getDecodedCategoryName} from './CategoryUtils';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -41,11 +41,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const decodedCategoryName = getDecodedCategoryName(option.name);
             optionCollection.set(option.name, {
-                text: option.name,
+                text: decodedCategoryName,
                 keyForList: option.name,
                 searchText: option.name,
-                tooltipText: option.name,
+                tooltipText: decodedCategoryName,
                 isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isSelected: !!option.isSelected,
                 pendingAction: option.pendingAction,
@@ -65,11 +66,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const decodedCategoryName = getDecodedCategoryName(optionName);
             optionCollection.set(searchText, {
-                text: `${indents}${optionName}`,
+                text: `${indents}${decodedCategoryName}`,
                 keyForList: searchText,
                 searchText,
-                tooltipText: optionName,
+                tooltipText: decodedCategoryName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
@@ -85,19 +87,24 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
  */
 function getCategoryListSections({
     categories,
+    localeCompare,
     searchValue,
     selectedOptions = [],
     recentlyUsedCategories = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     categories: PolicyCategories;
+    localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Category[];
     searchValue?: string;
     recentlyUsedCategories?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): CategoryTreeSection[] {
-    const sortedCategories = sortCategories(categories);
+    const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledCategoriesNames = enabledCategories.map((category) => category.name);
     const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
@@ -156,6 +163,7 @@ function getCategoryListSections({
         });
     }
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
@@ -188,7 +196,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -198,7 +206,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -212,7 +220,7 @@ function getCategoryListSections({
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, Category>): Category[] {
+function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextProps['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
     const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 
@@ -264,7 +272,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (!isEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
-                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
+                acc.push(...nestedCategories.sort((a, b) => localeCompare(a.name, b.name)));
             }
 
             return acc;

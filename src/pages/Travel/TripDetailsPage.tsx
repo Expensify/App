@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
@@ -40,7 +41,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const {isOffline} = useNetwork();
 
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
@@ -49,7 +51,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const {transactionID, sequenceIndex, pnr, reportID} = route.params;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`, {canBeMissing: true});
 
@@ -58,7 +60,9 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
     const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(tripReservations, Number(sequenceIndex));
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
+    const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation), [reservation]);
+
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector, canBeMissing: true}, [travelerPersonalDetailsSelector]);
 
     return (
         <ScreenWrapper

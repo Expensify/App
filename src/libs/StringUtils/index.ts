@@ -173,6 +173,15 @@ function countWhiteSpaces(str: string): number {
     return (str.match(/\s/g) ?? []).length;
 }
 
+/**
+ * Check if the string starts with a vowel
+ * @param str - The input string
+ * @returns True if the string starts with a vowel, false otherwise
+ */
+function startsWithVowel(str: string): boolean {
+    return /^[aeiouAEIOU]/.test(str);
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -190,4 +199,5 @@ export default {
     getUTF8ByteLength,
     decodeUnicode,
     countWhiteSpaces,
+    startsWithVowel,
 };

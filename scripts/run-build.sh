@@ -35,7 +35,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 # See if we should force standalone NewDot build
 NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
- if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
@@ -55,18 +55,19 @@ else
 fi
 
 # Check if the argument is one of the desired values
+# RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 - force React Native to build from source to include our custom patches
 case "$BUILD" in
     --ios)
-        npx rnef run:ios --configuration $IOS_MODE --scheme "$SCHEME"
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad)
-        npx rnef run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --ipad-sm)
-        npx rnef run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --android)
-        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server
         ;;
     *)
         print_error_and_exit

@@ -30,7 +30,7 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
@@ -41,6 +41,8 @@ type DropdownOption<TValueType> = {
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
+    /** Whether the selected index should be updated when the option is selected even if we have onSelected callback */
+    shouldUpdateSelectedIndex?: boolean;
     subMenuItems?: PopoverMenuItem[];
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -77,6 +79,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The size of button size */
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
+
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
@@ -92,14 +97,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
-
-    /**
-     * Determines how the popover menu should be horizontally positioned relative to the button.
-     * - 'right': Anchors to the right edge of the button (default)
-     * - 'left': Anchors to the left edge of the button
-     * - 'center': Anchors to the center of the button
-     */
-    popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
 
     /* ref for the button */
     buttonRef?: RefObject<View | null>;
@@ -122,9 +119,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
-    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
-    shouldUseStyleUtilityForAnchorPosition?: boolean;
-
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
@@ -143,11 +137,27 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Icon for main button */
     icon?: IconAsset;
 
+    /** Whether the popover content should be scrollable */
+    shouldPopoverUseScrollView?: boolean;
+
+    /** Container style to be applied to the popover of the dropdown menu */
+    containerStyles?: StyleProp<ViewStyle>;
+
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
 
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
+
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
+
+    /** Reference to the outer element */
+    ref?: React.Ref<ButtonWithDropdownMenuRef>;
+};
+
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
 };
 
 export type {
@@ -160,4 +170,5 @@ export type {
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
     OnboardingHelpType,
+    ButtonWithDropdownMenuRef,
 };

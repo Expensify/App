@@ -1,12 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as AppImport from '@userActions/App';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
@@ -20,6 +25,10 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({
         didScreenTransitionEnd: true,
     }),
+}));
+
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
 const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock;

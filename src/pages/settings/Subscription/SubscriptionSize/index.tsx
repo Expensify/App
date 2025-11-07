@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -23,7 +24,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [Size, Confirmatio
 type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.SIZE>;
 
 function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const privateSubscription = usePrivateSubscription();
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT, {canBeMissing: false});
     const {translate} = useLocalize();
     const canChangeSubscriptionSize = !!(route.params?.canChangeSize ?? 1);

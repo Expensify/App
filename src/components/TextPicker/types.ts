@@ -28,7 +28,7 @@ type TextSelectorModalProps = {
     /** Whether the field is required */
     required?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
-    TextProps;
+    Omit<TextProps, 'ref'>;
 
 type TextPickerProps = {
     /** Item to display */
@@ -42,6 +42,12 @@ type TextPickerProps = {
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
+
+    /**
+     * Called after the user commits the value (presses Save in the modal),
+     * once the modal has closed, the parent value is updated.
+     */
+    onValueCommitted?: (value: string) => void;
 
     /** Text to display under the main menu item */
     furtherDetails?: string;

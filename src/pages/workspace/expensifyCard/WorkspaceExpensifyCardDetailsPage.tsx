@@ -1,11 +1,10 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -13,13 +12,18 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,53 +52,50 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [isDeleted, setIsDeleted] = useState(false);
+    const StyleUtils = useStyleUtils();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {
-        selector: filterInactiveCards,
-        canBeMissing: true,
-    });
+    const [cardFeeds] = useCardFeeds(policyID);
+    const expensifyCardSettings = useExpensifyCardFeeds(policyID);
+    const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings);
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
-    const card = cardsList?.[cardID];
+    const card = workspaceCards?.[cardID];
+    const currency = useCurrencyForExpensifyCard({policyID});
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
-    const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend);
-    const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
+    const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
+    const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
+
+    const shouldGoBack = useRef(false);
 
     const fetchCardDetails = useCallback(() => {
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
-
-    useEffect(() => {
-        if (!isDeleted) {
-            return;
-        }
-        return () => {
-            deactivateCardAction(defaultFundID, card);
-        };
-    }, [isDeleted, defaultFundID, card]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
-        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        requestAnimationFrame(() => {
-            Navigation.goBack();
+        shouldGoBack.current = true;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            deactivateCardAction(defaultFundID, card);
         });
     };
 
-    if (!card && !isLoadingOnyxValue(cardsListResult)) {
+    if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
         return <NotFoundPage />;
     }
 
@@ -116,7 +117,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     <View style={[styles.walletCard, styles.mb3]}>
                         <ImageSVG
                             contentFit="contain"
-                            src={ExpensifyCardImage}
+                            src={illustrations.ExpensifyCardImage}
                             pointerEvents="none"
                             height={variables.cardPreviewHeight}
                             width={variables.cardPreviewWidth}
@@ -127,6 +128,17 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             text={translate(isVirtual ? 'workspace.expensifyCard.virtual' : 'workspace.expensifyCard.physical')}
                         />
                     </View>
+
+                    {!cardholder?.validated && (
+                        <MenuItem
+                            icon={Hourglass}
+                            iconStyles={styles.mln2}
+                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
+                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                            numberOfLinesDescription={0}
+                            interactive={false}
+                        />
+                    )}
 
                     <MenuItem
                         label={translate('workspace.card.issueNewCard.cardholder')}
@@ -193,7 +205,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         />
                     </OfflineWithFeedback>
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {
@@ -224,6 +236,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
                         cancelText={translate('common.cancel')}
                         danger
+                        onModalHide={() => shouldGoBack.current && Navigation.goBack()}
                     />
                     <DecisionModal
                         title={translate('common.youAppearToBeOffline')}

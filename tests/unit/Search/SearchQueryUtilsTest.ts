@@ -1,10 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import {
+    buildFilterFormValuesFromQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    getFilterDisplayValue,
+    getQueryWithUpdatedValues,
+    shouldHighlight,
+    sortOptionsWithEmptyValue,
+} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {localeCompare} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -16,7 +27,9 @@ const personalDetailsFakeData = {
 } as Record<string, {accountID: number}>;
 
 jest.mock('@libs/PersonalDetailsUtils', () => {
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
     return {
+        ...actual,
         getPersonalDetailByEmail(email: string) {
             return personalDetailsFakeData[email];
         },
@@ -84,7 +97,7 @@ describe('SearchQueryUtils', () => {
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 policyID: ['12345'],
-                lessThan: '100',
+                amountLessThan: '100',
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
@@ -169,8 +182,8 @@ describe('SearchQueryUtils', () => {
                 to: ['user3@gmail.com'],
                 dateAfter: '2025-03-01',
                 dateBefore: '2025-03-10',
-                lessThan: '1000',
-                greaterThan: '1',
+                amountLessThan: '1000',
+                amountGreaterThan: '1',
                 category: ['finance', 'insurance'],
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
@@ -179,6 +192,64 @@ describe('SearchQueryUtils', () => {
                 'sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date>2025-03-01 date<2025-03-10 amount>1 amount<1000',
             );
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+        });
+
+        test('total filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                totalLessThan: '1000',
+                totalGreaterThan: '1',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense total>1 total<1000');
+        });
+
+        test('equal to filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountEqualTo: '500',
+                totalEqualTo: '750',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:500 total:750');
+        });
+
+        test('combined equal to and range filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountEqualTo: '100',
+                totalGreaterThan: '50',
+                totalLessThan: '200',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:100 total>50 total<200');
+        });
+
+        test('with withdrawal type filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawalType:expensify-card');
+        });
+
+        test('with withdrawn filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawn:last-month');
         });
     });
 
@@ -266,6 +337,210 @@ describe('SearchQueryUtils', () => {
 
         it('does not match words out of order', () => {
             expect(shouldHighlight('Take a 2-minute tour', 'tour 2-minute')).toBe(false);
+        });
+    });
+
+    describe('sortOptionsWithEmptyValue', () => {
+        it('should prioritize empty values at the start', () => {
+            const options = ['B', 'A', CONST.SEARCH.CATEGORY_EMPTY_VALUE, 'C'];
+            const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
+
+            expect(sortedOptions).toEqual([CONST.SEARCH.CATEGORY_EMPTY_VALUE, 'A', 'B', 'C']);
+        });
+
+        it('should sort non-empty values properly', () => {
+            const options = ['B', 'A', 'C'];
+            const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
+
+            expect(sortedOptions).toEqual(['A', 'B', 'C']);
+        });
+    });
+
+    describe('similarSearchHash', () => {
+        it('should return same similarSearchHash for two queries that are the same but use different sorting', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:asc type:expense category:none,Uncategorized,Maintenance');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for two queries that have same filters but different values', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001" posted:last-statement');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"1234_stripe" posted:last-month');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with a date range', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn:last-month');
+            const queryJSONb = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn>2025-01-01 withdrawn<2025-01-03');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return different similarSearchHash for two queries that have different types', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001"');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+    });
+
+    describe('getFilterDisplayValue', () => {
+        const mockCardList = {};
+        const mockCardFeeds = {};
+        const mockPolicies = {};
+        const mockReports = {};
+        const currentUserAccountID = 12345;
+
+        it('should return clean phone number without @expensify.sms for SMS login users', () => {
+            const personalDetails = {
+                '99999': {
+                    accountID: 99999,
+                    login: '+15551234567@expensify.sms',
+                    displayName: '+15551234567@expensify.sms',
+                },
+            };
+
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                '99999',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('+15551234567');
+            expect(result).not.toContain('@expensify.sms');
+        });
+
+        it('should return display name for regular email users', () => {
+            const personalDetails = {
+                '78901': {
+                    accountID: 78901,
+                    login: 'janedoe@example.com',
+                    displayName: 'Jane Doe',
+                },
+            };
+
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                '78901',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('Jane Doe');
+        });
+
+        it('should return "Me" for current user account ID', () => {
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'currentuser@example.com',
+                    displayName: 'Current User',
+                },
+            };
+
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                '12345',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe(CONST.SEARCH.ME);
+        });
+
+        it('should return fallback value when personal details not found', () => {
+            const personalDetails = {};
+
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                '88888',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('88888');
+        });
+
+        it('should handle SMS login with custom display name', () => {
+            const personalDetails = {
+                '77777': {
+                    accountID: 77777,
+                    login: '+15559876543@expensify.sms',
+                    displayName: 'Custom Name',
+                },
+            };
+
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                '77777',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+            );
+
+            expect(result).toBe('Custom Name');
+            expect(result).not.toContain('@expensify.sms');
+        });
+
+        it('should work with TO filter key', () => {
+            const personalDetails = {
+                '66666': {
+                    accountID: 66666,
+                    login: '+15551112222@expensify.sms',
+                    displayName: '+15551112222@expensify.sms',
+                },
+            };
+
+            const result = getFilterDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, '66666', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+
+            expect(result).toBe('+15551112222');
+            expect(result).not.toContain('@expensify.sms');
+        });
+
+        it('should work with other user-related filter keys (ASSIGNEE, PAYER, EXPORTER, ATTENDEE)', () => {
+            const personalDetails = {
+                '55555': {
+                    accountID: 55555,
+                    login: '+15553334444@expensify.sms',
+                    displayName: '+15553334444@expensify.sms',
+                },
+            };
+
+            const filterKeys = [
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+            ];
+
+            filterKeys.forEach((filterKey) => {
+                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+
+                expect(result).toBe('+15553334444');
+                expect(result).not.toContain('@expensify.sms');
+            });
         });
     });
 });

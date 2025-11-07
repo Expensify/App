@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
@@ -34,11 +34,14 @@ type ApprovalWorkflowEditorProps = {
 
     /** The policy ID */
     policyID: string;
+
+    /** Forwarded ref to pass to the ScrollView */
+    ref: ForwardedRef<ScrollViewRN>;
 };
 
-function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
+function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
@@ -67,10 +70,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return translate('workspace.common.everyone');
         }
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName')
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
             .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
@@ -198,4 +201,4 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
 ApprovalWorkflowEditor.displayName = 'ApprovalWorkflowEditor';
 
-export default forwardRef(ApprovalWorkflowEditor);
+export default ApprovalWorkflowEditor;

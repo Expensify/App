@@ -1,12 +1,13 @@
+import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
+import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import localeCompare from './LocaleCompare';
-import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
+import {getTagForDisplay} from './TransactionUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -14,6 +15,14 @@ type SelectedTagOption = {
     isSelected?: boolean;
     accountID: number | undefined;
     pendingAction?: PendingAction;
+};
+
+type TagVisibility = {
+    /** Flag indicating if the tag is required */
+    isTagRequired: boolean;
+
+    /** Flag indicating if the tag should be shown */
+    shouldShow: boolean;
 };
 
 /**
@@ -42,22 +51,28 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendin
  */
 function getTagListSections({
     tags,
+    localeCompare,
     recentlyUsedTags = [],
     selectedOptions = [],
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
+    localeCompare: LocaleContextProps['localeCompare'];
     recentlyUsedTags?: string[];
     selectedOptions?: SelectedTagOption[];
     searchValue?: string;
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags, localeCompare);
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
@@ -131,7 +146,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
@@ -139,7 +154,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
@@ -162,9 +177,51 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>, localeCompare: LocaleContextProps['localeCompare']) {
     return Object.values(tags ?? {}).sort((a, b) => localeCompare(a.name, b.name)) as PolicyTag[];
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags};
-export type {SelectedTagOption};
+/**
+ * Calculate tag visibility for each tag list
+ */
+function getTagVisibility({
+    shouldShowTags,
+    policy,
+    policyTags,
+    transaction,
+}: {
+    shouldShowTags: boolean;
+    policy: Policy | undefined;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    transaction: Transaction | undefined;
+}): TagVisibility[] {
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const isMultilevelTags = isMultiLevelTagsPolicyUtils(policyTags);
+    const policyTagLists = getTagLists(policyTags);
+
+    return policyTagLists.map(({tags, required}, index) => {
+        const isTagRequired = required ?? false;
+        let shouldShow = false;
+
+        if (shouldShowTags) {
+            if (hasDependentTags) {
+                if (index === 0) {
+                    shouldShow = true;
+                } else {
+                    const prevTagValue = getTagForDisplay(transaction, index - 1);
+                    shouldShow = !!prevTagValue;
+                }
+            } else {
+                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
+            }
+        }
+
+        return {
+            isTagRequired,
+            shouldShow,
+        };
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility};
+export type {SelectedTagOption, TagVisibility};

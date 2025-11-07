@@ -1,9 +1,10 @@
 import {format, parseISO} from 'date-fns';
 import React, {useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -14,11 +15,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
@@ -53,8 +55,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
@@ -82,7 +86,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank as CompanyCardFeed);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank as CompanyCardFeed, card?.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
@@ -126,10 +130,22 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         )}
                     </View>
+                    {!cardholder?.validated && (
+                        <MenuItem
+                            icon={Hourglass}
+                            iconStyles={styles.mln2}
+                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
+                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                            numberOfLinesDescription={0}
+                            interactive={false}
+                        />
+                    )}
 
                     <MenuItem
                         label={translate('workspace.moreFeatures.companyCards.cardholder')}
                         title={displayName}
+                        titleStyle={styles.mt1}
+                        iconStyles={styles.mt1}
                         icon={cardholder?.avatar ?? FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={cardholder?.login}
@@ -178,12 +194,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     ) : null}
                     <MenuItemWithTopDescription
                         shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={
-                            <ActivityIndicator
-                                style={[styles.popoverMenuIcon]}
-                                color={theme.spinner}
-                            />
-                        }
+                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
                         description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
@@ -194,7 +205,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         interactive={false}
                     />
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {

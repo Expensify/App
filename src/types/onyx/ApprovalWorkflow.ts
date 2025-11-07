@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValueWithOfflineFeedback, PendingFields} from './OnyxCommon';
@@ -114,6 +114,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * Errors for the workflow
      */
     errors?: Record<string, TranslationPaths>;
+
+    /**
+     * List of original approvers in the workflow
+     */
+    originalApprovers: Approver[];
 };
 
 export default ApprovalWorkflow;

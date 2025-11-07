@@ -1,9 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,8 @@ import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, setPoli
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
+import type {Policy} from '@src/types/onyx';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 
@@ -45,21 +48,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>> = useMemo(
+    const feature = useMemo(
         () =>
             Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
                 .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias) as ValueOf<
-                Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>
-            >,
+                .find((f) => f.alias === featureNameAlias),
         [featureNameAlias],
     );
     const {translate} = useLocalize();
+    const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
@@ -72,6 +76,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
@@ -80,7 +85,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
-                        return Navigation.goBack(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID));
+                        return Navigation.goBack(ROUTES.WORKSPACE_REPORTS.getRoute(policyID));
                     default: {
                         Navigation.goBack();
                         if (route.params.backTo) {
@@ -192,6 +197,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
@@ -206,7 +212,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={goBack}
+                        afterUpgradeAcknowledged={goBack}
                         policyName={policy.name}
                     />
                 )}

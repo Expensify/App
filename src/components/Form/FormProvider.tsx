@@ -1,10 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
-import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurContext} from '@components/InputBlurContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +53,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
     /** Callback to validate the form */
-    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+    validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
     shouldValidateOnBlur?: boolean;
@@ -98,27 +99,28 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<FormRef>;
 };
 
-function FormProvider(
-    {
-        formID,
-        validate,
-        shouldValidateOnBlur = true,
-        shouldValidateOnChange = true,
-        children,
-        enabledWhenOffline = false,
-        onSubmit,
-        shouldTrimValues = true,
-        allowHTML = false,
-        isLoading = false,
-        shouldRenderFooterAboveSubmit = false,
-        shouldUseStrictHtmlTagValidation = false,
-        shouldPreventDefaultFocusOnPressSubmit = false,
-        ...rest
-    }: FormProviderProps,
-    forwardedRef: ForwardedRef<FormRef>,
-) {
+function FormProvider({
+    formID,
+    validate,
+    shouldValidateOnBlur = true,
+    shouldValidateOnChange = true,
+    children,
+    enabledWhenOffline = false,
+    onSubmit,
+    shouldTrimValues = true,
+    allowHTML = false,
+    isLoading = false,
+    shouldRenderFooterAboveSubmit = false,
+    shouldUseStrictHtmlTagValidation = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
+    ref,
+    ...rest
+}: FormProviderProps) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
@@ -148,7 +150,7 @@ function FormProvider(
             }
             clearErrorFields(formID);
 
-            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error
@@ -305,7 +307,7 @@ function FormProvider(
         [errors, formID],
     );
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
@@ -314,7 +316,7 @@ function FormProvider(
 
     const registerInput = useCallback<RegisterInput>(
         (inputID, shouldSubmitForm, inputProps) => {
-            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: RefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
@@ -343,7 +345,7 @@ function FormProvider(
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
-                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                    onSubmitEditing: (event: TextInputSubmitEditingEvent) => {
                         submit();
 
                         inputProps.onSubmitEditing?.(event);
@@ -416,6 +418,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setIsBlurred(true);
                         });
@@ -468,6 +471,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID> & RefAttributes<FormRef>) => ReactNode;
+export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 
 export type {FormProviderProps};

@@ -23,8 +23,9 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 function PhoneNumberPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -41,7 +42,7 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (values?.phoneNumber && phoneNumber !== values.phoneNumber) {
-            updatePhone(formatE164PhoneNumber(values.phoneNumber) ?? '', currenPhoneNumber);
+            updatePhone(formatE164PhoneNumber(values.phoneNumber, countryCode) ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -57,7 +58,7 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue);
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue, countryCode);
 
             if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
@@ -70,7 +71,7 @@ function PhoneNumberPage() {
 
             return errors;
         },
-        [translate, validateLoginError],
+        [translate, validateLoginError, countryCode],
     );
 
     return (
@@ -117,6 +118,7 @@ function PhoneNumberPage() {
                                     }
                                     clearPhoneNumberError();
                                 }}
+                                inputMode={CONST.INPUT_MODE.TEL}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

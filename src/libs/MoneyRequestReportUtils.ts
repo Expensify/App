@@ -1,10 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -21,6 +21,7 @@ import {isTransactionPendingDelete} from './TransactionUtils';
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
  * at the top
  */
+// eslint-disable-next-line unicorn/prefer-set-has
 const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
 
 /**
@@ -69,15 +70,23 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to not removed parent action.
+ * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return !isDeletedParentAction(action);
+        if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
+            return true;
+        }
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
@@ -108,13 +117,12 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
 function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        (!isTransactionDataReady || isStillLoadingData) &&
         !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
     );
 }
 
@@ -142,7 +150,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
+        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 

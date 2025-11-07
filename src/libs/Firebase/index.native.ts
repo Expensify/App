@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
-import crashlytics from '@react-native-firebase/crashlytics';
-import perf from '@react-native-firebase/perf';
+import {log as crashlyticsLog, getCrashlytics} from '@react-native-firebase/crashlytics';
+import {getPerformance} from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
 import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
 import utils from './utils';
 
+const crashlytics = getCrashlytics();
+const perf = getPerformance();
 const traceMap: TraceMap = {};
 
 const startTrace: StartTrace = (customEventName) => {
@@ -19,17 +21,15 @@ const startTrace: StartTrace = (customEventName) => {
 
     const attributes: FirebaseAttributes = utils.getAttributes(['accountId', 'personalDetailsLength', 'reportActionsLength', 'reportsLength', 'policiesLength']);
 
-    perf()
-        .startTrace(customEventName)
-        .then((trace) => {
-            Object.entries(attributes).forEach(([name, value]) => {
-                trace.putAttribute(name, value);
-            });
-            traceMap[customEventName] = {
-                trace,
-                start,
-            };
+    perf.startTrace(customEventName).then((trace) => {
+        Object.entries(attributes).forEach(([name, value]) => {
+            trace.putAttribute(name, value);
         });
+        traceMap[customEventName] = {
+            trace,
+            start,
+        };
+    });
 };
 
 const stopTrace: StopTrace = (customEventName) => {
@@ -54,7 +54,7 @@ const stopTrace: StopTrace = (customEventName) => {
 };
 
 const log: Log = (action: string) => {
-    crashlytics().log(action);
+    crashlyticsLog(crashlytics, action);
 };
 
 export default {

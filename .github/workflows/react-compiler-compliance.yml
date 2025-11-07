@@ -1,0 +1,34 @@
+name: React Compiler Compliance Check
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ["**.tsx"]
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-react-compiler-compliance
+  cancel-in-progress: true
+jobs:
+  react-compiler-compliance:
+    name: React Compiler Compliance
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # v4
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Run React Compiler Compliance Check
+        # In phase 0 of the React Compiler compliance check rollout,
+        # we want to report failures but don't fail the check.
+        # See https://github.com/Expensify/App/issues/68765#issuecomment-3487317881
+        run: npm run react-compiler-compliance-check check-changed || true
+        env:
+          CI: true
+          GITHUB_TOKEN: ${{ github.token }}

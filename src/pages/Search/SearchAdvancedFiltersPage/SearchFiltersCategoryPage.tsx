@@ -1,17 +1,32 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalPolicy} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+const availableNonPersonalPolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
+    Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+            if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy()?.id}`) {
+                return false;
+            }
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
@@ -25,7 +40,11 @@ function SearchFiltersCategoryPage() {
         return {name: category, value: category};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        canBeMissing: false,
+        selector: availableNonPersonalPolicyCategoriesSelector,
+    });
+
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
         ?.map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
@@ -43,7 +62,10 @@ function SearchFiltersCategoryPage() {
         items.push(
             ...Array.from(uniqueCategoryNames)
                 .filter(Boolean)
-                .map((categoryName) => ({name: categoryName, value: categoryName})),
+                .map((categoryName) => {
+                    const decodedCategoryName = getDecodedCategoryName(categoryName);
+                    return {name: decodedCategoryName, value: categoryName};
+                }),
         );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
@@ -60,7 +82,7 @@ function SearchFiltersCategoryPage() {
             <HeaderWithBackButton
                 title={translate('common.category')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

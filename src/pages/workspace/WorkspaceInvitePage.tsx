@@ -4,9 +4,9 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -54,10 +54,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const firstRenderRef = useRef(true);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -91,12 +93,15 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, excludedUsers, nvpDismissedProductTraining, options.personalDetails]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+    );
 
     useEffect(() => {
         if (!areOptionsInitialized) {
@@ -121,11 +126,23 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         if (firstRenderRef.current) {
             // We only want to add the saved selected user on first render
             firstRenderRef.current = false;
-            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-                if (!(login in detailsMap)) {
-                    return;
+            Object.entries(invitedEmailsToAccountIDsDraft ?? {}).forEach(([login, accountID]) => {
+                if (login in detailsMap) {
+                    newSelectedOptions.push({...detailsMap[login], isSelected: true});
+                } else {
+                    const optimisticOption = getUserToInviteOption({
+                        searchValue: login,
+                    });
+                    if (optimisticOption) {
+                        optimisticOption.accountID = Number(accountID);
+                        const memberOption = formatMemberForList({
+                            ...optimisticOption,
+                            accountID: Number(accountID),
+                            isSelected: true,
+                        });
+                        newSelectedOptions.push(memberOption);
+                    }
                 }
-                newSelectedOptions.push({...detailsMap[login], isSelected: true});
             });
         }
         selectedOptions.forEach((option) => {
@@ -177,7 +194,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -214,7 +231,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
 
     const toggleOption = (option: MemberForList) => {
         clearErrors(route.params.policyID);
@@ -267,12 +284,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue, countryCode, false);
+    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length, countryCode]);
 
     const footerContent = useMemo(
         () => (
@@ -311,7 +328,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         clearErrors(route.params.policyID);
-                        Navigation.goBack();
+                        Navigation.goBack(route.params.backTo);
                     }}
                 />
                 <SelectionList

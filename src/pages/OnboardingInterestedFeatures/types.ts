@@ -1,5 +1,3 @@
-import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
-import type {WRITE_COMMANDS} from '@libs/API/types';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
@@ -17,9 +15,8 @@ type Feature = {
     title: string;
     icon: IconAsset;
     enabledByDefault?: boolean;
-    apiEndpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
     requiresUpdate?: boolean;
-    programmaticallyEnabled?: boolean;
+    enabled?: boolean;
 };
 
 type SectionObject = {

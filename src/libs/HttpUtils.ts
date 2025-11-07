@@ -22,7 +22,8 @@ const ABORT_COMMANDS = {
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
 
-Onyx.connect({
+// We have used `connectWithoutView` here because HttpUtils is not connected to any UI component
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -41,6 +42,7 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 /**
  * The API commands that require the skew calculation
  */
+// eslint-disable-next-line unicorn/prefer-set-has
 const addSkewList: string[] = [WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
 
 /**
@@ -180,4 +182,5 @@ function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
 export default {
     xhr,
     cancelPendingRequests,
+    processHTTPRequest,
 };

@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
@@ -7,9 +8,9 @@ import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SectionListDataType} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,6 +39,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import SafeString from '@src/utils/SafeString';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -63,14 +65,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -84,7 +90,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             getEmptyOptions();
         }
-        const optionList = getAttendeeOptions(options.reports, options.personalDetails, betas, attendees, recentAttendees ?? [], iouType === CONST.IOU.TYPE.SUBMIT, true, false, action);
+        const optionList = getAttendeeOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
+            betas,
+            attendees,
+            recentAttendees: recentAttendees ?? [],
+            draftComments: draftComments ?? {},
+            nvpDismissedProductTraining,
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
+            includeP2P: true,
+            includeInvoiceRooms: false,
+            action,
+            countryCode,
+        });
         if (isPaidGroupPolicy) {
             const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatRoomsOverThreads: true,
@@ -95,7 +114,22 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             optionList.personalDetails = orderedOptions.personalDetails;
         }
         return optionList;
-    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        betas,
+        attendees,
+        recentAttendees,
+        draftComments,
+        nvpDismissedProductTraining,
+        iouType,
+        action,
+        countryCode,
+        isPaidGroupPolicy,
+        searchTerm,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -107,7 +141,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -120,7 +154,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
+    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees, countryCode]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -148,6 +182,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
         newSections.push(formatResults.section);
 
@@ -171,7 +207,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -181,6 +217,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             cleanSearchTerm,
+            countryCode,
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
@@ -188,13 +225,15 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
-        attendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,
-        personalDetails,
-        translate,
         cleanSearchTerm,
+        attendees,
+        personalDetails,
+        reportAttributesDerived,
+        translate,
+        countryCode,
     ]);
 
     const addAttendeeToSelection = useCallback(
@@ -217,7 +256,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : (iconSource?.toString() ?? '');
+                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
                 newSelectedOptions = [
                     ...attendees,
                     {

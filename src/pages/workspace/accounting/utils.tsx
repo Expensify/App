@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
-import {translateLocal} from '@libs/Localize';
+import getPlatform from '@libs/getPlatform';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -39,6 +39,9 @@ import {
 } from './netsuite/utils';
 import type {AccountingIntegration} from './types';
 
+const platform = getPlatform(true);
+const isMobile = [CONST.PLATFORM.MOBILE_WEB, CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].some((value) => value === platform);
+
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
@@ -48,7 +51,6 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    isSmallScreenWidth?: boolean,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
@@ -68,7 +70,7 @@ function getAccountingIntegrationData(
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (isSmallScreenWidth) {
+        if (isMobile) {
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID);
@@ -323,18 +325,21 @@ function getSynchronizationErrorMessage(
             <Text style={[styles?.formError]}>
                 <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
-                    <TextLink
-                        style={[styles?.link, styles?.fontSizeLabel]}
-                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
-                    >
-                        {translate('workspace.common.learnMore')}
-                    </TextLink>
+                    <>
+                        <TextLink
+                            style={[styles?.link, styles?.fontSizeLabel]}
+                            href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
+                        >
+                            {translate('workspace.common.learnMore')}
+                        </TextLink>
+                        .
+                    </>
                 )}
             </Text>
         );
     }
 
-    const syncError = translateLocal('workspace.accounting.syncError', {connectionName});
+    const syncError = translate('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {

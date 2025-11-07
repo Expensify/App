@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -25,6 +26,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
     hasUpdatedTotal,
+    isAdminOwnerApproverOrReportOwner,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
@@ -91,7 +93,9 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
-    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !isReportFieldDisabled(report, reportField, policy));
+    const enabledReportFields = sortedPolicyReportFields.filter(
+        (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
+    );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
@@ -141,10 +145,10 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 }
 
                                 const fieldValue = reportField.value ?? reportField.defaultValue;
-                                const isFieldDisabled = isReportFieldDisabled(report, reportField, policy);
+                                const isFieldDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
-                                const violation = getFieldViolation(violations, reportField);
+                                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
 
                                 return (
@@ -199,14 +203,13 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     )}
                                     {!isTotalUpdated && !isOffline ? (
                                         <ActivityIndicator
-                                            size="small"
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
                                         />
                                     ) : (
                                         <Text
                                             numberOfLines={1}
-                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedbackPending]}
                                         >
                                             {formattedTotalAmount}
                                         </Text>

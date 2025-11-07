@@ -1,8 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import localeCompare from './LocaleCompare';
 import tokenizedSearch from './tokenizedSearch';
 import {transformedTaxRates} from './TransactionUtils';
 
@@ -32,7 +32,7 @@ type TaxSection = {
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: TaxRates): TaxRate[] {
+function sortTaxRates(taxRates: TaxRates, localeCompare: LocaleContextProps['localeCompare']): TaxRate[] {
     const sortedTaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
     return sortedTaxRates;
 }
@@ -59,11 +59,13 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
 function getTaxRatesSection({
     policy,
     searchValue,
+    localeCompare,
     selectedOptions = [],
     transaction,
 }: {
     policy: OnyxEntry<Policy> | undefined;
     searchValue: string;
+    localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Tax[];
     transaction?: OnyxEntry<Transaction>;
 }): TaxSection[] {
@@ -71,9 +73,11 @@ function getTaxRatesSection({
 
     const taxes = transformedTaxRates(policy, transaction);
 
-    const sortedTaxRates = sortTaxRates(taxes);
+    const sortedTaxRates = sortTaxRates(taxes, localeCompare);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    // eslint-disable-next-line unicorn/prefer-set-has
     const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
@@ -145,5 +149,5 @@ function getTaxRatesSection({
     return policyRatesSections;
 }
 
-export {getTaxRatesSection, sortTaxRates, getTaxRatesOptions};
+export {getTaxRatesSection, getTaxRatesOptions};
 export type {TaxRatesOption, Tax};

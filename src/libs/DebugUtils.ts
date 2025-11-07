@@ -3,16 +3,15 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
+import SafeString from '@src/utils/SafeString';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -87,31 +86,6 @@ const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionI
 
 const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
 
-let isInFocusMode: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => {
-        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    },
-});
-
-let transactionViolations: OnyxCollection<TransactionViolation[]>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        transactionViolations = value;
-    },
-});
-
-let betas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        betas = value;
-    },
-});
-
 function stringifyJSON(data: Record<string, unknown>) {
     return JSON.stringify(data, null, 6);
 }
@@ -135,7 +109,7 @@ function onyxDataToString(data: OnyxEntry<unknown>) {
         return stringifyJSON(data as Record<string, unknown>);
     }
 
-    return String(data);
+    return SafeString(data);
 }
 
 type OnyxDataType = 'number' | 'object' | 'string' | 'boolean' | 'undefined';
@@ -193,7 +167,7 @@ function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
         return text === stringifyJSON(data as Record<string, unknown>);
     }
 
-    return text === String(data);
+    return text === SafeString(data);
 }
 
 /**
@@ -441,6 +415,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     }
     switch (key) {
         case 'avatarUrl':
+        case 'created':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -471,7 +446,11 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
+        case 'hasReportBeenReopened':
+        case 'isExportedToIntegration':
+        case 'hasExportError':
             return validateBoolean(value);
         case 'exportFailedTime':
         case 'lastReadSequenceNumber':
@@ -623,6 +602,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -643,6 +626,28 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        case 'expensify_text_title':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
+                fieldID: 'string',
+                type: 'string',
+                name: 'string',
+                keys: 'array',
+                values: 'array',
+                defaultValue: 'string',
+                orderWeight: 'number',
+                deletable: 'boolean',
+                value: 'string',
+                target: 'string',
+                externalIDs: 'array',
+                disabledOptions: 'array',
+                isTax: 'boolean',
+                externalID: 'string',
+                origin: 'string',
+                defaultExternalID: 'string',
             });
     }
 }
@@ -817,6 +822,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                             ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
                         },
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -900,6 +907,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         expenseReportID: 'string',
                         resolution: 'string',
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
             );
     }
@@ -933,6 +942,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'bank':
         case 'cardName':
         case 'cardNumber':
+        case 'taxValue':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1055,7 +1065,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1070,6 +1079,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1109,6 +1120,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
+                splitExpensesTotal: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1169,8 +1181,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'number',
             );
-        case 'splitPayerAccountIDs':
-            return validateArray(value, 'number');
         case 'linkedTrackedExpenseReportAction':
             return validateObject<ReportAction>(value, {
                 accountID: 'number',
@@ -1266,6 +1276,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 message: 'string',
                 field: 'string',
                 prohibitedExpenseRule: 'string',
+                comment: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1319,24 +1330,41 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN({
+    report,
+    chatReport,
+    doesReportHaveViolations,
+    hasRBR = false,
+    isReportArchived,
+    isInFocusMode = false,
+    betas = undefined,
+    draftComment,
+}: {
+    report: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
+    doesReportHaveViolations: boolean;
+    hasRBR?: boolean;
+    isReportArchived: boolean | undefined;
+    isInFocusMode?: boolean;
+    betas?: OnyxEntry<Beta[]>;
+    draftComment: string | undefined;
+}): TranslationPaths | null {
     if (!report) {
         return null;
     }
-
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const reason = reasonForReportToBeInOptionList({
         report,
         chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
-        isInFocusMode: !!isInFocusMode,
+        isInFocusMode,
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
+        draftComment,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1387,6 +1415,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     transactions: OnyxCollection<Transaction>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
     isArchivedReport = false,

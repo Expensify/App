@@ -9,7 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -49,13 +49,16 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
+    const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
-    const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
+    const approverText = useMemo(() => {
+        const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
+        const approver = getPersonalDetailByEmail(tagApprover);
+        return approver?.displayName ?? tagApprover;
+    }, [route.params?.tagName, policy]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = useMemo(() => {
         if (hasDependentTags) {
@@ -78,7 +81,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
+        deletePolicyTags(policyID, [currentPolicyTag.name], policyTags);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
@@ -88,7 +91,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled({policyID, tagsToUpdate: {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, tagListIndex: policyTag.orderWeight, policyTags});
     };
 
     const navigateToEditTag = () => {
@@ -177,7 +180,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             errors={getLatestErrorMessageField(currentPolicyTag)}
                             pendingAction={currentPolicyTag.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
+                            onClose={() => clearPolicyTagErrors({policyID, tagName, tagListIndex: orderWeight, policyTags})}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -225,19 +228,15 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 onPress={navigateToEditTagApprover}
                                 shouldShowRightIcon
                                 disabled={approverDisabled}
+                                helperText={
+                                    approverDisabled
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
+                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
+                                          })
+                                        : undefined
+                                }
+                                shouldParseHelperText
                             />
-                            {approverDisabled && (
-                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                    <TextLink
-                                        style={[styles.link, styles.label]}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                    >
-                                        {translate('workspace.common.moreFeatures')}
-                                    </TextLink>{' '}
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                </Text>
-                            )}
                         </>
                     )}
 

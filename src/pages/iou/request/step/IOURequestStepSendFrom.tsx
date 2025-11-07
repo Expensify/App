@@ -1,8 +1,9 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,9 +27,9 @@ type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCRE
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
 function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {transactionID, backTo} = route.params;
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
@@ -42,6 +43,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                     {policyID: policy1.id, name: policy1.name},
                     {policyID: policy2.id, name: policy2.name},
                     selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
+                    localeCompare,
                 ),
             )
             .map((policy) => ({
@@ -59,7 +61,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -87,11 +89,11 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             includeSafeAreaPaddingBottom
         >
             <SelectionList
-                sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
+                data={workspaceOptions}
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                initiallyFocusedOptionKey={selectedWorkspace?.policyID}
+                initiallyFocusedItemKey={selectedWorkspace?.policyID}
             />
         </StepScreenWrapper>
     );

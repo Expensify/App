@@ -9,12 +9,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
@@ -32,8 +33,8 @@ import {
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import {addTrailingForwardSlash} from '@libs/Url';
-import {getAvatarUrl} from '@libs/UserUtils';
+import addTrailingForwardSlash from '@libs/UrlUtils';
+import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -73,7 +74,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
 
     const subtitle = useMemo(() => {
@@ -88,11 +90,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report).workspaceName ?? getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails, isReport]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived]);
 
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
@@ -100,7 +102,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport
+        ? getLogoForWorkspace(report, policy)
+        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
@@ -129,9 +133,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logo={logo}
+                        logoRatio={logo === expensifyLogo ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={logo === expensifyLogo ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         svgLogo={svgLogo}
                         svgLogoFillColor={svgLogoFillColor}
                         logoBackgroundColor={logoBackgroundColor}
@@ -148,8 +152,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
-                    We shouldn't introduce platform specific code in our codebase. 
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                    We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
                         <MenuItem

@@ -24,12 +24,14 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
 
+const isVerbose = process.env.JEST_VERBOSE === 'true';
+
 type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
         Log.info(command);
-        execSync(command, {stdio: 'inherit'});
+        execSync(command, {stdio: isVerbose ? 'inherit' : 'pipe'});
     } catch (error) {
         if ((error as ExecSyncError).stderr) {
             Log.error((error as ExecSyncError).stderr.toString());
@@ -453,7 +455,7 @@ function deployProduction() {
 
 async function assertPRsMergedBetween(from: string, to: string, expected: number[]) {
     checkoutRepo();
-    const PRs = await GitUtils.getPullRequestsDeployedBetween(from, to);
+    const PRs = await GitUtils.getPullRequestsDeployedBetween(from, to, CONST.APP_REPO);
     expect(PRs).toStrictEqual(expected);
     Log.success(`Verified PRs merged between ${from} and ${to} are [${expected.join(',')}]`);
 }

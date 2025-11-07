@@ -1,34 +1,21 @@
 import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(reportID: string) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
@@ -97,12 +84,14 @@ function getDestinationListSections({
     selectedOptions = [],
     recentlyUsedDestinations = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     destinations: Rate[];
     selectedOptions?: Destination[];
     searchValue?: string;
     recentlyUsedDestinations?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): DestinationTreeSection[] {
     const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({
         name: rate.name ?? '',
@@ -140,6 +129,7 @@ function getDestinationListSections({
         });
     }
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
@@ -167,7 +157,7 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -177,7 +167,7 @@ function getDestinationListSections({
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,

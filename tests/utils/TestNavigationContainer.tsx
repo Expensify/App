@@ -53,6 +53,10 @@ function TestWorkspaceSplitNavigator() {
                 name={SCREENS.WORKSPACE.PER_DIEM}
                 getComponent={getEmptyComponent}
             />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.RECEIPT_PARTNERS}
+                getComponent={getEmptyComponent}
+            />
         </WorkspaceSplit.Navigator>
     );
 }
@@ -140,6 +144,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                     component={TestSearchFullscreenNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN}
+                    component={getEmptyComponent()}
                 />
             </RootStack.Navigator>
         </NavigationContainer>

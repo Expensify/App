@@ -1,7 +1,6 @@
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
 import usePreferredCurrency from './usePreferredCurrency';
+import usePrivateSubscription from './usePrivateSubscription';
 import useSubscriptionPlan from './useSubscriptionPlan';
 
 const POSSIBLE_COST_SAVINGS = {
@@ -30,7 +29,7 @@ const POSSIBLE_COST_SAVINGS = {
 function useSubscriptionPossibleCostSavings(): number {
     const preferredCurrency = usePreferredCurrency();
     const subscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
 
     if (!subscriptionPlan || !privateSubscription?.type) {
         return 0;

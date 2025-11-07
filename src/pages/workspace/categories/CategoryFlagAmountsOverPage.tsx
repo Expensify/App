@@ -11,7 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToFrontendAmountAsString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,8 +36,9 @@ function CategoryFlagAmountsOverPage({
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -67,7 +69,7 @@ function CategoryFlagAmountsOverPage({
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType);
+                        setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType, policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('workspace.editor.save')}
@@ -77,12 +79,12 @@ function CategoryFlagAmountsOverPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={[styles.mb4, styles.pt3, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName: decodedCategoryName})}</Text>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
-                            currency={getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}

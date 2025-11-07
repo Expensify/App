@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({
@@ -121,7 +122,6 @@ function TextSelectorModal({
             onModalHide={hide}
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -142,13 +142,14 @@ function TextSelectorModal({
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    enterKeyEventListenerPriority={0}
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         value={currentValue}
-                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        onValueChange={(changedValue) => setValue(SafeString(changedValue))}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         inputID={rest.inputID}

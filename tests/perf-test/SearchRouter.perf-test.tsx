@@ -43,6 +43,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
+jest.mock('@src/hooks/useRootNavigationState');
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -73,7 +75,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 

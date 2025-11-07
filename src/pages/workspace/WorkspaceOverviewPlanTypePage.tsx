@@ -9,11 +9,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
@@ -21,7 +21,6 @@ import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
@@ -40,7 +39,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const privateSubscription = usePrivateSubscription();
 
     useEffect(() => {
         if (!policyID) {
@@ -130,8 +129,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             </Text>
                         )}
                         <SelectionList
-                            shouldIgnoreFocus
-                            sections={[{data: workspacePlanTypes, isDisabled: isPlanTypeLocked}]}
+                            data={workspacePlanTypes}
+                            isDisabled={isPlanTypeLocked}
                             ListItem={RadioListItem}
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
@@ -139,7 +138,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             rightHandSideComponent={isPlanTypeLocked ? lockedIcon : null}
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
-                            initiallyFocusedOptionKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            shouldIgnoreFocus
+                            initiallyFocusedItemKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button

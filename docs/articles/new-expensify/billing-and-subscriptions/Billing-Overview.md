@@ -3,7 +3,6 @@ title: Billing and Subscriptions
 description: Understand how Collect and Control plans are billed in Expensify, including pricing tiers, eligibility, and how to transfer billing ownership.
 keywords: [New Expensify, subscription, pricing, collect plan, control plan, transfer billing]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify offers two plans: **Collect** and **Control**:
 - **Collect** is ideal for small teams that need a simple way to track receipts and get reimbursed.  
@@ -101,11 +100,13 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 To transfer billing ownership of a workspace:
 
-1. Make sure the new billing owner is a **Workspace Admin**
-2. Use the **left-hand navigation bar (LHB)** to go to: **Workspaces > [Workspace Name] > Members**
+1. Ensure the new billing owner is a **Workspace Admin**
+2. Have them log in and go to:  
+   **Workspaces > [Workspace Name] > Members**
 3. Click the current billing owner’s name
 4. Select **Transfer Ownership**
-5. The new owner will need to add a payment card and will be billed starting on the 1st of the next month
+5. The new owner adds a payment card
+6. Billing transfers automatically on the **1st of the next month**
 
 ---
 
@@ -115,4 +116,3 @@ To transfer billing ownership of a workspace:
 
 If your first workspace was created **before April 1, 2025**, your billing follows our previous pricing structure. If you need help understanding your charges, reach out to **Concierge** or your **Account Manager** via chat.
 
-</div>

@@ -16,6 +16,9 @@ type CreateWorkspaceParams = {
     file?: File;
     companySize?: string;
     userReportedIntegration?: string;
+    memberData?: string;
+    features?: string;
+    areDistanceRatesEnabled?: boolean;
 };
 
 export default CreateWorkspaceParams;

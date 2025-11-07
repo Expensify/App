@@ -5,8 +5,10 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
-import useOnyx from '@hooks/useOnyx';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSubscriptionPlanInfo} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
 type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
@@ -33,11 +34,20 @@ type SubscriptionPlanCardProps = {
 function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, closeComparisonModal}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentSubscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
-    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
+        translate,
+        subscriptionPlan,
+        privateSubscription?.type,
+        preferredCurrency,
+        isFromComparisonModal,
+        hasTeam2025Pricing,
+    );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 

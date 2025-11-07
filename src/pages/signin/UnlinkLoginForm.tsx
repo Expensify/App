@@ -1,37 +1,28 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Session from '@userActions/Session';
+import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
+import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type UnlinkLoginFormOnyxProps = {
-    /** State for the account */
-    account: OnyxEntry<Account>;
-
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type UnlinkLoginFormProps = UnlinkLoginFormOnyxProps;
-
-function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
+function UnlinkLoginForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+
     const unlinkMessage =
         account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
     const primaryLogin = useMemo(() => {
@@ -68,7 +59,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
-                    messages={ErrorUtils.getErrorsWithTranslationData(account.errors)}
+                    messages={getErrorsWithTranslationData(account.errors)}
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -82,7 +73,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     success
                     text={translate('unlinkLoginForm.unlink')}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
-                    onPress={() => Session.requestUnlinkValidationLink()}
+                    onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
                 />
             </View>
@@ -92,7 +83,4 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
 
 UnlinkLoginForm.displayName = 'UnlinkLoginForm';
 
-export default withOnyx<UnlinkLoginFormProps, UnlinkLoginFormOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(UnlinkLoginForm);
+export default UnlinkLoginForm;

@@ -1,9 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import BasePicker from './BasePicker';
-import type {BasePickerHandle, BasePickerProps} from './types';
+import type {BasePickerProps} from './types';
 
-function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
+function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     return (
         <BasePicker<TPickerValue>
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -14,4 +13,4 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
     );
 }
 
-export default forwardRef(Picker);
+export default Picker;
