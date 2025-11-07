@@ -32,6 +32,7 @@ function flushQueue(): Promise<void> {
     queuedOnyxUpdates = [];
 
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
+        // eslint-disable-next-line unicorn/prefer-set-has
         const preservedKeys: OnyxKey[] = [
             ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,

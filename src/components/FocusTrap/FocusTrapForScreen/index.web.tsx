@@ -32,7 +32,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) {
             return false;
         }
-        return true;
+        return isFocused;
     }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
     return (
