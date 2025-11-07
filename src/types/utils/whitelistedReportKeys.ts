@@ -61,6 +61,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes: unknown;
         fieldList: unknown;
         permissions: unknown;
+        transactionCount: unknown;
         tripData: {
             startDate: unknown;
             endDate: unknown;
