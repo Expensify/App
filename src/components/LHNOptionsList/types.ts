@@ -21,7 +21,7 @@ type CustomLHNOptionsListProps = {
     data: Report[];
 
     /** Callback to fire when a row is selected */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
+    onSelectRow?: (reportID: string) => void;
 
     /** Toggle between compact and default view of the option */
     optionMode: OptionMode;
@@ -186,6 +186,6 @@ type OptionRowLHNProps = {
     testID: number;
 };
 
-type RenderItemProps = {item: Report; index: number};
+type RenderItemProps = {item: string; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

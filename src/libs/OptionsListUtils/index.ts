@@ -2880,6 +2880,8 @@ export {
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,
+    isHiddenForCurrentUser,
+    isExpenseReport,
 };
 
 export type {
