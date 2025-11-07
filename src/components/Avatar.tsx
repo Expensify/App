@@ -5,10 +5,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getAvatar, getCustomAvatarNameFromURL} from '@libs/UserAvatarUtils';
+import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -93,7 +93,7 @@ function Avatar({
     const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, originalFileName, size});
 
     let optimizedSource = source;
-    const maybeDefaultAvatarName = getCustomAvatarNameFromURL(source);
+    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
 
     if (maybeDefaultAvatarName) {
         optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
