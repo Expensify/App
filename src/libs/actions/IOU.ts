@@ -13505,6 +13505,28 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         }
     }
 
+    if (policyExpenseChat) {
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, reportID);
+
+        if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: shouldHaveOutstandingChildRequest,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: policyExpenseChat.hasOutstandingChildRequest,
+                },
+            });
+        }
+    }
+
     // Add optimistic rejected actions to the child report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
