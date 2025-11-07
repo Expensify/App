@@ -62,6 +62,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={defaultPhoneNumber}
             enabledWhenOffline
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

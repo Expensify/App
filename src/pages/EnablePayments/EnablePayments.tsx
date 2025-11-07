@@ -84,14 +84,7 @@ function EnablePaymentsPage() {
     }
 
     if (CurrentStep) {
-        return (
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-        );
+        return <View style={styles.flex1}>{CurrentStep}</View>;
     }
 
     return null;
