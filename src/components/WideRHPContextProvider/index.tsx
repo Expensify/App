@@ -185,6 +185,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
+        // This screen is always first in RHP, so secondary overlay is not displayed in this case.
+        if (focusedRoute.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+            return false;
+        }
+
         if (superWideRHPRouteKeys.includes(focusedRoute.key) && wideRHPRouteKeys.length > 0) {
             return false;
         }
