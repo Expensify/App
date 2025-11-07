@@ -11741,7 +11741,7 @@ async function run() {
             console.log('Missing or invalid comment data');
             return;
         }
-        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter') {
+        if (commentAuthor !== 'codecov[bot]') {
             console.log(`Comment is not from CodeCov (author: ${commentAuthor})`);
             return;
         }
