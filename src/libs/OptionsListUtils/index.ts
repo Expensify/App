@@ -2644,7 +2644,9 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
         }
 
         // Remove duplicate values and check if the term matches any value
-        return uniqFast(values).some((value) => value.includes(term));
+        return uniqFast(values)
+            .map((val) => val.toLocaleLowerCase())
+            .some((value) => value.includes(term.toLocaleLowerCase()));
     });
 
     return isMatch ? report : undefined;
