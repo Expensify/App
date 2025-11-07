@@ -383,6 +383,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Whether the action is loading */
+        isActionLoading?: boolean;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;

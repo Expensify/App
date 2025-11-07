@@ -145,9 +145,6 @@ type SearchReport = {
     /** Whether the report is archived */
     private_isArchived?: string;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
