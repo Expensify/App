@@ -11,9 +11,11 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -52,13 +54,14 @@ function IOURequestStepCategory({
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIdReal}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIdDraft}`, {canBeMissing: true});
-    const policy = isUnreportedExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
-    const policyID = isUnreportedExpense ? policyForMovingExpensesID : policy?.id;
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    const policyID = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpensesID : policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -76,6 +79,9 @@ function IOURequestStepCategory({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
     useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
@@ -123,16 +129,19 @@ function IOURequestStepCategory({
             }
 
             if (isEditing && report) {
-                updateMoneyRequestCategory(
-                    transaction.transactionID,
-                    report.reportID,
-                    updatedCategory,
+                updateMoneyRequestCategory({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: report.reportID,
+                    category: updatedCategory,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
                     policyRecentlyUsedCategories,
-                    currentSearchHash,
-                );
+                    hash: currentSearchHash,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    isASAPSubmitBetaEnabled,
+                });
                 navigateBack();
                 return;
             }

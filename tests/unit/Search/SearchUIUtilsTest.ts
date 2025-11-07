@@ -171,6 +171,109 @@ const report5 = {
     unheldTotal: 0,
 } as const;
 
+const reportAction1 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:21',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '11111111',
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        IOUReportID: report1.reportID,
+    },
+    reportID: report1.reportID,
+    reportName: report1.reportName,
+};
+
+const reportAction2 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:22',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '22222222',
+    originalMessage: {
+        IOUTransactionID: transactionID2,
+        IOUReportID: report2.reportID,
+    },
+    reportID: report2.reportID,
+    reportName: report2.reportName,
+};
+
+const reportAction3 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:23',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '33333333',
+    originalMessage: {
+        IOUTransactionID: transactionID3,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const reportAction4 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:24',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '44444444',
+    originalMessage: {
+        IOUTransactionID: transactionID4,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const policy = {
+    id: 'Admin',
+    name: 'Policy',
+    outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
+    approvalMode: 'ADVANCED',
+    autoReimbursement: {
+        limit: 0,
+    },
+    autoReimbursementLimit: 0,
+    autoReporting: true,
+    autoReportingFrequency: 'immediate',
+    harvesting: {
+        enabled: false,
+    },
+    preventSelfApproval: false,
+    owner: adminEmail,
+    reimbursementChoice: 'reimburseManual',
+    role: 'admin',
+    type: 'team',
+    employeeList: {
+        [adminEmail]: {
+            email: adminEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            forwardsTo: '',
+            submitsTo: approverEmail,
+        },
+        [approverEmail]: {
+            email: approverEmail,
+            role: CONST.POLICY.ROLE.USER,
+            approvalLimit: 100,
+            submitsTo: adminEmail,
+            overLimitForwardsTo: overlimitApproverEmail,
+        },
+        [overlimitApproverEmail]: {
+            email: overlimitApproverEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            submitsTo: approverEmail,
+        },
+        [submitterEmail]: {
+            email: submitterEmail,
+            role: CONST.POLICY.ROLE.USER,
+            submitsTo: adminEmail,
+        },
+    },
+} as OnyxTypes.Policy;
+
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
         {
@@ -209,50 +312,9 @@ const searchResults: OnyxTypes.SearchResults = {
                 login: submitterEmail,
             },
         },
-        [`policy_${policyID}`]: {
-            id: 'Admin',
-            approvalMode: 'ADVANCED',
-            autoReimbursement: {
-                limit: 0,
-            },
-            autoReimbursementLimit: 0,
-            autoReporting: true,
-            autoReportingFrequency: 'immediate',
-            harvesting: {
-                enabled: false,
-            },
-            preventSelfApproval: false,
-            owner: adminEmail,
-            reimbursementChoice: 'reimburseManual',
-            role: 'admin',
-            type: 'team',
-            employeeList: {
-                [adminEmail]: {
-                    email: adminEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    forwardsTo: '',
-                    submitsTo: approverEmail,
-                },
-                [approverEmail]: {
-                    email: approverEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    approvalLimit: 100,
-                    submitsTo: adminEmail,
-                    overLimitForwardsTo: overlimitApproverEmail,
-                },
-                [overlimitApproverEmail]: {
-                    email: overlimitApproverEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    submitsTo: approverEmail,
-                },
-                [submitterEmail]: {
-                    email: submitterEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    submitsTo: adminEmail,
-                },
-            },
-        },
+        [`policy_${policyID}`]: policy,
         [`reportActions_${reportID}`]: {
+            [reportAction1.reportActionID]: reportAction1,
             test: {
                 accountID: adminAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -296,6 +358,13 @@ const searchResults: OnyxTypes.SearchResults = {
                 reportName: 'Admin1',
             },
         },
+        [`reportActions_${reportID2}`]: {
+            [reportAction2.reportActionID]: reportAction2,
+        },
+        [`reportActions_${reportID3}`]: {
+            [reportAction3.reportActionID]: reportAction3,
+            [reportAction4.reportActionID]: reportAction4,
+        },
         [`report_${reportID}`]: report1,
         [`report_${reportID2}`]: report2,
         [`report_${reportID3}`]: report3,
@@ -304,7 +373,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -319,7 +387,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -329,7 +396,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            policyID,
             reportID,
             reportType: 'expense',
             tag: '',
@@ -350,7 +416,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
             action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -365,7 +430,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
             description: '',
             hasViolation: true,
             merchant: 'Expense',
@@ -374,7 +438,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
-            policyID,
             reportID: reportID2,
             reportType: 'expense',
             tag: '',
@@ -398,7 +461,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 1200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -412,14 +474,12 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
@@ -444,7 +504,6 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 3200,
             action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -458,18 +517,16 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
-            transactionID: transactionID3,
+            transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
             description: '',
@@ -626,6 +683,23 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
 
 const reportActionListItems = [
     {
+        ...reportAction1,
+        date: '2024-12-21 13:05:21',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction1.reportActionID,
+        originalMessage: {
+            IOUReportID: report1.reportID,
+            IOUTransactionID: transactionID,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
         accountID: 18439984,
         actionName: 'ADDCOMMENT',
         created: '2024-12-21 13:05:20',
@@ -655,6 +729,59 @@ const reportActionListItems = [
         reportID: '123456789',
         reportName: 'Expense Report #123',
     },
+    {
+        ...reportAction2,
+        date: '2024-12-21 13:05:22',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction2.reportActionID,
+        originalMessage: {
+            IOUReportID: report2.reportID,
+            IOUTransactionID: transactionID2,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
+        ...reportAction3,
+        date: '2024-12-21 13:05:23',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction3.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID3,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
+    },
+    {
+        ...reportAction4,
+        date: '2024-12-21 13:05:24',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction4.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID4,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
+    },
 ] as ReportActionListItemType[];
 
 const transactionsListItems = [
@@ -664,6 +791,8 @@ const transactionsListItems = [
         allActions: ['submit'],
         amount: -5000,
         report: report1,
+        policy,
+        reportAction: reportAction1,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -687,7 +816,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -695,7 +823,6 @@ const transactionsListItems = [
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        policyID: 'A1B2C3',
         reportID: '123456789',
         reportType: 'expense',
         shouldShowMerchant: true,
@@ -732,6 +859,8 @@ const transactionsListItems = [
         allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
+        policy,
+        reportAction: reportAction2,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -755,14 +884,12 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '2',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '11111',
         reportType: 'expense',
         shouldShowMerchant: true,
@@ -805,6 +932,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction3,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -816,14 +945,12 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
         reportType: 'iou',
         tag: '',
@@ -873,6 +1000,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction4,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -884,18 +1013,16 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
         reportType: 'iou',
         tag: '',
-        transactionID: '3',
+        transactionID: '4',
         transactionThreadReportID: '1014872441234902',
         transactionType: 'cash',
         from: {
@@ -917,7 +1044,7 @@ const transactionsListItems = [
         date: '2025-03-05',
         shouldShowMerchant: true,
         shouldShowYear: true,
-        keyForList: '3',
+        keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -939,7 +1066,7 @@ const transactionsListItems = [
 
 const transactionReportGroupListItems = [
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
@@ -977,6 +1104,8 @@ const transactionReportGroupListItems = [
                 action: 'submit',
                 allActions: ['submit'],
                 report: report1,
+                policy,
+                reportAction: reportAction1,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1003,7 +1132,6 @@ const transactionReportGroupListItems = [
                 hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1011,7 +1139,6 @@ const transactionReportGroupListItems = [
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                policyID: 'A1B2C3',
                 reportID: '123456789',
                 reportType: 'expense',
                 shouldShowMerchant: true,
@@ -1045,7 +1172,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'review',
         allActions: ['review', 'approve'],
@@ -1083,6 +1210,8 @@ const transactionReportGroupListItems = [
                 action: 'review',
                 allActions: ['review', 'approve'],
                 report: report2,
+                policy,
+                reportAction: reportAction2,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1115,14 +1244,12 @@ const transactionReportGroupListItems = [
                 ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
-                policyID: 'A1B2C3',
                 reportID: '11111',
                 reportType: 'expense',
                 shouldShowMerchant: true,
@@ -1156,7 +1283,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         chatReportID: '6155022250251839',
         chatType: undefined,
@@ -1197,7 +1324,7 @@ const transactionReportGroupListItems = [
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'view',
         allActions: ['view'],
@@ -1657,16 +1784,16 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionGroupListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return TransactionGroupListItem when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is TRIP', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is INVOICE', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
@@ -1732,14 +1859,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                testSearchResults.data,
-                2074551,
-                '',
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            ) as TransactionGroupListItemType[];
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testSearchResults.data, 2074551, '', formatPhoneNumber) as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1752,22 +1872,8 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, '', formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
-        });
-
-        it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, '', formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
-        });
-
-        it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, '', formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return getReportSections result when type is EXPENSE REPORT', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, searchResults.data, 2074551, '', formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
         });
 
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
@@ -1795,15 +1901,8 @@ describe('SearchUIUtils', () => {
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
 
-            const resultTransactionFirst = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                testDataTransactionFirst,
-                2074551,
-                '',
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            );
-            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataReportFirst, 2074551, '', formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataTransactionFirst, 2074551, '', formatPhoneNumber);
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataReportFirst, 2074551, '', formatPhoneNumber);
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);
@@ -1836,60 +1935,38 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL, reportActionListItems, localeCompare)).toStrictEqual([
-                {
-                    accountID: 18439984,
-                    actionName: 'ADDCOMMENT',
-                    created: '2024-12-21 13:05:20',
-                    date: '2024-12-21 13:05:20',
-                    formattedFrom: 'Admin',
-                    from: {
-                        accountID: 18439984,
-                        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'Admin',
-                        login: adminEmail,
-                    },
-                    keyForList: 'Admin',
-                    message: [
-                        {
-                            html: '<p>Payment has been processed.</p>',
-                            text: 'Payment has been processed.',
-                            type: 'text',
-                            whisperedTo: [],
-                        },
-                        {
-                            html: '<p>Please review this expense.</p>',
-                            text: 'Please review this expense.',
-                            type: 'comment',
-                        },
-                    ],
-                    reportActionID: 'Admin',
-                    reportID: '123456789',
-                    reportName: 'Expense Report #123',
-                },
-            ]);
+            const sortedActions = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.CHAT,
+                CONST.SEARCH.STATUS.EXPENSE.ALL,
+                reportActionListItems,
+                localeCompare,
+            ) as ReportActionListItemType[];
+            // Should return all report actions sorted by creation date in descending order (newest first)
+            expect(sortedActions).toHaveLength(5);
+            expect(sortedActions.at(0)?.created).toBe('2024-12-21 13:05:24'); // reportAction4 (newest)
+            expect(sortedActions.at(4)?.created).toBe('2024-12-21 13:05:20'); // ADDCOMMENT action (oldest)
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getSortedReportData result when type is EXPENSE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+        it('should return getSortedReportData result when type is expense-report', () => {
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
@@ -1921,7 +1998,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1935,7 +2012,7 @@ describe('SearchUIUtils', () => {
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         icon: Expensicons.Document,
                     }),
                     expect.objectContaining({
@@ -2287,7 +2364,7 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc groupBy:reports', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
@@ -2309,7 +2386,6 @@ describe('SearchUIUtils', () => {
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         action: 'approve',
-                        allActions: ['approve'],
                         comment: {
                             comment: '',
                         },
@@ -2317,14 +2393,12 @@ describe('SearchUIUtils', () => {
                         currency: 'USD',
                         hasEReceipt: false,
                         isFromOneTransactionReport: true,
-                        managerID: adminAccountID,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
                         modifiedCurrency: 'USD',
                         modifiedMerchant: 'Costco Wholesale',
                         parentTransactionID: '',
-                        policyID: '137DA25D273F2423',
                         receipt: {
                             source: 'https://www.expensify.com/receipts/fake.jpg',
                             state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
@@ -2409,14 +2483,14 @@ describe('SearchUIUtils', () => {
                         expenseRules: [],
                     },
                     type: 'corporate',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
-                    accountID: 2074551,
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
-                    isOneTransactionReport: true,
                     isOwnPolicyExpenseChat: false,
                     isPolicyExpenseChat: false,
                     isWaitingOnBankAccount: false,
@@ -2447,7 +2521,6 @@ describe('SearchUIUtils', () => {
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
                     action: 'approve',
-                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
@@ -2455,14 +2528,12 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     hasEReceipt: false,
                     isFromOneTransactionReport: true,
-                    managerID: adminAccountID,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
                     modifiedCurrency: 'USD',
                     modifiedMerchant: 'Costco Wholesale',
                     parentTransactionID: '',
-                    policyID: '137DA25D273F2423',
                     receipt: {
                         source: 'https://www.expensify.com/receipts/fake.jpg',
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
@@ -2554,7 +2625,7 @@ describe('SearchUIUtils', () => {
                 } as OnyxTypes.Policy,
             };
 
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2568,7 +2639,7 @@ describe('SearchUIUtils', () => {
                 successfulDate: new Date().toISOString(),
             };
 
-            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
     });
