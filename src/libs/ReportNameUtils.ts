@@ -6,7 +6,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
