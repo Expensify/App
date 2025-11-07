@@ -24,6 +24,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -67,6 +68,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
@@ -123,10 +125,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions]);
 
-    const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
+    const isEmpty = transactions.length === 0;
+
+    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
-    const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -185,11 +190,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
-        if (isEmpty) {
-            return;
-        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
-    }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
+    }, [isExpenseReportType, item, onLongPressRow, transactions]);
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
@@ -218,6 +220,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
                 [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -229,6 +233,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
@@ -239,6 +245,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
             };
@@ -249,13 +257,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         report={groupItem as TransactionReportGroupListItemType}
                         onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
                         onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
+                        isDisabled={isDisabled}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
                         onDEWModalOpen={onDEWModalOpen}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 );
             }
@@ -266,7 +276,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
             return headers[groupBy];
         },
-        [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, searchType],
+        [
+            groupItem,
+            onCheckboxPress,
+            isDisabledOrEmpty,
+            canSelectMultiple,
+            isSelectAllChecked,
+            isIndeterminate,
+            onExpandIconPress,
+            isExpanded,
+            isFocused,
+            searchType,
+            groupBy,
+            isDisabled,
+            onDEWModalOpen,
+            onSelectRow,
+            transactionPreviewData,
+        ],
     );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -305,6 +331,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
+                            shouldShowToggleButton={isLargeScreenWidth}
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}
