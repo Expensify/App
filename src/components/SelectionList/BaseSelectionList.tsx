@@ -293,6 +293,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
+                setFocusedIndex={setFocusedIndex}
             />
         );
     };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -42,6 +42,9 @@ type TextInputProps = {
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
+
+    /** Function to update the focused index in the list */
+    setFocusedIndex: (index: number) => void;
 };
 
 function TextInput({
@@ -56,48 +59,64 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
+    setFocusedIndex,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const headerMessage = options?.headerMessage;
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && !isLoadingNewOptions && resultsFound && !noData;
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+
+    const handleTextInputChange = useCallback(
+        (text: string) => {
+            options?.onChangeText?.(text);
+
+            if (text === '') {
+                setFocusedIndex(-1);
+            } else {
+                setFocusedIndex(0);
+            }
+        },
+        [options, setFocusedIndex],
+    );
 
     if (!shouldShowTextInput) {
         return null;
     }
     return (
-        <View style={[styles.ph5, styles.pb3]}>
-            <BaseTextInput
-                ref={ref}
-                onKeyPress={onKeyPress}
-                onFocus={() => onFocusChange?.(true)}
-                onBlur={() => onFocusChange?.(false)}
-                label={options?.label}
-                accessibilityLabel={accessibilityLabel}
-                hint={options?.hint}
-                role={CONST.ROLE.PRESENTATION}
-                value={options?.value}
-                placeholder={options?.placeholder}
-                maxLength={options?.maxLength}
-                onChangeText={options?.onChangeText}
-                inputMode={options?.inputMode}
-                selectTextOnFocus
-                spellCheck={false}
-                onSubmitEditing={onSubmit}
-                submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
-                isLoading={isLoading}
-                testID="selection-list-text-input"
-                errorText={options?.errorText}
-                shouldInterceptSwipe={false}
-            />
+        <>
+            <View style={[styles.ph5, styles.pb3]}>
+                <BaseTextInput
+                    ref={ref}
+                    onKeyPress={onKeyPress}
+                    onFocus={() => onFocusChange?.(true)}
+                    onBlur={() => onFocusChange?.(false)}
+                    label={options?.label}
+                    accessibilityLabel={accessibilityLabel}
+                    hint={options?.hint}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={options?.value}
+                    placeholder={options?.placeholder}
+                    maxLength={options?.maxLength}
+                    onChangeText={handleTextInputChange}
+                    inputMode={options?.inputMode}
+                    selectTextOnFocus
+                    spellCheck={false}
+                    onSubmitEditing={onSubmit}
+                    submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
+                    isLoading={isLoading}
+                    testID="selection-list-text-input"
+                    errorText={options?.errorText}
+                    shouldInterceptSwipe={false}
+                />
+            </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
-        </View>
+        </>
     );
 }
 
