@@ -109,7 +109,6 @@ function BaseModal({
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
             if (areAllModalsHidden()) {
-                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
                 }
@@ -295,6 +294,8 @@ function BaseModal({
             ? 0
             : backdropOpacity;
 
+    const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -307,6 +308,7 @@ function BaseModal({
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
+                        dataSet={{dragArea}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
@@ -318,7 +320,14 @@ function BaseModal({
                             saveFocusState();
                             onModalWillShow?.();
                         }}
-                        onModalWillHide={onModalWillHide}
+                        onModalWillHide={() => {
+                            // Reset willAlertModalBecomeVisible when modal is about to hide
+                            // This ensures it's cleared before any other components check its value
+                            if (areAllModalsHidden()) {
+                                willAlertModalBecomeVisible(false);
+                            }
+                            onModalWillHide?.();
+                        }}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
@@ -347,6 +356,7 @@ function BaseModal({
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

@@ -1,3 +1,4 @@
+import {transactionDraftReceiptsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
@@ -44,10 +45,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
         [windowWidth, styles, previewItemWidth],
     );
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) =>
-            Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
+        selector: transactionDraftReceiptsSelector,
         canBeMissing: true,
     });
     const receipts = useMemo(() => {
@@ -102,7 +100,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
             >
                 <Image
-                    source={{uri: item.source}}
+                    source={typeof item.source === 'string' ? {uri: item.source} : item.source}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}
                     loadingIconSize="small"
                     loadingIndicatorStyles={styles.bgTransparent}

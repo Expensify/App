@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -26,9 +26,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
-import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +55,7 @@ function ProfilePage() {
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -67,7 +67,7 @@ function ProfilePage() {
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
@@ -75,6 +75,7 @@ function ProfilePage() {
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
         },
         {
             description: translate('statusPage.status'),
@@ -182,34 +183,14 @@ function ProfilePage() {
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                        <AvatarButtonWithIcon
+                                            text={translate('avatarWithImagePicker.editImage')}
                                             source={avatarURL}
                                             avatarID={accountID}
-                                            onImageSelected={(file) => {
-                                                updateAvatar(file, {
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
-                                            onImageRemoved={() => {
-                                                deleteAvatar({
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
                                             size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                            avatarStyle={avatarStyle}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
                                             fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                             editIconStyle={styles.profilePageAvatar}
                                         />
@@ -226,6 +207,7 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
                                 />
                             ))}
                             <Button

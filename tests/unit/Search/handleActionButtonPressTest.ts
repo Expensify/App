@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
@@ -9,7 +9,7 @@ import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockReportItemWithHold = {
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
@@ -67,6 +67,20 @@ const mockReportItemWithHold = {
         {
             report: {
                 reportID: '1350959062018695',
+            },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+                name: 'Policy',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
             },
             accountID: 1206,
             action: 'view',
@@ -146,6 +160,20 @@ const mockReportItemWithHold = {
             report: {
                 reportID: '1350959062018695',
             },
+            policy: {
+                type: 'team',
+                id: '48D7178DE42EE9F9',
+                role: 'admin',
+                owner: 'apb@apb.com',
+                name: 'Policy',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            },
+            reportAction: {
+                reportActionID: '3042630993757922770',
+                actionName: 'IOU',
+                created: '2024-12-04',
+            },
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
@@ -161,7 +189,6 @@ const mockReportItemWithHold = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: 1206,
             merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',

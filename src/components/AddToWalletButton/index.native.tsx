@@ -1,10 +1,10 @@
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Alert, View} from 'react-native';
+import {Alert, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
@@ -13,13 +13,12 @@ import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
 
-function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
+function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const theme = useTheme();
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
     const styles = useThemeStyles();
 
@@ -81,26 +80,23 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     }
 
     if (isLoading) {
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                color={theme.spinner}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (isInWallet) {
         return (
-            <View style={buttonStyle}>
+            <View style={style}>
                 <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
             </View>
         );
     }
 
+    // The system provides control over the correct appearance and language
     return (
         <RNAddToWalletButton
-            buttonStyle={buttonStyle}
-            locale="en"
+            style={[styles.addToWalletButtonStyles, style]}
+            buttonType="badge"
+            buttonStyle="blackOutline"
             onPress={handleOnPress}
         />
     );

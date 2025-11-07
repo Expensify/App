@@ -1,10 +1,10 @@
 import React, {useMemo, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,13 +54,27 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
     };
 
+    const dismissModalAndNavigate = (targetPolicyID: string) => {
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
+            });
+        });
+    };
+
     const onMoveToCompanyCardFeeds = () => {
         if (!policyID) {
             return;
         }
+
         setIsDowngradeWarningModalOpen(false);
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
     if (!canPerformDowngrade) {
@@ -72,6 +86,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceDowngradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('common.downgradeWorkspace')}
@@ -109,16 +124,12 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 shouldShowCancelButton={false}
                 onCancel={onClose}
                 prompt={
-                    <Text>
-                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleFirstPart')}{' '}
-                        <TextLink
-                            style={styles.link}
-                            onPress={onMoveToCompanyCardFeeds}
-                        >
-                            {translate('workspace.moreFeatures.companyCards.downgradeSubTitleMiddlePart')}
-                        </TextLink>{' '}
-                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleLastPart')}
-                    </Text>
+                    <View style={styles.flexRow}>
+                        <RenderHTML
+                            html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                            onLinkPress={onMoveToCompanyCardFeeds}
+                        />
+                    </View>
                 }
                 confirmText={translate('common.buttonConfirm')}
             />

@@ -60,7 +60,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const completeOnboarding = useCallback(
@@ -166,7 +166,15 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             <HeaderWithBackButton
                 shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
                 progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    // Based on the `handleSubmit` function to reverse where to return
+                    if (isPrivateDomainAndHasAccessiblePolicies) {
+                        Navigation.goBack();
+                        return;
+                    }
+
+                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                }}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}

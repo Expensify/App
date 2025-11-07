@@ -54,12 +54,12 @@ function useReportScrollManager(): ReportScrollManagerData {
     }, [flatListRef]);
 
     const scrollToOffset = useCallback(
-        (offset: number, animated = false) => {
+        (offset: number) => {
             if (!flatListRef?.current) {
                 return;
             }
 
-            flatListRef.current.scrollToOffset({offset, animated});
+            flatListRef.current.scrollToOffset({offset, animated: false});
         },
         [flatListRef],
     );

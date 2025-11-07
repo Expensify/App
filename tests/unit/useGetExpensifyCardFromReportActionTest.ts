@@ -19,7 +19,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 
 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-// eslint-disable-next-line deprecation/deprecation
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 const mockGetPolicy = getPolicy as jest.MockedFunction<typeof getPolicy>;
 const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<typeof getWorkspaceAccountID>;
 const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
