@@ -85,6 +85,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
+
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 

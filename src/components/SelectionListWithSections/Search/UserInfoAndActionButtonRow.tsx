@@ -82,7 +82,7 @@ function UserInfoAndActionButtonRow({
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                     extraSmall={!isLargeScreenWidth}
-                    style={isInMobileSelectionMode && styles.pointerEventsNone}
+                    shouldDisablePointerEvents={isInMobileSelectionMode}
                 />
             </View>
         </View>
