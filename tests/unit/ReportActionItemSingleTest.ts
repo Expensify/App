@@ -6,9 +6,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() => {
