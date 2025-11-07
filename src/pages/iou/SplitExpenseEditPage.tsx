@@ -53,17 +53,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    console.log('transactionDetailsAmount', transactionDetailsAmount);
-    console.log('transactionDetails', transactionDetails);
 
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
 
-    const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
+    const currentAmount = Number(splitExpenseDraftTransaction?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
-    console.log('currentAmount', currentAmount);
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
