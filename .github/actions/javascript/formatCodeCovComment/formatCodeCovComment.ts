@@ -61,7 +61,7 @@ function extractCoverageDeltaTable(body: string): string | null {
     // Filter out any empty or whitespace-only lines to ensure proper table formatting
     const cleanedLines = tableLines.filter((line) => line.trim() !== '');
     const result = cleanedLines.join('\n').trim();
-    
+
     // Return null if no valid table content was found
     return result.length > 0 ? result : null;
 }
@@ -189,16 +189,18 @@ async function run() {
             return;
         }
 
-        // TEMPORARY: Allow any user for testing (removed username check)
-        // In production, this should check: commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter'
-        console.log(`Processing comment from user: ${commentAuthor}`);
+        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter') {
+            console.log(`Comment is not from CodeCov (author: ${commentAuthor})`);
+            return;
+        }
 
         // Check if the comment is a CodeCov report
         // CodeCov header format: ## [Codecov](url) Report or ## Codecov Report
-        const isCodeCovReport = commentBody.includes('Codecov') && 
-                                commentBody.includes('Report') && 
-                                (commentBody.includes('Coverage Δ') || commentBody.includes('All modified and coverable lines are covered by tests'));
-        
+        const isCodeCovReport =
+            commentBody.includes('Codecov') &&
+            commentBody.includes('Report') &&
+            (commentBody.includes('Coverage Δ') || commentBody.includes('All modified and coverable lines are covered by tests'));
+
         if (!isCodeCovReport) {
             console.log('Comment does not appear to be a CodeCov report');
             return;

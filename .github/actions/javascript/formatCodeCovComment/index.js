@@ -11741,9 +11741,10 @@ async function run() {
             console.log('Missing or invalid comment data');
             return;
         }
-        // TEMPORARY: Allow any user for testing (removed username check)
-        // In production, this should check: commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter'
-        console.log(`Processing comment from user: ${commentAuthor}`);
+        if (commentAuthor !== 'codecov[bot]' && commentAuthor !== 'codecov-commenter') {
+            console.log(`Comment is not from CodeCov (author: ${commentAuthor})`);
+            return;
+        }
         // Check if the comment is a CodeCov report
         // CodeCov header format: ## [Codecov](url) Report or ## Codecov Report
         const isCodeCovReport = commentBody.includes('Codecov') &&

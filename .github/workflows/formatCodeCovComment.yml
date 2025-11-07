@@ -11,11 +11,12 @@ permissions:
 jobs:
   format-codecov-comment:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request
+    if: >
+      github.event.issue.pull_request &&
+      contains(fromJSON('["codecov[bot]","codecov-commenter"]'), github.event.comment.user.login)
     steps:
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
-
       - name: Format CodeCov Comment
         uses: ./.github/actions/javascript/formatCodeCovComment
         with:
