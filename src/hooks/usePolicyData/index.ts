@@ -1,4 +1,4 @@
-import {useMemo, useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -10,17 +10,6 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type PolicyData from './types';
 
 /**
- * Selects reports associated with a specific policy and their transactions and violations.
- * @param allReports - The collection of all reports.
- * @param reportTransactionsAndViolations - The collection of all report transactions and violations.
- * @param policyID - The ID of the policy to filter reports by.
- * @returns An object containing the filtered reports.
- */
-
-function reportsSelector(allReports: OnyxCollection<Report>, reportTransactionsAndViolations: OnyxEntry<ReportTransactionsAndViolationsDerivedValue>, policyID?: string) {
-    
-}
-/**
  * Retrieves policy tags, categories, reports and their associated transactions and violations.
  * @param policyID The ID of the policy to retrieve data for.
  * @returns An object containing policy data
@@ -28,7 +17,7 @@ function reportsSelector(allReports: OnyxCollection<Report>, reportTransactionsA
 function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
-    
+
     // Stable selector for useOnyx to avoid defining the selector inline
     const reportsSelectorCallback = useCallback(
         (allReports: OnyxCollection<Report>) => {
@@ -44,7 +33,9 @@ function usePolicyData(policyID?: string): PolicyData {
                 }
                 return acc;
             }, {});
-    }, [policyID, allReportsTransactionsAndViolations]);
+        },
+        [policyID, allReportsTransactionsAndViolations],
+    );
 
     const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true}, [policyID]);
