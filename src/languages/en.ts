@@ -4905,6 +4905,7 @@ const translations = {
             existingReportFieldNameError: 'A report field with this name already exists',
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
+            circularReferenceError: "This field can't refer to itself. Please update.",
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -5466,8 +5467,8 @@ const translations = {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
-            changePromptMessage: ' to make that change.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',

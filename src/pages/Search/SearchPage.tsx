@@ -49,6 +49,7 @@ import {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     search,
+    submitMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -398,6 +399,41 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
+        const shouldShowSubmitOption =
+            !isOffline &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
+
+        if (shouldShowSubmitOption) {
+            options.push({
+                icon: Expensicons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
+
+                    itemList.forEach((item) => {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                        if (policy) {
+                            const reportTransactionIDs = selectedReports.length
+                                ? undefined
+                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
+                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
+                        }
+                    });
+                    clearSelectedTransactions();
+                },
+            });
+        }
+
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),

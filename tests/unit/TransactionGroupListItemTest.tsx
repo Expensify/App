@@ -75,7 +75,6 @@ const mockTransaction: TransactionListItemType = {
     convertedCurrency: 'USD',
     created: '2025-09-19',
     currency: 'USD',
-    managerID: 1,
     policy: {
         id: '06F34677820A4D07',
         type: 'team',
