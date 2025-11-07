@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-// import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown';
 import type { ValidateCodeCountdownHandle } from '@pages/signin/ValidateCodeCountdown/types';
 import type ValidateCodeFormProps from './types';
 
