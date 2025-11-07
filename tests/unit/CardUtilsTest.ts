@@ -19,6 +19,7 @@ import {
     getCardsByCardholderName,
     getCombinedFeedKey,
     getCompanyCardDescription,
+    getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
     getFilteredCardList,
@@ -244,6 +245,7 @@ const combinedCardFeeds: CombinedCardFeeds = {
         credentials: 'xxxxx',
         expiration: 1730998958,
         pending: false,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}#11111111`]: {
@@ -254,6 +256,15 @@ const combinedCardFeeds: CombinedCardFeeds = {
         expiration: 1730998959,
         pending: false,
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+    },
+};
+
+const combinedCardFeedsWithExpensifyCard: CombinedCardFeeds = {
+    ...combinedCardFeeds,
+    [`${CONST.EXPENSIFY_CARD.BANK}#11111111`]: {
+        domainID: 11111111,
+        pending: false,
+        feed: CONST.EXPENSIFY_CARD.BANK,
     },
 };
 
@@ -439,6 +450,31 @@ describe('CardUtils', () => {
 
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getOriginalCompanyFeeds(undefined);
+            expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('getCompanyFeeds', () => {
+        it('Should filter out Expensify Card bank by default', () => {
+            const companyFeeds = getCompanyFeeds(combinedCardFeedsWithExpensifyCard);
+            const feedKeys = Object.keys(companyFeeds);
+            expect(feedKeys).not.toContain(`${CONST.EXPENSIFY_CARD.BANK}#11111111`);
+        });
+
+        it('Should filter out pending feeds when shouldFilterOutPendingFeeds is true', () => {
+            const companyFeeds = getCompanyFeeds(combinedCardFeeds, false, true);
+            const feedKeys = Object.keys(companyFeeds);
+            expect(feedKeys).not.toContain(`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}#11111111`);
+        });
+
+        it('Should filter out removed feeds when shouldFilterOutRemovedFeeds is true', () => {
+            const companyFeeds = getCompanyFeeds(combinedCardFeeds, true, false);
+            const feedKeys = Object.keys(companyFeeds);
+            expect(feedKeys).not.toContain(`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`);
+        });
+
+        it('Should return empty object if undefined is passed', () => {
+            const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
         });
     });
