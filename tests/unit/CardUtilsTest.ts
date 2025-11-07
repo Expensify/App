@@ -17,12 +17,14 @@ import {
     getCardDescription,
     getCardFeedIcon,
     getCardsByCardholderName,
+    getCombinedFeedKey,
     getCompanyCardDescription,
-    getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
+    getOriginalCompanyFeeds,
+    getOriginalFeed,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
@@ -33,7 +35,7 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {Card, CardList, CombinedFeedKey, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CombinedFeedKey, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -60,7 +62,7 @@ const directFeedBanks = [
 
 const companyCardsCustomFeedSettings = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
-        pending: true,
+        pending: false,
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
         liabilityType: 'personal',
@@ -83,6 +85,36 @@ const companyCardsCustomVisaFeedSettingsWithNumbers = {
     },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}3`]: {
         pending: false,
+    },
+};
+
+const companyCardsDirectFeedSettings = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
+        liabilityType: 'personal',
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: {
+        liabilityType: 'personal',
+    },
+};
+const companyCardsSettingsWithoutExpensifyBank = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+        pending: false,
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+        liabilityType: 'personal',
+    },
+    ...companyCardsDirectFeedSettings,
+};
+
+const companyCardsSettingsWithPendingRemovedFeeds = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+        pending: true,
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+        pending: false,
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: {
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     },
 };
 
@@ -241,6 +273,25 @@ const cardSettingsWithoutPaymentBankAccountID = {
     paymentBankAccountID: undefined,
 } as unknown as ExpensifyCardSettings;
 
+const cardFeedsCollection: OnyxCollection<CardFeeds> = {
+    // Policy with both custom and direct feeds
+    FAKE_ID_1: {
+        settings: {
+            companyCardNicknames: {
+                [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: customFeedName,
+            },
+            companyCards: {...companyCardsCustomFeedSettings, ...companyCardsDirectFeedSettings},
+            oAuthAccountDetails,
+        },
+    },
+    // Policy with pending and removed feeds
+    FAKE_ID_2: {
+        settings: {
+            companyCards: companyCardsSettingsWithPendingRemovedFeeds,
+        },
+    },
+};
+
 /* eslint-disable @typescript-eslint/naming-convention */
 const allCardsList = {
     'cards_11111111_oauth.capitalone.com': directFeedCardsMultipleList,
@@ -375,21 +426,19 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('getCompanyFeeds', () => {
-        it('Should return feeds with filtered out "Expensify Card" bank', () => {
-            // TBD
+    describe('getOriginalCompanyFeeds', () => {
+        it('Should return both custom and direct feeds with filtered out "Expensify Card" bank', () => {
+            const companyFeeds = getOriginalCompanyFeeds(cardFeedsCollection.FAKE_ID_1);
+            expect(companyFeeds).toStrictEqual(companyCardsSettingsWithoutExpensifyBank);
         });
 
-        it('Should return only feeds that are not pending if shouldFilterOutPendingFeeds is true', () => {
-            // TBD
-        });
-
-        it('Should return only feeds that are not removed if shouldFilterOutRemovedFeeds is true', () => {
-            // TBD
+        it('Should return only feeds that are not pending/removed', () => {
+            const companyFeeds = getOriginalCompanyFeeds(cardFeedsCollection.FAKE_ID_2);
+            expect(Object.keys(companyFeeds).length).toStrictEqual(1);
         });
 
         it('Should return empty object if undefined is passed', () => {
-            const companyFeeds = getCompanyFeeds(undefined);
+            const companyFeeds = getOriginalCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
         });
     });
@@ -1188,6 +1237,23 @@ describe('CardUtils', () => {
 
             const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
             expect(sorted.map((r: Card) => r.cardID)).toEqual([11, 10, 99]);
+        });
+    });
+
+    describe('getOriginalFeed', () => {
+        it('should extract the original feed from a combined feed key', () => {
+            const combinedKey: CombinedFeedKey = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
+            const originalFeed = getOriginalFeed(combinedKey);
+            expect(originalFeed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
+        });
+    });
+
+    describe('getCombinedFeedKey', () => {
+        it('should combine feed name domain ID', () => {
+            const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const domainID = 11111111;
+            const combinedKey = getCombinedFeedKey(feedName, domainID);
+            expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
         });
     });
 });
