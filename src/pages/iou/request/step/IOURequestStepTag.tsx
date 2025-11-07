@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagArrayFromName} from '@libs/TransactionUtils';
+import {getTag, getTagArrayFromName, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,9 +43,15 @@ function IOURequestStepTag({
     transaction,
 }: IOURequestStepTagProps) {
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: false});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: false});
+    const isUnreportedExpense = isExpenseUnreported(transaction);
+    const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
+    const policyID = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpenses : reportPolicy;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
@@ -169,7 +176,7 @@ function IOURequestStepTag({
                                 onPress={() =>
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_TAGS_ROOT.getRoute(
-                                            policy?.id,
+                                            policyID,
                                             ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
@@ -185,7 +192,7 @@ function IOURequestStepTag({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
-                        policyID={policy?.id}
+                        policyID={policyID}
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}

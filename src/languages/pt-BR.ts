@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contagem',
         cancel: 'Cancelar',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'Nenhum resultado encontrado',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
         recentDestinations: 'Destinos recentes',
         timePrefix: 'É',
         conjunctionFor: 'para',
@@ -599,7 +599,6 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -678,8 +677,6 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Obtenha o aplicativo',
-        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -1341,11 +1338,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Por favor, tente novamente mais tarde.',
             genericUnholdExpenseFailureMessage: 'Erro inesperado ao remover esta despesa da retenção. Por favor, tente novamente mais tarde.',
             receiptDeleteFailureError: 'Erro inesperado ao excluir este recibo. Por favor, tente novamente mais tarde.',
-            receiptFailureMessage: 'Houve um erro ao enviar seu recibo. Por favor,',
+            receiptFailureMessage: '<rbr>Houve um erro ao enviar seu recibo. Por favor, <a href="download">salve o recibo</a> e <a href="retry">tente novamente</a> mais tarde.</rbr>',
             receiptFailureMessageShort: 'Houve um erro ao enviar seu recibo.',
-            tryAgainMessage: 'tente novamente',
-            saveFileMessage: 'salvar o recibo',
-            uploadLaterMessage: 'para enviar mais tarde.',
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Por favor, tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Por favor, tente novamente mais tarde.',
             genericSmartscanFailureMessage: 'A transação está com campos faltando',
@@ -7387,7 +7381,7 @@ ${amount} para ${merchant} - ${date}`,
         upload: 'Carregar',
         uploadPhoto: 'Carregar foto',
         selectAvatar: 'Selecionar avatar',
-        chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+        choosePresetAvatar: 'Ou escolha um avatar personalizado',
     },
     openAppFailureModal: {
         title: 'Algo deu errado...',
@@ -7419,4 +7413,4 @@ ${amount} para ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

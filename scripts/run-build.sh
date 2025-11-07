@@ -55,6 +55,7 @@ else
 fi
 
 # Check if the argument is one of the desired values
+# RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 - force React Native to build from source to include our custom patches
 case "$BUILD" in
     --ios)
         RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server

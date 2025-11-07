@@ -79,7 +79,6 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
-    getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
@@ -169,8 +168,6 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
-    hasReportBeenReopened,
-    hasReportBeenRetracted,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
@@ -490,7 +487,7 @@ type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
-    gpsPoints?: GPSPoint;
+    gpsPoint?: GPSPoint;
     action?: IOUAction;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
@@ -630,7 +627,7 @@ type TrackExpenseTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
-    gpsPoints?: GPSPoint;
+    gpsPoint?: GPSPoint;
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
@@ -6076,7 +6073,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         participantParams,
         policyParams = {},
         transactionParams,
-        gpsPoints,
+        gpsPoint,
         action,
         shouldHandleNavigation = true,
         backToReport,
@@ -6275,7 +6272,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursable,
@@ -6533,7 +6530,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         taxAmount = 0,
         billable,
         reimbursable,
-        gpsPoints,
+        gpsPoint,
         validWaypoints,
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
@@ -6574,7 +6571,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             taxAmount,
             billable,
             validWaypoints,
-            gpsPoints,
+            gpsPoint,
             actionableWhisperReportActionID,
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
@@ -6782,7 +6779,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
@@ -9024,6 +9021,7 @@ function deleteMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
+                reportID: null,
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
@@ -10403,25 +10401,18 @@ function canSubmitReport(
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
-    const baseCanSubmit =
+    return (
         isOpenExpenseReport &&
         (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        transactions.length > 0;
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
-    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
-    if (baseCanSubmit && hasBeenRetracted) {
-        return true;
-    }
-
-    return baseCanSubmit && isManualSubmitEnabled;
+        transactions.length > 0
+    );
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
