@@ -12,6 +12,7 @@ import {
     getFieldViolation,
     getFieldViolationTranslation,
     getReportFieldKey,
+    isAdminOwnerApproverOrReportOwner,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
@@ -95,10 +96,10 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = field.value ?? field.defaultValue;
-                const isFieldDisabled = isReportFieldDisabled(report, field, policy);
+                const isFieldDisabled = isReportFieldDisabled(report, field, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
                 const fieldKey = getReportFieldKey(field.fieldID);
 
-                const violation = getFieldViolation(violations, field);
+                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
 
                 return {
