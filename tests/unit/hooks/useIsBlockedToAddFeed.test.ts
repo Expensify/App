@@ -148,4 +148,91 @@ describe('useIsBlockedToAddFeed', () => {
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
+    it('should return isBlockedToAddNewFeeds as false when data is still loading', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                isLoading: true,
+                settings: {
+                    companyCards: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'plaid.ins_19': {
+                            asrEnabled: false,
+                            country: 'US',
+                            forceReimbursable: 'force_no',
+                            liabilityType: 'corporate',
+                            preferredPolicy: '135CA2196CD21C88',
+                            reportTitleFormat: '',
+                            shouldApplyCashbackToBill: true,
+                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
+                            uploadLayoutSettings: [],
+                        },
+                    },
+                    companyCardNicknames: {},
+                    oAuthAccountDetails: {},
+                },
+            },
+            {status: 'loading'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // Should not block while loading, even if feeds exist
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
+        // But isAllFeedsResultLoading should be true
+        expect(result.current.isAllFeedsResultLoading).toBe(true);
+    });
+
+    it('should transition from not blocked (loading) to blocked (loaded) when data finishes loading', async () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                isLoading: true,
+                settings: {
+                    companyCards: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'plaid.ins_19': {
+                            asrEnabled: false,
+                            country: 'US',
+                            forceReimbursable: 'force_no',
+                            liabilityType: 'corporate',
+                            preferredPolicy: '135CA2196CD21C88',
+                            reportTitleFormat: '',
+                            shouldApplyCashbackToBill: true,
+                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
+                            uploadLayoutSettings: [],
+                        },
+                    },
+                    companyCardNicknames: {},
+                    oAuthAccountDetails: {},
+                },
+            },
+            {status: 'loading'},
+        ]);
+        const {result, rerender} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
+
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                isLoading: false,
+                settings: {
+                    companyCards: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'plaid.ins_19': {
+                            asrEnabled: false,
+                            country: 'US',
+                            forceReimbursable: 'force_no',
+                            liabilityType: 'corporate',
+                            preferredPolicy: '135CA2196CD21C88',
+                            reportTitleFormat: '',
+                            shouldApplyCashbackToBill: true,
+                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
+                            uploadLayoutSettings: [],
+                        },
+                    },
+                    companyCardNicknames: {},
+                    oAuthAccountDetails: {},
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        rerender('plaid.ins_19');
+        expect(result.current.isBlockedToAddNewFeeds).toBe(true);
+    });
 });
