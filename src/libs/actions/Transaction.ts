@@ -563,7 +563,7 @@ function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: Original
     });
 }
 
-function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
+function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined, transactionViolations: TransactionViolations = []) {
     if (!transactionID || !transactionThreadReportID) {
         return;
     }
@@ -580,7 +580,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+                value: transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
@@ -594,7 +594,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: allTransactionViolations,
+                value: transactionViolations,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
