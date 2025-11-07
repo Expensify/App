@@ -614,8 +614,8 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
             value: {
                 data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {isActionLoading: false}},
             },
-        }]
-        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
+        }];
+        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
     });
 }
 
