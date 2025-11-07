@@ -1918,9 +1918,11 @@ type ReimbursementAccountNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         policyID?: string;
-        subStep?: string;
+        subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+        // TODO this backTo comes from drilling it through bank account form screens
+        // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         policyID?: string;

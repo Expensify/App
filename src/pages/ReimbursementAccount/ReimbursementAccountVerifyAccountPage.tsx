@@ -2,6 +2,7 @@ import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -12,7 +13,7 @@ function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVeri
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo)}
-            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo, 'CountryStep')}
+            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo, CONST.BANK_ACCOUNT.STEP.COUNTRY)}
         />
     );
 }
