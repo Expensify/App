@@ -22,9 +22,6 @@ type AnimatedCollapsibleProps = {
     /** Header content to display above the collapsible content */
     header: ReactNode;
 
-    /** Description content to display below the header */
-    description?: ReactNode;
-
     /** Duration of expansion animation */
     duration?: number;
 
@@ -57,7 +54,6 @@ function AnimatedCollapsible({
     isExpanded,
     children,
     header,
-    description,
     duration = 300,
     style,
     headerStyle,
@@ -71,9 +67,9 @@ function AnimatedCollapsible({
     const theme = useTheme();
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
-    const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = React.useState(isExpanded);
+
     useEffect(() => {
         hasExpanded.set(isExpanded);
         if (isExpanded) {
@@ -103,21 +99,6 @@ function AnimatedCollapsible({
 
         return withTiming(hasExpanded.get() ? 1 : 0, {duration, easing});
     });
-
-    const descriptionOpacity = useDerivedValue(() => {
-        return withTiming(!hasExpanded.get() ? 1 : 0, {duration, easing});
-    });
-
-    const descriptionAnimatedHeight = useDerivedValue(() => {
-        return withTiming(!isExpanded ? descriptionHeight.get() : 0, {duration, easing});
-    });
-
-    const descriptionAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            opacity: descriptionOpacity.get(),
-            height: descriptionAnimatedHeight.get(),
-        };
-    }, []);
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
         return {
@@ -149,20 +130,6 @@ function AnimatedCollapsible({
                     </PressableWithFeedback>
                 )}
             </View>
-            {!!description && (
-                <Animated.View style={descriptionAnimatedStyle}>
-                    <View
-                        onLayout={(e) => {
-                            const height = e.nativeEvent.layout.height;
-                            if (height) {
-                                descriptionHeight.set(height);
-                            }
-                        }}
-                    >
-                        {description}
-                    </View>
-                </Animated.View>
-            )}
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 {isExpanded || isRendered ? (
                     <Animated.View

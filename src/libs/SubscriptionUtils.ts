@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import type {SubscriptionType} from '@src/CONST';
@@ -554,6 +555,7 @@ function getSubscriptionPrice(
 }
 
 function getSubscriptionPlanInfo(
+    translate: LocalizedTranslate,
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
@@ -564,80 +566,55 @@ function getSubscriptionPlanInfo(
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let subtitle = translateLocal('subscription.yourPlan.customPricing');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
+        let subtitle = translate('subscription.yourPlan.customPricing');
+        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {price});
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                note = translateLocal('subscription.yourPlan.perMemberMonth');
+                note = translate('subscription.yourPlan.perMemberMonth');
             } else {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
+                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {price});
                 note = undefined;
             }
         }
 
         return {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('subscription.yourPlan.collect.title'),
+            title: translate('subscription.yourPlan.collect.title'),
             subtitle,
             note,
             benefits: [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit1'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit2'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit3'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit4'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit5'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit6'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit7'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal('subscription.yourPlan.collect.benefit8'),
+                translate('subscription.yourPlan.collect.benefit1'),
+                translate('subscription.yourPlan.collect.benefit2'),
+                translate('subscription.yourPlan.collect.benefit3'),
+                translate('subscription.yourPlan.collect.benefit4'),
+                translate('subscription.yourPlan.collect.benefit5'),
+                translate('subscription.yourPlan.collect.benefit6'),
+                translate('subscription.yourPlan.collect.benefit7'),
+                translate('subscription.yourPlan.collect.benefit8'),
             ],
             src: Illustrations.Mailbox,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            description: translateLocal('subscription.yourPlan.collect.description'),
+            description: translate('subscription.yourPlan.collect.description'),
         };
     }
 
     return {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('subscription.yourPlan.control.title'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        subtitle: translateLocal('subscription.yourPlan.customPricing'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        note: translateLocal('subscription.yourPlan.asLowAs', {price}),
+        title: translate('subscription.yourPlan.control.title'),
+        subtitle: translate('subscription.yourPlan.customPricing'),
+        note: translate('subscription.yourPlan.asLowAs', {price}),
         benefits: [
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit1'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit2'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit3'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit4'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit5'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit6'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit7'),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('subscription.yourPlan.control.benefit8'),
+            translate('subscription.yourPlan.control.benefit1'),
+            translate('subscription.yourPlan.control.benefit2'),
+            translate('subscription.yourPlan.control.benefit3'),
+            translate('subscription.yourPlan.control.benefit4'),
+            translate('subscription.yourPlan.control.benefit5'),
+            translate('subscription.yourPlan.control.benefit5'),
+            translate('subscription.yourPlan.control.benefit6'),
+            translate('subscription.yourPlan.control.benefit7'),
+            translate('subscription.yourPlan.control.benefit8'),
         ],
         src: Illustrations.ShieldYellow,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        description: translateLocal('subscription.yourPlan.control.description'),
+        description: translate('subscription.yourPlan.control.description'),
     };
 }
 
