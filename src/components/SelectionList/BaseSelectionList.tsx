@@ -76,6 +76,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
+    shouldHighlightSelectedItem = true,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -324,6 +325,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={style?.listItemWrapperStyle}
                 titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
@@ -360,6 +362,19 @@ function BaseSelectionList<TItem extends ListItem>({
         [data, itemsToHighlight, scrollToIndex],
     );
 
+    const updateFocusedIndex = useCallback(
+        (newFocusedIndex: number, shouldScroll = false) => {
+            if (newFocusedIndex < 0 || newFocusedIndex >= data.length) {
+                return;
+            }
+            setFocusedIndex(newFocusedIndex);
+            if (shouldScroll) {
+                scrollToIndex(newFocusedIndex);
+            }
+        },
+        [data.length, scrollToIndex, setFocusedIndex],
+    );
+
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
             return;
@@ -374,7 +389,7 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}

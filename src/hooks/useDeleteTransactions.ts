@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -32,6 +33,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -92,6 +96,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             );
 
             Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
+                // eslint-disable-next-line unicorn/prefer-set-has
                 const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID);
                 const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
                     (transaction) => !splitIDs.includes(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
@@ -129,7 +134,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isChatReportArchived: isChatIOUReportArchived,
-                    isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
+                    currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
+                    transactionViolations,
+                    isASAPSubmitBetaEnabled,
                 });
             });
 
@@ -162,7 +170,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, isBetaEnabled, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet],
+        [
+            reportActions,
+            allTransactions,
+            allReports,
+            report,
+            allReportNameValuePairs,
+            allPolicyRecentlyUsedCategories,
+            policyCategories,
+            policy,
+            archivedReportsIdSet,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+        ],
     );
 
     return {
