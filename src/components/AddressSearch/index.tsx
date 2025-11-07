@@ -80,6 +80,7 @@ function AddressSearch(
         value,
         locationBias,
         caretHidden,
+        forwardedFSClass,
     }: AddressSearchProps,
     ref: ForwardedRef<HTMLElement>,
 ) {
@@ -366,6 +367,7 @@ function AddressSearch(
                 <View
                     style={styles.w100}
                     ref={containerRef}
+                    fsClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll
