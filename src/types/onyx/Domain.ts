@@ -20,8 +20,14 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether domain validation is pending */
     isValidationPending?: boolean;
 
-    /** Whether validation code is currently loading */
+    /** Errors that occurred when validating the domain */
+    domainValidationError?: OnyxCommon.Errors;
+
+    /** Whether validation code is currently being fetched */
     isValidateCodeLoading?: boolean;
+
+    /** Errors that occurred when fetching validation code */
+    validateCodeError?: OnyxCommon.Errors;
 }>;
 
 export default Domain;
