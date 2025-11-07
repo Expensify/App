@@ -105,7 +105,6 @@ const mockReport: TransactionReportGroupListItemType = {
     parentReportActionID: '2454187434077044186',
     parentReportID: '4735435600700077',
     policyID: '06F34677820A4D07',
-    private_isArchived: '',
     reportID: '515146912679679',
     reportName: 'Expense Report #515146912679679',
     stateNum: 1,
