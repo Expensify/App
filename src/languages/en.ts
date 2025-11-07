@@ -3671,6 +3671,10 @@ const translations = {
                 monthly: 'month',
                 yearly: 'year',
             },
+            budgetTypeForNotificationMessage: {
+                tag: 'tag',
+                category: 'category',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
@@ -6237,7 +6241,7 @@ const translations = {
             budgetFrequency,
             budgetName,
             budgetTypeForNotificationMessage,
-            summaryLinkMessage,
+            summaryLink,
             thresholdPercentage,
             totalSpend,
             unsubmittedSpend,
@@ -6245,7 +6249,7 @@ const translations = {
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyIndividualBudgetNotificationParams) =>
-            `Heads up! This workspace has a ${budgetAmount} per person per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. ${userEmail} is currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLinkMessage}`,
+            `Heads up! This workspace has a ${budgetAmount} per person per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. ${userEmail} is currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Here is a report</a> with all those expenses for your records!` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

@@ -608,6 +608,27 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
 }
 
 /**
+ * Extracts the first href URL from an HTML anchor string.
+ * Handles href values wrapped in either double quotes (") or single quotes (').
+ */
+function extractLinksFromMessageHtmlString(message: string): string {
+    if (!message) {
+        return '';
+    }
+
+    // Prefer non-global regex to avoid lastIndex pitfalls
+    const doubleQuotedHrefRegex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/i;
+    const singleQuotedHrefRegex = /<a\s+(?:[^>]*?\s+)?href='([^']*)'/i;
+
+    let match = doubleQuotedHrefRegex.exec(message);
+    if (match?.[1]) {
+        return match[1];
+    }
+    match = singleQuotedHrefRegex.exec(message);
+    return match?.[1] ?? '';
+}
+
+/**
  * Returns the report action immediately before the specified index.
  * @param reportActions - all actions
  * @param actionIndex - index of the action
@@ -3379,14 +3400,15 @@ function getUpdatedIndividualBudgetNotificationMessage(reportAction: OnyxEntry<R
     ) {
         return getReportActionText(reportAction);
     }
+    const summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updatedIndividualBudgetNotification', {
         budgetAmount,
         budgetFrequency: translateLocal(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage,
-        summaryLinkMessage,
+        budgetTypeForNotificationMessage: translateLocal(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
+        summaryLink,
         thresholdPercentage,
         totalSpend,
         unsubmittedSpend,
@@ -3628,6 +3650,7 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
+    extractLinksFromMessageHtmlString,
     formatLastMessageText,
     isReportActionUnread,
     getHtmlWithAttachmentID,

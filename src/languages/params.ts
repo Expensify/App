@@ -437,7 +437,7 @@ type UpdatedPolicyIndividualBudgetNotificationParams = {
     budgetFrequency: string;
     budgetName: string;
     budgetTypeForNotificationMessage: string;
-    summaryLinkMessage: string;
+    summaryLink?: string;
     thresholdPercentage: number;
     totalSpend: number;
     unsubmittedSpend: number;
