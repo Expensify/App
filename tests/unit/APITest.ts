@@ -1,4 +1,5 @@
 import MockedOnyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
@@ -807,7 +808,7 @@ describe('APITests', () => {
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
         const onyxSetSpy = jest.spyOn(Onyx, 'set');
 
-        const failureData = [
+        const failureData: OnyxUpdate[] = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
