@@ -466,7 +466,7 @@ const translations = {
         error: {
             invalidAmount: 'Montant invalide',
             acceptTerms: "Vous devez accepter les Conditions d'utilisation pour continuer.",
-            phoneNumber: `Veuillez entrer un numéro de téléphone complet\n(par exemple, ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Veuillez entrer un numéro de téléphone complet\n(par exemple, ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Ce champ est requis',
             requestModified: 'Cette demande est en cours de modification par un autre membre',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caractères dépassé (${length}/${limit})`,

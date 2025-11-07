@@ -466,7 +466,7 @@ const translations = {
         error: {
             invalidAmount: '無効な金額',
             acceptTerms: '続行するには、利用規約に同意する必要があります。',
-            phoneNumber: `電話番号を完全に入力してください\n（例: ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `電話番号を完全に入力してください\n（例: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは他のメンバーによって変更されています。',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えました（${length}/${limit}）`,
