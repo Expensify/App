@@ -5,8 +5,6 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1060,7 +1058,7 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {});
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {}, undefined, TestHelper.localeCompare);
 
             await waitForBatchedUpdates();
 
@@ -1153,6 +1151,8 @@ describe('actions/Policy', () => {
                     ],
                 },
                 undefined,
+                undefined,
+                TestHelper.localeCompare,
             );
 
             await waitForBatchedUpdates();
@@ -1167,18 +1167,31 @@ describe('actions/Policy', () => {
             expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
 
-        it('should update active policy ID to personal policy when deleting the active policy', async () => {
-            const personalPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            const teamPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+        it('should update active policy ID to most recently created group policy when deleting the active policy', async () => {
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            randomGroupPolicy.created = '2021-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy2 = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            randomGroupPolicy2.created = '2022-01-01 10:00:00';
+            randomGroupPolicy2.pendingAction = null;
+
+            const mostRecentlyCreatedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            mostRecentlyCreatedGroupPolicy.created = '3000-01-01 10:00:00';
+            mostRecentlyCreatedGroupPolicy.pendingAction = null;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
-            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy.id}`, randomGroupPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy2.id}`, randomGroupPolicy2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mostRecentlyCreatedGroupPolicy.id}`, mostRecentlyCreatedGroupPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, randomGroupPolicy.id);
             await waitForBatchedUpdates();
 
-            jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
-
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace(randomGroupPolicy.id, randomGroupPolicy.name, undefined, undefined, [], undefined, undefined, undefined, TestHelper.localeCompare);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1191,7 +1204,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            expect(activePolicyID).toBe(personalPolicy.id);
+            expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
@@ -1202,7 +1215,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, undefined, TestHelper.localeCompare);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1228,7 +1241,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, undefined, TestHelper.localeCompare);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {

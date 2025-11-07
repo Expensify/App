@@ -1724,6 +1724,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When this policy was last modified */
         lastModified?: string;
 
+        /** When this policy was created */
+        created?: string;
+
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 

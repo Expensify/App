@@ -212,7 +212,9 @@ function WorkspacesListPage() {
             transactionViolations,
             reimbursementAccountError,
             lastPaymentMethod,
+            localeCompare,
         );
+
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);

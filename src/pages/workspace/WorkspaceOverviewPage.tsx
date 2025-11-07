@@ -69,7 +69,7 @@ type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<Wor
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
@@ -225,12 +225,33 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
+        deleteWorkspace(
+            policy.id,
+            policyName,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastPaymentMethod,
+            localeCompare,
+        );
         if (isOffline) {
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
+    }, [
+        policy?.id,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        defaultCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastPaymentMethod,
+        localeCompare,
+        isOffline,
+    ]);
 
     const handleLeaveWorkspace = useCallback(() => {
         if (!policy?.id) {
