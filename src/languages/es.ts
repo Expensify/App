@@ -628,7 +628,7 @@ const translations = {
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         leaveWorkspace: 'Salir del espacio de trabajo',
-        leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él',
+        leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él.',
         leaveWorkspaceConfirmationAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
         leaveWorkspaceConfirmationAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
         leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
@@ -5018,6 +5018,7 @@ ${amount} para ${merchant} - ${date}`,
             existingReportFieldNameError: 'Ya existe un campo de informe con este nombre',
             reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
             reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
+            circularReferenceError: 'Este campo no puede hacer referencia a sí mismo. Por favor, actualizar.',
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
@@ -5578,8 +5579,8 @@ ${amount} para ${merchant} - ${date}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
-            taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
-            changePromptMessage: ' para hacer ese cambio.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
             deleteDistanceRate: 'Eliminar tasa de distancia',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
@@ -7415,7 +7416,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
-        reportContainsExpensesWithViolations: 'El informe contiene gastos con violaciones.',
     },
     violationDismissal: {
         rter: {
@@ -7977,6 +7977,29 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Algo salió mal...',
         subtitle: `No hemos podido cargar todos sus datos. Hemos sido notificados y estamos investigando el problema. Si esto persiste, por favor comuníquese con`,
         refreshAndTryAgain: 'Actualizar e intentar de nuevo',
+    },
+    domain: {
+        notVerified: 'No verificado',
+        retry: 'Reintentar',
+        verifyDomain: {
+            title: 'Verificar dominio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Antes de continuar, verifica que eres propietario de <strong>${domainName}</strong> actualizando su configuración DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Accede a tu proveedor de DNS y abre la configuración DNS de <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Añade el siguiente registro TXT:',
+            saveChanges: 'Guarda los cambios y vuelve aquí para verificar tu dominio.',
+            youMayNeedToConsult: `Es posible que necesites consultar con el servicio informático de tu organización para completar la verificación. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Más información</a>.`,
+            warning:
+                'Después de la verificación, todos los miembros de Expensify en tu dominio recibirán un correo electrónico informando que sus cuentas serán gestionadas bajo tu dominio.',
+            codeFetchError: 'No se pudo obtener el código de verificación',
+            genericError: 'No pudimos verificar tu dominio. Por favor, inténtalo de nuevo y contacta con Concierge si el problema persiste.',
+        },
+        domainVerified: {
+            title: 'Dominio verificado',
+            header: '¡Wooo! Tu dominio ha sido verificado',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>El dominio <strong>${domainName}</strong> se ha verificado correctamente y ahora puedes configurar SAML y otras funciones de seguridad.</centered-text></muted-text>`,
+        },
     },
 };
 

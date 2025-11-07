@@ -258,6 +258,7 @@ const SCREENS = {
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
+        DOMAIN: 'Domain',
         MULTIFACTORAUTHENTICATION: 'MultiFactorAuthentication',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -819,6 +820,8 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
+    WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
+    WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
     MULTIFACTORAUTHENTICATION: {
         MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
         AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',

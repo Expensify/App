@@ -3332,6 +3332,14 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+    WORKSPACES_VERIFY_DOMAIN: {
+        route: 'workspaces/verify-domain/:accountID',
+        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_VERIFIED: {
+        route: 'workspaces/domain-verified/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
 
     MULTIFACTORAUTHENTICATION_MAGIC_CODE: 'multifactor-authentication/factor/magic-code',
     MULTIFACTORAUTHENTICATION_AUTHENTICATOR: 'multifactor-authentication/factor/authenticator',

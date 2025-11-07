@@ -259,6 +259,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.DOMAIN}
+                                component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION}
                                 component={ModalStackNavigators.MultiFactorAuthenticationStackNavigator}
                             />

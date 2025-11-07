@@ -50,6 +50,7 @@ import type {
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
+    WorkspacesDomainModalNavigatorParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -923,6 +924,11 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const WorkspacesDomainModalStackNavigator = createModalStackNavigator<WorkspacesDomainModalNavigatorParamList>({
+    [SCREENS.WORKSPACES_VERIFY_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/VerifyDomainPage').default,
+    [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainVerifiedPage').default,
+});
+
 const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationParamList>({
     [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAFactorMagicCodePage').default,
     [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthentication/MFAFactorAuthenticatorPage').default,
@@ -980,5 +986,6 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    WorkspacesDomainModalStackNavigator,
     MultiFactorAuthenticationStackNavigator,
 };
