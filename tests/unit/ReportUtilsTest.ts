@@ -7414,7 +7414,7 @@ describe('ReportUtils', () => {
 
         it('returns report route when not in search context', () => {
             const reportID = '123';
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+            expect(getReportURLForCurrentContext({report: {reportID}})).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
         });
 
         it('returns search route when in search context', () => {
@@ -7422,32 +7422,32 @@ describe('ReportUtils', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
             mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+            expect(getReportURLForCurrentContext({report: {reportID}})).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
         });
 
         it('uses current search route when no backTo parameter is present', () => {
             const reportID = '111';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+            expect(getReportURLForCurrentContext({report: {reportID}})).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
         });
 
         it('normalizes leading slash in search routes', () => {
             const reportID = '222';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             mockGetActiveRoute.mockReturnValue('/search?q=type:card');
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+            expect(getReportURLForCurrentContext({report: {reportID}})).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
         });
 
         it('falls back to default search route when current route is unavailable', () => {
             const reportID = '789';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             mockGetActiveRoute.mockReturnValue('');
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
+            expect(getReportURLForCurrentContext({report: {reportID}})).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
         });
 
         it('falls back to the base report path when reportID is missing', () => {
-            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
+            expect(getReportURLForCurrentContext({report: undefined})).toBe(`${environmentURL}/r/`);
         });
 
         it('returns Inbox route for workspace chat even when in search context', async () => {
@@ -7466,7 +7466,7 @@ describe('ReportUtils', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             mockGetActiveRoute.mockReturnValue('search?q=type:report');
 
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+            expect(getReportURLForCurrentContext({report: {reportID}, isPolicyExpenseChat: true})).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
 
             await Onyx.clear();
         });

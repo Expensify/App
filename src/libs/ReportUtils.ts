@@ -6653,7 +6653,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = getReportURLForCurrentContext(report?.reportID);
+    const reportUrl = getReportURLForCurrentContext({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.movedTransaction', {reportUrl, reportName});
 }
@@ -6682,8 +6682,8 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.movedAction', {
         shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: getReportURLForCurrentContext(movedReportID),
-        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
+        movedReportUrl: getReportURLForCurrentContext({report: {reportID: movedReportID}}),
+        newParentReportUrl: getReportURLForCurrentContext({report: {reportID: newParentReportID}, isPolicyExpenseChat: true}),
         toPolicyName,
     });
 }
@@ -7011,8 +7011,8 @@ function buildOptimisticMovedReportAction(
     const movedActionMessage = [
         {
             html: shouldHideMovedReportUrl
-                ? `moved this <a href='${getReportURLForCurrentContext(movedReportID)}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
-                : `moved this report to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                ? `moved this <a href='${getReportURLForCurrentContext({report: {reportID: movedReportID}})}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext({report: {reportID: newParentReportID}, isPolicyExpenseChat: true})}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${getReportURLForCurrentContext({report: {reportID: newParentReportID}, isPolicyExpenseChat: true})}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
@@ -7099,7 +7099,7 @@ function buildOptimisticTransactionAction(
     targetReportID: string,
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = getReportURLForCurrentContext(targetReportID);
+    const url = getReportURLForCurrentContext({report: {reportID: targetReportID}});
     const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
@@ -12132,12 +12132,22 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
-function getReportURLForCurrentContext(reportID: string | undefined): string {
+type GetReportURLForCurrentContextOptions = {
+    report?: OnyxEntry<Report> | Report;
+    /**
+     * Explicitly indicate that the target is a workspace chat (policy expense chat).
+     * Useful when the caller knows the destination report type but does not have the report object available.
+     */
+    isPolicyExpenseChat?: boolean;
+};
+
+function getReportURLForCurrentContext(options: GetReportURLForCurrentContextOptions): string {
+    const reportID = options.report?.reportID;
     if (!reportID) {
         return `${environmentURL}/r/`;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const isPolicyExpenseChatReport = isPolicyExpenseChat(report);
+
+    const isPolicyExpenseChatReport = options.isPolicyExpenseChat ?? isPolicyExpenseChat(options.report);
     const isInSearchContext = isSearchTopmostFullScreenRoute();
     if (!isInSearchContext || isPolicyExpenseChatReport) {
         return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
@@ -12583,6 +12593,7 @@ export {
 export type {
     Ancestor,
     DisplayNameWithTooltips,
+    GetReportURLForCurrentContextOptions,
     OptimisticAddCommentReportAction,
     OptimisticChatReport,
     OptimisticClosedReportAction,
