@@ -1733,6 +1733,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.DOMAIN]: {
+                    screens: {
+                        [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+                            path: ROUTES.WORKSPACES_VERIFY_DOMAIN.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
+                            exact: true,
+                        },
+                    },
+                },
             },
         },
 

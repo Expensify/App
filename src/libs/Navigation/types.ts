@@ -2056,6 +2056,15 @@ type MergeTransactionNavigatorParamList = {
     };
 };
 
+type WorkspacesDomainModalNavigatorParamList = {
+    [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+        accountID: number;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -2104,6 +2113,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2806,4 +2816,5 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
+    WorkspacesDomainModalNavigatorParamList,
 };

@@ -517,6 +517,7 @@ const WRITE_COMMANDS = {
     ADD_REPORT_APPROVER: 'AddReportApprover',
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
     SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
+    VALIDATE_DOMAIN: 'ValidateDomain',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1053,6 +1054,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
+
+    // Domain API
+    [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.DomainParams;
 };
 
 const READ_COMMANDS = {
@@ -1129,6 +1133,7 @@ const READ_COMMANDS = {
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
+    GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1207,6 +1212,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
+    [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
