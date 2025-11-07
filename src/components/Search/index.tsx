@@ -33,6 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -55,7 +56,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -64,7 +65,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -91,7 +92,11 @@ type SearchProps = {
 
 const expenseHeaders = getExpenseHeaders();
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(
+    item: TransactionListItemType,
+    transaction: OnyxEntry<Transaction>,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -100,6 +105,8 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canSplit: isSplitAction(item.report, [transaction], item.policy),
+            hasBeenSplit: getOriginalTransactionWithSplitInfo(item).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -165,7 +172,12 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
+function prepareTransactionsList(
+    item: TransactionListItemType,
+    transaction: OnyxEntry<Transaction>,
+    selectedTransactions: SelectedTransactions,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -180,6 +192,8 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
+            canSplit: isSplitAction(item.report, [transaction], item.policy),
+            hasBeenSplit: getOriginalTransactionWithSplitInfo(item).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -457,6 +471,8 @@ function Search({
                         canHold: transactionItem.canHold,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: transactionItem.canUnhold,
+                        canSplit: isSplitAction(transactionItem.report, [transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]], transactionItem.policy),
+                        hasBeenSplit: getOriginalTransactionWithSplitInfo(transactionItem).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
                             CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -494,6 +510,8 @@ function Search({
                     canHold: transactionItem.canHold,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: transactionItem.canUnhold,
+                    canSplit: isSplitAction(transactionItem.report, [transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]], transactionItem.policy),
+                    hasBeenSplit: getOriginalTransactionWithSplitInfo(transactionItem).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
                         CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -585,7 +603,10 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, outstandingReportsByPolicyID), data);
+                setSelectedTransactions(
+                    prepareTransactionsList(item, transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`], selectedTransactions, outstandingReportsByPolicyID),
+                    data,
+                );
                 return;
             }
 
@@ -607,13 +628,19 @@ function Search({
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                            .map((transactionItem) =>
+                                mapTransactionItemToSelectedEntry(
+                                    transactionItem,
+                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
+                                    outstandingReportsByPolicyID,
+                                ),
+                            ),
                     ),
                 },
                 data,
             );
         },
-        [data, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [setSelectedTransactions, selectedTransactions, data, transactions, outstandingReportsByPolicyID],
     );
 
     const onSelectRow = useCallback(
@@ -817,7 +844,13 @@ function Search({
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                            .map((transactionItem) =>
+                                mapTransactionItemToSelectedEntry(
+                                    transactionItem,
+                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
+                                    outstandingReportsByPolicyID,
+                                ),
+                            ),
                     ),
                 ),
                 data,
@@ -830,11 +863,17 @@ function Search({
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                    .map((transactionItem) =>
+                        mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
+                            outstandingReportsByPolicyID,
+                        ),
+                    ),
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [validGroupBy, isExpenseReportType, selectedTransactions, setSelectedTransactions, data, clearSelectedTransactions, transactions, outstandingReportsByPolicyID]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 

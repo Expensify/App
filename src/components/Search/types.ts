@@ -17,6 +17,12 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
+    /** If the transaction can be splitted */
+    canSplit: boolean;
+
+    /** If the transaction has been splitted */
+    hasBeenSplit: boolean;
+
     /** If the transaction can be moved to other report */
     canChangeReport: boolean;
 

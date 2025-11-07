@@ -57,11 +57,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -91,7 +89,6 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -506,12 +503,10 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const areSplittable = selectedTransactionsKeys.every((id) => selectedTransactions[id].canSplit);
+        const areAlreadySplit = selectedTransactionsKeys.every((id) => selectedTransactions[id].hasBeenSplit);
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
-        const firstTransactionReport = firstTransaction ? getReportOrDraftReport(firstTransaction.reportID) : undefined;
-        const firstTransactionPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`];
-        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction);
-        const canSplitTransaction =
-            selectedTransactionsKeys.length === 1 && firstTransactionReport && !isExpenseSplit && isSplitAction(firstTransactionReport, [firstTransaction], firstTransactionPolicy);
+        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
 
         if (canSplitTransaction) {
             options.push({
@@ -580,7 +575,6 @@ function SearchPage({route}: SearchPageProps) {
         selectedReportIDs,
         isBetaBulkPayEnabled,
         allTransactions,
-        allPolicies,
         queryJSON,
         selectedPolicyIDs,
         policies,
