@@ -89,6 +89,8 @@ type UseBiometricsSetup = MultifactorAuthenticationStep &
 
         /** Completes current request and updates UI state accordingly */
         cancel: () => MultifactorAuthenticationStatus<boolean>;
+
+        refresh: () => Promise<MultifactorAuthenticationStatus<boolean>>;
     };
 
 type UseMultifactorAuthentication = {

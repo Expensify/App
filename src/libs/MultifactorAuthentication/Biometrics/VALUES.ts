@@ -1,5 +1,11 @@
 import SCENARIO from '@components/MultifactorAuthenticationContext/scenarios';
 
+const MFACallbacks: {
+    onFulfill: Record<string, () => void>;
+} = {
+    onFulfill: {},
+};
+
 /** HTTP codes returned by the API, mapped to the multifactorial authentication translation paths */
 /* eslint-disable @typescript-eslint/naming-convention */
 const RESPONSE_TRANSLATION_PATH = {
@@ -130,4 +136,5 @@ const MULTI_FACTOR_AUTHENTICATION_VALUES = {
     RESPONSE_TRANSLATION_PATH,
 } as const;
 
+export {MFACallbacks};
 export default MULTI_FACTOR_AUTHENTICATION_VALUES;

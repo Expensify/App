@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
@@ -8,6 +8,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import MFA from '@libs/MultifactorAuthentication/Biometrics/MFA';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -32,6 +33,8 @@ function TestToolMenu() {
     const {setup} = useNativeBiometrics();
 
     const transactionID = '5053749577858718685'; // TODO: delete - here only for testing purposes
+
+    useEffect(() => MFA.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();

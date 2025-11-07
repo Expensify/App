@@ -181,8 +181,9 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             register,
             revoke,
             cancel,
+            refresh: refreshStatus,
         }),
-        [cancel, deviceSupportBiometrics, register, revoke, status.message, status.step, status.title, status.value],
+        [cancel, deviceSupportBiometrics, refreshStatus, register, revoke, status.message, status.step, status.title, status.value],
     );
 }
 

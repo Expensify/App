@@ -22,13 +22,14 @@ import type {
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationTrigger,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
+// TODO: Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
+// import {requestValidateCodeAction} from '@libs/actions/User';
+import {MFACallbacks} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-// TODO: Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
-// import {requestValidateCodeAction} from '@libs/actions/User';
 import {requestValidateCodeAction, triggerOnyxConnect} from '../../../__mocks__/ecuk_api';
 import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from './config';
 
@@ -66,7 +67,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
     );
     const success = useRef<boolean | undefined>(undefined);
-    const afterRevoke = useRef<boolean>(false);
     // to avoid waiting for next render
     const softPromptStore = useRef<{
         accepted: boolean | undefined;
@@ -86,7 +86,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     });
 
     const navigate = useCallback(
-        (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean) => {
+        (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean, revokeAction?: boolean) => {
             const {
                 step,
                 value: {scenario},
@@ -103,9 +103,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 failure: failurePath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(failurePath) : ROUTES.NOT_FOUND,
             };
 
-            if (afterRevoke.current) {
-                afterRevoke.current = false;
-                Navigation.navigate(scenarioRoute);
+            if (revokeAction) {
                 success.current = undefined;
                 return;
             }
@@ -143,7 +141,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            // TODO: powinna byc mozliwosc wyboru innego typu screena w process
+            for (const callback of Object.values(MFACallbacks.onFulfill)) {
+                callback();
+            }
+
             if (step.wasRecentStepSuccessful && !Navigation.isActiveRoute(notificationPaths.success)) {
                 Navigation.navigate(notificationPaths.success);
                 success.current = true;
@@ -170,11 +171,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             const merged = setMergedStatus(status, typeOverride ?? (typeof status === 'function' ? undefined : status?.value.type));
 
-            navigate(merged, softPrompt);
-
-            if (revoke) {
-                afterRevoke.current = true;
-            }
+            navigate(merged, softPrompt, revoke);
 
             return merged;
         },
@@ -277,10 +274,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             };
 
             const shouldNavigateToSoftPrompt =
-                !NativeBiometrics.setup.isBiometryConfigured &&
-                softPromptStore.current.accepted === undefined &&
-                NativeBiometrics.setup.deviceSupportBiometrics &&
-                allowedMethods(scenario).biometrics;
+                !NativeBiometrics.setup.isBiometryConfigured && softPromptStore.current.accepted === undefined && NativeBiometrics.setup.deviceSupportBiometrics;
 
             if (shouldNavigateToSoftPrompt) {
                 const {validateCode} = params ?? softPromptStore.current;

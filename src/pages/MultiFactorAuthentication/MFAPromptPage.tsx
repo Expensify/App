@@ -43,7 +43,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        // MFAdenyTransaction(); // TODO: trigger(cancel) do transaction denied page
+        // MFAdenyTransaction(); // TODO: Create a trigger responsible for failure
         onGoBackPress();
     }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
 
