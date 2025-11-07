@@ -77,7 +77,7 @@ function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActi
  * @param transactions - The transactions for which to fetch ancestor reports and actions.
  * @returns A mapping of transaction IDs to their respective ancestor reports and actions.
  */
-function useTransactionsAncestors(transactions: OnyxEntry<Transaction>[]): Record<string, Ancestor[]> {
+function useTransactionsAncestors(transactions: Array<OnyxEntry<Transaction>>): Record<string, Ancestor[]> {
     const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
