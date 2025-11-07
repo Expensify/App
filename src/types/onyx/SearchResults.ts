@@ -121,9 +121,6 @@ type SearchReport = {
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
 
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
-
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 

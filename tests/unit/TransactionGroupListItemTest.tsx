@@ -96,7 +96,6 @@ const mockReport: TransactionReportGroupListItemType = {
     currency: 'USD',
     isOneTransactionReport: true,
     isOwnPolicyExpenseChat: false,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: 1,
     nonReimbursableTotal: 0,
