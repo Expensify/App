@@ -247,7 +247,7 @@ describe('ReportActionCompose Integration Tests', () => {
             // When the message is submitted
             act(onSubmitAction);
 
-            // scheduleOnUI mock uses setTimeot(() => ..., 0)
+            // scheduleOnUI mock uses setTimeout(() => ..., 0)
             act(() => {
                 jest.advanceTimersByTime(1);
             });
