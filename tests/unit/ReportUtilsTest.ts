@@ -8818,7 +8818,7 @@ describe('ReportUtils', () => {
         await Onyx.clear();
 
         const adminAccountID = 42;
-        const expenseReportID = 'BRICK_ROAD_WAITING_ON_BANK';
+        const expenseReportID = '10000';
         const chatReport: Report = {
             ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
             hasOutstandingChildRequest: true,
@@ -8876,7 +8876,7 @@ describe('ReportUtils', () => {
         await Onyx.clear();
 
         const adminAccountID = 42;
-        const expenseReportID = 'BRICK_ROAD_NOT_WAITING_ON_BANK';
+        const expenseReportID = '10000';
         const chatReport: Report = {
             ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
             hasOutstandingChildRequest: false,
@@ -8934,8 +8934,8 @@ describe('ReportUtils', () => {
         await Onyx.clear();
 
         const adminAccountID = 42;
-        const policyID = 'REIMBURSEMENT_DISABLED_POLICY';
-        const expenseReportID = 'BRICK_ROAD_POLICY_REIM_DISABLED';
+        const policyID = '10000';
+        const expenseReportID = '20000';
         const chatReport: Report = {
             ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
             iouReportID: expenseReportID,
@@ -8960,6 +8960,8 @@ describe('ReportUtils', () => {
             reportID: expenseReportID,
             amount: 10000,
             currency: CONST.CURRENCY.USD,
+            created: '2025-01-01T00:00:00.000Z',
+            merchant: 'Expensify Card',
             bank: CONST.EXPENSIFY_CARD.BANK,
             status: CONST.TRANSACTION.STATUS.PENDING,
         };
@@ -8971,11 +8973,14 @@ describe('ReportUtils', () => {
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
         };
-        const policy: Policy = {
+        const policy1: Policy = {
             id: policyID,
             name: 'Policy',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
         };
 
@@ -8987,7 +8992,7 @@ describe('ReportUtils', () => {
                 [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingTransaction.transactionID}`, pendingTransaction),
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
         ]);
         await waitForBatchedUpdates();
 
