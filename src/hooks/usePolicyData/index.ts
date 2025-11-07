@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';

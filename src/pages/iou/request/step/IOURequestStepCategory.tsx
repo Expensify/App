@@ -15,8 +15,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyData from '@hooks/usePolicyData';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
