@@ -9888,7 +9888,7 @@ describe('actions/IOU', () => {
             // the next step should be about payment, which should mention the admin
             // The message should equal "Waiting for Admin User to pay"
             const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for an admin to pay %expenses.');
+            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
         });
     });
 

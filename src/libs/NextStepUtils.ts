@@ -444,9 +444,20 @@ function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
                         text: 'Waiting for ',
                     },
                     reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
+                        ? isPayer(
+                              {
+                                  accountID: currentUserAccountIDParam,
+                                  email: currentUserEmailParam,
+                              },
+                              report,
+                          )
+                            ? {
+                                  text: 'you',
+                                  type: 'strong',
+                              }
+                            : {
+                                  text: 'an admin',
+                              }
                         : {
                               text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
