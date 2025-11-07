@@ -77,7 +77,13 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
     afterEach(async () => {
+        jest.useRealTimers();
+
         await act(async () => {
             await Onyx.clear();
         });
@@ -238,6 +244,11 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // When the message is submitted
             act(onSubmitAction);
+
+            // scheduleOnUI mock uses setTimeot(() => ..., 0)
+            act(() => {
+                jest.advanceTimersByTime(1);
+            });
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);
