@@ -20,6 +20,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import usePreloadLazyModules from './hooks/usePreloadLazyModules';
 import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
@@ -121,6 +122,7 @@ function Expensify() {
 
     useDebugShortcut();
     usePriorityMode();
+    usePreloadLazyModules();
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
     const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);

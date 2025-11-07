@@ -1,8 +1,7 @@
 import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
+import React, {lazy, memo, Suspense, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -19,6 +18,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewProps} from './types';
+
+const PDFPreviewer = lazy(
+    //   () => import(/* webpackPrefetch: true */ 'react-fast-pdf').then((m) => ({ default: m.PDFPreviewer })) // This loads the module upon render
+    () => import(/* webpackPreload: true */ 'react-fast-pdf').then((m) => ({default: m.PDFPreviewer})),
+);
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
@@ -97,36 +101,38 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                 style={outerContainerStyle}
                 tabIndex={0}
             >
-                <PDFPreviewer
-                    contentContainerStyle={style as CSSProperties}
-                    file={sourceURL}
-                    pageMaxWidth={variables.pdfPageMaxWidth}
-                    isSmallScreen={shouldUseNarrowLayout}
-                    maxCanvasWidth={maxCanvasWidth}
-                    maxCanvasHeight={maxCanvasHeight}
-                    maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={
-                        <FullScreenLoadingIndicator
-                            style={
-                                isUsedAsChatAttachment && [
-                                    styles.chatItemPDFAttachmentLoading,
-                                    StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                                    styles.pRelative,
-                                ]
-                            }
-                        />
-                    }
-                    shouldShowErrorComponent={false}
-                    onLoadError={onLoadError}
-                    renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
-                        <PDFPasswordForm
-                            isFocused={!!isFocused}
-                            isPasswordInvalid={isPasswordInvalid}
-                            onSubmit={onSubmit}
-                            onPasswordUpdated={onPasswordChange}
-                        />
-                    )}
-                />
+                <Suspense fallback={null}>
+                    <PDFPreviewer
+                        contentContainerStyle={style as CSSProperties}
+                        file={sourceURL}
+                        pageMaxWidth={variables.pdfPageMaxWidth}
+                        isSmallScreen={shouldUseNarrowLayout}
+                        maxCanvasWidth={maxCanvasWidth}
+                        maxCanvasHeight={maxCanvasHeight}
+                        maxCanvasArea={maxCanvasArea}
+                        LoadingComponent={
+                            <FullScreenLoadingIndicator
+                                style={
+                                    isUsedAsChatAttachment && [
+                                        styles.chatItemPDFAttachmentLoading,
+                                        StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                                        styles.pRelative,
+                                    ]
+                                }
+                            />
+                        }
+                        shouldShowErrorComponent={false}
+                        onLoadError={onLoadError}
+                        renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
+                            <PDFPasswordForm
+                                isFocused={!!isFocused}
+                                isPasswordInvalid={isPasswordInvalid}
+                                onSubmit={onSubmit}
+                                onPasswordUpdated={onPasswordChange}
+                            />
+                        )}
+                    />
+                </Suspense>
             </View>
         );
     };

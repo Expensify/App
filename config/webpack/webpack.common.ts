@@ -387,6 +387,11 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         name: 'heicTo',
                         chunks: 'all',
                     },
+                    reactFastPdf: {
+                        test: /[\\/]node_modules[\\/](react-fast-pdf)[\\/]/,
+                        name: 'reactFastPdf',
+                        chunks: 'all',
+                    },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {
                         test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]expensify-icons\.chunk\.ts$/,
