@@ -3,7 +3,7 @@
  * Provides implementations for getRandomValues and SHA-512 hashing.
  * @see https://github.com/paulmillr/noble-ed25519?tab=readme-ov-file#react-native-polyfill-getrandomvalues-and-sha512
  */
-import {verify, keygen, sign, etc, hashes} from '@noble/ed25519';
+import {etc, hashes, keygen, sign, verify} from '@noble/ed25519';
 import type {Bytes} from '@noble/ed25519';
 import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
