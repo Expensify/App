@@ -62,9 +62,9 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                 onInputChange?.(val);
             },
             value: searchValue,
-            errorText: errorText,
+            errorText,
         }),
-        [],
+        [errorText, onInputChange, searchValue, translate],
     );
 
     return (
