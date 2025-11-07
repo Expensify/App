@@ -864,12 +864,14 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                 offlineIndicatorStyle={offlineIndicatorStyle}
             >
-                <SearchPageHeader
-                    queryJSON={queryJSON}
-                    headerButtonsOptions={headerButtonsOptions}
-                    handleSearch={handleSearchAction}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                />
+                {!!queryJSON && (
+                    <SearchPageHeader
+                        queryJSON={queryJSON}
+                        headerButtonsOptions={headerButtonsOptions}
+                        handleSearch={handleSearchAction}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    />
+                )}
                 <SearchFiltersSkeleton shouldAnimate />
                 <Animated.View
                     entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
