@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Zählen',
         cancel: 'Abbrechen',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Senden',
         na: 'N/A',
         noResultsFound: 'Keine Ergebnisse gefunden',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Keine Ergebnisse gefunden, die mit "${searchString}" übereinstimmen.`,
+        noResultsFoundMatching: (searchString: string) => `Keine Ergebnisse gefunden, die mit "${searchString}" übereinstimmen.`,
         recentDestinations: 'Letzte Ziele',
         timePrefix: 'Es ist',
         conjunctionFor: 'für',
@@ -678,8 +678,6 @@ const translations = {
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Arbeitsbereiche',
-        getTheApp: 'App herunterladen',
-        scanReceiptsOnTheGo: 'Scannen Sie Belege mit Ihrem Telefon',
         headsUp: 'Achtung!',
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
@@ -861,9 +859,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Möchten Sie sich nicht mit ${provider} anmelden?`,
         continueWithMyCurrentSession: 'Mit meiner aktuellen Sitzung fortfahren',
         redirectToDesktopMessage: 'Wir leiten Sie zur Desktop-App weiter, sobald Sie sich angemeldet haben.',
-        signInAgreementMessage: 'Mit der Anmeldung stimmen Sie den',
-        termsOfService: 'Nutzungsbedingungen',
-        privacy: 'Datenschutz',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Weiter mit Single Sign-On anmelden:',
@@ -1075,10 +1070,6 @@ const translations = {
     receipt: {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
-        dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
-        dragReceiptsBeforeEmail: 'Ziehen Sie Belege auf diese Seite oder leiten Sie Belege weiter an',
-        dragReceiptAfterEmail: 'oder wählen Sie eine Datei zum Hochladen aus.',
-        dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
         desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
         desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
         alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
@@ -2076,8 +2067,6 @@ ${amount} für ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
-        delaySubmissionTitle: 'Einreichungen verzögern',
-        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies aus, um Echtzeit-Updates über Ausgaben zu erhalten.',
         submissionFrequency: 'Einreichungshäufigkeit',
         submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
@@ -2132,7 +2121,6 @@ ${amount} für ${merchant} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Die verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         autoReportingFrequencyErrorMessage: 'Die Einreichungshäufigkeit konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Frequenz konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
     },
@@ -7434,4 +7422,4 @@ ${amount} für ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

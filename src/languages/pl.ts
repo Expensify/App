@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Liczba',
         cancel: 'Anuluj',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Wyślij',
         na: 'N/A',
         noResultsFound: 'Nie znaleziono wyników',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nie znaleziono wyników pasujących do "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nie znaleziono wyników pasujących do "${searchString}"`,
         recentDestinations: 'Ostatnie miejsca docelowe',
         timePrefix: 'To jest',
         conjunctionFor: 'dla',
@@ -881,7 +881,6 @@ const translations = {
         expand: 'Rozwiń',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Kopiuj do schowka',
         copyMessage: 'Skopiuj wiadomość',
         copied: 'Skopiowano!',
         copyLink: 'Skopiuj link',
@@ -1067,10 +1066,6 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
-        dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
-        dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony na',
-        dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
-        dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
         desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
@@ -2062,8 +2057,6 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj przepływ pracy od momentu wystąpienia wydatku, w tym zatwierdzenie i płatność.',
-        delaySubmissionTitle: 'Opóźnij zgłoszenia',
-        delaySubmissionDescription: 'Wybierz niestandardowy harmonogram składania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje wydatków w czasie rzeczywistym.',
         submissionFrequency: 'Częstotliwość składania wniosków',
         submissionFrequencyDescription: 'Wybierz częstotliwość przesyłania wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
@@ -4432,7 +4425,6 @@ ${amount} dla ${merchant} - ${date}`,
             displayedAsTagDescription: 'Dział będzie można wybrać dla każdego indywidualnego wydatku w raporcie pracownika.',
             displayedAsReportFieldDescription: 'Wybór działu będzie dotyczył wszystkich wydatków w raporcie pracownika.',
             toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wybierz, jak obsługiwać Sage Intacct <strong>${mappingTitle}</strong> w Expensify.`,
-
             expenseTypes: 'Typy wydatków',
             expenseTypesDescription: 'Twoje typy wydatków Sage Intacct zostaną zaimportowane do Expensify jako kategorie.',
             accountTypesDescription: 'Twój plan kont Sage Intacct zostanie zaimportowany do Expensify jako kategorie.',
@@ -4806,7 +4798,6 @@ ${amount} dla ${merchant} - ${date}`,
                 defaultCard: 'Domyślna karta',
                 downgradeTitle: `Nie można obniżyć poziomu workspace.`,
                 downgradeSubTitle: `Tego miejsca pracy nie można obniżyć, ponieważ jest połączonych wiele kanałów kart (z wyłączeniem kart Expensify). Proszę <a href="#">zachowaj tylko jeden kanał kart</a> aby kontynuować.`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Proszę dodać konto w ${connection} i ponownie zsynchronizować połączenie.`,
                 expensifyCardBannerTitle: 'Zdobądź kartę Expensify',
                 expensifyCardBannerSubtitle:
@@ -7404,4 +7395,4 @@ ${amount} dla ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

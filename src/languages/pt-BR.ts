@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contagem',
         cancel: 'Cancelar',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'Nenhum resultado encontrado',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
         recentDestinations: 'Destinos recentes',
         timePrefix: 'É',
         conjunctionFor: 'para',
@@ -599,7 +599,6 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -678,8 +677,6 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Obtenha o aplicativo',
-        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -7419,4 +7416,4 @@ ${amount} para ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

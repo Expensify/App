@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contare',
         cancel: 'Annulla',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Invia',
         na: 'N/A',
         noResultsFound: 'Nessun risultato trovato',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nessun risultato trovato corrispondente a "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nessun risultato trovato corrispondente a "${searchString}"`,
         recentDestinations: 'Destinazioni recenti',
         timePrefix: 'È',
         conjunctionFor: 'per',
@@ -1067,10 +1067,6 @@ const translations = {
     receipt: {
         upload: 'Carica ricevuta',
         uploadMultiple: 'Carica ricevute',
-        dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',
-        dragReceiptsBeforeEmail: 'Trascina le ricevute su questa pagina, inoltra le ricevute a',
-        dragReceiptAfterEmail: 'o scegli un file da caricare qui sotto.',
-        dragReceiptsAfterEmail: 'o scegli i file da caricare qui sotto.',
         desktopSubtitleSingle: `oppure trascinala qui`,
         desktopSubtitleMultiple: `oppure trascinale qui`,
         alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
@@ -2064,8 +2060,6 @@ ${amount} per ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
-        delaySubmissionTitle: 'Ritarda invii',
-        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
         submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
         disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
@@ -2120,7 +2114,6 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },
@@ -5512,7 +5505,6 @@ ${amount} per ${merchant} - ${date}`,
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Le tasse devono essere abilitate nello spazio di lavoro per utilizzare questa funzione. Vai su <a href="#">Più funzionalità</a> per apportare quella modifica. </muted-text>',
-            changePromptMessage: 'per apportare quella modifica.',
             deleteDistanceRate: 'Elimina tariffa distanza',
             areYouSureDelete: () => ({
                 one: 'Sei sicuro di voler eliminare questa tariffa?',
@@ -7442,4 +7434,4 @@ ${amount} per ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
