@@ -465,7 +465,6 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
-            MoneyRequestView,
             companyCardPageURL,
         ],
     );
