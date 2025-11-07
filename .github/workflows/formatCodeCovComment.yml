@@ -6,7 +6,6 @@ on:
 
 permissions:
   pull-requests: write
-  issues: write
 
 jobs:
   format-codecov-comment:
