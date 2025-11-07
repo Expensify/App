@@ -9,8 +9,7 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
-import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
-import type {PolicyEmployeeList} from './PolicyEmployee';
+import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -116,17 +115,11 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The main action that can be performed for the report */
-    action?: SearchTransactionAction;
-
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
-
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
 
     /** Whether the report is policyExpenseChat */
     isPolicyExpenseChat?: boolean;
@@ -222,79 +215,6 @@ type SearchReportAction = {
     reportName: string;
 };
 
-/** Model of policy search result */
-type SearchPolicy = {
-    /** The policy type */
-    type: ValueOf<typeof CONST.POLICY.TYPE>;
-
-    /** The ID of the policy */
-    id: string;
-
-    /** The policy name */
-    name?: string;
-
-    /** Whether the auto reporting is enabled */
-    autoReporting?: boolean;
-
-    /** Whether the rules feature is enabled */
-    areRulesEnabled?: boolean;
-
-    /** Scheduled submit data */
-    harvesting?: {
-        /** Whether the scheduled submit is enabled */
-        enabled: boolean;
-    };
-
-    /**
-     * The scheduled submit frequency set up on this policy.
-     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
-     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
-     */
-    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
-
-    /** The approval mode set up on this policy */
-    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-
-    /** The reimbursement choice for policy */
-    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-    /** The maximum report total allowed to trigger auto reimbursement */
-    autoReimbursementLimit?: number;
-
-    /** The verified bank account linked to the policy */
-    achAccount?: ACHAccount;
-
-    /** The current user's role in the policy */
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
-
-    /** The employee list of the policy */
-    employeeList?: PolicyEmployeeList;
-
-    /** Detailed settings for the autoReimbursement */
-    autoReimbursement?: {
-        /** The auto reimbursement limit */
-        limit: number;
-    };
-
-    /** Whether the self approval or submitting is enabled */
-    preventSelfApproval?: boolean;
-
-    /** The email of the policy owner */
-    owner: string;
-
-    /** The approver of the policy */
-    approver?: string;
-
-    /** A set of rules related to the workspace */
-    rules?: {
-        /** A set of rules related to the workspace approvals */
-        approvalRules?: ApprovalRule[];
-
-        /** A set of rules related to the workspace expenses */
-        expenseRules?: ExpenseRule[];
-    };
-};
-
 /** Model of transaction search result */
 type SearchTransaction = {
     /** The ID of the transaction */
@@ -363,9 +283,6 @@ type SearchTransaction = {
     /** The type of report the transaction is associated with */
     reportType: string;
 
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
-
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 
@@ -377,9 +294,6 @@ type SearchTransaction = {
 
     /** The transaction sender ID */
     accountID: number;
-
-    /** The transaction recipient ID */
-    managerID: number;
 
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
@@ -401,9 +315,6 @@ type SearchTransaction = {
 
     /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
-
-    /** The available actions that can be performed for the transaction */
-    allActions: SearchTransactionAction[];
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -557,7 +468,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
         PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
@@ -583,7 +494,6 @@ export type {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
     SearchReportAction,
-    SearchPolicy,
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,

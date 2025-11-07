@@ -9,7 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -384,31 +384,19 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
-type DismissDuplicateTransactionViolationProps = {
-    transactionIDs: string[];
-    dismissedPersonalDetails: PersonalDetails;
-    expenseReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    isASAPSubmitBetaEnabled: boolean;
-    allTransactionsCollection: OnyxCollection<Transaction>;
-    allTransactionViolationsCollection: OnyxCollection<TransactionViolation[]>;
-};
-
 /**
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation({
-    transactionIDs,
-    dismissedPersonalDetails,
-    expenseReport,
-    policy,
-    isASAPSubmitBetaEnabled,
-    allTransactionsCollection,
-    allTransactionViolationsCollection,
-}: DismissDuplicateTransactionViolationProps) {
-    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolationsCollection?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactionsCollection?.[id]).filter((transaction): transaction is Transaction => transaction !== undefined);
+function dismissDuplicateTransactionViolation(
+    transactionIDs: string[],
+    dismissedPersonalDetails: PersonalDetails,
+    expenseReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isASAPSubmitBetaEnabled: boolean,
+) {
+    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
@@ -421,7 +409,7 @@ function dismissDuplicateTransactionViolation({
         const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
-        const optimisticNextStep = buildNextStepNew({
+        const optimisticNextStep = buildNextStep({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: hasOtherViolationsBesideDuplicates,
@@ -1255,7 +1243,7 @@ function changeTransactionsReport(
         total: destinationTotal,
     };
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
-    const optimisticNextStep = buildNextStepNew({
+    const optimisticNextStep = buildNextStep({
         report: nextStepReport,
         policy,
         currentUserAccountIDParam: accountID,
