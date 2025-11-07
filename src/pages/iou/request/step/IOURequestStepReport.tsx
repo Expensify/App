@@ -47,6 +47,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [nextStepsCollection] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const {removeTransaction, setSelectedTransactions} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -130,6 +131,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
                     allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                    nextStepsCollection,
                 );
                 removeTransaction(transaction.transactionID);
             }
@@ -166,7 +168,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+            changeTransactionsReport(
+                [transaction.transactionID],
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                nextStepsCollection,
+            );
             removeTransaction(transaction.transactionID);
         });
     };
