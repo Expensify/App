@@ -138,8 +138,6 @@ function SearchPage({route}: SearchPageProps) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
     });
 
-    const showReports = !!currentSearchResults || isFocused;
-
     useEffect(() => {
         confirmReadyToOpenApp();
     }, []);
@@ -749,149 +747,155 @@ function SearchPage({route}: SearchPageProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    if (showReports) {
-        if (shouldUseNarrowLayout) {
-            return (
-                <>
-                    <DragAndDropProvider>
-                        {PDFValidationComponent}
-                        <SearchPageNarrow
-                            queryJSON={queryJSON}
-                            metadata={metadata}
-                            headerButtonsOptions={headerButtonsOptions}
-                            searchResults={searchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            footerData={footerData}
-                            currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                            currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                            confirmPayment={onBulkPaySelected}
-                            latestBankItems={latestBankItems}
-                        />
-                        <DragAndDropConsumer onDrop={initScanRequest}>
-                            <DropZoneUI
-                                icon={Expensicons.SmartScan}
-                                dropTitle={translate('dropzone.scanReceipts')}
-                                dropStyles={styles.receiptDropOverlay(true)}
-                                dropTextStyles={styles.receiptDropText}
-                                dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                                dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                            />
-                        </DragAndDropConsumer>
-                        {ErrorModal}
-                    </DragAndDropProvider>
-                    {!!isMobileSelectionModeEnabled && (
-                        <SearchModalsWrapper
-                            isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                            handleDeleteExpenses={handleDeleteExpenses}
-                            setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                            selectedTransactionsKeys={selectedTransactionsKeys}
-                            setIsOfflineModalVisible={setIsOfflineModalVisible}
-                            isOfflineModalVisible={isOfflineModalVisible}
-                            setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                            isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                            isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                            setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                            clearSelectedTransactions={clearSelectedTransactions}
-                            isDEWModalVisible={isDEWModalVisible}
-                            setIsDEWModalVisible={setIsDEWModalVisible}
-                        />
-                    )}
-                </>
-            );
-        }
+    const isDataMissing = currentSearchResults === undefined || currentSearchResults === null;
 
-        return (
-            <ScreenWrapper
-                testID={Search.displayName}
-                shouldEnableMaxHeight
-                headerGapStyles={[styles.searchHeaderGap, styles.h0]}
-            >
-                <FullPageNotFoundView
-                    shouldForceFullScreen
-                    shouldShow={!queryJSON}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowLink={false}
-                >
-                    <SearchPageWide
-                        queryJSON={queryJSON}
-                        searchResults={searchResults}
-                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        headerButtonsOptions={headerButtonsOptions}
-                        footerData={footerData}
-                        selectedPolicyIDs={selectedPolicyIDs}
-                        selectedTransactionReportIDs={selectedTransactionReportIDs}
-                        selectedReportIDs={selectedReportIDs}
-                        latestBankItems={latestBankItems}
-                        onBulkPaySelected={onBulkPaySelected}
-                        handleSearchAction={handleSearchAction}
-                        onSortPressedCallback={onSortPressedCallback}
-                        scrollHandler={scrollHandler}
-                        initScanRequest={initScanRequest}
-                        PDFValidationComponent={PDFValidationComponent}
-                        ErrorModal={ErrorModal}
-                        shouldShowOfflineIndicator={shouldShowOfflineIndicator}
-                        offlineIndicatorStyle={offlineIndicatorStyle}
-                        shouldShowFooter={shouldShowFooter}
-                    />
-                    <SearchModalsWrapper
-                        isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                        handleDeleteExpenses={handleDeleteExpenses}
-                        setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                        selectedTransactionsKeys={selectedTransactionsKeys}
-                        setIsOfflineModalVisible={setIsOfflineModalVisible}
-                        isOfflineModalVisible={isOfflineModalVisible}
-                        setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                        isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                        isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                        setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                        clearSelectedTransactions={clearSelectedTransactions}
-                        isDEWModalVisible={isDEWModalVisible}
-                        setIsDEWModalVisible={setIsDEWModalVisible}
-                        isDownloadExportModalVisible={isDownloadExportModalVisible}
-                        createExportAll={createExportAll}
-                        setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
+    const shouldRenderContent = !isDataMissing;
+
+    const shouldShowLoadingState = !isFocused || isDataMissing;
 
     return (
-        <View style={styles.searchSplitContainer}>
-            <ScreenWrapper
-                testID={Search.displayName}
-                shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                offlineIndicatorStyle={offlineIndicatorStyle}
-            >
-                {!!queryJSON && (
-                    <SearchPageHeader
-                        queryJSON={queryJSON}
-                        headerButtonsOptions={headerButtonsOptions}
-                        handleSearch={handleSearchAction}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    />
-                )}
-                <SearchFiltersSkeleton shouldAnimate />
-                <Animated.View
-                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                    style={[styles.flex1]}
-                >
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-                    />
+        <FullPageNotFoundView
+            shouldForceFullScreen
+            shouldShow={!queryJSON}
+            onBackButtonPress={handleOnBackButtonPress}
+            shouldShowLink={false}
+        >
+            {shouldShowLoadingState && (
+                <View style={styles.searchSplitContainer}>
+                    <ScreenWrapper
+                        testID={Search.displayName}
+                        shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                        offlineIndicatorStyle={offlineIndicatorStyle}
+                    >
+                        {!!queryJSON && (
+                            <SearchPageHeader
+                                queryJSON={queryJSON}
+                                headerButtonsOptions={headerButtonsOptions}
+                                handleSearch={handleSearchAction}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            />
+                        )}
+                        <SearchFiltersSkeleton shouldAnimate />
+                        <Animated.View
+                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                            style={[styles.flex1]}
+                        >
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                            />
+                        </Animated.View>
+                        {shouldShowFooter && (
+                            <SearchPageFooter
+                                count={footerData.count}
+                                total={footerData.total}
+                                currency={footerData.currency}
+                            />
+                        )}
+                    </ScreenWrapper>
+                </View>
+            )}
+
+            {shouldRenderContent && (
+                <Animated.View style={[styles.flex1]}>
+                    {shouldUseNarrowLayout ? (
+                        <>
+                            <DragAndDropProvider>
+                                {PDFValidationComponent}
+                                <SearchPageNarrow
+                                    queryJSON={queryJSON}
+                                    metadata={metadata}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    searchResults={searchResults}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    footerData={footerData}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
+                                />
+                                <DragAndDropConsumer onDrop={initScanRequest}>
+                                    <DropZoneUI
+                                        icon={Expensicons.SmartScan}
+                                        dropTitle={translate('dropzone.scanReceipts')}
+                                        dropStyles={styles.receiptDropOverlay(true)}
+                                        dropTextStyles={styles.receiptDropText}
+                                        dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                                        dashedBorderStyles={[
+                                            styles.dropzoneArea,
+                                            styles.easeInOpacityTransition,
+                                            styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
+                                        ]}
+                                    />
+                                </DragAndDropConsumer>
+                                {ErrorModal}
+                            </DragAndDropProvider>
+                            {!!isMobileSelectionModeEnabled && (
+                                <SearchModalsWrapper
+                                    isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
+                                    handleDeleteExpenses={handleDeleteExpenses}
+                                    setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
+                                    selectedTransactionsKeys={selectedTransactionsKeys}
+                                    setIsOfflineModalVisible={setIsOfflineModalVisible}
+                                    isOfflineModalVisible={isOfflineModalVisible}
+                                    setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
+                                    isDownloadErrorModalVisible={isDownloadErrorModalVisible}
+                                    isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
+                                    setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
+                                    clearSelectedTransactions={clearSelectedTransactions}
+                                    isDEWModalVisible={isDEWModalVisible}
+                                    setIsDEWModalVisible={setIsDEWModalVisible}
+                                />
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <SearchPageWide
+                                queryJSON={queryJSON}
+                                searchResults={searchResults}
+                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                headerButtonsOptions={headerButtonsOptions}
+                                footerData={footerData}
+                                selectedPolicyIDs={selectedPolicyIDs}
+                                selectedTransactionReportIDs={selectedTransactionReportIDs}
+                                selectedReportIDs={selectedReportIDs}
+                                latestBankItems={latestBankItems}
+                                onBulkPaySelected={onBulkPaySelected}
+                                handleSearchAction={handleSearchAction}
+                                onSortPressedCallback={onSortPressedCallback}
+                                scrollHandler={scrollHandler}
+                                initScanRequest={initScanRequest}
+                                PDFValidationComponent={PDFValidationComponent}
+                                ErrorModal={ErrorModal}
+                                shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+                                offlineIndicatorStyle={offlineIndicatorStyle}
+                                shouldShowFooter={shouldShowFooter}
+                            />
+                            <SearchModalsWrapper
+                                isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
+                                handleDeleteExpenses={handleDeleteExpenses}
+                                setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
+                                selectedTransactionsKeys={selectedTransactionsKeys}
+                                setIsOfflineModalVisible={setIsOfflineModalVisible}
+                                isOfflineModalVisible={isOfflineModalVisible}
+                                setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
+                                isDownloadErrorModalVisible={isDownloadErrorModalVisible}
+                                isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
+                                setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
+                                clearSelectedTransactions={clearSelectedTransactions}
+                                isDEWModalVisible={isDEWModalVisible}
+                                setIsDEWModalVisible={setIsDEWModalVisible}
+                                isDownloadExportModalVisible={isDownloadExportModalVisible}
+                                createExportAll={createExportAll}
+                                setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
+                            />
+                        </>
+                    )}
                 </Animated.View>
-                {shouldShowFooter && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
-                )}
-            </ScreenWrapper>
-        </View>
+            )}
+        </FullPageNotFoundView>
     );
 }
 
