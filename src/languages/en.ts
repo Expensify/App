@@ -7369,6 +7369,7 @@ const translations = {
             moreSecurityAndControl: 'More security and control',
             onePasswordForAnything: 'One password for everything',
         },
+        goToDomain: 'Go to domain',
     },
 };
 

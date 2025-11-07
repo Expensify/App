@@ -49,6 +49,11 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
             ? [
                   {
                       icon: Expensicons.Globe,
+                      text: translate('domain.goToDomain'),
+                      onSelected: item.action,
+                  },
+                  {
+                      icon: Expensicons.Globe,
                       text: translate('domain.verifyDomain.title'),
                       onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
                   },
