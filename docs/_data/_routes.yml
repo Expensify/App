@@ -106,7 +106,7 @@ platforms:
 
       - href: concierge-ai
         title: Concierge AI
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/concierge-avatar-small.svg
         description: Learn about Concierge AI and what it can do.
 
       - href: workspaces
