@@ -47,6 +47,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                             }
                         }}
                         key={field.id}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 );
             }),
