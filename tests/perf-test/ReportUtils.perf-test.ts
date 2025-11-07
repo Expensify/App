@@ -1,7 +1,7 @@
 import {randomInt} from 'crypto';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import PolicyData from '@hooks/usePolicyData/types';
+import type PolicyData from '@hooks/usePolicyData/types';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
