@@ -1,6 +1,5 @@
 let pdfSetupPromise: Promise<unknown> | null = null;
 
-// Export a function that returns a promise ensuring pdfjs is initialized
 function ensurePdfJsInitialized() {
     if (!pdfSetupPromise) {
         pdfSetupPromise = Promise.all([
