@@ -14,8 +14,8 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useEnvironment from '@hooks/useEnvironment';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -466,6 +466,7 @@ function MoneyRequestView({
             canEdit,
             isCustomUnitOutOfPolicy,
             MoneyRequestView,
+            companyCardPageURL,
         ],
     );
 
