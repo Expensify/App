@@ -779,7 +779,9 @@
         "mple",
         "Selec",
         "setuptools",
-        "DYNAMICEXTERNAL"
+        "DYNAMICEXTERNAL",
+        "RNCORE",
+        "Wooo"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
