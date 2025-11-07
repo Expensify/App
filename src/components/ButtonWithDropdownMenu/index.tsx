@@ -81,6 +81,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
+    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
 
@@ -172,6 +173,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
+                        extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -194,6 +196,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
+                            extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                             small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -206,6 +209,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
                                         isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
+                                        isButtonSizeExtraSmall && styles.dropDownSmallButtonArrowContain,
                                     ]}
                                 >
                                     <Icon
@@ -234,6 +238,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     isLoading={isLoading}
                     text={selectedItem?.text}
                     onPress={handleSingleOptionPress}
+                    extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
