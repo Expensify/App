@@ -24,7 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as UserUtils from '@libs/UserUtils';
+import * as UserAvatarUtils from '@libs/UserAvatarUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -432,6 +432,7 @@ function updateAvatar(
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
+// TODO remove when no longer needed
 /**
  * Replaces the user's avatar image with a default avatar
  */
@@ -441,7 +442,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email);
+    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email});
 
     const optimisticData: OnyxUpdate[] = [
         {

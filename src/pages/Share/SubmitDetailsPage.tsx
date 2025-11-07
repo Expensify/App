@@ -68,6 +68,8 @@ function SubmitDetailsPage({
 
     const {isBetaEnabled} = usePermissions();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
@@ -103,7 +105,7 @@ function SubmitDetailsPage({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: GpsPoint) => {
+    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
             return;
         }
@@ -139,7 +141,7 @@ function SubmitDetailsPage({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories},
-                gpsPoints,
+                gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,
@@ -161,6 +163,10 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                transactionViolations,
+                isASAPSubmitBetaEnabled,
             });
         }
     };
