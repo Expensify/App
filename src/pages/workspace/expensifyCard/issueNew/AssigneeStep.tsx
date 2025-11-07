@@ -79,10 +79,13 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
-            data.assigneeAccountID = assignee?.accountID ?? undefined;
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER,
-                data,
+                data: {
+                    currency,
+                    invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
+                },
                 policyID,
             });
             setDraftInviteAccountID(data.assigneeEmail, assignee?.accountID ?? undefined, policyID);
@@ -245,9 +248,11 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
-                sections={areOptionsInitialized ? sections : []}
+                sections={sections}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
+                shouldUpdateFocusedIndex
+                initiallyFocusedOptionKey={issueNewCard?.data?.assigneeEmail}
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
                 isLoadingNewOptions={!!isSearchingForReports}

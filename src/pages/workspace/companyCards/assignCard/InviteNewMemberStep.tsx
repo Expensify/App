@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -6,6 +6,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -33,25 +34,31 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                data: {
+                    ...assignCard?.data,
+                    invitingMemberEmail: undefined,
+                },
+            });
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 data: {
                     ...assignCard?.data,
-                    assigneeAccountID: undefined,
-                    email: undefined,
+                    invitingMemberEmail: undefined,
                 },
                 isEditing: false,
             });
         }
     };
 
-    const goToNextStep = () => {
+    const goToNextStep = useCallback(() => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const data: Partial<AssignCardData> = {
-            email: assignCard?.data?.email,
-            cardName: getDefaultCardName(assignCard?.data?.email),
+            email: assignCard?.data?.invitingMemberEmail,
+            cardName: getDefaultCardName(assignCard?.data?.invitingMemberEmail),
+            invitingMemberEmail: '',
         };
 
         if (hasOnlyOneCardToAssign(filteredCardList)) {
@@ -65,7 +72,17 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
             data,
             isEditing: false,
         });
-    };
+    }, [isEditing, assignCard?.data, filteredCardList]);
+
+    // If the currently inviting member is already a member of the policy then we should just call goToNextStep
+    // See https://github.com/Expensify/App/issues/74256 for more details
+    useEffect(() => {
+        setDraftInviteAccountID(assignCard?.data?.invitingMemberEmail ?? '', assignCard?.data?.invitingMemberAccountID ?? undefined, policy?.id);
+        if (!policy?.employeeList?.[assignCard?.data?.invitingMemberEmail ?? '']) {
+            return;
+        }
+        goToNextStep();
+    }, [assignCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep, assignCard?.data?.invitingMemberAccountID, policy?.id]);
 
     return (
         <InteractiveStepWrapper
