@@ -86,6 +86,7 @@ function CardSection() {
             purchase: purchaseList?.[0],
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
+            retryBillingFailed: subscriptionRetryBillingStatusFailed,
         }),
     );
 
@@ -106,6 +107,7 @@ function CardSection() {
                 purchase: purchaseList?.[0],
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
+                retryBillingFailed: subscriptionRetryBillingStatusFailed,
             }),
         );
     }, [
