@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -55,6 +56,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const [cardFeeds] = useCardFeeds(policyID);
@@ -70,10 +72,13 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
+        const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
+        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
         return {
             value: key,
             feed: feedSettings.feed,
+            alternateText: domainName ?? policy?.name,
             text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
             keyForList: key,
             isSelected: key === selectedFeed,

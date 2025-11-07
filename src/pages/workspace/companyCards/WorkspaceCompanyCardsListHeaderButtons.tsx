@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -79,6 +80,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`);
 
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
@@ -116,6 +118,13 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
         [policyID, translate],
     );
 
+    const supportingText = useMemo(() => {
+        const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
+        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+        const secondPart = ` (${domainName ?? policy?.name})`;
+        return `${firstPart}${secondPart}`;
+    }, [domain?.email, isCommercialFeed, policy?.name, translate]);
+
     return (
         <View>
             <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
@@ -125,7 +134,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     cardIcon={getCardFeedIcon(originalFeed, illustrations)}
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
-                    supportingText={translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}
+                    supportingText={supportingText}
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
                 <View style={[styles.flexRow, styles.gap2]}>
