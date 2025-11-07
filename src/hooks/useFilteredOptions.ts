@@ -16,6 +16,8 @@ type UseFilteredOptionsConfig = {
     batchSize?: number;
     /** Whether to enable dynamic loading/pagination (default: true) */
     enablePagination?: boolean;
+    /** Search term for filtering - when present, builds full report map for personal details (default: '') */
+    searchTerm?: string;
 };
 
 type UseFilteredOptionsResult = {
@@ -52,7 +54,7 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 100, enabled = true, includeP2P = true, batchSize = 100, enablePagination = true} = config;
+    const {maxRecentReports = 100, enabled = true, includeP2P = true, batchSize = 100, enablePagination = true, searchTerm = ''} = config;
 
     // Pagination state - track current batch number
     const [currentBatch, setCurrentBatch] = useState(1);
@@ -84,8 +86,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         return createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
             maxRecentReports: reportsToProcess,
             includeP2P,
+            searchTerm,
         });
-    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination]);
+    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination, searchTerm]);
 
     // Reset loading state after options are computed
     useEffect(() => {

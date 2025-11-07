@@ -926,7 +926,8 @@ function createOption(
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
-    if (!hasMultipleParticipants && (!report || (report && !reportUtilsIsGroupChat(report) && !reportUtilsIsChatRoom(report)))) {
+    // Also always set for personal details options (showPersonalDetails: true) to ensure search filtering works correctly
+    if (showPersonalDetails || (!hasMultipleParticipants && (!report || (report && !reportUtilsIsGroupChat(report) && !reportUtilsIsChatRoom(report))))) {
         result.login = personalDetail?.login;
         result.accountID = Number(personalDetail?.accountID);
     }
@@ -1242,9 +1243,10 @@ function createFilteredOptionList(
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
+        searchTerm?: string;
     } = {},
 ) {
-    const {maxRecentReports = 100, includeP2P = true} = options;
+    const {maxRecentReports = 100, includeP2P = true, searchTerm = ''} = options;
     const reportMapForAccountIDs: Record<number, Report> = {};
 
     // Step 1: Pre-filter reports without processing them (cheap operations only)
@@ -1285,6 +1287,32 @@ function createFilteredOptionList(
     // Step 3: Limit to top N reports
     const limitedReports = sortedReports.slice(0, maxRecentReports);
 
+    // Step 3.5: If search term is present, build report map with ONLY 1:1 DM reports
+    // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
+    // Users without 1:1 DMs will have no report mapped, causing getIcons to fall back to personal avatar
+    if (searchTerm?.trim()) {
+        const allReportsArray = Object.values(reports ?? {});
+
+        // Add ONLY 1:1 DM reports (never add group/policy chats to maintain personal avatars)
+        allReportsArray.forEach((report) => {
+            if (!report) {
+                return;
+            }
+
+            // Check if this is a 1:1 DM (not a group/policy/room chat)
+            const is1on1DM = reportUtilsIsOneOnOneChat(report);
+
+            if (is1on1DM) {
+                const accountIDs = getParticipantsAccountIDsForDisplay(report);
+                accountIDs.forEach((accountID) => {
+                    // ALWAYS set 1:1 DMs - prioritize them over policy/group chats
+                    // This ensures proper avatar display for personal details
+                    reportMapForAccountIDs[accountID] = report;
+                });
+            }
+        });
+    }
+
     // Step 4: Process ONLY the limited reports (this is where the performance gain comes from)
     const reportOptions: Array<SearchOption<Report>> = [];
     limitedReports.forEach((report) => {
@@ -1292,7 +1320,17 @@ function createFilteredOptionList(
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
-            reportMapForAccountIDs[accountID] = reportValue;
+            // Preserve 1:1 DMs from Step 3.5 - don't overwrite them with non-1:1 reports
+            // This ensures personal detail options use 1:1 DM reports for proper avatar display
+            const existing = reportMapForAccountIDs[accountID];
+            const existingIs1on1 = existing && reportUtilsIsOneOnOneChat(existing);
+            const newIs1on1 = reportUtilsIsOneOnOneChat(reportValue);
+
+            // Only overwrite if: no existing, existing is not 1:1, or both are 1:1 (prefer newer)
+            const shouldOverwrite = !existing || !existingIs1on1 || newIs1on1;
+            if (shouldOverwrite) {
+                reportMapForAccountIDs[accountID] = reportValue;
+            }
         }
 
         if (reportOption) {
@@ -1302,18 +1340,14 @@ function createFilteredOptionList(
 
     // Step 5: Process personal details (all of them - needed for search functionality)
     const personalDetailsOptions = includeP2P
-        ? Object.values(personalDetails ?? {}).map((personalDetail) => ({
-              item: personalDetail,
-              ...createOption(
-                  [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                  personalDetails,
-                  reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                  {
-                      showPersonalDetails: true,
-                  },
-                  reportAttributesDerived,
-              ),
-          }))
+        ? Object.values(personalDetails ?? {}).map((personalDetail) => {
+              const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
+              return {
+                  item: personalDetail,
+                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID], {showPersonalDetails: true}, reportAttributesDerived),
+              };
+          })
         : [];
 
     return {

@@ -81,6 +81,7 @@ function useOptions() {
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
+        searchTerm: debouncedSearchTerm,
     });
 
     const defaultOptions = useMemo(() => {
@@ -96,9 +97,11 @@ function useOptions() {
             },
             countryCode,
         );
-    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, countryCode]);
+    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, countryCode, debouncedSearchTerm]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+    const unselectedOptions = useMemo(() => {
+        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
+    }, [defaultOptions, selectedOptions]);
 
     const areOptionsInitialized = !isLoading;
 
