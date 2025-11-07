@@ -74,6 +74,7 @@ type MoneyRequestReceiptViewProps = {
     isDisplayedInWideRHP?: boolean;
 };
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
@@ -83,6 +84,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI,
 ];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 function MoneyRequestReceiptView({
@@ -343,10 +345,13 @@ function MoneyRequestReceiptView({
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}
+                                onLoadFailure={() => setIsLoading(false)}
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && receiptAuditMessagesRow}
+                    {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.
+                        Otherwise (when fillSpace is false), we use a fixed size, so there's no need to wait for the image to load. */}
+                    {!!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
