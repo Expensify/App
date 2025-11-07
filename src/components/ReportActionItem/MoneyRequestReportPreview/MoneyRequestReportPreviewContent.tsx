@@ -33,6 +33,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +44,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getAddExpenseDropdownOptions,
@@ -106,6 +107,7 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPolicy,
     iouReport,
     transactions,
+    violations,
     policy,
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
@@ -137,6 +139,7 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -479,7 +482,9 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
+            violations,
             isIouReportArchived || isChatReportArchived,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
@@ -487,8 +492,22 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            areStrictPolicyRulesEnabled,
         );
-    }, [isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+        violations,
+        iouReport,
+        policy,
+        transactions,
+        isIouReportArchived,
+        invoiceReceiverPolicy,
+        isChatReportArchived,
+        areStrictPolicyRulesEnabled,
+        currentUserDetails.email,
+    ]);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
@@ -565,6 +584,15 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ) : null,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
+            <Button
+                icon={Expensicons.DotIndicator}
+                iconFill={theme.danger}
+                iconHoverFill={theme.danger}
+                text={translate('common.review')}
+                onPress={() => openReportFromPreview()}
+            />
+        ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
                 text={translate('common.view')}
