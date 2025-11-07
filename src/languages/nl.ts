@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Aantal',
         cancel: 'Annuleren',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Verstuur',
         na: 'N/A',
         noResultsFound: 'Geen resultaten gevonden',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Geen resultaten gevonden die overeenkomen met "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Geen resultaten gevonden die overeenkomen met "${searchString}"`,
         recentDestinations: 'Recente bestemmingen',
         timePrefix: 'Het is',
         conjunctionFor: 'voor',
@@ -1067,10 +1067,6 @@ const translations = {
     receipt: {
         upload: 'Bonnetje uploaden',
         uploadMultiple: 'Bonnetjes uploaden',
-        dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon naar',
-        dragReceiptsBeforeEmail: 'Sleep bonnetten naar deze pagina, stuur bonnetten naar',
-        dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
-        dragReceiptsAfterEmail: 'of kies bestanden om hieronder te uploaden.',
         desktopSubtitleSingle: `of sleep het hierheen`,
         desktopSubtitleMultiple: `of sleep ze hierheen`,
         alternativeMethodsTitle: 'Andere manieren om bonnetjes toe te voegen:',
@@ -1273,7 +1269,6 @@ const translations = {
         finished: 'Voltooid',
         flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
-        submitAmount: ({amount}: RequestAmountParams) => `Verzend ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, zegt ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">vertraging indieningen</a>`,
@@ -1345,11 +1340,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
             genericUnholdExpenseFailureMessage: 'Onverwachte fout bij het van hold halen van deze uitgave. Probeer het later opnieuw.',
             receiptDeleteFailureError: 'Onverwachte fout bij het verwijderen van dit ontvangstbewijs. Probeer het later opnieuw.',
-            receiptFailureMessage: 'Er is een fout opgetreden bij het uploaden van uw bon. Alstublieft',
+            receiptFailureMessage: '<rbr>Er is een fout opgetreden bij het uploaden van uw bon. Bewaar <a href="download">de bon</a> en <a href="retry">probeer het opnieuw</a> later.</rbr>',
             receiptFailureMessageShort: 'Er is een fout opgetreden bij het uploaden van uw bon.',
-            tryAgainMessage: 'probeer het opnieuw',
-            saveFileMessage: 'sla de bon op',
-            uploadLaterMessage: 'om later te uploaden.',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',
@@ -2065,8 +2057,6 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Uitgaven',
         workflowDescription: 'Configureer een workflow vanaf het moment dat uitgaven plaatsvinden, inclusief goedkeuring en betaling.',
-        delaySubmissionTitle: 'Vertraag inzendingen',
-        delaySubmissionDescription: 'Kies een aangepast schema voor het indienen van uitgaven, of laat dit uitgeschakeld voor realtime updates over uitgaven.',
         submissionFrequency: 'Indieningsfrequentie',
         submissionFrequencyDescription: 'Kies een frequentie voor het indienen van onkosten.',
         submissionFrequencyDateOfMonth: 'Datum van de maand',
@@ -2121,7 +2111,6 @@ ${amount} voor ${merchant} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Vertraagde indiening kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met de ondersteuning.',
         autoReportingFrequencyErrorMessage: 'De frequentie van inzendingen kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met de ondersteuning.',
         monthlyOffsetErrorMessage: 'Maandelijkse frequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met de ondersteuning.',
     },
@@ -4817,7 +4806,6 @@ ${amount} voor ${merchant} - ${date}`,
                 defaultCard: 'Standaardkaart',
                 downgradeTitle: `Kan werkruimte niet downgraden`,
                 downgradeSubTitle: `Deze werkruimte kan niet worden gedowngraded omdat er meerdere kaartfeeds zijn verbonden (met uitzondering van Expensify Cards). Alstublieft <a href="#">houd slechts één kaartfeed</a> om door te gaan.`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Voeg het account toe in ${connection} en synchroniseer de verbinding opnieuw.`,
                 expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
@@ -7385,7 +7373,7 @@ ${amount} voor ${merchant} - ${date}`,
         exportInProgress: 'Bezig met exporteren',
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
-    avatarPage: {title: 'Profielfoto bewerken', upload: 'Uploaden', uploadPhoto: 'Foto uploaden', selectAvatar: 'Selecteer avatar', chooseCustomAvatar: 'Of kies een aangepaste avatar'},
+    avatarPage: {title: 'Profielfoto bewerken', upload: 'Uploaden', uploadPhoto: 'Foto uploaden', selectAvatar: 'Selecteer avatar', choosePresetAvatar: 'Of kies een aangepaste avatar'},
     openAppFailureModal: {
         title: 'Er is iets misgegaan...',
         subtitle: `We hebben niet al uw gegevens kunnen laden. We zijn op de hoogte gesteld en onderzoeken het probleem. Als dit aanhoudt, neem dan contact op met`,
@@ -7416,4 +7404,4 @@ ${amount} voor ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
