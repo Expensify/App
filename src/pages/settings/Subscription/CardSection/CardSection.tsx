@@ -86,6 +86,7 @@ function CardSection() {
             purchase: purchaseList?.[0],
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
+            retryBillingFailed: subscriptionRetryBillingStatusFailed,
         }),
     );
 
@@ -106,6 +107,7 @@ function CardSection() {
                 purchase: purchaseList?.[0],
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
+                retryBillingFailed: subscriptionRetryBillingStatusFailed,
             }),
         );
     }, [
@@ -182,7 +184,7 @@ function CardSection() {
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
+                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName ?? '',
