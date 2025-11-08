@@ -316,9 +316,9 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 
     switch (subField.toLowerCase()) {
         case 'start':
-            return formatDate(startDate?.toISOString(), format);
+            return formatDate(startDate?.toISOString(), format) || part.definition;
         case 'end':
-            return formatDate(endDate?.toISOString(), format);
+            return formatDate(endDate?.toISOString(), format) || part.definition;
         default:
             return part.definition;
     }
@@ -818,7 +818,7 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'email':
             return personalDetails.login ?? '';
         case 'userid':
-            return personalDetails.accountID !== undefined && personalDetails.accountID !== null ? String(personalDetails.accountID) : '';
+            return String(personalDetails.accountID ?? '');
         case 'customfield1':
         case 'customfield2': {
             const email = personalDetails.login;
@@ -826,6 +826,7 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
                 return '';
             }
             const fieldKey = field.toLowerCase() === 'customfield1' ? 'employeeUserID' : 'employeePayrollID';
+            // Note: employeeUserID and employeePayrollID are custom text fields (not database IDs), so returning empty string is valid
             return policy.employeeList[email]?.[fieldKey] ?? '';
         }
         default:
