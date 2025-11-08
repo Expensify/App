@@ -703,14 +703,14 @@ describe('SidebarLinksData', () => {
         it('should display the report with GBR when the report has outstanding child task', async () => {
             // Given SidebarLinks are rendered initially.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const reportWithoutstandingChildTask: Report = {
+            const reportWithOutstandingChildTask: Report = {
                 ...createReport(false, [1, 2], 0),
                 hasOutstandingChildTask: true,
             };
 
             // When Onyx state is initialized with a draft report.
             await initializeState({
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutstandingChildTask.reportID}`]: reportWithoutstandingChildTask,
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithOutstandingChildTask.reportID}`]: reportWithOutstandingChildTask,
             });
 
             await waitForBatchedUpdatesWithAct();
