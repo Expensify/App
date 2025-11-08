@@ -7,7 +7,7 @@ import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
@@ -18,6 +18,7 @@ import {
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
+    isThread,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import type {IOUType} from '@src/CONST';
@@ -159,9 +160,10 @@ function useSelectedTransactionsActions({
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+        const parentReportAction = isThread(report) ? getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
+
         let canHoldTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport;
-
         selectedTransactionsList.forEach((selectedTransaction) => {
             if (!canHoldTransactions && !canUnholdTransactions) {
                 return;
@@ -173,7 +175,7 @@ function useSelectedTransactionsActions({
                 return;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, parentReportAction, selectedTransaction, policy);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
