@@ -216,8 +216,20 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
 
 const PRESET_AVATAR_CATALOG_ORDERED = buildOrderedAvatars();
 
-const getAvatarLocal = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id].local;
-const getAvatarURL = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id].url;
+const getAvatarLocal = (id: PresetAvatarID) => {
+    const entry = PRESET_AVATAR_CATALOG[id];
+    if (!entry) {
+        return undefined;
+    }
+    return entry.local;
+};
+const getAvatarURL = (id: PresetAvatarID) => {
+    const entry = PRESET_AVATAR_CATALOG[id];
+    if (!entry) {
+        return undefined;
+    }
+    return entry.url;
+};
 
 /**
  * Type guard to check if a value is a valid PresetAvatarID
