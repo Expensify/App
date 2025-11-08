@@ -1,28 +1,29 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Dimensions} from 'react-native';
-import type {EmitterSubscription, View} from 'react-native';
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Dimensions } from 'react-native';
+import type { EmitterSubscription, View } from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import { openPersonalBankAccountSetupView } from '@libs/actions/BankAccounts';
+import { completePaymentOnboarding, savePreferredPaymentMethod } from '@libs/actions/IOU';
+import { moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter } from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
-import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
-import {setKYCWallSource} from '@userActions/Wallet';
+import { hasExpensifyPaymentMethod } from '@libs/PaymentUtils';
+import { getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport } from '@libs/ReportUtils';
+import { createWorkspaceFromIOUPayment } from '@userActions/Policy/Policy';
+import { setKYCWallSource } from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccountList, Policy} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type { BankAccountList, Policy } from '@src/types/onyx';
+import { getEmptyObject } from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
+import type { AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod } from './types';
+
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -145,6 +146,7 @@ function KYCWall({
                                 });
                             }
                         }
+                        return;
                     }
 
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
