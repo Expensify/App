@@ -3450,13 +3450,13 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, expenseTransaction, undefined)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
             putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
             // canUnholdRequest should be true after the transaction is held.
-            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: false, canUnholdRequest: true});
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, expenseTransaction, undefined)).toEqual({canHoldRequest: false, canUnholdRequest: true});
         });
     });
 
