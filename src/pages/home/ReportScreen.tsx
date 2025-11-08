@@ -522,7 +522,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && reportMetadata.hasOnceLoadedReportActions) {
             createOneTransactionThreadReport();
             return;
         }
@@ -544,17 +544,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
+        reportMetadata.hasOnceLoadedReportActions,
         report,
         isOffline,
         transactionThreadReportID,
         transactionThreadReport,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        createOneTransactionThreadReport,
         isLoadingApp,
         introSelected,
         isOnboardingCompleted,
         isInviteOnboardingComplete,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        createOneTransactionThreadReport,
     ]);
 
     useEffect(() => {
