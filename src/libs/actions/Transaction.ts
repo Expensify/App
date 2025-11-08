@@ -896,8 +896,8 @@ function changeTransactionsReport(
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
-        const oldReportTotal = (oldReport?.total ?? 0);
-        const updatedReportTotal = transactionAmount < 0 ? (oldReportTotal - transactionAmount) : (oldReportTotal + transactionAmount);
+        const oldReportTotal = oldReport?.total ?? 0;
+        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
 
         if (oldReport && oldReport.currency === transactionCurrency) {
             updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
