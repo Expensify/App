@@ -2055,6 +2055,10 @@ function getValidOptions(
             return false;
         });
         recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
+        }
     }
 
     // Get valid personal details and check if we can find the current user:
