@@ -4,6 +4,7 @@ import {useEffect} from 'react';
 const preservedNavigatorStates: Record<string, StackNavigationState<ParamListBase>> = {};
 
 const cleanPreservedNavigatorStates = (state: NavigationState) => {
+    // eslint-disable-next-line unicorn/prefer-set-has
     const currentSplitNavigatorKeys = state.routes.map((route) => route.key);
 
     for (const key of Object.keys(preservedNavigatorStates)) {
