@@ -1225,6 +1225,48 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('');
             });
 
+            test('empty firstname - fallback to email when firstname is empty string', () => {
+                const contextWithEmptyFirstName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        firstName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:firstname}', contextWithEmptyFirstName)).toBe('user@test.com');
+            });
+
+            test('empty lastname - fallback to email when lastname is empty string', () => {
+                const contextWithEmptyLastName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        lastName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:lastname}', contextWithEmptyLastName)).toBe('user@test.com');
+            });
+
+            test('empty displayName - fallback to email when displayName is empty string', () => {
+                const contextWithEmptyDisplayName: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: null as unknown as Policy,
+                    submitterPersonalDetails: {
+                        accountID: 123,
+                        displayName: '',
+                        login: 'user@test.com',
+                    } as PersonalDetails,
+                };
+
+                expect(compute('{report:submit:from:fullname}', contextWithEmptyDisplayName)).toBe('user@test.com');
+            });
+
             test('empty email with frontpart - return empty for empty email modifier', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: {reportID: '123'} as Report,

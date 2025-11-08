@@ -810,11 +810,17 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            return personalDetails.firstName ?? personalDetails.login ?? '';
+            // Using || instead of ?? to handle empty strings - should fallback to email when firstName is ''
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.firstName || personalDetails.login || '';
         case 'lastname':
-            return personalDetails.lastName ?? personalDetails.login ?? '';
+            // Using || instead of ?? to handle empty strings - should fallback to email when lastName is ''
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.lastName || personalDetails.login || '';
         case 'fullname':
-            return personalDetails.displayName ?? personalDetails.login ?? '';
+            // Using || instead of ?? to handle empty strings - should fallback to email when displayName is ''
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.displayName || personalDetails.login || '';
         case 'email':
             return personalDetails.login ?? '';
         case 'userid':
