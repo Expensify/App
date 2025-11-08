@@ -818,6 +818,7 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'email':
             return personalDetails.login ?? '';
         case 'userid':
+            // eslint-disable-next-line rulesdir/no-default-id-values
             return String(personalDetails.accountID ?? '');
         case 'customfield1':
         case 'customfield2': {
