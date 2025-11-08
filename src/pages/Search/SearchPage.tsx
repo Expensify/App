@@ -429,8 +429,6 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
-<<<<<<< HEAD
-=======
 
         const shouldShowSubmitOption =
             !isOffline &&
@@ -465,19 +463,6 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
-
-        const shouldEnableExpenseBulk = selectedReports.length
-            ? selectedReports.every(
-                  (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-              )
-            : selectedTransactionsKeys.every(
-                  (id) =>
-                      selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      selectedTransactions[id].policyID &&
-                      getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-              );
->>>>>>> origin/main
-
         const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
         const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
