@@ -8,13 +8,13 @@ import shouldReportActivity from './shouldReportActivity';
  * @returns callback to unsubscribe
  */
 function addBecameActiveListener(callback: () => void): () => void {
-    let appState: AppStateStatus = CONST.APP_STATE.ACTIVE;
+    let previousAppState: AppStateStatus = AppState.currentState ?? CONST.APP_STATE.ACTIVE;
 
     function appStateChangeCallback(state: AppStateStatus) {
-        if (shouldReportActivity && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
+        if (shouldReportActivity && (previousAppState === CONST.APP_STATE.INACTIVE || previousAppState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
             callback();
         }
-        appState = state;
+        previousAppState = state;
     }
     const appStateChangeSubscription = AppState.addEventListener('change', appStateChangeCallback);
     return () => {
