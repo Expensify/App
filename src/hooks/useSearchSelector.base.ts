@@ -38,6 +38,9 @@ type UseSearchSelectorConfig = {
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
 
+    /** Whether to include current user */
+    includeCurrentUser?: boolean;
+
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
@@ -136,6 +139,7 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
+    includeCurrentUser = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -247,7 +251,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, draftComments, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
