@@ -50,6 +50,7 @@ function useSearchHighlightAndScroll({
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
+    const hasProcessedInitialChangeRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     const existingSearchResultIDs = useMemo(() => {
@@ -80,6 +81,15 @@ function useSearchHighlightAndScroll({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        if (!initializedRef.current) {
+            return;
+        }
+
+        if (!hasProcessedInitialChangeRef.current) {
+            hasProcessedInitialChangeRef.current = true;
+            return;
+        }
+
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -164,6 +174,7 @@ function useSearchHighlightAndScroll({
 
         highlightedIDs.current = new Set(existingSearchResultIDs);
         initializedRef.current = true;
+        hasProcessedInitialChangeRef.current = false;
     }, [searchResults?.data, isChat, existingSearchResultIDs]);
 
     // Detect new items (transactions or report actions)
