@@ -11763,9 +11763,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
     ];
 
-    optimisticData.push(
-        ...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)
-    )
+    optimisticData.push(...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE));
 
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReportLocal = isExpenseReport(iouReport);
