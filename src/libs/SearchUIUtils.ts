@@ -1475,6 +1475,8 @@ function getReportSections(
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
                 const formattedFrom = fromDetails === emptyPersonalDetails ? '' : formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = shouldShowBlankTo ? '' : formatPhoneNumber(getDisplayNameOrDefault(toDetails));
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate: translateLocal});
 
                 reportIDToTransactions[reportKey] = {
