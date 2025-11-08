@@ -38,7 +38,7 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction, isConciergeCategoryOptions} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -303,6 +303,25 @@ function MoneyRequestView({
         [getViolationsForField],
     );
 
+    // Check if we're within the 5-minute grace period for auto-categorization
+    const pendingAutoCategorizationTime = transaction?.comment?.pendingAutoCategorizationTime;
+    const isWithinAutoCategorizationGracePeriod = useMemo(() => {
+        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
+        const pendingTime = new Date(pendingAutoCategorizationTime?.replace(' ', 'T') + 'Z');
+
+        if (isNaN(pendingTime.getTime())) {
+            return false;
+        }
+
+        const currentTime = new Date();
+        const elapsedMs = currentTime.getTime() - pendingTime.getTime();
+
+        // 5-minute grace period
+        const fiveMinutesMs = 5 * 60 * 1000;
+
+        return elapsedMs < fiveMinutesMs;
+    }, [pendingAutoCategorizationTime]);
+
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
@@ -437,6 +456,11 @@ function MoneyRequestView({
                 return translate('violations.customUnitOutOfPolicy');
             }
 
+            // Suppress category violations if we're within the auto-categorization grace period
+            if (field === 'category' && isWithinAutoCategorizationGracePeriod) {
+                return '';
+            }
+
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
@@ -462,6 +486,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
+            isWithinAutoCategorizationGracePeriod,
         ],
     );
 
@@ -652,17 +677,7 @@ function MoneyRequestView({
         return <ReportActionsSkeletonView />;
     }
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
-
-    // Check if there's a CONCIERGE_CATEGORY_OPTIONS action in the report actions
-    const hasConciergeCategoryOptionsAction = useMemo(() => {
-        if (!reportActions) {
-            return false;
-        }
-        return Object.values(reportActions).some((action) => isConciergeCategoryOptions(action));
-    }, [reportActions]);
-
-    // Show "Analyzing..." when transaction doesn't have a category or there's no CONCIERGE_CATEGORY_OPTIONS action
+    // Show "Analyzing..." when transaction doesn't have a category AND within the 5-minute grace period
     const shouldShowCategoryAnalyzing = useMemo(() => {
         const categoryValue = updatedTransaction?.category ?? transactionCategory;
         const isUncategorized = !categoryValue || categoryValue === 'uncategorized' || categoryValue === 'Uncategorized';
@@ -673,8 +688,9 @@ function MoneyRequestView({
             return false;
         }
 
-        return isUncategorized && !hasConciergeCategoryOptionsAction;
-    }, [updatedTransaction?.category, transactionCategory, hasConciergeCategoryOptionsAction, isEmptyMerchant, transactionAmount]);
+        // Show "Analyzing..." if transaction is uncategorized AND within the 5-minute grace period
+        return isUncategorized && isWithinAutoCategorizationGracePeriod;
+    }, [updatedTransaction?.category, transactionCategory, isEmptyMerchant, transactionAmount, isWithinAutoCategorizationGracePeriod]);
 
     return (
         <View style={styles.pRelative}>
@@ -802,7 +818,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={decodedCategoryName}
+                            title={shouldShowCategoryAnalyzing ? 'Analyzing...' : decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
@@ -838,7 +854,6 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
-                            helperText={shouldShowCategoryAnalyzing ? 'Analyzing...' : undefined}
                             copyValue={categoryCopyValue}
                             copyable={!!categoryCopyValue}
                         />
