@@ -33,7 +33,7 @@ type SelectedTransactionInfo = {
     reportID: string;
 
     /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
+    policyID: string | undefined;
 
     /** The transaction amount */
     amount: number;
