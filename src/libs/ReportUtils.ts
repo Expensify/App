@@ -4682,11 +4682,7 @@ function canHoldUnholdReportAction(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
 ): {canHoldRequest: boolean; canUnholdRequest: boolean} {
-    if (!report || !reportAction) {
-        return {canHoldRequest: false, canUnholdRequest: false};
-    }
-
-    if (!isMoneyRequest(report) || !isMoneyRequestAction(reportAction)) {
+    if (!report || !reportAction || !isMoneyRequestAction(reportAction) || isInvoiceReport(report)) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 

@@ -47,6 +47,7 @@ import {
     getRemovedConnectionMessage,
     getRenamedAction,
     getReopenedMessage,
+    getReportAction,
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
     getTagListNameUpdatedMessage,
@@ -110,11 +111,13 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportName,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
+    isThread,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -134,7 +137,18 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    OnyxInputOrEntry,
+    OriginalMessageIOU,
+    Policy,
+    ReportAction,
+    ReportActionReactions,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -181,6 +195,8 @@ type ShouldShow = (args: {
     isDebugModeEnabled: OnyxEntry<boolean>;
     iouTransaction: OnyxEntry<Transaction>;
     transactions?: OnyxCollection<Transaction>;
+    moneyRequestReport?: OnyxEntry<ReportType>;
+    moneyRequestPolicy?: OnyxEntry<Policy>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -388,8 +404,13 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && canHoldUnholdReportAction(moneyRequestAction).canUnholdRequest,
+        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
+            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
+                return false;
+            }
+            const parentReportAction = isThread(moneyRequestReport) ? getReportAction(moneyRequestReport.parentReportID, moneyRequestReport.parentReportActionID) : undefined;
+            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
+        },
         onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
@@ -405,8 +426,13 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
+        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
+            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
+                return false;
+            }
+            const parentReportAction = isThread(moneyRequestReport) ? getReportAction(moneyRequestReport.parentReportID, moneyRequestReport.parentReportActionID) : undefined;
+            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
+        },
         onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
