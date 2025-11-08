@@ -2,59 +2,24 @@ import {format, subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import type SCREENS from '@src/SCREENS';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, { Route } from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-
 type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
-
-type TransactionStartDateSelectionListFooterProps = {
-    policyID: string | undefined;
-    feed: CompanyCardFeed;
-    backTo?: Route;
-    dateOptionSelected: string;
-    startDate: string;
-};
-
-function TransactionStartDateSelectionListFooter({dateOptionSelected, startDate, policyID, feed, backTo}: TransactionStartDateSelectionListFooterProps) {
-    const {translate} = useLocalize();
-
-    if (dateOptionSelected !== CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM) {
-        return null;
-    }
-
-    const onPress = () => {
-        if (!policyID) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo));
-    };
-
-    return (
-        <MenuItemWithTopDescription
-            description={translate('common.date')}
-            title={startDate}
-            shouldShowRightIcon
-            onPress={onPress}
-        />
-    );
-}
 
 function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
@@ -65,8 +30,9 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
     const {policyID, feed, backTo} = route.params;
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
-    const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [errorText, setErrorText] = useState('');
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     useAssignCardStepNavigation(policyID, feed, backTo);
 
@@ -82,10 +48,20 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     };
 
     const handleSelectDateOption = (dateOption: string) => {
+        setErrorText('');
         setDateOptionSelected(dateOption);
+        if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
+            return;
+        }
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
+            setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
         setAssignCardStepAndData({
@@ -130,13 +106,14 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
                     data={dateOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    shouldHighlightSelectedItem={false}
                     footerContent={
                         <Button
                             success
@@ -147,13 +124,22 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                         />
                     }
                     listFooterContent={
-                        <TransactionStartDateSelectionListFooter
-                            dateOptionSelected={dateOptionSelected}
-                            startDate={startDate}
-                            policyID={policyID}
-                            feed={feed}
-                            backTo={backTo}
-                        />
+                        dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
+                            <View style={[styles.ph5]}>
+                                <DatePicker
+                                    inputID=""
+                                    value={startDate}
+                                    label={translate('iou.startDate')}
+                                    onInputChange={(value) => {
+                                        setErrorText('');
+                                        setStartDate(value);
+                                    }}
+                                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                    maxDate={new Date()}
+                                    errorText={errorText}
+                                />
+                            </View>
+                        ) : null
                     }
                 />
             </View>

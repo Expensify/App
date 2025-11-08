@@ -99,6 +99,7 @@ function TagPicker({
             });
         }
 
+        // eslint-disable-next-line unicorn/prefer-set-has
         const selectedNames = selectedOptions.map((s) => s.name);
 
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
@@ -116,6 +117,7 @@ function TagPicker({
             tags: enabledTags,
             recentlyUsedTags: policyRecentlyUsedTagsList,
             localeCompare,
+            translate,
         });
         return shouldOrderListByTagName
             ? tagSections.map((option) => ({
@@ -123,7 +125,7 @@ function TagPicker({
                   data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
               }))
             : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, localeCompare, translate, shouldOrderListByTagName]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 

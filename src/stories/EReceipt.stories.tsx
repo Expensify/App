@@ -153,6 +153,7 @@ const transactionData = {
     },
 } as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
+// @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {
     4: {bank: 'Expensify Card', lastFourPAN: '1000'},
