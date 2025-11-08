@@ -611,13 +611,13 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     // Read current search snapshot from cache
     const currentSearchResults = searchSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
     const currentMetadata = currentSearchResults?.search;
-    
+
     // Calculate total amount of transactions being deleted
     // Note: convertedAmount is stored as negative for expenses, so we add them to reduce the total
     let deletedTotal = 0;
     transactionIDList.forEach((transactionID) => {
-        const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] as SearchTransaction | undefined;
-        deletedTotal += - (transaction?.convertedAmount ?? 0);
+        const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        deletedTotal += -(transaction?.convertedAmount ?? 0);
     });
 
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
@@ -633,7 +633,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
                 ) as Partial<SearchTransaction>,
                 search: {
-                    ...(currentMetadata || {}),
+                    ...(currentMetadata ?? {}),
                     count: Math.max(0, (currentMetadata?.count ?? 0) - transactionIDList.length),
                     total: (currentMetadata?.total ?? 0) - deletedTotal,
                 },
