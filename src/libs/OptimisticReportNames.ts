@@ -1,7 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
@@ -339,7 +338,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     additionalUpdates.push({
                         key: getReportKey(reportID),
                         onyxMethod: Onyx.METHOD.MERGE,
@@ -358,7 +356,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         additionalUpdates.push({
                             key: getReportKey(report.reportID),
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -384,7 +381,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         additionalUpdates.push({
                             key: getReportKey(report.reportID),
                             onyxMethod: Onyx.METHOD.MERGE,
