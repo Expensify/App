@@ -72,7 +72,7 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
 
         let lastClientX = 0;
         let lastClientY = 0;
-        const mouseMovehandler = (event: MouseEvent) => {
+        const mouseMoveHandler = (event: MouseEvent) => {
             // On Safari, scrolling can also trigger a mousemove event,
             // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
             if (event.clientX === lastClientX && event.clientY === lastClientY) {
@@ -86,10 +86,10 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
         };
         const wheelHandler = () => setShouldDisableHoverStyle(false);
 
-        document.addEventListener('mousemove', mouseMovehandler, {passive: true});
+        document.addEventListener('mousemove', mouseMoveHandler, {passive: true});
         document.addEventListener('wheel', wheelHandler, {passive: true});
         return () => {
-            document.removeEventListener('mousemove', mouseMovehandler);
+            document.removeEventListener('mousemove', mouseMoveHandler);
             document.removeEventListener('wheel', wheelHandler);
         };
     }, []);
