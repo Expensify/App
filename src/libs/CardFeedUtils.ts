@@ -227,7 +227,7 @@ function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsL
     const domainFeedData = getDomainFeedData(workspaceCardFeeds);
     return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
         const domainFeed = Object.values(workspaceFeed ?? {}).at(0) ?? {};
-        if (Object.keys(domainFeedData).includes(`${domainFeed.fundID}_${domainFeed.bank}`)) {
+        if (`${domainFeed.fundID}_${domainFeed.bank}` in domainFeedData) {
             return false;
         }
         return !isEmptyObject(workspaceFeed);
@@ -386,7 +386,7 @@ function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFee
     const selectedCards = selectedFeeds.flatMap((cardFeedKey) => {
         const workspaceCardFeed = workspaceCardFeeds[getWorkspaceCardFeedKey(cardFeedKey)];
         if (!workspaceCardFeed) {
-            if (!cards || Object.keys(domainFeedCards).length === 0) {
+            if (!cards || !domainFeedCards[cardFeedKey] || Object.keys(domainFeedCards).length === 0) {
                 return [];
             }
 

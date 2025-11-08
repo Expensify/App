@@ -1,6 +1,6 @@
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */
@@ -19,14 +19,6 @@ type DisplayNameWithTooltip = {
 type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
-
-    /**
-     * Whether `fullTitle` should be processed through Parser.htmlToText().
-     * Set to true when `fullTitle` contains HTML that needs to be converted to plain text
-     * Set to false when `fullTitle` is already plain text or when you want to preserve
-     * any HTML formatting in the display.
-     */
-    shouldParseFullTitle?: boolean;
 
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips?: DisplayNameWithTooltip[];
@@ -57,6 +49,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 
     /** TestID indicating order */
     testID?: number;
+
+    /** Whether to parse HTML in the fullTitle */
+    shouldParseHtml?: boolean;
 };
 
 export default DisplayNamesProps;
