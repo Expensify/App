@@ -181,8 +181,8 @@ function getReportsWithUserAsSubmitterOrManager(accountID: number, allReports: R
 /**
  * Generate the Onyx key for a report
  */
-function getReportKey(reportID: string): OnyxKey {
-    return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as OnyxKey;
+function getReportKey(reportID: string): `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` {
+    return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
 }
 
 /**
