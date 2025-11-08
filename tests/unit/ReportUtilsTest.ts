@@ -3455,8 +3455,48 @@ describe('ReportUtils', () => {
             putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
+            const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            const expenseCreatedActionUpdated = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportActions?.[expenseCreatedAction.reportActionID]);
+                    },
+                });
+            });
+            const reportPreviewUpdated = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportActions?.[reportPreview.reportActionID]);
+                    },
+                });
+            });
+            const expenseTransactionUpdated = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`,
+                    callback: (transaction) => {
+                        Onyx.disconnect(connection);
+                        resolve(transaction);
+                    },
+                });
+            });
+
             // canUnholdRequest should be true after the transaction is held.
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, expenseTransaction, undefined)).toEqual({canHoldRequest: false, canUnholdRequest: true});
+            expect(canHoldUnholdReportAction(expenseReportUpdated, expenseCreatedActionUpdated, reportPreviewUpdated, expenseTransactionUpdated, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: true,
+            });
         });
     });
 
