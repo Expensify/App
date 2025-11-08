@@ -11706,7 +11706,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[], searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = [], searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11761,8 +11761,11 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 lastVisibleActionCreated: createdReportActionComment.created,
             },
         },
-        ...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
     ];
+
+    optimisticData.push(
+        ...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)
+    )
 
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReportLocal = isExpenseReport(iouReport);

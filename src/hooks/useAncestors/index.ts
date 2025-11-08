@@ -99,13 +99,13 @@ function useTransactionsAncestors(transactions: Array<OnyxEntry<Transaction>>): 
                 continue;
             }
 
-            const childReportID = iouAction.childReportID ?? '';
-            const threadReport = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] ??
+            const childReportID = iouAction.childReportID;
+            const threadReport = childReportID ? (reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] ??
                 reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${childReportID}`] ?? {
                     reportID: childReportID,
                     parentReportID: transaction.reportID,
                     parentReportActionID: iouAction.reportActionID,
-                };
+                }) : {reportID: '', parentReportID: transaction.reportID, parentReportActionID: iouAction.reportActionID};
 
             result[transaction.transactionID] = getAncestors(threadReport, reportCollection, reportDraftCollection, reportActionsCollection);
         }
