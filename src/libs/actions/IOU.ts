@@ -785,7 +785,7 @@ type CreateTransactionParams = {
     shouldGenerateTransactionThreadReport: boolean;
     files: ReceiptFile[];
     participant: Participant;
-    gpsPoints?: GPSPoint;
+    gpsPoint?: GPSPoint;
     policyParams?: {policy: OnyxEntry<OnyxTypes.Policy>};
     billable?: boolean;
     reimbursable?: boolean;
@@ -14391,7 +14391,7 @@ function createTransaction({
     shouldGenerateTransactionThreadReport,
     files,
     participant,
-    gpsPoints,
+    gpsPoint,
     policyParams,
     billable,
     reimbursable = true,
@@ -14417,7 +14417,7 @@ function createTransaction({
                     receipt,
                     billable,
                     reimbursable,
-                    ...(gpsPoints ?? {}),
+                    gpsPoint,
                 },
                 ...(policyParams ?? {}),
                 shouldHandleNavigation: index === files.length - 1,
@@ -14431,7 +14431,7 @@ function createTransaction({
                     participant,
                 },
                 ...(policyParams ?? {}),
-                ...(gpsPoints ?? {}),
+                gpsPoint,
                 transactionParams: {
                     amount: 0,
                     attendees: transaction?.comment?.attendees,
@@ -14538,7 +14538,7 @@ function handleMoneyRequestStepScanParticipants({
                 getCurrentPosition(
                     (successData) => {
                         const policyParams = {policy};
-                        const gpsPoints = {
+                        const gpsPoint = {
                             lat: successData.coords.latitude,
                             long: successData.coords.longitude,
                         };
@@ -14552,7 +14552,7 @@ function handleMoneyRequestStepScanParticipants({
                             shouldGenerateTransactionThreadReport,
                             files,
                             participant,
-                            gpsPoints,
+                            gpsPoint,
                             policyParams,
                             billable: false,
                             reimbursable: true,
