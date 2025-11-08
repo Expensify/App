@@ -305,15 +305,18 @@ function MoneyRequestView({
 
     // Check if we're within the 5-minute grace period for auto-categorization
     const pendingAutoCategorizationTime = transaction?.comment?.pendingAutoCategorizationTime;
-    const isWithinAutoCategorizationGracePeriod = useMemo(() => {
+    const isAnalyzingCategory = useMemo(() => {
         if (!pendingAutoCategorizationTime) {
             return false;
         }
+
+        console.debug('[AutoCategorization] Found pendingAutoCategorizationTime:', pendingAutoCategorizationTime);
 
         // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
         const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
 
         if (Number.isNaN(pendingTime.getTime())) {
+            console.debug('[AutoCategorization] Invalid timestamp format');
             return false;
         }
 
@@ -323,7 +326,16 @@ function MoneyRequestView({
         // 5-minute grace period
         const fiveMinutesMs = 5 * 60 * 1000;
 
-        return elapsedMs < fiveMinutesMs;
+        const isWithinGracePeriod = elapsedMs < fiveMinutesMs;
+        console.debug('[AutoCategorization] Grace period check:', {
+            pendingTime: pendingTime.toISOString(),
+            currentTime: currentTime.toISOString(),
+            elapsedMs,
+            elapsedMinutes: (elapsedMs / 1000 / 60).toFixed(2),
+            isWithinGracePeriod,
+        });
+
+        return isWithinGracePeriod;
     }, [pendingAutoCategorizationTime]);
 
     let amountDescription = `${translate('iou.amount')}`;
@@ -461,7 +473,7 @@ function MoneyRequestView({
             }
 
             // Suppress category violations if we're within the auto-categorization grace period
-            if (field === 'category' && isWithinAutoCategorizationGracePeriod) {
+            if (field === 'category' && isAnalyzingCategory) {
                 return '';
             }
 
@@ -490,7 +502,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
-            isWithinAutoCategorizationGracePeriod,
+            isAnalyzingCategory,
         ],
     );
 
@@ -684,8 +696,17 @@ function MoneyRequestView({
         }
 
         // Show "Analyzing..." if transaction is uncategorized AND within the 5-minute grace period
-        return isUncategorized && isWithinAutoCategorizationGracePeriod;
-    }, [updatedTransaction?.category, transactionCategory, isEmptyMerchant, transactionAmount, isWithinAutoCategorizationGracePeriod]);
+        const shouldShow = isUncategorized && isAnalyzingCategory;
+        console.debug('[AutoCategorization] Analyzing label check:', {
+            transactionID: transaction?.transactionID,
+            currentCategoryValue,
+            isUncategorized,
+            isAnalyzingCategory,
+            shouldShowCategoryAnalyzing: shouldShow,
+        });
+
+        return shouldShow;
+    }, [updatedTransaction?.category, transactionCategory, isEmptyMerchant, transactionAmount, isAnalyzingCategory, transaction?.transactionID]);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
