@@ -303,40 +303,7 @@ function MoneyRequestView({
         [getViolationsForField],
     );
 
-    // Check if we're within the 5-minute grace period for auto-categorization
     const pendingAutoCategorizationTime = transaction?.comment?.pendingAutoCategorizationTime;
-    const isAnalyzingCategory = useMemo(() => {
-        if (!pendingAutoCategorizationTime) {
-            return false;
-        }
-
-        console.debug('[AutoCategorization] Found pendingAutoCategorizationTime:', pendingAutoCategorizationTime);
-
-        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
-        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
-
-        if (Number.isNaN(pendingTime.getTime())) {
-            console.debug('[AutoCategorization] Invalid timestamp format');
-            return false;
-        }
-
-        const currentTime = new Date();
-        const elapsedMs = currentTime.getTime() - pendingTime.getTime();
-
-        // 5-minute grace period
-        const fiveMinutesMs = 5 * 60 * 1000;
-
-        const isWithinGracePeriod = elapsedMs < fiveMinutesMs;
-        console.debug('[AutoCategorization] Grace period check:', {
-            pendingTime: pendingTime.toISOString(),
-            currentTime: currentTime.toISOString(),
-            elapsedMs,
-            elapsedMinutes: (elapsedMs / 1000 / 60).toFixed(2),
-            isWithinGracePeriod,
-        });
-
-        return isWithinGracePeriod;
-    }, [pendingAutoCategorizationTime]);
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -437,6 +404,47 @@ function MoneyRequestView({
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+
+    // Check if we're within the 5-minute grace period for auto-categorization or if request is being created
+    const isAnalyzingCategory = useMemo(() => {
+        // Show analyzing for manual requests being created (optimistic, awaiting server)
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            console.debug('[AutoCategorization] Manual request pending creation (pendingAction === add)');
+            return true;
+        }
+
+        // Show analyzing for auto-categorization within 5-minute grace period
+        if (!pendingAutoCategorizationTime) {
+            return false;
+        }
+
+        console.debug('[AutoCategorization] Found pendingAutoCategorizationTime:', pendingAutoCategorizationTime);
+
+        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
+        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
+
+        if (Number.isNaN(pendingTime.getTime())) {
+            console.debug('[AutoCategorization] Invalid timestamp format');
+            return false;
+        }
+
+        const currentTime = new Date();
+        const elapsedMs = currentTime.getTime() - pendingTime.getTime();
+
+        // 5-minute grace period
+        const fiveMinutesMs = 5 * 60 * 1000;
+
+        const isWithinGracePeriod = elapsedMs < fiveMinutesMs;
+        console.debug('[AutoCategorization] Grace period check:', {
+            pendingTime: pendingTime.toISOString(),
+            currentTime: currentTime.toISOString(),
+            elapsedMs,
+            elapsedMinutes: (elapsedMs / 1000 / 60).toFixed(2),
+            isWithinGracePeriod,
+        });
+
+        return isWithinGracePeriod;
+    }, [pendingAction, pendingAutoCategorizationTime]);
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
