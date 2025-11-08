@@ -1360,7 +1360,10 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Włącz portfel',
         hold: 'Trzymaj',
         unhold: 'Usuń blokadę',
-        holdExpense: 'Wstrzymaj wydatek',
+        holdExpense: () => ({
+            one: 'Wstrzymaj wydatek',
+            other: 'Wstrzymaj wydatki',
+        }),
         unholdExpense: 'Odblokuj wydatek',
         heldExpense: 'zatrzymał ten wydatek',
         unheldExpense: 'odblokowano ten wydatek',
@@ -1371,7 +1374,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         newReport: 'Nowy raport',
-        explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+        explainHold: () => ({
+            one: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+            other: 'Wyjaśnij, dlaczego wstrzymujesz te wydatki.',
+        }),
         retracted: 'wycofany',
         retract: 'Wycofać',
         reopened: 'ponownie otwarty',

@@ -1368,7 +1368,10 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         hold: 'Attente',
         unhold: 'Supprimer la suspension',
-        holdExpense: 'Mettre la dépense en attente',
+        holdExpense: () => ({
+            one: 'Mettre la dépense en attente',
+            other: 'Mettre les dépenses en attente',
+        }),
         unholdExpense: 'Débloquer la dépense',
         heldExpense: 'retenu cette dépense',
         unheldExpense: 'débloqué cette dépense',
@@ -1379,7 +1382,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
         newReport: 'Nouveau rapport',
-        explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
+        explainHold: () => ({
+            one: 'Expliquez pourquoi vous mettez cette dépense en attente.',
+            other: 'Expliquez pourquoi vous mettez ces dépenses en attente.',
+        }),
         retracted: 'retraité',
         retract: 'Retirer',
         reopened: 'rouvert',

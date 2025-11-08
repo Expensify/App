@@ -1362,7 +1362,10 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         unhold: 'Verwijder blokkering',
-        holdExpense: 'Uitgave vasthouden',
+        holdExpense: () => ({
+            one: 'Uitgave blokkeren',
+            other: 'Uitgaven in de wacht zetten',
+        }),
         unholdExpense: 'Uitgave deblokkeren',
         heldExpense: 'deze uitgave vastgehouden',
         unheldExpense: 'deblokkeer deze uitgave',
@@ -1373,7 +1376,10 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         newReport: 'Nieuw rapport',
-        explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
+        explainHold: () => ({
+            one: 'Leg uit waarom je deze uitgave tegenhoudt.',
+            other: 'Leg uit waarom je deze uitgaven in de wacht zet.',
+        }),
         retracted: 'ingetrokken',
         retract: 'Intrekken',
         reopened: 'heropend',
