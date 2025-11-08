@@ -149,6 +149,23 @@ function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
+    const isCurrentUserPayer = isPayer(
+        {
+            accountID: currentUserAccountIDParam,
+            email: currentUserEmailParam,
+        },
+        report,
+    );
+
+    const getPayerDisplayName = () => {
+        if (reimburserAccountID === -1) {
+            if (isCurrentUserPayer) {
+                return {text: 'you', type: 'strong'};
+            }
+            return {text: 'an admin'};
+        }
+        return {text: getDisplayNameForParticipant({accountID: reimburserAccountID}), type: 'strong'};
+    };
 
     const nextStepPayExpense = {
         type,
@@ -377,13 +394,7 @@ function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
                     {
                         text: 'Waiting for ',
                     },
-                    isPayer(
-                        {
-                            accountID: currentUserAccountIDParam,
-                            email: currentUserEmailParam,
-                        },
-                        report,
-                    )
+                    isCurrentUserPayer
                         ? {
                               text: `you`,
                               type: 'strong',
@@ -420,17 +431,7 @@ function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (
-                isInvoiceReport(report) ||
-                !isPayer(
-                    {
-                        accountID: currentUserAccountIDParam,
-                        email: currentUserEmailParam,
-                    },
-                    report,
-                ) ||
-                reimbursableSpend === 0
-            ) {
+            if (isInvoiceReport(report) || !isCurrentUserPayer || reimbursableSpend === 0) {
                 optimisticNextStep = noActionRequired;
 
                 break;
@@ -443,14 +444,7 @@ function buildNextStep(params: BuildNextStepParams): ReportNextStep | null {
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    getPayerDisplayName(),
                     {
                         text: ' to ',
                     },
