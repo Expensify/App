@@ -31,6 +31,8 @@ type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamLis
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, {canBeMissing: true}, [task?.parentReportID]);
+    const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,8 +40,6 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
     const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
     const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, {canBeMissing: true}, [task?.shareDestination]);
-    const ancestors = useAncestors(parentReport);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backTo = route.params?.backTo;
