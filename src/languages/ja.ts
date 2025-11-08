@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'カウント',
         cancel: 'キャンセル',
@@ -452,7 +452,7 @@ const translations = {
         send: '送信',
         na: 'N/A',
         noResultsFound: '結果が見つかりませんでした',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `「${searchString}」に一致する結果は見つかりませんでした。`,
+        noResultsFoundMatching: (searchString: string) => `「${searchString}」に一致する結果は見つかりませんでした。`,
         recentDestinations: '最近の目的地',
         timePrefix: 'それは',
         conjunctionFor: 'のために',
@@ -1070,10 +1070,6 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
-        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
-        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
-        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         alternativeMethodsTitle: '領収書を追加する別の方法:',
@@ -1276,7 +1272,6 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
-        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1347,11 +1342,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'この経費を保留する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留を解除する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'この領収書の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
-            receiptFailureMessage: '領収書のアップロード中にエラーが発生しました。どうぞ',
+            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。<a href="download">領収書を保存</a>し、<a href="retry">もう一度お試しください</a> 後で。</rbr>`,
             receiptFailureMessageShort: '領収書のアップロード中にエラーが発生しました。',
-            tryAgainMessage: 'もう一度試してください。',
-            saveFileMessage: '領収書を保存',
-            uploadLaterMessage: '後でアップロードする。',
             genericDeleteFailureMessage: 'この経費を削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: 'トランザクションにフィールドが欠けています',
@@ -1371,7 +1363,10 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
-        holdExpense: '経費を保留',
+        holdExpense: () => ({
+            one: '経費を保留',
+            other: '経費を保留',
+        }),
         unholdExpense: '経費の保留を解除',
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費を未保留にする',
@@ -1382,7 +1377,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
-        explainHold: 'この経費を保留している理由を説明してください。',
+        explainHold: () => ({
+            one: 'この経費を保留にしている理由を説明してください。',
+            other: 'これらの経費を保留にしている理由を説明してください。',
+        }),
         retracted: '撤回されました',
         retract: '取り消す',
         reopened: '再開されました',
@@ -2113,7 +2111,6 @@ ${date} - ${merchant}に${amount}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -4781,7 +4778,6 @@ ${date} - ${merchant}に${amount}`,
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
                 downgradeSubTitle: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ <a href="#">カードフィードを1つだけ保持</a> 続行する。`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `${connection}にアカウントを追加し、再度接続を同期してください。`,
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
@@ -4877,7 +4873,7 @@ ${date} - ${merchant}に${amount}`,
             textType: 'テキスト',
             dateType: '日付',
             dropdownType: 'リスト',
-            formulaType: 'Formula',
+            formulaType: '数式',
             textAlternateText: '自由入力フィールドを追加してください。',
             dateAlternateText: '日付選択用のカレンダーを追加します。',
             dropdownAlternateText: '選択肢のリストを追加してください。',
@@ -4907,6 +4903,7 @@ ${date} - ${merchant}に${amount}`,
             existingReportFieldNameError: 'この名前のレポートフィールドは既に存在します',
             reportFieldNameRequiredError: 'レポートフィールド名を入力してください',
             reportFieldTypeRequiredError: 'レポートフィールドのタイプを選択してください',
+            circularReferenceError: 'このフィールドは自身を参照できません。更新してください。',
             reportFieldInitialValueRequiredError: 'レポートフィールドの初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
@@ -5462,8 +5459,8 @@ ${date} - ${merchant}に${amount}`,
             enableRate: 'レートを有効にする',
             status: 'ステータス',
             unit: '単位',
-            taxFeatureNotEnabledMessage: 'この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して',
-            changePromptMessage: 'その変更を行うために。',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して <a href="#">さらに多くの機能</a> に行ってその変更を行ってください。</muted-text>',
             deleteDistanceRate: '距離料金を削除',
             areYouSureDelete: () => ({
                 one: 'このレートを削除してもよろしいですか？',
@@ -6813,7 +6810,6 @@ ${date} - ${merchant}に${amount}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,
-        reportContainsExpensesWithViolations: 'レポートに違反がある経費が含まれています。',
     },
     violationDismissal: {
         rter: {
@@ -7335,14 +7331,35 @@ ${date} - ${merchant}に${amount}`,
         upload: 'アップロード',
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
-        chooseCustomAvatar: 'またはカスタムアバターを選択',
+        choosePresetAvatar: 'またはカスタムアバターを選択',
     },
     openAppFailureModal: {
         title: '問題が発生しました...',
         subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
         refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
+    domain: {
+        notVerified: '未確認',
+        retry: '再試行',
+        verifyDomain: {
+            title: 'ドメインを確認',
+            beforeProceeding: ({domainName}: {domainName: string}) => `続行する前に、DNS設定を更新して<strong>${domainName}</strong>の所有者であることを確認してください。`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `DNSプロバイダーにアクセスし、<strong>${domainName}</strong> のDNS設定を開いてください。`,
+            addTXTRecord: '次のTXTレコードを追加してください:',
+            saveChanges: '変更を保存して、ここに戻り、ドメインを確認してください。',
+            youMayNeedToConsult: `検証を完了するには、組織のIT部門に相談する必要がある場合があります。<a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">詳細はこちら</a>。`,
+            warning: '確認が完了すると、貴社のドメインのすべてのExpensifyメンバーに、アカウントが貴社のドメインで管理される旨のメールが送信されます。',
+            codeFetchError: '認証コードを取得できませんでした',
+            genericError: 'ドメインを確認できませんでした。もう一度お試しください。問題が解決しない場合は Concierge にご連絡ください。',
+        },
+        domainVerified: {
+            title: 'ドメイン確認済み',
+            header: 'やった！あなたのドメインが確認されました',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

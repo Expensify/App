@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Liczba',
         cancel: 'Anuluj',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Wyślij',
         na: 'N/A',
         noResultsFound: 'Nie znaleziono wyników',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nie znaleziono wyników pasujących do "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nie znaleziono wyników pasujących do "${searchString}"`,
         recentDestinations: 'Ostatnie miejsca docelowe',
         timePrefix: 'To jest',
         conjunctionFor: 'dla',
@@ -882,7 +882,6 @@ const translations = {
         expand: 'Rozwiń',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Kopiuj do schowka',
         copyMessage: 'Skopiuj wiadomość',
         copied: 'Skopiowano!',
         copyLink: 'Skopiuj link',
@@ -1068,10 +1067,6 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
-        dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
-        dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony na',
-        dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
-        dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
         desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
@@ -1344,11 +1339,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Nieoczekiwany błąd podczas wstrzymywania tego wydatku. Proszę spróbować ponownie później.',
             genericUnholdExpenseFailureMessage: 'Nieoczekiwany błąd podczas zdejmowania tego wydatku z blokady. Proszę spróbować ponownie później.',
             receiptDeleteFailureError: 'Nieoczekiwany błąd podczas usuwania tego paragonu. Proszę spróbować ponownie później.',
-            receiptFailureMessage: 'Wystąpił błąd podczas przesyłania paragonu. Proszę',
+            receiptFailureMessage: '<rbr>Wystąpił błąd podczas przesyłania paragonu. Proszę <a href="download">zapisz paragon</a> i <a href="retry">spróbuj ponownie</a> później.</rbr>',
             receiptFailureMessageShort: 'Wystąpił błąd podczas przesyłania paragonu.',
-            tryAgainMessage: 'spróbuj ponownie',
-            saveFileMessage: 'zapisz paragon',
-            uploadLaterMessage: 'do przesłania później.',
             genericDeleteFailureMessage: 'Nieoczekiwany błąd podczas usuwania tego wydatku. Proszę spróbować ponownie później.',
             genericEditFailureMessage: 'Nieoczekiwany błąd podczas edytowania tego wydatku. Proszę spróbować ponownie później.',
             genericSmartscanFailureMessage: 'Transakcja ma brakujące pola',
@@ -1369,7 +1361,10 @@ const translations = {
         enableWallet: 'Włącz portfel',
         hold: 'Trzymaj',
         unhold: 'Usuń blokadę',
-        holdExpense: 'Wstrzymaj wydatek',
+        holdExpense: () => ({
+            one: 'Wstrzymaj wydatek',
+            other: 'Wstrzymaj wydatki',
+        }),
         unholdExpense: 'Odblokuj wydatek',
         heldExpense: 'zatrzymał ten wydatek',
         unheldExpense: 'odblokowano ten wydatek',
@@ -1380,7 +1375,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         newReport: 'Nowy raport',
-        explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+        explainHold: () => ({
+            one: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
+            other: 'Wyjaśnij, dlaczego wstrzymujesz te wydatki.',
+        }),
         retracted: 'wycofany',
         retract: 'Wycofać',
         reopened: 'ponownie otwarty',
@@ -2063,8 +2061,6 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj przepływ pracy od momentu wystąpienia wydatku, w tym zatwierdzenie i płatność.',
-        delaySubmissionTitle: 'Opóźnij zgłoszenia',
-        delaySubmissionDescription: 'Wybierz niestandardowy harmonogram składania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje wydatków w czasie rzeczywistym.',
         submissionFrequency: 'Częstotliwość składania wniosków',
         submissionFrequencyDescription: 'Wybierz częstotliwość przesyłania wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
@@ -4806,7 +4802,6 @@ ${amount} dla ${merchant} - ${date}`,
                 defaultCard: 'Domyślna karta',
                 downgradeTitle: `Nie można obniżyć poziomu workspace.`,
                 downgradeSubTitle: `Tego miejsca pracy nie można obniżyć, ponieważ jest połączonych wiele kanałów kart (z wyłączeniem kart Expensify). Proszę <a href="#">zachowaj tylko jeden kanał kart</a> aby kontynuować.`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Proszę dodać konto w ${connection} i ponownie zsynchronizować połączenie.`,
                 expensifyCardBannerTitle: 'Zdobądź kartę Expensify',
                 expensifyCardBannerSubtitle:
@@ -4933,6 +4928,7 @@ ${amount} dla ${merchant} - ${date}`,
             existingReportFieldNameError: 'Pole raportu o tej nazwie już istnieje',
             reportFieldNameRequiredError: 'Proszę wprowadzić nazwę pola raportu',
             reportFieldTypeRequiredError: 'Proszę wybrać typ pola raportu',
+            circularReferenceError: 'To pole nie może odnosić się do siebie samego. Proszę zaktualizować.',
             reportFieldInitialValueRequiredError: 'Proszę wybrać początkową wartość pola raportu',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji pola raportu. Proszę spróbować ponownie.',
         },
@@ -5490,8 +5486,8 @@ ${amount} dla ${merchant} - ${date}`,
             enableRate: 'Włącz stawkę',
             status: 'Status',
             unit: 'Jednostka',
-            taxFeatureNotEnabledMessage: 'Podatki muszą być włączone w przestrzeni roboczej, aby użyć tej funkcji. Przejdź do',
-            changePromptMessage: 'aby dokonać tej zmiany.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Podatki muszą być włączone w przestrzeni roboczej, aby użyć tej funkcji. Przejdź do <a href="#">Więcej funkcji</a>aby dokonać tej zmiany.</muted-text>',
             deleteDistanceRate: 'Usuń stawkę za odległość',
             areYouSureDelete: () => ({
                 one: 'Czy na pewno chcesz usunąć tę stawkę?',
@@ -6852,7 +6848,6 @@ ${amount} dla ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,
-        reportContainsExpensesWithViolations: 'Raport zawiera wydatki z naruszeniami.',
     },
     violationDismissal: {
         rter: {
@@ -7373,13 +7368,35 @@ ${amount} dla ${merchant} - ${date}`,
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
-    avatarPage: {title: 'Edytuj zdjęcie profilowe', upload: 'Prześlij', uploadPhoto: 'Prześlij zdjęcie', selectAvatar: 'Wybierz awatar', chooseCustomAvatar: 'Lub wybierz własny awatar'},
+    avatarPage: {title: 'Edytuj zdjęcie profilowe', upload: 'Prześlij', uploadPhoto: 'Prześlij zdjęcie', selectAvatar: 'Wybierz awatar', choosePresetAvatar: 'Lub wybierz własny awatar'},
     openAppFailureModal: {
         title: 'Coś poszło nie tak...',
         subtitle: `Nie udało nam się wczytać wszystkich Twoich danych. Zostaliśmy o tym powiadomieni i badamy problem. Jeśli problem będzie się utrzymywał, skontaktuj się z`,
         refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
     },
+    domain: {
+        notVerified: 'Niezweryfikowano',
+        retry: 'Spróbuj ponownie',
+        verifyDomain: {
+            title: 'Zweryfikuj domenę',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Zanim przejdziesz dalej, potwierdź, że jesteś właścicielem <strong>${domainName}</strong>, aktualizując jego ustawienia DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Uzyskaj dostęp do swojego dostawcy DNS i otwórz ustawienia DNS dla <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Dodaj następujący rekord TXT:',
+            saveChanges: 'Zapisz zmiany i wróć tutaj, aby zweryfikować swoją domenę.',
+            youMayNeedToConsult: `Może być konieczna konsultacja z działem IT Twojej organizacji, aby zakończyć weryfikację. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Dowiedz się więcej</a>.`,
+            warning: 'Po weryfikacji wszyscy członkowie Expensify w Twojej domenie otrzymają wiadomość e-mail z informacją, że ich konta będą zarządzane w ramach Twojej domeny.',
+            codeFetchError: 'Nie udało się pobrać kodu weryfikacyjnego',
+            genericError: 'Nie udało nam się zweryfikować Twojej domeny. Spróbuj ponownie i skontaktuj się z Concierge, jeśli problem będzie się utrzymywał.',
+        },
+        domainVerified: {
+            title: 'Domena zweryfikowana',
+            header: 'Hurra! Twoja domena została zweryfikowana',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Domena <strong>${domainName}</strong> została pomyślnie zweryfikowana i możesz teraz skonfigurować SAML oraz inne funkcje zabezpieczeń.</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

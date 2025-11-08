@@ -445,7 +445,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No results found matching "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -1324,11 +1324,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
-            receiptFailureMessage: 'There was an error uploading your receipt. Please ',
+            receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
-            tryAgainMessage: 'try again ',
-            saveFileMessage: ' save the receipt',
-            uploadLaterMessage: ' to upload later.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
@@ -1348,7 +1345,10 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         unhold: 'Remove hold',
-        holdExpense: 'Hold expense',
+        holdExpense: () => ({
+            one: 'Hold expense',
+            other: 'Hold expenses',
+        }),
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
@@ -1359,7 +1359,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         newReport: 'New report',
-        explainHold: "Explain why you're holding this expense.",
+        explainHold: () => ({
+            one: "Explain why you're holding this expense.",
+            other: "Explain why you're holding these expenses.",
+        }),
         retracted: 'retracted',
         retract: 'Retract',
         reopened: 'reopened',
@@ -1544,7 +1547,7 @@ const translations = {
         upload: 'Upload',
         uploadPhoto: 'Upload photo',
         selectAvatar: 'Select avatar',
-        chooseCustomAvatar: 'Or choose a custom avatar',
+        choosePresetAvatar: 'Or choose a custom avatar',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
@@ -4906,6 +4909,7 @@ const translations = {
             existingReportFieldNameError: 'A report field with this name already exists',
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
+            circularReferenceError: "This field can't refer to itself. Please update.",
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -5467,8 +5471,8 @@ const translations = {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
-            changePromptMessage: ' to make that change.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -6825,7 +6829,6 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
-        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -7340,6 +7343,27 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
+    domain: {
+        notVerified: 'Not verified',
+        retry: 'Retry',
+        verifyDomain: {
+            title: 'Verify domain',
+            beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Access your DNS provider and open DNS settings for <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Add the following TXT record:',
+            saveChanges: 'Save changes and return here to verify your domain.',
+            youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
+            warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+            codeFetchError: 'Couldn’t fetch verification code',
+            genericError: "We couldn't verify your domain. Please try again and reach out to Concierge if the problem persists.",
+        },
+        domainVerified: {
+            title: 'Domain verified',
+            header: 'Wooo! Your domain has been verified',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
+        },
     },
 };
 

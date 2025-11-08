@@ -639,7 +639,7 @@ function SearchFiltersBar({
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
-
+        // eslint-disable-next-line unicorn/prefer-set-has
         const exposedFiltersKeys = filters.flatMap((filter) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
             if (dateFilterKey) {
