@@ -226,12 +226,6 @@ type SearchTransaction = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
-
     /** The edited transaction amount */
     modifiedAmount: number;
 
