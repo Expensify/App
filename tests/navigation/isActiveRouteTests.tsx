@@ -10,25 +10,6 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
-afterEach(() => {
-    // Ensure mounted components are unmounted
-    cleanup();
-
-    // Clear timers and restore real timers (in case fake timers are used anywhere)
-    jest.clearAllTimers();
-    jest.useRealTimers();
-
-    // Reset any mocks used by this file
-    jest.restoreAllMocks();
-    jest.resetModules();
-
-    // Clear the navigation ref so listeners/hooks attached to it don't keep the worker alive.
-    // This is intentionally type-unsafe to forcibly drop the ref between tests.
-    if (navigationRef.current) {
-        navigationRef.current = null;
-    }
-});
-
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
@@ -39,6 +20,24 @@ const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof 
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
 describe('Navigation', () => {
+    afterEach(() => {
+        // Ensure mounted components are unmounted
+        cleanup();
+
+        // Clear timers and restore real timers (in case fake timers are used anywhere)
+        jest.clearAllTimers();
+        jest.useRealTimers();
+
+        // Reset any mocks used by this file
+        jest.restoreAllMocks();
+        jest.resetModules();
+
+        // Clear the navigation ref so listeners/hooks attached to it don't keep the worker alive.
+        // This is intentionally type-unsafe to forcibly drop the ref between tests.
+        if (navigationRef.current) {
+            navigationRef.current = null;
+        }
+    });
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
         mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
