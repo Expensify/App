@@ -64,6 +64,32 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
         Keyboard.dismiss();
     };
 
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+    useEffect(() => {
+        if (canUseTouchScreen()) {
+            return;
+        }
+
+        let lastClientX = 0;
+        let lastClientY = 0;
+        const handler = (event: MouseEvent) => {
+            // On Safari, scrolling can also trigger a mousemove event,
+            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
+            if (event.clientX === lastClientX && event.clientY === lastClientY) {
+                return;
+            }
+
+            lastClientX = event.clientX;
+            lastClientY = event.clientY;
+
+            setShouldDisableHoverStyle(false);
+        };
+        document.addEventListener('mousemove', handler, {passive: true});
+        return () => {
+            document.removeEventListener('mousemove', handler);
+        };
+    }, []);
+
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -74,6 +100,8 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
         />
     );
 }

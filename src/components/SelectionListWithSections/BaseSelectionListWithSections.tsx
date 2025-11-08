@@ -23,8 +23,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
@@ -145,6 +143,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -419,10 +419,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     }, []);
 
-    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
     const onArrowUpDownCallback = useCallback(() => {
         setShouldDisableHoverStyle(true);
-    }, []);
+    }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
@@ -642,37 +641,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    useEffect(() => {
-        if (canUseTouchScreen() || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-            return;
-        }
-
-        let lastClientX = 0;
-        let lastClientY = 0;
-        const handler = (event: MouseEvent) => {
-            // On Safari, scrolling can also trigger a mousemove event,
-            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
-            if (event.clientX === lastClientX && event.clientY === lastClientY) {
-                return;
-            }
-
-            lastClientX = event.clientX;
-            lastClientY = event.clientY;
-
-            setShouldDisableHoverStyle(false);
-        };
-        document.addEventListener('mousemove', handler, true);
-        return () => {
-            document.removeEventListener('mousemove', handler, true);
-        };
-    }, []);
-
     const setCurrentHoverIndex = useCallback(
-        (e: React.MouseEvent, hoverIndex: number | null) => {
+        (hoverIndex: number | null) => {
             if (shouldDisableHoverStyle) {
                 return;
             }
-            e.stopPropagation();
             currentHoverIndexRef.current = hoverIndex;
         },
         [currentHoverIndexRef, shouldDisableHoverStyle],
@@ -688,8 +661,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         return (
             <View
                 onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={(e) => setCurrentHoverIndex(e, normalizedIndex)}
-                onMouseLeave={(e) => setCurrentHoverIndex(e, null)}
+                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseLeave={(e) => {
+                    e.stopPropagation();
+                    setCurrentHoverIndex(null);
+                }}
             >
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
@@ -727,6 +704,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
+                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );

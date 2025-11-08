@@ -92,11 +92,7 @@ export default function useArrowKeyFocusManager({
         setFocusedIndex((actualIndexParam) => {
             const actualIndex = currentHoverIndexRef.current ?? actualIndexParam;
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
-            // If the hover index is different from the focused index, then focus the hover item; otherwise, focus the previous item.
             let newFocusedIndex = currentFocusedIndex;
-            if (currentHoverIndexRef.current !== null && currentHoverIndexRef.current !== actualIndexParam) {
-                newFocusedIndex = currentHoverIndexRef.current;
-            }
 
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex -= itemsPerRow ?? 1;
@@ -145,11 +141,7 @@ export default function useArrowKeyFocusManager({
                 return actualIndex;
             }
 
-            // If the hover index is different from the focused index, then focus the hover item; otherwise, focus the next item.
             let newFocusedIndex = currentFocusedIndex;
-            if (currentHoverIndexRef.current !== null && currentHoverIndexRef.current !== actualIndexParam) {
-                newFocusedIndex = currentHoverIndexRef.current;
-            }
             while (disabledIndexes.includes(newFocusedIndex)) {
                 if (actualIndex < 0) {
                     newFocusedIndex += 1;

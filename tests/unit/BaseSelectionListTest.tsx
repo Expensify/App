@@ -299,26 +299,26 @@ describe('BaseSelectionList', () => {
             arrowDownCallback();
         });
 
-        // The focused item will be the hovered item
+        // The item that gets focused will be the one following the hovered item
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`)).toHaveStyle({backgroundColor: colors.productDark300});
-        });
-
-        act(() => {
-            arrowDownCallback();
-            arrowDownCallback();
-        });
-
-        await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}12`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}11`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
 
         act(() => {
             arrowUpCallback();
+            arrowUpCallback();
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}11`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toHaveStyle({backgroundColor: colors.productDark300});
+        });
+
+        act(() => {
+            arrowDownCallback();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
     });
 });

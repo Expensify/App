@@ -45,6 +45,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldShowRightCaret = false,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation = true,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -56,8 +57,11 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
+        if (shouldStopMouseLeavePropagation) {
+            e.stopPropagation();
+        }
         setMouseUp();
     };
 
