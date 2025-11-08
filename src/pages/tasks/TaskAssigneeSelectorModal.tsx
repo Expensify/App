@@ -130,9 +130,10 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                isSelected: task?.assigneeAccountID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -215,6 +216,8 @@ function TaskAssigneeSelectorModal() {
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
+                        shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
