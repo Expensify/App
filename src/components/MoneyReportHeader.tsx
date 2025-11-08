@@ -808,7 +808,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
 
-                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions);
+                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
                         IOUActions.forEach(changeMoneyRequestHoldStatus);
