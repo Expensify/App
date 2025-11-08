@@ -1434,7 +1434,7 @@ function getReportSections(
 
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
-                const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(toDetails));
+                const formattedTo = shouldShowBlankTo ? '' : formatPhoneNumber(getDisplayNameOrDefault(toDetails));
                 const formattedStatus = getReportStatusTranslation(reportItem.stateNum, reportItem.statusNum);
 
                 reportIDToTransactions[reportKey] = {
