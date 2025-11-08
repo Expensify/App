@@ -121,12 +121,6 @@ type SearchReport = {
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
 
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
-
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
-
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 
@@ -144,9 +138,6 @@ type SearchReport = {
 
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
-
-    /** Whether the report is archived */
-    private_isArchived?: string;
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
@@ -297,9 +288,6 @@ type SearchTransaction = {
 
     /** The transaction sender ID */
     accountID: number;
-
-    /** The transaction recipient ID */
-    managerID: number;
 
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
