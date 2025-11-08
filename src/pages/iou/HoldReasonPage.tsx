@@ -42,7 +42,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, searchHash);
+        putOnHold(transactionID, values.comment, reportID);
         Navigation.goBack(backTo);
     };
 
