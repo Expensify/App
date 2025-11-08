@@ -543,7 +543,7 @@ function MoneyRequestReportActionsList({
             const originalReportID = getOriginalReportID(report.reportID, reportAction);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+            const matchingDraftMessageString = matchingDraftMessage?.message;
 
             return (
                 <ReportActionsListItemRenderer
