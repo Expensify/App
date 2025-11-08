@@ -306,10 +306,14 @@ function MoneyRequestView({
     // Check if we're within the 5-minute grace period for auto-categorization
     const pendingAutoCategorizationTime = transaction?.comment?.pendingAutoCategorizationTime;
     const isWithinAutoCategorizationGracePeriod = useMemo(() => {
-        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
-        const pendingTime = new Date(pendingAutoCategorizationTime?.replace(' ', 'T') + 'Z');
+        if (!pendingAutoCategorizationTime) {
+            return false;
+        }
 
-        if (isNaN(pendingTime.getTime())) {
+        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
+        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
+
+        if (Number.isNaN(pendingTime.getTime())) {
             return false;
         }
 
@@ -668,19 +672,10 @@ function MoneyRequestView({
     const shouldShowReport = !!parentReportID || !!actualParentReport;
     const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
 
-    // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
-
-    if (!report?.reportID || !transaction?.transactionID) {
-        return <ReportActionsSkeletonView />;
-    }
-
     // Show "Analyzing..." when transaction doesn't have a category AND within the 5-minute grace period
     const shouldShowCategoryAnalyzing = useMemo(() => {
-        const categoryValue = updatedTransaction?.category ?? transactionCategory;
-        const isUncategorized = !categoryValue || categoryValue === 'uncategorized' || categoryValue === 'Uncategorized';
+        const currentCategoryValue = updatedTransaction?.category ?? transactionCategory;
+        const isUncategorized = !currentCategoryValue || currentCategoryValue === 'uncategorized' || currentCategoryValue === 'Uncategorized';
 
         // Don't show analyzing text for partial transactions (merchant is empty and amount is zero)
         const isPartialTransaction = isEmptyMerchant && transactionAmount === 0;
@@ -691,6 +686,15 @@ function MoneyRequestView({
         // Show "Analyzing..." if transaction is uncategorized AND within the 5-minute grace period
         return isUncategorized && isWithinAutoCategorizationGracePeriod;
     }, [updatedTransaction?.category, transactionCategory, isEmptyMerchant, transactionAmount, isWithinAutoCategorizationGracePeriod]);
+
+    // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+
+    if (!report?.reportID || !transaction?.transactionID) {
+        return <ReportActionsSkeletonView />;
+    }
 
     return (
         <View style={styles.pRelative}>

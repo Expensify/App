@@ -100,7 +100,7 @@ type Comment = {
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
-pendingAutoCategorizationTime?: string;
+    pendingAutoCategorizationTime?: string;
 };
 
 /** Model of transaction custom unit */
