@@ -47,6 +47,7 @@ function useSelectedTransactionsActions({
     onExportOffline,
     policy,
     beginExportWithTemplate,
+    reportLevelActions,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -56,6 +57,7 @@ function useSelectedTransactionsActions({
     onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    reportLevelActions?: PopoverMenuItem[];
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -156,6 +158,24 @@ function useSelectedTransactionsActions({
             return [];
         }
         const options = [];
+
+        // When all expenses are selected, show report-level actions (Submit, Approve, Pay) first
+        const allExpensesSelected = selectedTransactionIDs.length === allTransactionsLength && allTransactionsLength > 0;
+        if (allExpensesSelected && reportLevelActions && reportLevelActions.length > 0) {
+            reportLevelActions.forEach((action, index) => {
+                const originalOnSelected = action.onSelected;
+                options.push({
+                    ...action,
+                    value: `report-action-${index}`,
+                    onSelected: () => {
+                        originalOnSelected?.();
+                        // Clear selections after executing the report-level action
+                        clearSelectedTransactions(true);
+                    },
+                });
+            });
+        }
+
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
@@ -327,6 +347,7 @@ function useSelectedTransactionsActions({
     }, [
         selectedTransactionIDs,
         report,
+        reportLevelActions,
         selectedTransactionsList,
         translate,
         isReportArchived,
