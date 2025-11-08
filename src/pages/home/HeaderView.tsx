@@ -21,7 +21,6 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
@@ -153,7 +152,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
-    const ancestors = useAncestors(parentReport);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -371,7 +369,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
