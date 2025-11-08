@@ -4675,47 +4675,36 @@ function isActionOrReportPreviewOwner(report: Report) {
     return actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && childOwnerAccountID === accountID;
 }
 
-function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
-    if (!isMoneyRequestAction(reportAction)) {
+function canHoldUnholdReportAction(
+    report: OnyxEntry<Report>,
+    reportAction: OnyxEntry<ReportAction>,
+    parentReportAction: OnyxEntry<ReportAction>,
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+): {canHoldRequest: boolean; canUnholdRequest: boolean} {
+    if (!report || !reportAction) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
-
-    if (!moneyRequestReportID || !moneyRequestReport) {
+    if (!isMoneyRequest(report) || !isMoneyRequestAction(reportAction)) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    if (isInvoiceReport(moneyRequestReport)) {
-        return {
-            canHoldRequest: false,
-            canUnholdRequest: false,
-        };
-    }
-
-    const isRequestSettled = isSettled(moneyRequestReport?.reportID);
-    const isApproved = isReportApproved({report: moneyRequestReport});
-    const transactionID = moneyRequestReport ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-
-    const parentReportAction = isThread(moneyRequestReport)
-        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`]?.[moneyRequestReport.parentReportActionID]
-        : undefined;
-
-    const isRequestIOU = isIOUReport(moneyRequestReport);
+    const isRequestSettled = isSettled(report);
+    const isApproved = isReportApproved({report});
+    const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID);
-
-    const isTrackExpenseMoneyReport = isTrackExpenseReport(moneyRequestReport);
-    const isActionOwner = isActionOrReportPreviewOwner(moneyRequestReport);
-    const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
-    const isAdmin = isPolicyAdmin(moneyRequestReport.policyID, allPolicies);
+    const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
+    const isActionOwner = isActionOrReportPreviewOwner(report);
+    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+    const isOwner = isPolicyOwner(policy, currentUserPersonalDetails?.accountID);
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isClosed = isClosedReport(moneyRequestReport);
+    const isClosed = isClosedReport(report);
+    const isSubmitted = isProcessingReport(report);
 
-    const isSubmitted = isProcessingReport(moneyRequestReport);
-    const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
-    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
+    const canModifyStatus = !isTrackExpenseMoneyReport && (isOwner || isAdmin || isActionOwner || isApprover);
+    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isOwner || isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
     const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
