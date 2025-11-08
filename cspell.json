@@ -574,6 +574,7 @@
         "Roni",
         "Rosiclair",
         "rpartition",
+        "RRGGBB",
         "rstrip",
         "RTER",
         "s3uqn2oe4m85tufi6mqflbfbuajrm2i3",
@@ -779,7 +780,8 @@
         "Selec",
         "setuptools",
         "DYNAMICEXTERNAL",
-        "RNCORE"
+        "RNCORE",
+        "Wooo"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
