@@ -135,6 +135,10 @@ function TaskAssigneeSelectorModal() {
         }));
     }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
 
+    const initiallyFocusedOptionKey = useMemo(() => {
+        return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    }, [sections]);
+
     const selectReport = useCallback(
         (option: ListItem) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -216,7 +220,7 @@ function TaskAssigneeSelectorModal() {
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
-                        initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
