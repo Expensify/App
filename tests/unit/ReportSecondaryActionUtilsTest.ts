@@ -146,14 +146,21 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const transaction = {
-            transactionID: 'TRANSACTION_ID',
+        const transaction1 = {
+            transactionID: 'TRANSACTION_ID_1',
             amount: 10,
             merchant: 'Merchant',
             date: '2025-01-01',
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        const transaction2 = {
+            transactionID: 'TRANSACTION_ID_2',
+            amount: -10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction1, transaction2], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
