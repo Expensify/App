@@ -13876,10 +13876,14 @@ function updateSplitTransactions({
                 }
             });
 
-            if (Object.keys(transactionChanges).length > 0 && !isReverseSplitOperation) {
+            if (isReverseSplitOperation) {
+                delete transactionChanges.amount;
+            }
+
+            if (Object.keys(transactionChanges).length > 0) {
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
-                    transactionThreadReportID,
+                    transactionThreadReportID: isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID,
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,
