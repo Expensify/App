@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {ComponentType, ReactNode} from 'react';
+import type {TText} from 'react-native-render-html';
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 
 // Mock Navigation to avoid actual navigation calls
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -15,34 +18,38 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 // Simplify react-native-render-html children renderer to just echo the provided data
 jest.mock('react-native-render-html', () => {
-    const React = require('react');
-    const {Text} = require('react-native');
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Text: TextComponent} = jest.requireActual<{Text: React.ComponentType}>('react-native');
     return {
-        TNodeChildrenRenderer: ({tnode}: {tnode?: {data?: string}}) => React.createElement(Text, null, tnode?.data ?? ''),
+        TNodeChildrenRenderer: ({tnode}: {tnode?: {data?: string}}) => ReactModule.createElement(TextComponent, null, tnode?.data ?? ''),
     };
 });
 
 // Provide current user details via HOC mock
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
-    return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) =>
-        function MockedWithCurrentUserPersonalDetails(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
+    const withCurrentUserPersonalDetailsMock = <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
+        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             return (
                 <Component
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={{
                         accountID: 1,
-                        login: 'samran@example.com',
-                        displayName: 'Samran',
+                        login: 'current@example.com',
+                        displayName: 'Current user',
                     }}
                 />
             );
-        };
+        }
+        return WrappedComponent;
+    };
+    return withCurrentUserPersonalDetailsMock;
 });
 
 jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual('@libs/PersonalDetailsUtils');
+    const actualModule = jest.requireActual<Record<string, unknown>>('@libs/PersonalDetailsUtils');
     return {
-        ...actual,
+        ...actualModule,
         getShortMentionIfFound: (mentionOrName: string, _accountID?: string, currentUser?: {login?: string}, login?: string) => {
             const target = login ?? mentionOrName;
             if (!target) {
@@ -63,12 +70,12 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 });
 
 // Mock Onyx hook used by the component to return configurable personal details
-let mockPersonalDetails: Record<string, any> = {};
+let mockPersonalDetails: Record<number, Partial<PersonalDetails>> = {};
 jest.mock('@hooks/useOnyx', () => {
-    const {default: ONYXKEYS} = require('../../src/ONYXKEYS');
+    const onyxModule = jest.requireActual<{default: {PERSONAL_DETAILS_LIST: string}}>('../../src/ONYXKEYS');
 
     return (key: string) => {
-        if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+        if (key === onyxModule.default.PERSONAL_DETAILS_LIST) {
             return [mockPersonalDetails];
         }
         return [undefined];
@@ -98,11 +105,15 @@ function withProvider(children: ReactNode) {
     );
 }
 
-function renderMention(props: {tnode: any; style?: object}) {
-    const MentionUserRendererTestHarness: any = MentionUserRenderer;
+function renderMention(props: {tnode: TText; style?: Record<string, unknown>}) {
+    const Component = MentionUserRenderer as unknown as ComponentType<{
+        tnode: TText;
+        TDefaultRenderer: () => null;
+        style: Record<string, unknown>;
+    }>;
     return render(
         withProvider(
-            <MentionUserRendererTestHarness
+            <Component
                 tnode={props.tnode}
                 TDefaultRenderer={() => null}
                 style={props.style ?? {}}
@@ -112,8 +123,9 @@ function renderMention(props: {tnode: any; style?: object}) {
 }
 
 // Helper to build a minimal tnode-like object used by the component
-function buildTNode({accountid, data}: {accountid?: string; data?: string}) {
-    return {attributes: {accountid}, data} as unknown as any;
+function buildTNode({accountID, data}: {accountID?: string; data?: string}): TText {
+    // cspell:disable-next-line
+    return {attributes: {accountid: accountID}, data} as unknown as TText;
 }
 
 describe('MentionUserRenderer', () => {
@@ -126,7 +138,7 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {
             101: {login: '+15005550006', displayName: 'John Doe'},
         };
-        const tnode = buildTNode({accountid: '101'});
+        const tnode = buildTNode({accountID: '101'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         expect(mention).toHaveTextContent('@+15005550006');
@@ -137,7 +149,7 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {
             102: {login: 'alex@other.com', displayName: 'Alex Johnson'},
         };
-        const tnode = buildTNode({accountid: '102'});
+        const tnode = buildTNode({accountID: '102'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         expect(mention).toHaveTextContent('@alex@other.com');
@@ -145,7 +157,7 @@ describe('MentionUserRenderer', () => {
 
     test('falls back to mention text when accountID not found in personal details', () => {
         mockPersonalDetails = {};
-        const tnode = buildTNode({accountid: '999', data: '@user@test.com'});
+        const tnode = buildTNode({accountID: '999', data: '@user@test.com'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         expect(mention).toHaveTextContent('@user@test.com');
@@ -183,7 +195,7 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {
             103: {login: 'john@example.com', displayName: 'John Doe'},
         };
-        const tnode = buildTNode({accountid: '103'});
+        const tnode = buildTNode({accountID: '103'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
@@ -196,18 +208,19 @@ describe('MentionUserRenderer', () => {
         const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
         expect(Navigation.navigate).toHaveBeenCalled();
-        const callArgs = (Navigation.navigate as jest.Mock).mock.calls[0][0];
-        expect(callArgs).toContain('login=user%40test.com');
+        const navigationMock = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
+        const firstCallArgs = navigationMock.mock.calls.at(0) as [string, ...unknown[]] | undefined;
+        expect(firstCallArgs?.[0]).toContain('login=user%40test.com');
     });
 
-    test('renders short form for self-mention (current user)', () => {
+    test('renders short form for self-mention (Current user)', () => {
         mockPersonalDetails = {
-            1: {login: 'samran@example.com', displayName: 'Samran'},
+            1: {login: 'current@example.com', displayName: 'Current user'},
         };
-        const tnode = buildTNode({accountid: '1'});
+        const tnode = buildTNode({accountID: '1'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@samran');
+        expect(mention).toHaveTextContent('@current');
         // Verify navigation to own profile works
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.PROFILE.getRoute(1));
@@ -217,7 +230,7 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {
             201: {login: '', displayName: 'Fallback Name'},
         };
-        const tnode = buildTNode({accountid: '201'});
+        const tnode = buildTNode({accountID: '201'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         // When login is empty, getShortMentionIfFound returns empty string
@@ -229,7 +242,7 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {
             202: {login: 'user@test.com', displayName: 'Test User'},
         };
-        const tnode = buildTNode({accountid: '202'});
+        const tnode = buildTNode({accountID: '202'});
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         expect(mention).toHaveTextContent('@user@test.com');
