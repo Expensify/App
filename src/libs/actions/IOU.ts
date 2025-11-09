@@ -8082,7 +8082,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 comment,
                 created,
                 merchant,
-                receipt: receipt ?? optimisticReceipt,
+                receipt: (receipt ?? !isManualDistanceRequest) ? optimisticReceipt : undefined,
                 category,
                 tag,
                 taxCode,
