@@ -598,6 +598,7 @@ function getLastMessageTextForReport({
     movedToReport,
     policy,
     isReportArchived = false,
+    policyForMovingExpensesID,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -605,6 +606,7 @@ function getLastMessageTextForReport({
     movedToReport?: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
+    policyForMovingExpensesID?: string;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -688,6 +690,7 @@ function getLastMessageTextForReport({
             policyID: report?.policyID,
             movedFromReport,
             movedToReport,
+            policyForMovingExpensesID,
         });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
@@ -1152,7 +1155,7 @@ function processReport(
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
 } {
-    if (!report) {
+    if (!report?.reportID) {
         return {reportOption: null};
     }
 
@@ -2643,7 +2646,9 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
         }
 
         // Remove duplicate values and check if the term matches any value
-        return uniqFast(values).some((value) => value.includes(term));
+        return uniqFast(values)
+            .map((val) => val.toLocaleLowerCase())
+            .some((value) => value.includes(term.toLocaleLowerCase()));
     });
 
     return isMatch ? report : undefined;

@@ -342,8 +342,13 @@ function MoneyRequestReportPreviewContent({
     );
 
     const reportStatus = useMemo(
-        () => getReportStatusTranslation(iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
-        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum],
+        () =>
+            getReportStatusTranslation({
+                stateNum: iouReport?.stateNum ?? action?.childStateNum,
+                statusNum: iouReport?.statusNum ?? action?.childStatusNum,
+                translate,
+            }),
+        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
 
     const reportStatusColorStyle = useMemo(

@@ -34,7 +34,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
-import {getAvatarUrl} from '@libs/UserUtils';
+import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -102,7 +102,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport
+        ? getLogoForWorkspace(report, policy)
+        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
