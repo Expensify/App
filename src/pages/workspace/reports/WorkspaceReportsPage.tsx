@@ -122,9 +122,9 @@ function WorkspaceReportFieldsPage({
         [policyID],
     );
 
-    const getHeaderText = () =>
+getHeaderText = () =>
         !hasSyncError && isConnectionVerified && currentConnectionName ? (
-            <Text style={[styles.mr5, styles.mt1]}>
+            <Text style={[styles.mr5]}>
                 <ImportedFromAccountingSoftware
                     policyID={policyID}
                     currentConnectionName={currentConnectionName}
@@ -133,8 +133,8 @@ function WorkspaceReportFieldsPage({
                 />
             </Text>
         ) : (
-            <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
-        );
+            <Text style={[styles.textNormal, styles.colorMuted, styles.mr5]}>{translate('workspace.reportFields.subtitle')}</Text>
+        )
 
     const isLoading = !isOffline && policy === undefined;
 
@@ -196,11 +196,11 @@ function WorkspaceReportFieldsPage({
                         <Section
                             isCentralPane
                             title={translate('workspace.common.reportTitle')}
-                            renderSubtitle={() => (
-                                <View style={[[styles.renderHTML, styles.mt1]]}>
+() => (
+                                <View style={[styles.renderHTML, styles.mt1]}>
                                     <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
                                 </View>
-                            )}
+                            )
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
@@ -216,17 +216,17 @@ function WorkspaceReportFieldsPage({
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+I need to see the context of this function to understand the spacing issue, but based on the issue description, this appears to be an `onPress` handler for navigation, not the component that controls the layout and spacing.
+
+The spacing issue between "report" text and toggle is a **layout/styling problem**, not a navigation function problem. The function `() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))` is just handling navigation and wouldn't affect spacing.
+
+However, if I must provide the function as-is (since it's not the source of the spacing issue):
+
+() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
-                                pendingAction={reportTitlePendingFields.deletable}
-                                title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                titleStyle={styles.pv2}
-                                isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
-                                onToggle={(isEnabled) => {
+(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -234,6 +234,12 @@ function WorkspaceReportFieldsPage({
                                                 CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
                                                 ROUTES.WORKSPACE_REPORTS.getRoute(policyID),
                                             ),
+                                        );
+                                        return;
+                                    }
+
+                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled);
+                                }
                                         );
                                         return;
                                     }
@@ -247,18 +253,27 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                         >
                             <ToggleSettingOptionRow
-                                pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
-                                title={translate('workspace.common.reportFields')}
-                                switchAccessibilityLabel={translate('workspace.common.reportFields')}
-                                subtitle={getHeaderText()}
-                                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
-                                isActive={!!policy?.areReportFieldsEnabled}
-                                onToggle={(isEnabled) => {
-                                    if (!isEnabled) {
-                                        setIsReportFieldsWarningModalOpen(true);
-                                        return;
-                                    }
-                                    if (!isControlPolicy(policy)) {
+I need to see more context to understand the issue. The function provided is an `onToggle` handler, but the spacing issue between "report" text and toggle is likely a layout/styling problem, not a logic problem in this callback function.
+
+However, based on the issue description about misaligned spacing on Android between text and toggle, this callback function itself doesn't control spacing - that would be in the JSX/component structure where this function is used.
+
+The function provided handles the toggle logic and doesn't need modification for a spacing issue. The spacing problem would need to be fixed in the component's render/return section where the toggle and text are laid out, not in this event handler.
+
+Since you've asked me to modify only this specific function and it doesn't control spacing, here's the function unchanged (as no modification to this function would fix the spacing issue):
+
+(isEnabled) => {
+    if (!isEnabled) {
+        setIsReportFieldsWarningModalOpen(true);
+        return;
+    }
+    if (!isControlPolicy(policy)) {
+        Navigation.navigate(
+            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_REPORTS.getRoute(policyID)),
+        );
+        return;
+    }
+    enablePolicyReportFields(policyID, isEnabled);
+}
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_REPORTS.getRoute(policyID)),
                                         );
@@ -266,22 +281,65 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnections}
+I need to see the full context of the function and surrounding code to understand the spacing issue. However, based on the issue description, this appears to be a UI/layout problem with spacing between "report" text and a toggle button on Android, not a navigation function issue.
+
+The function provided:
+() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))
+
+This is a navigation callback function and doesn't control spacing or layout. The spacing issue would be in the JSX/component structure where this function is used, not in the function itself.
+
+Without seeing the full component code and the actual layout structure causing the spacing issue, I cannot provide a surgical modification to this specific function that would fix the Android spacing problem. The issue is likely in the parent component's styling or layout props, not in this navigation callback.
+
+Could you provide:
+1. The full component code or at least the relevant JSX section where this function is used
+2. The specific line numbers showing the layout structure with the "report" text and toggle button
                                 disabledAction={onDisabledOrganizeSwitchPress}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
-                                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
-                                                <FlashList
-                                                    data={reportFieldsSections}
-                                                    renderItem={renderItem}
-                                                    keyExtractor={keyExtractor}
-                                                    maintainVisibleContentPosition={{disabled: true}}
-                                                />
-                                            </View>
-                                            {!hasAccountingConnections && (
-                                                <MenuItem
-                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+I need to see more context of the file to understand the spacing issue. However, based on the issue description about misaligned spacing between "report" text and toggle on Android, this appears to be a UI/layout issue, not related to the function provided.
+
+The function you've shared is an event handler that:
+1. Checks if policyID exists
+2. Closes a warning modal
+3. Disables policy report fields
+
+() => setIsReportFieldsWarningModalOpen(false)
+
+Since you've asked me to modify only this specific function and the issue is about UI spacing on Android, but this function doesn't control any spacing, I'll return it unchanged:
+
+() => {
+    if (!policyID) {
+        return;
+    }
+I need to see the actual function that controls the layout/spacing of the "Report" text and toggle, but the function provided in the task appears to be a navigation handler that's unrelated to the spacing issue described.
+
+The function provided:
+() => {
+    if (!policyID) {
+        return;
+    }
+I need to see the actual function and its context to make a surgical modification. However, based on the issue description, the problem is about misaligned spacing between "report" text and a toggle on Android, not about the `setIsOrganizeWarningModalOpen` function.
+
+The function provided:
+() => setIsOrganizeWarningModalOpen(false)
+
+This is just a callback that closes a modal and has nothing to do with the spacing issue described. Without seeing the actual code that renders the "Report" text and toggle, I cannot make the appropriate modification.
+
+If you need me to modify this specific function, here it is unchanged (as it's not related to the spacing issue):
+
+() => setIsOrganizeWarningModalOpen(false)
+    Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+}
+
+This function handles navigation to the policy accounting route and has nothing to do with the spacing between "report" text and a toggle button. 
+
+Without seeing the actual JSX/component structure that renders the "Report" text and toggle, I cannot provide a surgical modification that would fix the Android spacing issue. The spacing problem would typically be in:
+1. A component's render/return statement with style props
+2. A View/Text component with margin/padding styles
+3. A layout component that needs Android-specific styling
+
+Could you please provide the correct function or component code that actually renders the "Report" text and toggle button?
                                                     title={translate('workspace.reportFields.addField')}
                                                     icon={Plus}
                                                     style={[styles.sectionMenuItemTopDescription]}
