@@ -48,6 +48,7 @@ type IssueNewCardFlowData = {
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
@@ -407,15 +408,6 @@ function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAs
         currentStep: step,
         errors: null,
         isChangeAssigneeDisabled,
-    });
-}
-
-function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAccountID: number | undefined, policyID: string | undefined) {
-    if (!policyID) {
-        return;
-    }
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {
-        [assigneeEmail ?? '']: assigneeAccountID,
     });
 }
 
@@ -1068,7 +1060,6 @@ export {
     getCardDefaultName,
     queueExpensifyCardForBilling,
     clearIssueNewCardFormData,
-    setDraftInviteAccountID,
     resolveFraudAlert,
 };
 export type {ReplacementReason};

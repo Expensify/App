@@ -82,6 +82,7 @@ function IOURequestStepParticipants({
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -298,8 +299,10 @@ function IOURequestStepParticipants({
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
+            const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
+            setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
