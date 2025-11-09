@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import PercentageForm from '@components/PercentageForm';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -39,6 +40,11 @@ function SplitListItem<TItem extends ListItem>({
 
     const onSplitExpenseAmountChange = (amount: string) => {
         splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+    };
+
+    const onSplitExpensePercentageChange = (value: string) => {
+        const percentageNumber = Number(value || 0);
+        splitItem.onSplitExpensePercentageChange?.(splitItem.transactionID, Number.isNaN(percentageNumber) ? 0 : percentageNumber);
     };
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
@@ -137,7 +143,20 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {!splitItem.isEditable ? (
+                        {splitItem.mode === CONST.IOU.SPLIT_TYPE.PERCENTAGE ? (
+                            !splitItem.isEditable ? (
+                                <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>
+                            ) : (
+                                <PercentageForm
+                                    onInputChange={onSplitExpensePercentageChange}
+                                    value={String(splitItem.percentage ?? 0)}
+                                    containerStyles={styles.optionRowPercentInputContainer}
+                                    inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
+                                    onFocus={focusHandler}
+                                    onBlur={onInputBlur}
+                                />
+                            )
+                        ) : !splitItem.isEditable ? (
                             <View style={styles.cannotBeEditedSplitInputContainer}>
                                 <Text
                                     style={[styles.optionRowAmountInput, styles.pAbsolute]}

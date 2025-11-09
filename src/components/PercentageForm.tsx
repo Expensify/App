@@ -4,9 +4,9 @@ import useLocalize from '@hooks/useLocalize';
 import {replaceAllDigits, stripCommaFromAmount, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
-type PercentageFormProps = {
+type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
     value?: string;
 

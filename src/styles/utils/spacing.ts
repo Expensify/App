@@ -131,6 +131,10 @@ export default {
         marginRight: 0,
     },
 
+    mrHalf: {
+        marginRight: 2,
+    },
+
     mr1: {
         marginRight: 4,
     },

@@ -1500,6 +1500,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'ワークスペースを選択',
+        percent: 'パーセント',
     },
     transactionMerge: {
         listPage: {

@@ -16,6 +16,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -499,6 +500,15 @@ type SplitListItemType = ListItem &
 
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+
+        /** Current mode for the split editor: amount or percentage */
+        mode?: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
+
+        /** Percentage value to show when in percentage mode (0-100) */
+        percentage?: number;
+
+        /** Function for updating percentage */
+        onSplitExpensePercentageChange?: (currentItemTransactionID: string, percentage: number) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;

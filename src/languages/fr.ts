@@ -1506,6 +1506,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisissez un espace de travail',
+        percent: 'Pourcentage',
     },
     transactionMerge: {
         listPage: {

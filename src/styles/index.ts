@@ -1239,6 +1239,15 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+        },
+
         textInputLabelContainer: {
             position: 'absolute',
             left: 8,
