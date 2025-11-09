@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
+import {PRESET_AVATAR_CATALOG_ORDERED} from '@libs/Avatars/PresetAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -45,7 +45,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {CUSTOM_AVATAR_CATALOG.map(({id, local}) => {
+                {PRESET_AVATAR_CATALOG_ORDERED.map(({id, local}) => {
                     const isSelected = selectedID === id;
 
                     return (
