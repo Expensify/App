@@ -99,10 +99,9 @@ function TagPicker({
             });
         }
 
-        // eslint-disable-next-line unicorn/prefer-set-has
-        const selectedNames = selectedOptions.map((s) => s.name);
+        const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
     }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
     const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
