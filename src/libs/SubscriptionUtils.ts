@@ -86,29 +86,10 @@ Onyx.connect({
     },
 });
 
-let retryBillingFailed: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingFailed = value;
-    },
-    initWithStoredValues: false,
-});
-
 let lastDayFreeTrial: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
     callback: (value) => (lastDayFreeTrial = value),
-});
-
-let userBillingFundID: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_BILLING_FUND_ID,
-    callback: (value) => (userBillingFundID = value),
 });
 
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
@@ -227,7 +208,12 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null, firstDayFreeTrial: string | undefined): boolean {
+function shouldShowDiscountBanner(
+    hasTeam2025Pricing: boolean,
+    subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
+    firstDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
@@ -236,7 +222,7 @@ function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan:
         return false;
     }
 
-    if (doesUserHavePaymentCardAdded()) {
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
         return false;
     }
 
@@ -285,7 +271,7 @@ function getEarlyDiscountInfo(firstDayFreeTrial: string | undefined): DiscountIn
 /**
  * @returns Whether there is a retry billing error.
  */
-function hasRetryBillingError(): boolean {
+function hasRetryBillingError(retryBillingFailed: boolean | undefined): boolean {
     return !!retryBillingFailed;
 }
 
@@ -308,6 +294,7 @@ function getSubscriptionStatus(
     stripeCustomerId: OnyxEntry<StripeCustomerID>,
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
@@ -392,7 +379,7 @@ function getSubscriptionStatus(
     }
 
     // 11. Retry billing error
-    if (hasRetryBillingError()) {
+    if (hasRetryBillingError(retryBillingFailed)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
             isError: true,
@@ -405,15 +392,25 @@ function getSubscriptionStatus(
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError ?? false;
+function hasSubscriptionRedDotError(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError === false;
+function hasSubscriptionGreenDotInfo(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError === false;
 }
 
 /**
@@ -491,7 +488,7 @@ function hasUserFreeTrialEnded(): boolean {
 /**
  * Whether the user has a payment card added to its account.
  */
-function doesUserHavePaymentCardAdded(): boolean {
+function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): boolean {
     return userBillingFundID !== undefined;
 }
 
