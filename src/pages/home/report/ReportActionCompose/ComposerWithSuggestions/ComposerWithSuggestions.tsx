@@ -517,7 +517,7 @@ function ComposerWithSuggestions({
             return;
         }
 
-        textInputRef.current?.setSelection(suggestionPosition, suggestionPosition);
+        textInputRef.current?.setSelection?.(suggestionPosition, suggestionPosition);
     }, [suggestionPosition]);
 
     const onSuggestionSelected = useCallback((suggestion: TextSelection) => {
