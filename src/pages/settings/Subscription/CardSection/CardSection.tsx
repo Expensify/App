@@ -67,6 +67,7 @@ function CardSection() {
     );
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
@@ -86,6 +87,7 @@ function CardSection() {
             purchase: purchaseList?.[0],
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
+            retryBillingFailed: subscriptionRetryBillingStatusFailed,
         }),
     );
 
@@ -106,6 +108,7 @@ function CardSection() {
                 purchase: purchaseList?.[0],
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
+                retryBillingFailed: subscriptionRetryBillingStatusFailed,
             }),
         );
     }, [
@@ -139,7 +142,7 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial)) {
+    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, userBillingFundID)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
     } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
@@ -182,7 +185,7 @@ function CardSection() {
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
+                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName ?? '',

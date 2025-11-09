@@ -11,6 +11,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import {LOCALES} from './LOCALES';
 
@@ -427,8 +428,6 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
-    FREE_TRIAL_MARKDOWN:
-        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -700,11 +699,9 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
-        CUSTOM_AVATARS: 'customAvatars',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -1027,6 +1024,7 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1312,6 +1310,7 @@ const CONST = {
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
@@ -1644,6 +1643,8 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
+        CONTEXT_POLICIES: 'Policies',
+        TAG_ACTIVE_POLICY: 'active_policy_id',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3232,6 +3233,14 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AGE: 90,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_TAG_LIST: {
+            Tag: {
+                name: 'Tag',
+                orderWeight: 0,
+                required: false,
+                tags: {},
+            },
+        } as PolicyTagLists,
         REQUIRE_RECEIPTS_OVER_OPTIONS: {
             DEFAULT: 'default',
             NEVER: 'never',
@@ -3290,6 +3299,7 @@ const CONST = {
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
+        SMALL: 'small',
     },
 
     QR_CODE_SIZE: {
@@ -6564,6 +6574,7 @@ const CONST = {
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
+            SUBMIT: 'submit',
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
@@ -7055,6 +7066,14 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
+            auditor: {
+                id: 'auditor' as const,
+                alias: 'auditor',
+                name: 'Auditor',
+                title: 'workspace.upgrade.auditor.title' as const,
+                description: 'workspace.upgrade.auditor.description' as const,
+                icon: 'BlueShield',
+            },
             reports: {
                 id: 'reports' as const,
                 alias: 'reports',
@@ -7402,6 +7421,7 @@ const FRAUD_PROTECTION_EVENT = {
     VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
     BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
     PERSONAL_BANK_ACCOUNT_SETUP: 'PersonalBankAccountSetup',
+    NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

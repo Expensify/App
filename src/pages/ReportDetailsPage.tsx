@@ -41,7 +41,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -157,6 +156,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(report);
 
@@ -321,18 +321,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID);
+                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isRootGroupChat, report, isPolicyAdmin]);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-
-    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
+    const reportName = getReportName(report, undefined, undefined, undefined, undefined, reportAttributes);
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -645,7 +644,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 style={[styles.w100, styles.mb3]}
             />
         );
-    }, [isGroupChat, isThread, isChatRoom, icons, report, styles.avatarXLarge, styles.smallEditIconAccount, styles.mt6, styles.w100, styles.mb3, moneyRequestReport?.reportID]);
+    }, [
+        isChatRoom,
+        isThread,
+        isGroupChat,
+        icons,
+        report,
+        styles.avatarXLarge,
+        styles.smallEditIconAccount,
+        styles.mt6,
+        styles.w100,
+        styles.mb3,
+        policy,
+        participants,
+        moneyRequestReport?.reportID,
+    ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
 
@@ -704,14 +717,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 </>
             )}
             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
-                <View style={[styles.w100, styles.mt1]}>
-                    <ParentNavigationSubtitle
-                        parentNavigationSubtitleData={parentNavigationSubtitleData}
-                        parentReportID={report?.parentReportID}
-                        parentReportActionID={report?.parentReportActionID}
-                        pressableStyles={[styles.mw100]}
-                    />
-                </View>
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                    parentReportID={report?.parentReportID}
+                    parentReportActionID={report?.parentReportActionID}
+                    pressableStyles={[styles.mt1, styles.mw100]}
+                />
             )}
         </View>
     );
@@ -753,14 +764,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
 
     const nameSectionFurtherDetailsContent = (
-        <View style={[styles.w100, styles.mt1]}>
-            <ParentNavigationSubtitle
-                parentNavigationSubtitleData={parentNavigationSubtitleData}
-                parentReportID={report?.parentReportID}
-                parentReportActionID={report?.parentReportActionID}
-                pressableStyles={[styles.mw100]}
-            />
-        </View>
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
     );
 
     const nameSectionTitleField = !!titleField && (

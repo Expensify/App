@@ -277,8 +277,9 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
-    const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowBillable =
+        (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
@@ -414,11 +415,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                const firstViolation = violations.at(0);
-
-                if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                }
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit)).join('. ')}.`;
             }
 
             return '';
@@ -550,7 +547,7 @@ function MoneyRequestView({
 
     const getAttendeesTitle = useMemo(() => {
         return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [transactionAttendees]);
+    }, [actualAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');

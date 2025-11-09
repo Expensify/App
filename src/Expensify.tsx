@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -23,6 +24,7 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
@@ -186,6 +188,12 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.getSessionId().then((sessionId) => {
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
@@ -236,7 +244,7 @@ function Expensify() {
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
             if (url) {
-                Report.openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -245,7 +253,7 @@ function Expensify() {
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             const isCurrentlyAuthenticated = hasAuthToken();
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
