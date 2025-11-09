@@ -68,7 +68,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 pendingAction: mccGroup?.pendingAction,
             }),
         );
-    }, [policyData.policy.id, policyData.categories, policyData.tags, policyData.reports, policyData.transactionsAndViolations]);
+    }, [policyData.policy]);
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
