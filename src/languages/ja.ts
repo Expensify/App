@@ -1598,7 +1598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpText: '領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="receipts@expensify.com"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
+        helpText:
+            '領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="receipts@expensify.com"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
