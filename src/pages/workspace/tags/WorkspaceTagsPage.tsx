@@ -205,14 +205,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         (value: boolean, tagName: string) => {
             setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
-        [policyData.policy.id, policyData.tags],
+        [],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
             setPolicyTagsRequired(policyData, value, orderWeight);
         },
-        [policyData.policy.id, policyData.tags],
+        [],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {

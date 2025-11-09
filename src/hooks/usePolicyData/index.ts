@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -51,13 +51,27 @@ function usePolicyData(policyID?: string): PolicyData {
             return acc;
         }, {});
     }, [reports, allReportsTransactionsAndViolations]);
-    return {
+    
+    const policyData: PolicyData = useMemo(
+        () => ({
         transactionsAndViolations,
         tags: tags ?? {},
         categories: categories ?? {},
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
         reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
-    };
+    }),
+        [policy, tags, categories, reports, transactionsAndViolations],
+    );
+
+    // create a ref for stable callbacks
+    const policyDataRef = useRef(policyData);
+
+    useEffect(() => {
+        policyDataRef.current = policyData;
+    }, [policyData]);
+
+    return policyDataRef.current;
+        
 }
 
 export default usePolicyData;
