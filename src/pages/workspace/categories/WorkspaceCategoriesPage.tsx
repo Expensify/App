@@ -159,11 +159,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         },
         [
-            policyData.policy.id,
-            policyData.categories,
-            policyData.tags,
-            policyData.reports,
-            policyData.transactionsAndViolations,
+            policyData,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,

@@ -64,7 +64,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         (value: boolean) => {
             setPolicyRequiresTag(policyData, value);
         },
-        [policyData.policy.id, policyData.tags],
+        [policyData],
     );
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS;
 

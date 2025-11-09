@@ -115,7 +115,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         (value: boolean, tagName: string) => {
             setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight);
         },
-        [policyData.policy.id, policyData.tags, orderWeight],
+        [policyData, orderWeight],
     );
 
     const tagList = useMemo<TagListItem[]>(
