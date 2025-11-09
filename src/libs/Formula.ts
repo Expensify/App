@@ -319,11 +319,9 @@ function getExpensesCount(reportID: string, allTransactions?: Record<string, Tra
         return 0;
     }
 
-    let transactions: Transaction[];
+    let transactions: Transaction[] = [];
     if (allTransactions) {
         transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
-    } else {
-        transactions = getReportTransactions(reportID);
     }
 
     return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
