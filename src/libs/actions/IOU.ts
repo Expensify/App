@@ -10228,12 +10228,12 @@ function approveMoneyRequest(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
-        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        predictedNextStatus,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -10950,6 +10950,7 @@ function submitReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isUnapprove: true,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
