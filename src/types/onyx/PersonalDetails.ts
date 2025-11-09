@@ -1,5 +1,5 @@
 import type {TupleToUnion} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
 
