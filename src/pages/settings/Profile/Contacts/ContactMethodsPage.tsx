@@ -2,16 +2,15 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethodsOptions} from '@libs/UserUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -68,14 +66,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text>
-                        {translate('contacts.helpTextBeforeEmail')}
-                        <CopyTextToClipboard
-                            text={CONST.EMAIL.RECEIPTS}
-                            textStyles={[styles.textBlue]}
-                        />
-                        <Text>{translate('contacts.helpTextAfterEmail')}</Text>
-                    </Text>
+                    <RenderHTML html={translate('contacts.helpText')} />
                 </View>
                 {options.map(
                     (option) =>
