@@ -433,7 +433,7 @@ function Search({
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, prevIsOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
