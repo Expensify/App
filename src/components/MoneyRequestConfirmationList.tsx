@@ -946,6 +946,7 @@ function MoneyRequestConfirmationList({
             transactionID,
             iouType,
             policy,
+            policyTagLists,
             selectedParticipants,
             isEditingSplitBill,
             isMerchantRequired,
