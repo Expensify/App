@@ -6985,9 +6985,7 @@ ${amount} voor ${merchant} - ${date}`,
                 `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
             preTrial: {
                 title: 'Begin een gratis proefperiode',
-                subtitleStart: 'Als een volgende stap,',
-                subtitleLink: 'voltooi uw setupchecklist',
-                subtitleEnd: 'zodat je team kan beginnen met declareren.',
+                subtitle: 'Als een volgende stap, <a href="#">voltooi uw setupchecklist</a> zodat je team kan beginnen met declareren.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Proefversie: ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'} over!`,

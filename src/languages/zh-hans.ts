@@ -6829,9 +6829,7 @@ ${merchant}的${amount} - ${date}`,
                 `您对卡号以${cardEnding}结尾的卡上的${amountOwed}费用提出了异议。在与您的银行解决争议之前，您的账户将被锁定。`,
             preTrial: {
                 title: '开始免费试用',
-                subtitleStart: '作为下一步，',
-                subtitleLink: '完成您的设置清单',
-                subtitleEnd: '这样您的团队就可以开始报销了。',
+                subtitle: '作为下一步，<a href="#">完成您的设置清单</a>这样您的团队就可以开始报销了。',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `试用期：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天！`,

@@ -6985,9 +6985,7 @@ ${amount} para ${merchant} - ${date}`,
                 `Você contestou a cobrança de ${amountOwed} no cartão com final ${cardEnding}. Sua conta será bloqueada até que a disputa seja resolvida com seu banco.`,
             preTrial: {
                 title: 'Inicie uma avaliação gratuita',
-                subtitleStart: 'Como próximo passo,',
-                subtitleLink: 'complete sua lista de verificação de configuração',
-                subtitleEnd: 'para que sua equipe possa começar a registrar despesas.',
+                subtitle: 'Como próximo passo, <a href="#">complete sua lista de verificação de configuração</a> para que sua equipe possa começar a registrar despesas.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Teste: ${numOfDays} ${numOfDays === 1 ? 'dia' : 'dias'} restantes!`,

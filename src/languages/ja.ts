@@ -6933,9 +6933,7 @@ ${date} - ${merchant}に${amount}`,
                 `あなたは、${cardEnding}で終わるカードの${amountOwed}の請求を異議申し立てしました。異議が銀行で解決されるまで、あなたのアカウントはロックされます。`,
             preTrial: {
                 title: '無料トライアルを開始',
-                subtitleStart: '次のステップとして、',
-                subtitleLink: 'セットアップチェックリストを完了する',
-                subtitleEnd: 'あなたのチームが経費精算を始められるように。',
+                subtitle: '次のステップとして、<a href="#">セットアップチェックリストを完了する</a>あなたのチームが経費精算を始められるように。',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日残り！`,

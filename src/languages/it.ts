@@ -7006,9 +7006,7 @@ ${amount} per ${merchant} - ${date}`,
                 `Hai contestato l'addebito di ${amountOwed} sulla carta che termina con ${cardEnding}. Il tuo account sarà bloccato fino a quando la disputa non sarà risolta con la tua banca.`,
             preTrial: {
                 title: 'Inizia una prova gratuita',
-                subtitleStart: 'Come passo successivo,',
-                subtitleLink: 'completa la tua lista di controllo per la configurazione',
-                subtitleEnd: 'così il tuo team può iniziare a registrare le spese.',
+                subtitle: 'Come passo successivo, <a href="#">completa la tua lista di controllo per la configurazione</a> così il tuo team può iniziare a registrare le spese.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Prova: ${numOfDays} ${numOfDays === 1 ? 'giorno' : 'giorni'} rimasti!`,
