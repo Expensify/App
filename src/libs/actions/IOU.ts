@@ -7987,10 +7987,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
-    const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric as ReceiptSource,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
-    };
+    const optimisticReceipt: Receipt | undefined = !isManualDistanceRequest
+        ? {
+              source: ReceiptGeneric as ReceiptSource,
+              state: CONST.IOU.RECEIPT_STATE.OPEN,
+          }
+        : receipt;
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
@@ -8082,7 +8084,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 comment,
                 created,
                 merchant,
-                receipt: (receipt ?? !isManualDistanceRequest) ? optimisticReceipt : undefined,
+                receipt: optimisticReceipt,
                 category,
                 tag,
                 taxCode,
