@@ -15,12 +15,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardNameStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME>;
 
@@ -30,9 +31,10 @@ function CardNameStep({route}: CardNameStepProps) {
     const styles = useThemeStyles();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const policyID = route.params?.policyID;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const data = assignCard?.data;
 
-    useAssignCardStepNavigation(policyID, undefined, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed, route.params?.backTo);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({

@@ -24,7 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +74,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         ),
     }));
 
-    useAssignCardStepNavigation(policyID, feed, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed, route.params?.backTo);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

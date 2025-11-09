@@ -24,18 +24,16 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SCREENS from '@src/SCREENS';
-import { Route } from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PlaidLinkProps = {
     onExit?: () => void;
-}
+};
 
 type PlaidConnectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION> & PlaidLinkProps;
 
-function PlaidConnectionStep({route,onExit}: PlaidConnectionStepProps) {
+function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});

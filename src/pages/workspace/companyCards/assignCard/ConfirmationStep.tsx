@@ -14,8 +14,11 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,10 +27,6 @@ import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
-import { useAssignCardStepNavigation } from "@pages/workspace/companyCards/utils";
-
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
@@ -51,7 +50,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((_route) => isFullScreenName(_route.name)));
 
-    useAssignCardStepNavigation(policyID, feed, backTo);
+    useAssignCardNavigation(policyID, feed, backTo);
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {

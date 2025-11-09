@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -22,7 +23,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
-import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,8 +60,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
     };
+    Log.hmmm(`AssignCard Data Step Data: ${JSON.stringify(assignCard?.data)}`);
 
-    useAssignCardStepNavigation(policyID, feed, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed, route.params?.backTo);
 
     const submit = () => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;

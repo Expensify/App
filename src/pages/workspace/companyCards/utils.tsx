@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,13 +14,13 @@ import type {Card, CompanyCardFeed, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type AssignCardRoute =
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME
-    | typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION;
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute>;
 
 type ExportIntegration = {
     title?: string;
@@ -371,13 +372,15 @@ function getExportMenuItem(
     }
 }
 
-function useAssignCardStepNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined ) {
+function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined, isStartStep: boolean = false) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
     const previousStepRef = useRef(currentStep);
+    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
 
     useEffect(() => {
-        if (currentStep === previousStepRef.current) {
+        if (currentStep === previousStepRef.current && !isStartStep) {
             return;
         }
 
@@ -388,22 +391,25 @@ function useAssignCardStepNavigation(policyID: string | undefined, feed: Company
         }
 
         const stepRoutes: Record<string, AssignCardRoute> = {
-            [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
-            [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION,
-            [CONST.COMPANY_CARD.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION,
-            [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT,
-            [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP,
-            [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME,
-            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION,
+            [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
+                policyID,
+                feed,
+                ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, feed),
+            ),
+            [CONST.COMPANY_CARD.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed, shouldUseBackToParam ? backTo : ''),
         };
-
 
         const targetRoute: AssignCardRoute = stepRoutes[currentStep];
         if (targetRoute) {
-            Navigation.navigate(targetRoute.getRoute(policyID, feed, backTo ?? ''));
+            Navigation.navigate(targetRoute);
         }
     }, [currentStep, policyID, feed, backTo]);
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem, useAssignCardStepNavigation};
+export {getExportMenuItem, useAssignCardNavigation};

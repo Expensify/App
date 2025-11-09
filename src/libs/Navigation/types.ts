@@ -1191,6 +1191,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME]: {
         policyID: string;
+        feed: CompanyCardFeed;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {

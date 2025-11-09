@@ -13,12 +13,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {useAssignCardStepNavigation} from '@pages/workspace/companyCards/utils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import type SCREENS from '@src/SCREENS';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+
 type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
 
 function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
@@ -34,7 +35,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const [errorText, setErrorText] = useState('');
     const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
-    useAssignCardStepNavigation(policyID, feed, backTo);
+    useAssignCardNavigation(policyID, feed, backTo);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
