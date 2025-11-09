@@ -43,6 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useAncestors from '@hooks/useAncestors';
 
 type ReportFooterProps = {
     /** Report object for the current report */
@@ -175,6 +176,9 @@ function ReportFooter({
         [allPersonalDetails, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`);
+    const targetReportAncestors = useAncestors(targetReport);
+
     const onSubmitComment = useCallback(
         (text: string) => {
             const isTaskCreated = handleCreateTask(text);
@@ -184,7 +188,7 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask, transactionThreadReportID],

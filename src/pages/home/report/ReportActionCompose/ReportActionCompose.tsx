@@ -72,6 +72,7 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
+import useAncestors from '@hooks/useAncestors';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -148,6 +149,11 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
+        canBeMissing: true,
+    });
+
+    const ancestors = useAncestors(transactionThreadReport ?? report);
     /**
      * Updates the Highlight state of the composer
      */
@@ -309,7 +315,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -317,7 +323,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID, ancestors],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

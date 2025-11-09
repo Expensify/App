@@ -38,6 +38,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
+import useAncestors from '@hooks/useAncestors';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -51,6 +52,7 @@ function ShareDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
+    
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const personalDetail = useCurrentUserPersonalDetails();
@@ -61,6 +63,7 @@ function ShareDetailsPage({
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const ancestors  = useAncestors(report);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
@@ -99,14 +102,13 @@ function ShareDetailsPage({
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
-
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -128,7 +130,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
