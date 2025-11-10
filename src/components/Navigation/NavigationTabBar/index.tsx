@@ -44,7 +44,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Domain, Policy} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -104,6 +104,26 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         {
             canBeMissing: true,
             selector: lastViewedPolicySelector,
+        },
+        [navigationState],
+    );
+
+    const lastViewedDomainSelector = useCallback(
+        (domains: OnyxCollection<Domain>) => {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR || !paramsDomainAccountID) {
+                return undefined;
+            }
+
+            return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${paramsDomainAccountID}`];
+        },
+        [paramsDomainAccountID, lastWorkspacesTabNavigatorRoute],
+    );
+
+    const [lastViewedDomain] = useOnyx(
+        ONYXKEYS.COLLECTION.DOMAIN,
+        {
+            canBeMissing: true,
+            selector: lastViewedDomainSelector,
         },
         [navigationState],
     );
@@ -194,8 +214,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domainAccountID: paramsDomainAccountID});
-    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, paramsDomainAccountID]);
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
     if (!shouldUseNarrowLayout) {
         return (
