@@ -14,6 +14,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {getNvpDismissedProductTraining} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -34,6 +35,8 @@ const reports = createCollection<Report>(
     }),
     REPORTS_COUNT,
 );
+
+const nvpDismissedProductTraining = getNvpDismissedProductTraining();
 
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
@@ -107,20 +110,20 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}}));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining}));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
         });
@@ -130,31 +133,27 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions(
-                {reports: options.reports, personalDetails: options.personalDetails},
-                {},
-                {
-                    betas: mockedBetas,
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins: {},
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: '',
-                    includeUserToInvite: false,
-                },
-            ),
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, {
+                betas: mockedBetas,
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            }),
         );
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
