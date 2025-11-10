@@ -43,7 +43,7 @@ type ValidateCodeFormProps = {
     autoComplete?: AutoCompleteVariant;
 
     /** Forwarded inner ref */
-    innerRef?: ForwardedRef<ValidateCodeFormHandle>;
+    ref?: ForwardedRef<ValidateCodeFormHandle>;
 
     hasMagicCodeBeenSent?: boolean;
 
@@ -92,7 +92,7 @@ type ValidateCodeFormProps = {
 
 function BaseValidateCodeForm({
     autoComplete = 'one-time-code',
-    innerRef = () => {},
+    ref = () => {},
     hasMagicCodeBeenSent,
     validateCodeActionErrorField,
     validatePendingAction,
@@ -140,7 +140,7 @@ function BaseValidateCodeForm({
         clearValidateCodeActionError('actionVerified');
     }, [defaultValidateCodeError]);
 
-    useImperativeHandle(innerRef, () => ({
+    useImperativeHandle(ref, () => ({
         focus() {
             inputValidateCodeRef.current?.focus();
         },
