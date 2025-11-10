@@ -4757,18 +4757,20 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         ) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
-            const hasViolations = hasViolationsReportUtils(iouReport?.reportID, allTransactionViolations);
+            const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
+            const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
                 value: buildNextStep({
-                    report: updatedMoneyRequestReport ?? iouReport ?? undefined,
+                    report: moneyRequestReport,
                     predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
                     shouldFixViolations,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
+                    policy,
                 }),
             });
             failureData.push({
