@@ -69,16 +69,22 @@ function CheckboxWithLabel(
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
     const [isChecked, setIsChecked] = useState(() => [value, defaultValue, isCheckedProp].find((item) => typeof item === 'boolean'));
 
+    const isActuallyChecked = value !== undefined && typeof value === 'boolean' ? value : isChecked;
+
     const toggleCheckbox = () => {
-        onInputChange(!isChecked);
-        setIsChecked(!isChecked);
+        const newValue = !isActuallyChecked;
+        onInputChange(newValue);
+        // Only update internal state if not controlled by value prop
+        if (value === undefined) {
+            setIsChecked(newValue);
+        }
     };
 
     return (
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
                 <Checkbox
-                    isChecked={isChecked}
+                    isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={!!errorText}
