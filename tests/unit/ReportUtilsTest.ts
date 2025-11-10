@@ -8,6 +8,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -3611,6 +3612,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
@@ -4400,6 +4402,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -4430,6 +4433,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -8500,6 +8504,27 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID);
             expect(result).toEqual(mockOnyxReport);
+        });
+    });
+
+    describe('buildOptimisticExpenseReport', () => {
+        beforeEach(Onyx.clear);
+
+        it('should include the policy name in report name from report draft', async () => {
+            const chatReportID = '1';
+            const policyID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
 

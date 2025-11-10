@@ -285,7 +285,7 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
-        const policyRequiresTags = !!policy.requiresTag;
+        const policyRequiresTags = !!policy.requiresTag && !isSelfDM;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
