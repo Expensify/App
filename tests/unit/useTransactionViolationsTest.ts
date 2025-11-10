@@ -7,14 +7,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Mock the required modules
 jest.mock('@libs/TransactionUtils', () => {
-    const CONST = jest.requireActual('@src/CONST').default;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const CONST_MOCK = jest.requireActual('@src/CONST').default as typeof import('@src/CONST').default;
     return {
         isViolationDismissed: jest.fn(),
         shouldShowViolation: jest.fn(),
         mergeProhibitedViolations: (transactionViolations: Array<{name: string; type: string; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
-            const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+            const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE);
 
             if (prohibitedViolations.length === 0) {
                 return transactionViolations;
@@ -22,19 +22,21 @@ jest.mock('@libs/TransactionUtils', () => {
 
             const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
                 const rule = violation.data?.prohibitedExpenseRule;
-                if (!rule) return [];
+                if (!rule) {
+                    return [];
+                }
                 return Array.isArray(rule) ? rule : [rule];
             });
 
             const mergedProhibitedViolations = {
-                name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                name: CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE,
                 data: {
                     prohibitedExpenseRule: prohibitedExpenses,
                 },
-                type: CONST.VIOLATION_TYPES.VIOLATION,
+                type: CONST_MOCK.VIOLATION_TYPES.VIOLATION,
             };
 
-            return [...transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+            return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
         },
     };
 });
