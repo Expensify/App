@@ -105,10 +105,14 @@ function TagPicker({
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
-    const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
-    const isTagsCountBelowThreshold = availableTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+    const availableTagsCount = useMemo(() => {
+        if (Array.isArray(enabledTags)) {
+            return enabledTags.filter((tag) => tag.enabled).length;
+        }
 
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
+        return Object.values(enabledTags ?? {}).filter((tag) => tag.enabled).length;
+    }, [enabledTags]);
+    const shouldShowTextInput = availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const sections = useMemo(() => {
         const tagSections = getTagListSections({
