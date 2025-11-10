@@ -7434,7 +7434,11 @@ describe('actions/IOU', () => {
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 policyID,
+                currency: CONST.CURRENCY.USD,
             });
+
+            await waitForBatchedUpdates();
+
             createNewReport(creatorPersonalDetails, true, false, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
