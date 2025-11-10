@@ -26,7 +26,6 @@ import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {close} from '@libs/actions/Modal';
@@ -503,11 +502,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             DefaultAvatar={DefaultAvatar}
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                            style={[
-                                (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
-                                styles.alignItemsStart,
-                                styles.sectionMenuItemTopDescription,
-                            ]}
+                            style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                             editIconStyle={styles.smallEditIconWorkspace}
                             isUsingDefaultAvatar={!policy?.avatarURL}
                             onImageSelected={(file) => {
