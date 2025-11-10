@@ -1065,6 +1065,7 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with no search value
             const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining);
+            // eslint-disable-next-line unicorn/prefer-set-has
             const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
 

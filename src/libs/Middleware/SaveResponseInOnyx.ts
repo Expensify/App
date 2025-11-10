@@ -5,6 +5,7 @@ import type Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of
 // date because all these requests are updating the app to the most current state.
+// eslint-disable-next-line unicorn/prefer-set-has
 const requestsToIgnoreLastUpdateID: string[] = [
     WRITE_COMMANDS.OPEN_APP,
     SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
