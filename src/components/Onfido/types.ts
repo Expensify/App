@@ -1,8 +1,8 @@
 import type {OnfidoResult} from '@onfido/react-native-sdk';
 import type {Handle} from 'onfido-sdk-ui/types/Onfido';
 import type {CompleteData} from 'onfido-sdk-ui/types/shared/SdkParameters';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ForwardedRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type OnfidoData = CompleteData | OnfidoResult;
 

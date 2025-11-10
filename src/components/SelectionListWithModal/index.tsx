@@ -20,19 +20,17 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
     ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function SelectionListWithModal<TItem extends ListItem>(
-    {
-        turnOnSelectionModeOnLongPress,
-        onTurnOnSelectionMode,
-        onLongPressRow,
-        isScreenFocused = false,
-        sections,
-        isSelected,
-        selectedItems: selectedItemsProp,
-        ref,
-        ...rest
-    }: SelectionListWithModalProps<TItem>,
-) {
+function SelectionListWithModal<TItem extends ListItem>({
+    turnOnSelectionModeOnLongPress,
+    onTurnOnSelectionMode,
+    onLongPressRow,
+    isScreenFocused = false,
+    sections,
+    isSelected,
+    selectedItems: selectedItemsProp,
+    ref,
+    ...rest
+}: SelectionListWithModalProps<TItem>) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();

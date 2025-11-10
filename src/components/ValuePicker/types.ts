@@ -1,6 +1,6 @@
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
-import type { ForwardedRef } from 'react';
-import type { View } from 'react-native';
 
 type ValuePickerListItem = ListItem & {
     value?: string;

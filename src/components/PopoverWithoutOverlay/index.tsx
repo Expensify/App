@@ -13,21 +13,19 @@ import type PopoverWithoutOverlayProps from './types';
 
 const NOOP = () => {};
 
-function PopoverWithoutOverlay(
-    {
-        anchorPosition = {},
-        anchorRef,
-        withoutOverlayRef,
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        isVisible,
-        onClose,
-        onModalHide = () => {},
-        children,
-        ref,
-    }: PopoverWithoutOverlayProps,
-) {
+function PopoverWithoutOverlay({
+    anchorPosition = {},
+    anchorRef,
+    withoutOverlayRef,
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    isVisible,
+    onClose,
+    onModalHide = () => {},
+    children,
+    ref,
+}: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {onOpen, close} = useContext(PopoverContext);

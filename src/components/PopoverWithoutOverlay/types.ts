@@ -1,4 +1,4 @@
-import type {RefObject, ForwardedRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
 import type BaseModalProps from '@components/Modal/types';

@@ -1,7 +1,7 @@
-import type {MenuItemBaseProps} from '@components/MenuItem';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
+import type {MenuItemBaseProps} from '@components/MenuItem';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 

@@ -7,9 +7,7 @@ import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
-function ValuePicker(
-    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, ref}: ValuePickerProps,
-) {
+function ValuePicker({value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, ref}: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {

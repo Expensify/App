@@ -45,9 +45,16 @@ type EmojiReactionBubbleProps = {
     ref?: PressableRef;
 };
 
-function EmojiReactionBubble(
-    {onPress, onReactionListOpen = () => {}, emojiCodes, hasUserReacted = false, count = 0, isContextMenu = false, shouldBlockReactions = false, ref}: EmojiReactionBubbleProps,
-) {
+function EmojiReactionBubble({
+    onPress,
+    onReactionListOpen = () => {},
+    emojiCodes,
+    hasUserReacted = false,
+    count = 0,
+    isContextMenu = false,
+    shouldBlockReactions = false,
+    ref,
+}: EmojiReactionBubbleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

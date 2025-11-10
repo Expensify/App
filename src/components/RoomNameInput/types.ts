@@ -1,6 +1,6 @@
-import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
-import type { ForwardedRef } from 'react';
+import type {ForwardedRef} from 'react';
 import type {BlurEvent, ReturnKeyTypeOptions, TextInputSubmitEditingEvent} from 'react-native';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 type RoomNameInputProps = {
     value?: string;
