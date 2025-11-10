@@ -420,7 +420,7 @@ function Search({
             reportMetadata,
         });
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email]);
+    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, reportMetadata]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */

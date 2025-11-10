@@ -1406,7 +1406,7 @@ function getReportSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    reportMetadata: OnyxTypes.ReportMetadata | undefined = undefined,
+    reportMetadata: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined;
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1670,7 +1670,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportActions, reportMetadata);
     }
 
     if (groupBy) {

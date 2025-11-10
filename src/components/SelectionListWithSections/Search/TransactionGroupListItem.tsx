@@ -115,7 +115,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email]);
+    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email, reportMetadata]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {

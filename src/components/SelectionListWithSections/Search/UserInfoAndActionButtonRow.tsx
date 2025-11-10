@@ -67,7 +67,7 @@ function UserInfoAndActionButtonRow({
                     action={item.action}
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
-                    isLoading={item.isActionLoading ?? reportMetadata.isActionLoading}
+                    isLoading={item.isActionLoading ?? reportMetadata?.isActionLoading}
                     policyID={item.policyID}
                     reportID={item.reportID}
                     hash={item.hash}
