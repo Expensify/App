@@ -49,6 +49,7 @@ import {
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
@@ -150,7 +151,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -3655,27 +3656,27 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -3689,7 +3690,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
@@ -3701,7 +3702,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
@@ -3713,7 +3714,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
@@ -3725,7 +3726,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show participant names if report name is not available', async () => {
@@ -3737,7 +3738,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });
@@ -8852,6 +8853,75 @@ describe('ReportUtils', () => {
             };
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
+        });
+    });
+
+    describe('getDisplayNameForParticipant', () => {
+        it('should return the display name for a participant', async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            waitForBatchedUpdates();
+
+            const policyExpenseChat: Report = {
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const lastReportPreviewAction = {
+                action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-07-10',
+                childReportID: '5186125925096828',
+                created: '2025-07-10 17:45:31.448',
+                reportActionID: '7425617950691586420',
+                shouldShow: true,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'a owes ETB 5.00',
+                        text: 'a owes ETB 5.00',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                        reactions: [],
+                    },
+                ],
+                originalMessage: {
+                    linkedReportID: '5186125925096828',
+                    actionableForAccountIDs: [20232605],
+                    isNewDot: true,
+                    lastModified: '2025-07-10 17:45:53.635',
+                },
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f100',
+                    },
+                ],
+                parentReportID: policyExpenseChat.reportID,
+            };
+
+            const iouReport = {
+                reportName: 'Expense Report 2025-07-10',
+                reportID: '5186125925096828',
+                policyID: policy.id,
+                type: 'expense',
+                currency: 'ETB',
+                ownerAccountID: 1,
+                total: -500,
+                nonReimbursableTotal: 0,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: lastReportPreviewAction.reportActionID,
+                chatReportID: policyExpenseChat.reportID,
+            } as Report;
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
+            expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
     });
 });
