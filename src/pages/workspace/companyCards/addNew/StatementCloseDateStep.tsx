@@ -5,23 +5,27 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
-type StatementCloseDateStepProps = {
-    /** ID of the current policy */
-    policyID: string | undefined;
-};
+type StatementCloseDateStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE>;
 
-function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
+function StatementCloseDateStep({route}: StatementCloseDateStepProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const policyID = route.params?.policyID;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
 
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!addNewCard?.data?.publicToken;
 

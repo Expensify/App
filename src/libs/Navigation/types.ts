@@ -1202,6 +1202,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: {
         policyID: string;
         feed: CompanyCardFeed;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
@@ -2261,6 +2262,46 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_BANK]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_TYPE]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_NAME]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_DETAILS]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE]: {
+        policyID: string;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {

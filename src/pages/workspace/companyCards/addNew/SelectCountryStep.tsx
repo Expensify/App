@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -13,12 +12,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -27,15 +27,15 @@ import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type CountryStepProps = {
-    policyID?: string;
-};
+type CountryStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY>;
 
-function SelectCountryStep({policyID}: CountryStepProps) {
+function SelectCountryStep({route}: CountryStepProps) {
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
+    const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});

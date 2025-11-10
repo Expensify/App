@@ -13,14 +13,23 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
-function SelectFeedType() {
+type SelectFeedTypeProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE>;
+
+function SelectFeedType({route}: SelectFeedTypeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const policyID = route.params?.policyID;
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();

@@ -11,14 +11,23 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
-function AmexCustomFeed() {
+type AmexCustomFeedProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED>;
+
+function AmexCustomFeed({route}: AmexCustomFeedProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const policyID = route.params?.policyID;
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
     const [hasError, setHasError] = useState(false);
 

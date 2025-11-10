@@ -1,10 +1,9 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -12,7 +11,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {useAssignCardNavigation} from '../utils';
@@ -31,17 +29,23 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         };
     }, []);
 
+    useAssignCardNavigation(policyID, feed, backTo, true);
+
     if (!isActingAsDelegate) {
-        useAssignCardNavigation(policyID, feed, backTo, true);
+        return (
+            <ScreenWrapper
+                testID={AssignCardFeedPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
     }
 
     return (
-        <ScreenWrapper
-            testID={AssignCardFeedPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnablePickerAvoiding={false}
-        >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+        <ScreenWrapper testID={AssignCardFeedPage.displayName}>
+            <FullScreenLoadingIndicator />
         </ScreenWrapper>
     );
 }

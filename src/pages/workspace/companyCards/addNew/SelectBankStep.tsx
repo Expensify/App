@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -15,21 +14,26 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank, getCorrectStepForSelectedBank} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-function SelectBankStep() {
+type SelectBankStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_BANK>;
+
+function SelectBankStep({route}: SelectBankStepProps) {
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const {isBetaEnabled} = usePermissions();
+    const policyID = route.params?.policyID;
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();

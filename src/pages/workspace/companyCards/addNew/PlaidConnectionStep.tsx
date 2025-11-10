@@ -1,9 +1,10 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,12 +14,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {useAddNewCardNavigation, useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
@@ -27,13 +30,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type PlaidLinkProps = {
-    onExit?: () => void;
-};
+type PlaidConnectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION>;
 
-type PlaidConnectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION> & PlaidLinkProps;
-
-function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
+function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -49,6 +48,11 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
     const {isOffline} = useNetwork();
     const {policyID, feed} = route.params;
     const domain = getDomainNameForPolicy(policyID);
+    const [isExitModalVisible, setIsExitModalVisible] = useState(false);
+
+    // Use the appropriate navigation hook based on whether we're in the assign card flow or add new card flow
+    useAssignCardNavigation(policyID, feed, route.params?.backTo);
+    useAddNewCardNavigation(policyID, route.params?.backTo);
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
 
@@ -105,7 +109,7 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
 
     const handleBackButtonPress = () => {
         if (feed) {
-            Navigation.goBack();
+            Navigation.dismissModal();
             return;
         }
         setAddNewCompanyCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
@@ -153,6 +157,7 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
                                         currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                                     });
                                 });
+                                Log.hmmm('1- Importing Plaid accounts in assign card flow');
                                 return;
                             }
                             setAssignCardStepAndData({
@@ -164,6 +169,7 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
+                            Log.hmmm('2- Moving to bank connection step in assign card flow');
                             return;
                         }
 
@@ -176,6 +182,7 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
                                 plaidAccounts: metadata?.accounts,
                             },
                         });
+                        Log.hmmm('3- Moving to select statement close date step in add new card flow');
                     }}
                     onError={handlePlaidLinkError}
                     onEvent={(event) => {
@@ -188,7 +195,7 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
                     // User prematurely exited the Plaid flow
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onExit={() => {
-                        onExit?.();
+                        setIsExitModalVisible(true);
                         handleBackButtonPress();
                     }}
                 />
@@ -224,6 +231,22 @@ function PlaidConnectionStep({route, onExit}: PlaidConnectionStepProps) {
             ) : (
                 <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>
             )}
+            <ConfirmModal
+                isVisible={isExitModalVisible}
+                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
+                success
+                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
+                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
+                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
+                onCancel={() => {
+                    setIsExitModalVisible(false);
+                    Navigation.dismissModal();
+                }}
+                onConfirm={() => {
+                    setIsExitModalVisible(false);
+                    navigateToConciergeChat();
+                }}
+            />
         </ScreenWrapper>
     );
 }

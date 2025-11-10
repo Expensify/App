@@ -88,6 +88,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
         assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        Navigation.dismissModal();
     };
 
     const editStep = (step: AssignCardStep) => {

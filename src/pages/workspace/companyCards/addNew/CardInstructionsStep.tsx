@@ -14,15 +14,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
-
-type CardInstructionsStepProps = {
-    policyID?: string;
-};
 
 function getCardInstructionHeader(feedProvider: CardFeedProvider) {
     if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA) {
@@ -35,9 +35,14 @@ function getCardInstructionHeader(feedProvider: CardFeedProvider) {
     return 'workspace.companyCards.addNewCard.enableFeed.heading';
 }
 
-function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
+type CardInstructionsStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS>;
+
+function CardInstructionsStep({route}: CardInstructionsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policyID = route.params?.policyID;
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
     const {isOffline} = useNetwork();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});

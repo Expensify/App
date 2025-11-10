@@ -4,6 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
@@ -21,6 +22,20 @@ type AssignCardRoute =
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute>
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute>
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute>;
+
+type AddNewCardRoute =
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute>;
 
 type ExportIntegration = {
     title?: string;
@@ -411,5 +426,49 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
     }, [currentStep, policyID, feed, backTo]);
 }
 
+function useAddNewCardNavigation(policyID: string | undefined, backTo?: string | undefined, isStartStep: boolean = false) {
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const currentStep = addNewCard?.currentStep;
+    const previousStepRef = useRef(currentStep);
+    const {isBetaEnabled} = usePermissions();
+    const defaultStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK;
+
+    useEffect(() => {
+        if (currentStep === previousStepRef.current && !isStartStep) {
+            return;
+        }
+
+        previousStepRef.current = currentStep;
+
+        if (!policyID) {
+            return;
+        }
+
+        const stepRoutes: Record<string, AddNewCardRoute> = {
+            [CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.SELECT_BANK]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.CARD_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
+                policyID,
+                addNewCard?.data?.selectedBank ?? '',
+                ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, backTo),
+            ),
+            [CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.CARD_DETAILS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute(policyID, addNewCard?.data?.selectedBank ?? ''),
+            [CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(policyID, backTo),
+        };
+
+        const targetRoute: AddNewCardRoute = currentStep ? stepRoutes[currentStep] : stepRoutes[defaultStep];
+        if (targetRoute) {
+            Navigation.navigate(targetRoute);
+        }
+    }, [currentStep, policyID, backTo, isStartStep, addNewCard?.data?.selectedBank]);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem, useAssignCardNavigation};
+export {getExportMenuItem, useAssignCardNavigation, useAddNewCardNavigation};

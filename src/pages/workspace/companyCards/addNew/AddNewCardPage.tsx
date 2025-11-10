@@ -1,48 +1,27 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
+import React, {useEffect} from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {navigateToConciergeChat} from '@libs/actions/Report';
-import BankConnection from '@pages/workspace/companyCards/BankConnection';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import AmexCustomFeed from './AmexCustomFeed';
-import CardInstructionsStep from './CardInstructionsStep';
-import CardNameStep from './CardNameStep';
-import CardTypeStep from './CardTypeStep';
-import DetailsStep from './DetailsStep';
-import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
-import PlaidConnectionStep from './PlaidConnectionStep';
-import SelectBankStep from './SelectBankStep';
-import SelectCountryStep from './SelectCountryStep';
-import SelectFeedType from './SelectFeedType';
-import StatementCloseDateStep from './StatementCloseDateStep';
+import SCREENS from '@src/SCREENS';
+import {useAddNewCardNavigation} from '../utils';
 
-function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
+type AddNewCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW> & WithPolicyAndFullscreenLoadingProps;
+
+function AddNewCardPage({policy, route}: AddNewCardPageProps) {
     const policyID = policy?.id;
-    const styles = useThemeStyles();
+    const backTo = route.params?.backTo;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
-    const {currentStep} = addNewCardFeed ?? {};
-    const {isBetaEnabled} = usePermissions();
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const {translate} = useLocalize();
-
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
-
-    const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
         return () => {
@@ -60,9 +39,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
 
-    if (isAddCardFeedLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
+    useAddNewCardNavigation(policyID, backTo, true);
 
     if (isActingAsDelegate) {
         return (
@@ -76,68 +53,14 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         );
     }
 
-    let CurrentStep: React.JSX.Element;
-    switch (currentStep) {
-        case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
-            CurrentStep = <SelectBankStep />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE:
-            CurrentStep = <SelectFeedType />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            CurrentStep = <CardTypeStep />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
-            CurrentStep = <BankConnection policyID={policyID} />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-            CurrentStep = <CardInstructionsStep policyID={policyID} />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.CARD_NAME:
-            CurrentStep = <CardNameStep />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            CurrentStep = <DetailsStep />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
-            CurrentStep = <AmexCustomFeed />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <StatementCloseDateStep policyID={policyID} />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
-            break;
-        default:
-            CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
-            break;
-    }
-
     return (
-        <>
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-            <ConfirmModal
-                isVisible={isModalVisible}
-                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
-                success
-                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
-                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
-                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
-                onCancel={() => setIsModalVisible(false)}
-                onConfirm={() => {
-                    setIsModalVisible(false);
-                    navigateToConciergeChat();
-                }}
-            />
-        </>
+        <ScreenWrapper
+            testID={AddNewCardPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnablePickerAvoiding={false}
+        >
+            <FullScreenLoadingIndicator />
+        </ScreenWrapper>
     );
 }
 

@@ -60,7 +60,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
     };
-    Log.hmmm(`AssignCard Data Step Data: ${JSON.stringify(assignCard?.data)}`);
 
     useAssignCardNavigation(policyID, feed, route.params?.backTo);
 

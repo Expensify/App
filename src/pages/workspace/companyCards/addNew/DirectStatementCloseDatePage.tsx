@@ -7,19 +7,24 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type DirectStatementCloseDateStepProps = {
-    /** ID of the current policy */
-    policyID?: string;
-};
-function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepProps) {
+type DirectStatementCloseDateStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE>;
+
+function DirectStatementCloseDateStep({route}: DirectStatementCloseDateStepProps) {
     const {translate} = useLocalize();
+    const policyID = route.params?.policyID;
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+
+    useAddNewCardNavigation(policyID, route.params?.backTo);
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
