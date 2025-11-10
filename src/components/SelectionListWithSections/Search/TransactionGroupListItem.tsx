@@ -34,6 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import {isSettled} from '@libs/ReportUtils';
 import {getSections} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -312,7 +313,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     });
 
     const getDescription = useMemo(() => {
-        if (!hasViolations) {
+        if (!hasViolations || isSettled(item.reportID)) {
             return;
         }
         return (
@@ -327,7 +328,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
             </View>
         );
-    }, [hasViolations, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.mv1, styles.textDanger, styles.textMicro, theme.danger, translate]);
+    }, [hasViolations, item.reportID, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.mv1, styles.textDanger, styles.textMicro, theme.danger, translate]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

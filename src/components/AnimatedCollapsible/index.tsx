@@ -148,9 +148,10 @@ function AnimatedCollapsible({
                     </PressableWithFeedback>
                 )}
             </View>
-            {!!description && (
-                <Animated.View style={descriptionAnimatedStyle}>
-                    <View
+            <Animated.View style={descriptionAnimatedStyle}>
+                {!!description && !isExpanded && (
+                    <Animated.View
+                        style={styles.stickToTop}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;
                             if (height) {
@@ -159,9 +160,9 @@ function AnimatedCollapsible({
                         }}
                     >
                         {description}
-                    </View>
-                </Animated.View>
-            )}
+                    </Animated.View>
+                )}
+            </Animated.View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 {isExpanded || isRendered ? (
                     <Animated.View
