@@ -121,9 +121,6 @@ type SearchReport = {
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
 
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
-
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
 
@@ -141,9 +138,6 @@ type SearchReport = {
 
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
-
-    /** Whether the report is archived */
-    private_isArchived?: string;
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
@@ -289,9 +283,6 @@ type SearchTransaction = {
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction description */
-    description?: string;
-
     /** The transaction sender ID */
     accountID: number;
 
@@ -312,9 +303,6 @@ type SearchTransaction = {
 
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
-
-    /** The main action that can be performed for the transaction */
-    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;

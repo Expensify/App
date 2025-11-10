@@ -6,10 +6,12 @@ import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars'
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import type {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
+import type {AvatarEntry, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, PresetAvatarID, SeasonF1AvatarIDs} from './PresetAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
+
+const DEFAULT_AVATAR_PREFIX = `default-avatar`;
 
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = [
     {backgroundColor: colors.blue100, fillColor: colors.blue600},
@@ -174,22 +176,22 @@ const DISPLAY_ORDER = [
     'speedometer-ice400',
     'stopwatch-ice600',
     'default-avatar_24',
-] as const satisfies readonly CustomAvatarID[];
+] as const satisfies readonly PresetAvatarID[];
 
-const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
+const PRESET_AVATAR_CATALOG: Record<PresetAvatarID, AvatarEntry> = {
     ...DEFAULTS,
     ...SEASON_F1,
 };
 
-const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
-    const allIDS = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
-    const explicit = DISPLAY_ORDER.filter((id) => id in ALL_CUSTOM_AVATARS);
+const buildOrderedAvatars = (): Array<{id: PresetAvatarID} & AvatarEntry> => {
+    const allIDS = Object.keys(PRESET_AVATAR_CATALOG) as PresetAvatarID[];
+    const explicit = DISPLAY_ORDER.filter((id) => id in PRESET_AVATAR_CATALOG);
     const explicitSet = new Set(explicit);
     const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
     const finalIDOrder = [...explicit, ...leftovers];
     return finalIDOrder.map((id) => ({
         id,
-        ...ALL_CUSTOM_AVATARS[id],
+        ...PRESET_AVATAR_CATALOG[id],
     }));
 };
 
@@ -212,18 +214,28 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
     return LETTER_DEFAULTS[workspaceKey].local;
 }
 
-const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
+const PRESET_AVATAR_CATALOG_ORDERED = buildOrderedAvatars();
 
-const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
-const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
+const getAvatarLocal = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id]?.local;
+const getAvatarURL = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id]?.url;
 
 /**
- * Type guard to check if a value is a valid CustomAvatarID
+ * Type guard to check if a value is a valid PresetAvatarID
  * @param value - The value to check
- * @returns True if the value is a valid CustomAvatarID
+ * @returns True if the value is a valid PresetAvatarID
  */
-function isCustomAvatarID(value: unknown): value is CustomAvatarID {
-    return typeof value === 'string' && value in ALL_CUSTOM_AVATARS;
+function isPresetAvatarID(value: unknown): value is PresetAvatarID {
+    return typeof value === 'string' && value in PRESET_AVATAR_CATALOG;
 }
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID};
+export {
+    PRESET_AVATAR_CATALOG,
+    PRESET_AVATAR_CATALOG_ORDERED,
+    LETTER_AVATAR_COLOR_OPTIONS,
+    LETTER_DEFAULTS,
+    DEFAULT_AVATAR_PREFIX,
+    getAvatarLocal,
+    getAvatarURL,
+    getLetterAvatar,
+    isPresetAvatarID,
+};
