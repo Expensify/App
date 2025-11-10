@@ -6749,7 +6749,7 @@ ${date} - ${merchant}に${amount}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseTypes}) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
