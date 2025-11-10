@@ -8,10 +8,36 @@ import type {Policy, Report, Transaction, TransactionViolations} from '@src/type
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock the required modules
-jest.mock('@libs/TransactionUtils', () => ({
-    isViolationDismissed: jest.fn(),
-    shouldShowViolation: jest.fn(),
-}));
+jest.mock('@libs/TransactionUtils', () => {
+    const CONST = jest.requireActual('@src/CONST').default;
+    return {
+        isViolationDismissed: jest.fn(),
+        shouldShowViolation: jest.fn(),
+        mergeProhibitedViolations: (transactionViolations: Array<{name: string; type: string; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
+            const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+
+            if (prohibitedViolations.length === 0) {
+                return transactionViolations;
+            }
+
+            const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
+                const rule = violation.data?.prohibitedExpenseRule;
+                if (!rule) return [];
+                return Array.isArray(rule) ? rule : [rule];
+            });
+
+            const mergedProhibitedViolations = {
+                name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                data: {
+                    prohibitedExpenseRule: prohibitedExpenses,
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            return [...transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+        },
+    };
+});
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -1158,6 +1158,9 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
 
+/**
+ * Merge prohibited violations into one violation.
+ */
 function mergeProhibitedViolations(transactionViolations: TransactionViolations): TransactionViolations {
     const prohibitedViolations = transactionViolations.filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
 

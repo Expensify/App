@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
