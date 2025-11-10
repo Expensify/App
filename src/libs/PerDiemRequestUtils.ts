@@ -129,6 +129,7 @@ function getDestinationListSections({
         });
     }
 
+    // eslint-disable-next-line unicorn/prefer-set-has
     const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {

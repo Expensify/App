@@ -155,6 +155,8 @@ function IOURequestStepConfirmation({
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+
     /*
      * We want to use a report from the transaction if it exists
      * Also if the report was submitted and delayed submission is on, then we should use an initial report
@@ -260,9 +262,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -507,7 +509,7 @@ function IOURequestStepConfirmation({
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
-        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
                 return;
             }
@@ -550,7 +552,7 @@ function IOURequestStepConfirmation({
                         policyCategories,
                         policyRecentlyUsedCategories,
                     },
-                    gpsPoints,
+                    gpsPoint,
                     action,
                     transactionParams: {
                         amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
@@ -648,7 +650,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
+        (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
                 return;
             }
@@ -688,7 +690,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
-                        gpsPoints,
+                        gpsPoint,
                         validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
@@ -789,6 +791,7 @@ function IOURequestStepConfirmation({
 
             // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+                // eslint-disable-next-line unicorn/prefer-set-has
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
