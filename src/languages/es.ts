@@ -1,8 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
+import {MovedActionParams, MovedTransactionParams} from '@src/languages/params';
 import type en from './en';
 import type {TranslationDeepObject} from './types';
-import {MovedActionParams, MovedTransactionParams} from '@src/languages/params';
 
 /* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
