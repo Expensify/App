@@ -283,9 +283,6 @@ type SearchTransaction = {
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction description */
-    description?: string;
-
     /** The transaction sender ID */
     accountID: number;
 
