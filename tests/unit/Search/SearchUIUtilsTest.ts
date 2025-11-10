@@ -368,7 +368,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -383,7 +382,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
             hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
@@ -410,7 +408,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -425,7 +422,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
             hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
@@ -454,7 +450,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -481,7 +476,6 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionThreadReportID: '8287398995021380',
             receipt: undefined,
             taxAmount: undefined,
-            description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
@@ -496,7 +490,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
             amount: 3200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -521,7 +514,6 @@ const searchResults: OnyxTypes.SearchResults = {
             tag: '',
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
-            description: '',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -832,7 +824,6 @@ const transactionsListItems = [
         transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -898,7 +889,6 @@ const transactionsListItems = [
         transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -970,7 +960,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1037,7 +1026,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1104,7 +1092,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1208,7 +1195,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
@@ -1821,7 +1807,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 56;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1848,7 +1834,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 56;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2365,7 +2351,6 @@ describe('SearchUIUtils', () => {
                         canHold: true,
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
-                        action: 'approve',
                         comment: {
                             comment: '',
                         },
@@ -2497,7 +2482,6 @@ describe('SearchUIUtils', () => {
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
-                    action: 'approve',
                     comment: {
                         comment: '',
                     },
