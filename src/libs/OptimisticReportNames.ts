@@ -261,6 +261,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
+        allTransactions: context.allTransactions,
     };
 
     const needsBackendComputation = requiresBackendComputation(formulaParts, formulaContext);

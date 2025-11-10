@@ -295,6 +295,18 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
                         return;
                     }
 
+                    if (response?.jsonCode === 404) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('cardPage.missingPrivateDetails');
+                        return;
+                    }
+
+                    if (response?.jsonCode === 500) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('cardPage.unexpectedError');
+                        return;
+                    }
+
                     // eslint-disable-next-line prefer-promise-reject-errors
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
