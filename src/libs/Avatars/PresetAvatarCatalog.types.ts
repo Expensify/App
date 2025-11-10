@@ -92,7 +92,7 @@ type LetterAvatarIDs =
 
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
 type AvatarEntry = {local: React.FC<SvgProps>; url: string};
-type CustomAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
+type PresetAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
 type LetterAvatarVariant = {
     backgroundColor: string;
@@ -100,4 +100,4 @@ type LetterAvatarVariant = {
     component: React.FC<SvgProps>;
 };
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, CustomAvatarID, LetterAvatarVariant, LetterAvatarColorStyle, AvatarEntry};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, PresetAvatarID, LetterAvatarVariant, LetterAvatarColorStyle, AvatarEntry};
