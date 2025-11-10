@@ -1,6 +1,6 @@
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {AnimatedRef} from 'react-native-reanimated';
-import {scrollTo, useScrollViewOffset} from 'react-native-reanimated';
+import {scrollTo, useScrollOffset} from 'react-native-reanimated';
 import type Reanimated from 'react-native-reanimated';
 
 type UsePreventScrollOnKeyboardInteractionProps = {
@@ -9,7 +9,7 @@ type UsePreventScrollOnKeyboardInteractionProps = {
 };
 
 function usePreventScrollOnKeyboardInteraction({scrollViewRef, enabled = false}: UsePreventScrollOnKeyboardInteractionProps) {
-    const scrollOffset = useScrollViewOffset(scrollViewRef);
+    const scrollOffset = useScrollOffset(scrollViewRef);
 
     // Scroll to the latest scroll position whenever the keyboard is interacted with,
     // to prevent additional scrolling when the keyboard is interactively dismissed.
