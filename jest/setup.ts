@@ -100,9 +100,9 @@ jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardCon
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
-jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
-    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
-    return runOnLiveMarkdownRuntime;
+jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
+    const scheduleOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
+    return scheduleOnLiveMarkdownRuntime;
 });
 
 jest.mock('@src/libs/actions/Timing', () => ({
