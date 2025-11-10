@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
@@ -99,10 +100,10 @@ function ExpenseReportListItemRow({
                                 style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                             />
                         )}
-                        <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
+                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
                             <ReportSearchHeader
                                 report={item}
-                                style={[{maxWidth: 700}]}
+                                style={[{maxWidth: variables.reportSearchHeaderMaxWidth}]}
                                 transactions={item.transactions}
                                 avatarBorderColor={finalAvatarBorderColor}
                             />
