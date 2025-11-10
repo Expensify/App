@@ -304,7 +304,7 @@ function MoneyRequestConfirmationList({
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const defaultRate = defaultMileageRate?.customUnitRateID;
-    const lastSelectedRate = policy?.id ? lastSelectedDistanceRates?.[policy.id] ?? defaultRate : defaultRate;
+    const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultRate) : defaultRate;
 
     useEffect(() => {
         if (
