@@ -26,15 +26,15 @@ type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamLis
 const samlFeatures: FeatureListItem[] = [
     {
         icon: OpenSafe,
-        translationKey: 'domain.featureList.fasterAndEasierLogin',
+        translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
     },
     {
         icon: ShieldYellow,
-        translationKey: 'domain.featureList.moreSecurityAndControl',
+        translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
     },
     {
         icon: LockClosed,
-        translationKey: 'domain.featureList.onePasswordForAnything',
+        translationKey: 'domain.samlFeatureList.onePasswordForAnything',
     },
 ];
 
@@ -74,10 +74,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                         <FeatureList
                             menuItems={samlFeatures}
-                            title={translate('domain.featureList.title')}
+                            title={translate('domain.samlFeatureList.title')}
                             renderSubtitle={() => (
                                 <View style={styles.pt3}>
-                                    <RenderHTML html={translate('domain.featureList.subtitle', {domainName: domainName ?? ''})} />
+                                    <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: domainName ?? ''})} />
                                 </View>
                             )}
                             ctaText={translate('domain.verifyDomain.title')}
