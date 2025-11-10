@@ -35,7 +35,6 @@ function AvatarCapture({children, fileName, ref}: AvatarCaptureProps) {
     );
 }
 
-
 AvatarCapture.displayName = 'AvatarCapture';
 
 export default AvatarCapture;

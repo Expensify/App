@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle, TextInput} from 'react-native';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {FileObject} from '@src/types/utils/Attachment';
 
