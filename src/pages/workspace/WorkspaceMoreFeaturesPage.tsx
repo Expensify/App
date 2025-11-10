@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -500,7 +500,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 )}
             </Hoverable>
         ),
-        [styles, StyleUtils, shouldUseNarrowLayout, translate],
+        [styles, StyleUtils, shouldUseNarrowLayout, translate, getItemStyle],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
