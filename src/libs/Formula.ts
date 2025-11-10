@@ -213,9 +213,10 @@ function requiresBackendComputation(parts: FormulaPart[], context?: FormulaConte
             const fieldName = field?.toLowerCase();
 
             if (fieldName === 'total' || fieldName === 'reimbursable') {
-                // Use formatAmount to determine if conversion is needed
-                // null return value signals that backend computation is required
-                const result = formatAmount(0, report.currency, format);
+                // Use formatAmount to check whether a currency conversion is needed.
+                // A null return means the backend must handle the conversion.
+                // We rely on report.total because zero values can be computed optimistically.
+                const result = formatAmount(report.total, report.currency, format);
                 if (result === null) {
                     return true;
                 }
@@ -505,7 +506,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
-        if (displayCurrency === 'nosymbol') {
+        if (displayCurrency?.trim().toLowerCase() === 'nosymbol') {
             return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
         }
 
@@ -516,9 +517,10 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
                 return '';
             }
 
-            // When currency conversion is needed (displayCurrency differs from source currency),
-            // return null to signal that backend computation is required
-            if (currency !== currencyCode) {
+            // If a currency conversion is needed (displayCurrency differs from the source),
+            // return null so the backend can compute it.
+            // We can only compute the value optimistically when the amount is 0.
+            if (absoluteAmount !== 0 && currency !== currencyCode) {
                 return null;
             }
 
