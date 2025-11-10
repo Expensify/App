@@ -2040,6 +2040,8 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Per favore <a href="${missingDetailsLink}">aggiungi i tuoi dati personali</a>, poi riprova.`,
+        unexpectedError: 'Si è verificato un errore durante il recupero dei dettagli della tua carta Expensify. Riprova.',
         cardFraudAlert: {
             confirmButtonText: 'Sì, lo faccio',
             reportFraudButtonText: 'No, non ero io',
@@ -4652,7 +4654,7 @@ ${amount} per ${merchant} - ${date}`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `È stata emessa una Expensify Card per ${assignee}! La carta verrà spedita una volta confermati i dettagli di spedizione.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `ha emesso ${assignee} una ${link} virtuale! La carta può essere utilizzata immediatamente.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} ha aggiunto i dettagli di spedizione. La carta Expensify arriverà in 2-3 giorni lavorativi.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} ha aggiunto i dettagli di spedizione. La Expensify Card arriverà in 2-3 giorni lavorativi.`,
             verifyingHeader: 'Verifica in corso',
             bankAccountVerifiedHeader: 'Conto bancario verificato',
             verifyingBankAccount: 'Verifica del conto bancario in corso...',
@@ -5028,6 +5030,10 @@ ${amount} per ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Impossibile rendere tutti i tag opzionali',
                 description: `Almeno un tag deve rimanere obbligatorio perché le impostazioni del tuo spazio di lavoro richiedono tag.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Impossibile rendere obbligatoria la lista dei tag',
+                description: 'È possibile rendere obbligatoria una lista di tag solo se la propria politica ha più livelli di tag configurati.',
             },
             tagCount: () => ({
                 one: '1 giorno',

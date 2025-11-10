@@ -233,7 +233,6 @@ function ReportListItemHeader<TItem extends ListItem>({
             currentSearchHash,
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
@@ -248,6 +247,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
+                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
             />
             <HeaderFirstRow
                 report={reportItem}
