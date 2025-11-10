@@ -572,12 +572,16 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the member should have pendingAction DELETE and errors
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyData) => {
                         Onyx.disconnect(connection);
-                        resolve(policyData);
+                        if (policyData) {
+                            resolve(policyData);
+                        } else {
+                            reject(new Error('Policy not found'));
+                        }
                     },
                 });
             });
