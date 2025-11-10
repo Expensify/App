@@ -8,7 +8,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
-import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -72,18 +71,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
-    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
-
-    useEffect(() => {
-        if (!isBlockedToAddNewFeeds || !policyID) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
-            forceReplace: true,
-        });
-    }, [isBlockedToAddNewFeeds, policyID]);
 
     const handleBackButtonPress = () => {
         // Handle assign card flow
@@ -180,7 +169,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isBlockedToAddNewFeeds && !isAllFeedsResultLoading && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -196,7 +185,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid || isAllFeedsResultLoading) && !isNewFeedHasError && (
+                {(isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}

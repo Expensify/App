@@ -4,6 +4,7 @@ import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
@@ -49,9 +50,10 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
+    shouldShowFloatingCameraButton?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -451,6 +453,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }
