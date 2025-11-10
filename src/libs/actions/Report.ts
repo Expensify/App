@@ -1019,6 +1019,7 @@ function openReport(
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
                 hasLoadingNewerReportActionsError: false,
+                hasOnceLoadedReportActions: false,
             },
         },
     ];
