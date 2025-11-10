@@ -94,8 +94,7 @@ Onyx.connectWithoutView({
 });
 
 function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
-    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-    const newValue = [...queueFlushedDataToStore, ...onyxUpdates] as OnyxUpdate[];
+    const newValue: OnyxUpdate[] = queueFlushedDataToStore.concat(onyxUpdates);
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
         Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {newValue});

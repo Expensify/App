@@ -147,8 +147,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     value: {total: -(Math.random() * 125000)},
                 })) as OnyxUpdate[];
 
-            // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-            const allUpdates = [...newReportUpdates, ...existingReportUpdates];
+            const allUpdates: OnyxUpdate[] = [...newReportUpdates];
+            allUpdates.push(...existingReportUpdates);
 
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
         });

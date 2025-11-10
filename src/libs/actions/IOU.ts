@@ -9331,17 +9331,15 @@ function getSendMoneyParams(
         });
     }
 
-    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-    const optimisticData: OnyxUpdate[] = [
-        optimisticChatReportData,
-        optimisticQuickActionData,
-        optimisticIOUReportData,
-        optimisticChatReportActionsData,
-        optimisticIOUReportActionsData,
-        optimisticTransactionData,
-        optimisticTransactionThreadData,
-        ...optimisticMetaData,
-    ];
+    const optimisticData: OnyxUpdate[] = [];
+    optimisticData.push(optimisticChatReportData);
+    optimisticData.push(optimisticQuickActionData);
+    optimisticData.push(optimisticIOUReportData);
+    optimisticData.push(optimisticChatReportActionsData);
+    optimisticData.push(optimisticIOUReportActionsData);
+    optimisticData.push(optimisticTransactionData);
+    optimisticData.push(optimisticTransactionThreadData);
+    optimisticData.push(...optimisticMetaData);
 
     if (optimisticTransactionThreadReportActionsData) {
         optimisticData.push(optimisticTransactionThreadReportActionsData);
@@ -10268,8 +10266,13 @@ function approveMoneyRequest(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStep,
     };
-    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, ...(optimisticChatReportData ? [optimisticChatReportData] : [])];
+    const optimisticData: OnyxUpdate[] = [];
+    optimisticData.push(optimisticIOUReportData);
+    optimisticData.push(optimisticReportActionsData);
+    optimisticData.push(optimisticNextStepData);
+    if (optimisticChatReportData) {
+        optimisticData.push(optimisticChatReportData);
+    }
 
     const successData: OnyxUpdate[] = [
         {

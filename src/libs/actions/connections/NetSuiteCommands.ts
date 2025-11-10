@@ -94,7 +94,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         },
                     },
                 },
-            } as Partial<Policy>,
+            } as unknown as Partial<Policy>,
         },
     ];
 
@@ -115,7 +115,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         },
                     },
                 },
-            } as Partial<Policy>,
+            } as unknown as Partial<Policy>,
         },
     ];
 

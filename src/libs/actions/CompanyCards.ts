@@ -90,7 +90,7 @@ function addNewCompanyCardsFeed(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedType as unknown as CompanyCardFeedWithNumber,
+            value: feedType,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -133,7 +133,7 @@ function addNewCompanyCardsFeed(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedType as unknown as CompanyCardFeedWithNumber,
+            value: feedType,
         },
     ];
     const finallyData: OnyxUpdate[] = [

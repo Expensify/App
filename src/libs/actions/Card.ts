@@ -56,7 +56,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
                 cardID,
                 isLoading: true,
                 errors: null,
-            } as Partial<OnyxTypes.Form>,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

@@ -336,24 +336,18 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         };
     });
 
-    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-    const optimisticData: OnyxUpdate[] = [
-        ...(onyxTargetTransactionData.optimisticData ?? []),
-        optimisticSourceTransactionData,
-        ...optimisticSourceReportData,
-        optimisticMergeTransactionData,
-        ...optimisticTransactionViolations,
-        ...optimisticSourceReportActionData,
-    ];
+    const optimisticData: OnyxUpdate[] = [...(onyxTargetTransactionData.optimisticData ?? [])];
+    optimisticData.push(optimisticSourceTransactionData);
+    optimisticData.push(...optimisticSourceReportData);
+    optimisticData.push(optimisticMergeTransactionData);
+    optimisticData.push(...optimisticTransactionViolations);
+    optimisticData.push(...optimisticSourceReportActionData);
 
-    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
-    const failureData: OnyxUpdate[] = [
-        ...(onyxTargetTransactionData.failureData ?? []),
-        failureSourceTransactionData,
-        ...failureSourceReportData,
-        ...failureTransactionViolations,
-        ...failureSourceReportActionData,
-    ];
+    const failureData: OnyxUpdate[] = [...(onyxTargetTransactionData.failureData ?? [])];
+    failureData.push(failureSourceTransactionData);
+    failureData.push(...failureSourceReportData);
+    failureData.push(...failureTransactionViolations);
+    failureData.push(...failureSourceReportActionData);
 
     const successData: OnyxUpdate[] = [];
     successData.push(...successSourceReportActionData);

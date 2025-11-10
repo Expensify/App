@@ -111,7 +111,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
                         },
                     },
                 },
-            } as Partial<Policy>,
+            } as unknown as Partial<Policy>,
         },
     ];
 
@@ -136,7 +136,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
                         },
                     },
                 },
-            } as Partial<Policy>,
+            } as unknown as Partial<Policy>,
         },
     ];
 
