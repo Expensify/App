@@ -79,7 +79,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             title={translate('domain.samlFeatureList.title')}
                             renderSubtitle={() => (
                                 <View style={styles.pt3}>
-                                    <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: domainName ?? ''})} />
+                                    <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
                                 </View>
                             )}
                             ctaText={translate('domain.verifyDomain.title')}
