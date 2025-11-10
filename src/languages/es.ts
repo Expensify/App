@@ -1,6 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
-import {MovedActionParams, MovedTransactionParams} from '@src/languages/params';
 import type en from './en';
 import type {TranslationDeepObject} from './types';
 
@@ -837,11 +836,11 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Buscar gasto',
         deletedTransaction: ({amount, merchant}) => `eliminó un gasto (${amount} para ${merchant})`,
         movedFromReport: ({reportName}) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
-        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` desde <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movió este gasto desde tu <a href="${reportUrl}">espacio personal</a>`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
-        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+        movedTransactionTo: ({reportUrl, reportName}) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}) => `movió este gasto${reportName ? ` desde <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}) => `movió este gasto desde tu <a href="${reportUrl}">espacio personal</a>`,
+        unreportedTransaction: ({reportUrl}) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}) => {
             if (shouldHideMovedReportUrl) {
                 return `movió este informe al espacio de trabajo <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
