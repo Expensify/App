@@ -1406,7 +1406,7 @@ function getReportSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    reportMetadata: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined;
+    reportMetadata: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined,
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
