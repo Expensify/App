@@ -8,8 +8,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -20,7 +18,6 @@ import {
     isProcessingReport,
     isReportApproved,
     isSettled,
-    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {isPending, isScanning} from './TransactionUtils';
@@ -35,7 +32,6 @@ function canSubmit(report: Report, isReportArchived: boolean, policy?: Policy, t
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -49,14 +45,7 @@ function canSubmit(report: Report, isReportArchived: boolean, policy?: Policy, t
         return false;
     }
 
-    const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
-
-    // If a report has been retracted, we allow submission regardless of the auto reporting frequency.
-    if (baseCanSubmit && hasBeenRetracted) {
-        return true;
-    }
-
-    return baseCanSubmit && requiresManualSubmission(report, policy);
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, policy?: Policy, transactions?: Transaction[]) {

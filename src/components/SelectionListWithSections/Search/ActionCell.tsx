@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
-import type {PaymentData} from '@components/Search/types';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,7 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
-import {payMoneyRequestOnSearch} from '@libs/actions/Search';
+import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -86,17 +85,7 @@ function ActionCell({
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
-            const invoiceParams: Partial<PaymentData> = {
-                policyID,
-                payAsBusiness,
-            };
-            if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                invoiceParams.bankAccountID = methodID;
-            }
-
-            if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                invoiceParams.fundID = methodID;
-            }
+            const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
             payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
         [reportID, hash, amount, policyID, iouReport],

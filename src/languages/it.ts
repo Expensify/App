@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contare',
         cancel: 'Annulla',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Invia',
         na: 'N/A',
         noResultsFound: 'Nessun risultato trovato',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nessun risultato trovato corrispondente a "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nessun risultato trovato corrispondente a "${searchString}"`,
         recentDestinations: 'Destinazioni recenti',
         timePrefix: 'È',
         conjunctionFor: 'per',
@@ -1067,10 +1067,6 @@ const translations = {
     receipt: {
         upload: 'Carica ricevuta',
         uploadMultiple: 'Carica ricevute',
-        dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',
-        dragReceiptsBeforeEmail: 'Trascina le ricevute su questa pagina, inoltra le ricevute a',
-        dragReceiptAfterEmail: 'o scegli un file da caricare qui sotto.',
-        dragReceiptsAfterEmail: 'o scegli i file da caricare qui sotto.',
         desktopSubtitleSingle: `oppure trascinala qui`,
         desktopSubtitleMultiple: `oppure trascinale qui`,
         alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
@@ -1343,11 +1339,9 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Errore imprevisto nel trattenere questa spesa. Per favore riprova più tardi.',
             genericUnholdExpenseFailureMessage: 'Errore imprevisto nel rimuovere questa spesa dalla sospensione. Per favore riprova più tardi.',
             receiptDeleteFailureError: "Errore imprevisto durante l'eliminazione di questa ricevuta. Per favore, riprova più tardi.",
-            receiptFailureMessage: 'Si è verificato un errore durante il caricamento della tua ricevuta. Per favore',
+            receiptFailureMessage:
+                '<rbr>Si è verificato un errore durante il caricamento della tua ricevuta. Per favore <a href="download">salva la ricevuta</a> e <a href="retry">riprova</a> più tardi.</rbr>',
             receiptFailureMessageShort: 'Si è verificato un errore durante il caricamento della tua ricevuta.',
-            tryAgainMessage: 'riprova',
-            saveFileMessage: 'salva la ricevuta',
-            uploadLaterMessage: 'da caricare più tardi.',
             genericDeleteFailureMessage: "Errore imprevisto nell'eliminazione di questa spesa. Per favore riprova più tardi.",
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Per favore riprova più tardi.',
             genericSmartscanFailureMessage: 'La transazione manca di campi',
@@ -1368,7 +1362,10 @@ const translations = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Attendere',
         unhold: 'Rimuovi blocco',
-        holdExpense: 'Trattieni spesa',
+        holdExpense: () => ({
+            one: 'Metti in sospeso la spesa',
+            other: 'Metti in sospeso le spese',
+        }),
         unholdExpense: 'Sblocca spesa',
         heldExpense: 'trattenuto questa spesa',
         unheldExpense: 'sblocca questa spesa',
@@ -1379,7 +1376,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         newReport: 'Nuovo rapporto',
-        explainHold: 'Spiega perché stai trattenendo questa spesa.',
+        explainHold: () => ({
+            one: 'Spiega perché stai mettendo in sospeso questa spesa.',
+            other: 'Spiega perché stai mettendo in sospeso queste spese.',
+        }),
         retracted: 'retratato',
         retract: 'Ritirare',
         reopened: 'riaperto',
@@ -2064,8 +2064,6 @@ ${amount} per ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
-        delaySubmissionTitle: 'Ritarda invii',
-        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
         submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
         disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
@@ -2120,7 +2118,6 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },
@@ -4822,7 +4819,6 @@ ${amount} per ${merchant} - ${date}`,
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
                 downgradeSubTitle: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore <a href="#">mantieni solo un feed di carte</a> per procedere.`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Per favore, aggiungi l'account in ${connection} e sincronizza nuovamente la connessione.`,
                 expensifyCardBannerTitle: 'Ottieni la Expensify Card',
                 expensifyCardBannerSubtitle:
@@ -5512,7 +5508,6 @@ ${amount} per ${merchant} - ${date}`,
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Le tasse devono essere abilitate nello spazio di lavoro per utilizzare questa funzione. Vai su <a href="#">Più funzionalità</a> per apportare quella modifica. </muted-text>',
-            changePromptMessage: 'per apportare quella modifica.',
             deleteDistanceRate: 'Elimina tariffa distanza',
             areYouSureDelete: () => ({
                 one: 'Sei sicuro di voler eliminare questa tariffa?',
@@ -7411,7 +7406,7 @@ ${amount} per ${merchant} - ${date}`,
         upload: 'Carica',
         uploadPhoto: 'Carica foto',
         selectAvatar: 'Seleziona un avatar',
-        chooseCustomAvatar: 'Oppure scegli un avatar personalizzato',
+        choosePresetAvatar: 'Oppure scegli un avatar personalizzato',
     },
     openAppFailureModal: {
         title: 'Qualcosa è andato storto...',
@@ -7443,4 +7438,4 @@ ${amount} per ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
