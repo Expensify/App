@@ -111,6 +111,7 @@ function SidebarOrderedReportsContextProvider({
         } else if (reportsDraftsUpdates) {
             reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
         } else if (policiesUpdates) {
+            // eslint-disable-next-line unicorn/prefer-set-has
             const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
             reportsToUpdate = Object.entries(chatReports ?? {})
                 .filter(([, value]) => {
