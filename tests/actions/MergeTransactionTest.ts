@@ -614,13 +614,11 @@ describe('areTransactionsEligibleForMerge', () => {
                 originalTransactionID: 'original-split-transaction',
                 source: CONST.IOU.TYPE.SPLIT,
             },
-            reportID: 'expense-report-123',
         } as Transaction;
         const cardTransaction = {
             ...createRandomTransaction(2),
             amount: 2000,
             managedCard: true,
-            reportID: 'expense-report-456',
         } as Transaction;
 
         const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cardTransaction);
