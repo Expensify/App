@@ -379,4 +379,4 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {areTransactionsEligibleForMerge, setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

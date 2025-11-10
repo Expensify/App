@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -479,5 +479,151 @@ describe('setMergeTransactionKey', () => {
             category: 'New Category', // Added
             description: 'New Description', // Added
         });
+    });
+});
+
+describe('areTransactionsEligibleForMerge', () => {
+    it('can not merge 2 card transactions', () => {
+        const cardTransaction1 = {
+            ...createRandomTransaction(1),
+            managedCard: true,
+        } as Transaction;
+        const cardTransaction2 = {
+            ...createRandomTransaction(2),
+            managedCard: true,
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(cardTransaction1, cardTransaction2);
+        expect(result).toBe(false);
+    });
+
+    it('can not merge 2 split expenses', () => {
+        const splitExpenseTransaction1 = {
+            ...createRandomTransaction(1),
+            comment: {
+                ...createRandomTransaction(1).comment,
+                originalTransactionID: 'original-1',
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as Transaction;
+        const splitExpenseTransaction2 = {
+            ...createRandomTransaction(2),
+            comment: {
+                ...createRandomTransaction(2).comment,
+                originalTransactionID: 'original-2',
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(splitExpenseTransaction1, splitExpenseTransaction2);
+        expect(result).toBe(false);
+    });
+
+    it('can not merge 2 transactions with $0 amount', () => {
+        const zeroTransaction1 = {
+            ...createRandomTransaction(1),
+            amount: 0,
+        } as Transaction;
+        const zeroTransaction2 = {
+            ...createRandomTransaction(2),
+            amount: 0,
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(zeroTransaction1, zeroTransaction2);
+        expect(result).toBe(false);
+    });
+
+    it('can not merge per diem and card transaction', () => {
+        const perDiemTransaction = {
+            ...createRandomTransaction(1),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+        } as Transaction;
+        const cardTransaction = {
+            ...createRandomTransaction(2),
+            managedCard: true,
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(perDiemTransaction, cardTransaction);
+        expect(result).toBe(false);
+    });
+
+    it('can merge cash and card transaction', () => {
+        const cashTransaction = {
+            ...createRandomTransaction(1),
+            amount: 1000,
+            managedCard: undefined,
+            reportID: 'expense-report-123',
+        } as Transaction;
+        const cardTransaction = {
+            ...createRandomTransaction(2),
+            amount: 2000,
+            managedCard: true,
+            reportID: 'expense-report-456',
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(cashTransaction, cardTransaction);
+        expect(result).toBe(true);
+    });
+
+    it('can merge 2 cash transactions', () => {
+        const cashTransaction1 = {
+            ...createRandomTransaction(1),
+            amount: 1000,
+            managedCard: undefined,
+            reportID: 'expense-report-123',
+        } as Transaction;
+        const cashTransaction2 = {
+            ...createRandomTransaction(2),
+            amount: 1500,
+            managedCard: undefined,
+            reportID: 'expense-report-456',
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(cashTransaction1, cashTransaction2);
+        expect(result).toBe(true);
+    });
+
+    it('can merge split expense with cash transaction', () => {
+        const splitExpenseTransaction = {
+            ...createRandomTransaction(1),
+            amount: 1000,
+            comment: {
+                ...createRandomTransaction(1).comment,
+                originalTransactionID: 'original-split-transaction',
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+            reportID: 'expense-report-123',
+        } as Transaction;
+        const cashTransaction = {
+            ...createRandomTransaction(2),
+            amount: 1500,
+            managedCard: undefined,
+            reportID: 'expense-report-456',
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cashTransaction);
+        expect(result).toBe(true);
+    });
+
+    it('can merge split expense with card transaction', () => {
+        const splitExpenseTransaction = {
+            ...createRandomTransaction(1),
+            amount: 1000,
+            comment: {
+                ...createRandomTransaction(1).comment,
+                originalTransactionID: 'original-split-transaction',
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+            reportID: 'expense-report-123',
+        } as Transaction;
+        const cardTransaction = {
+            ...createRandomTransaction(2),
+            amount: 2000,
+            managedCard: true,
+            reportID: 'expense-report-456',
+        } as Transaction;
+
+        const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cardTransaction);
+        expect(result).toBe(true);
     });
 });
