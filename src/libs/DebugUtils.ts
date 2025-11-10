@@ -415,6 +415,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     }
     switch (key) {
         case 'avatarUrl':
+        case 'created':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -460,6 +461,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -627,6 +629,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {

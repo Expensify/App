@@ -1,10 +1,27 @@
-import Timing from '@userActions/Timing';
-import CONST from '@src/CONST';
+import * as SentryReact from '@sentry/react';
+import * as Sentry from '@sentry/react-native';
+import {isDevelopment} from '@libs/Environment/Environment';
+import CONFIG from '@src/CONFIG';
+import pkg from '../../../package.json';
 
-export default function () {
-    Timing.start(CONST.TIMING.SPLASH_SCREEN);
+const navigationIntegration = Sentry.reactNavigationIntegration({
+    enableTimeToInitialDisplay: true,
+});
 
-    document.addEventListener('visibilitychange', () => {
-        Timing.clearData();
+export default function (): void {
+    if (isDevelopment()) {
+        return;
+    }
+    Sentry.init({
+        dsn: CONFIG.SENTRY_DSN,
+        tracesSampleRate: 1.0,
+        profilesSampleRate: 1.0,
+        enableAutoPerformanceTracing: true,
+        enableUserInteractionTracing: true,
+        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
+        environment: CONFIG.ENVIRONMENT,
+        release: `${pkg.name}@${pkg.version}`,
     });
 }
+
+export {navigationIntegration};
