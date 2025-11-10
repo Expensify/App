@@ -303,29 +303,23 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = getRateID(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
+    const defaultRate = defaultMileageRate?.customUnitRateID;
+    const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
 
     useEffect(() => {
         if (
             !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
             !isDistanceRequest ||
-            !transactionID ||
-            !policy?.id ||
             !isPolicyExpenseChat ||
+            !transactionID ||
+            !lastSelectedRate ||
             isMovingTransactionFromTrackExpense
         ) {
             return;
         }
 
-        const defaultRate = defaultMileageRate?.customUnitRateID;
-        const lastSelectedRate = lastSelectedDistanceRates?.[policy.id] ?? defaultRate;
-        const rateID = lastSelectedRate;
-
-        if (!rateID) {
-            return;
-        }
-
-        setCustomUnitRateID(transactionID, rateID);
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
+        setCustomUnitRateID(transactionID, lastSelectedRate);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
