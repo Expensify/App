@@ -81,7 +81,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
-import type {OptionData} from './ReportUtils';
+import {getUnreportedTransactionMessage, OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
