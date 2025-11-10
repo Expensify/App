@@ -14,11 +14,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 // Mock usePermissions hook
 const mockIsBetaEnabled = jest.fn();
-jest.mock('@hooks/usePermissions', () => ({
-    default: () => ({
+jest.mock('@hooks/usePermissions', () =>
+    jest.fn(() => ({
         isBetaEnabled: mockIsBetaEnabled,
-    }),
-}));
+    })),
+);
 
 const POLICY_ID = 'test-policy-id';
 const FEED = 'cdf';

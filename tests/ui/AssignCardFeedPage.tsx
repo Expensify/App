@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AssignCardFeedPage from '@pages/workspace/companyCards/assignCard/AssignCardFeedPage';
+import ConfirmationStep from '@pages/workspace/companyCards/assignCard/ConfirmationStep';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +67,10 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASS
                             component={AssignCardFeedPage}
                             initialParams={initialParams}
                         />
+                        <Stack.Screen
+                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}
+                            component={ConfirmationStep}
+                        />
                     </Stack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
@@ -110,8 +115,16 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                1234: {
+                    accountID: 1234,
+                    login: 'testaccount+1@gmail.com',
+                    displayName: 'Test User 1',
+                },
+            });
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
                     bankName: 'vcf',
@@ -177,8 +190,21 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                1234: {
+                    accountID: 1234,
+                    login: 'testaccount+1@gmail.com',
+                    displayName: 'Test User 1',
+                },
+                5678: {
+                    accountID: 5678,
+                    login: 'testaccount+2@gmail.com',
+                    displayName: 'Test User 2',
+                },
+            });
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
                     bankName: 'vcf',

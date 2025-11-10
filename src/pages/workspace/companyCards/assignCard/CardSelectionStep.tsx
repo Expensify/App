@@ -29,7 +29,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT>;
 
