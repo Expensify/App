@@ -4,8 +4,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
-import {runOnUI} from 'react-native-worklets';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -289,6 +288,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         runOnUI(clear)();
     }, []);
 
@@ -405,6 +405,7 @@ function ReportActionCompose({
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         runOnUI(() => {
             'worklet';
 
