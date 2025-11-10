@@ -88,6 +88,18 @@ export default function PriorityModeController() {
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
 
+    useEffect(() => {
+        if (!shouldShowModal) {
+            return;
+        }
+        const isNarrowLayout = getIsNarrowLayout();
+        const shouldHideModalOnNavigation = (isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT);
+
+        if (shouldHideModalOnNavigation) {
+            setShouldShowModal(false);
+        }
+    }, [currentRouteName, shouldShowModal]);
+
     return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
 }
 

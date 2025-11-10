@@ -12,8 +12,17 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return Promise.resolve(false);
     }
 
+    // Decode URI if it's URL-encoded (handles special characters in filenames)
+    let decodedPath = path;
+    try {
+        decodedPath = decodeURI(path);
+    } catch (e) {
+        // If decoding fails, use the original path
+        decodedPath = path;
+    }
+
     // RNFS.stat() returns file info without loading the file content
-    return RNFS.stat(path)
+    return RNFS.stat(decodedPath)
         .then((fileStat) => {
             // File exists if we get stats and it's actually a file (not directory)
             return fileStat.isFile();

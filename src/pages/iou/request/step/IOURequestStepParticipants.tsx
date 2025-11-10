@@ -73,7 +73,7 @@ function IOURequestStepParticipants({
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     const participants = initialTransaction?.participants;
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -82,6 +82,7 @@ function IOURequestStepParticipants({
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -122,6 +123,7 @@ function IOURequestStepParticipants({
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const isActivePolicyRequest =
@@ -232,7 +234,7 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
 
                 if (transactions.length > 0) {
                     transactions.forEach((transaction) => {
@@ -268,7 +270,19 @@ function IOURequestStepParticipants({
                 shouldAutoReport.current = !!policy?.autoReporting || !!personalPolicy?.autoReporting;
             }
         },
-        [action, iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates, initialTransactionID],
+        [
+            action,
+            iouType,
+            transactions,
+            isMovingTransactionFromTrackExpense,
+            reportID,
+            trackExpense,
+            allPolicies,
+            personalPolicy,
+            lastSelectedDistanceRates,
+            initialTransactionID,
+            localeCompare,
+        ],
     );
 
     const goToNextStep = useCallback(() => {
@@ -284,15 +298,18 @@ function IOURequestStepParticipants({
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
-            setMoneyRequestCategory(transaction.transactionID, '');
+            const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
+            setMoneyRequestTag(transaction.transactionID, tag);
+            const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
+            setMoneyRequestCategory(transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
             transactions.forEach((transaction) => {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {
@@ -337,14 +354,20 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        navigateToStartMoneyRequestStep(iouRequestType, iouType, initialTransactionID, reportID, action);
+
+        // Change iouType param to enable negative values
+        const shouldForceIOUType =
+            action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.SUBMIT && (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN);
+        const iouTypeValue = shouldForceIOUType ? CONST.IOU.TYPE.CREATE : iouType;
+
+        navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     }, [backTo, iouRequestType, iouType, initialTransactionID, reportID, action]);
 
     useEffect(() => {

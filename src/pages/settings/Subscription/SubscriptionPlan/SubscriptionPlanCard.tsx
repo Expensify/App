@@ -5,6 +5,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,11 +34,20 @@ type SubscriptionPlanCardProps = {
 function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, closeComparisonModal}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentSubscriptionPlan = useSubscriptionPlan();
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
-    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
+        translate,
+        subscriptionPlan,
+        privateSubscription?.type,
+        preferredCurrency,
+        isFromComparisonModal,
+        hasTeam2025Pricing,
+    );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 

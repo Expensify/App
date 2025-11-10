@@ -21,19 +21,16 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
             if (key === 'receipt') {
                 const {source, name, type, uri} = value as File;
-
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
                             return;
                         }
-
                         const receiptFormData = {
                             uri,
                             name,
                             type,
                         };
-
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
+import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -13,7 +13,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const setModifiedRoomName = (event: TextInputChangeEvent) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);

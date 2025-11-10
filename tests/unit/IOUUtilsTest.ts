@@ -59,6 +59,7 @@ describe('IOUUtils', () => {
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
                 // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
@@ -92,6 +93,7 @@ describe('IOUUtils', () => {
                 pendingAction: null,
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
                 // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
@@ -275,7 +277,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -333,7 +335,7 @@ describe('canSubmitReport', () => {
             },
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -393,7 +395,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const expenseReport: Report = {
-            ...createRandomReport(6),
+            ...createRandomReport(6, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
@@ -411,7 +413,7 @@ describe('canSubmitReport', () => {
             preventSelfApproval: false,
         };
         const report: Report = {
-            ...createRandomReport(7),
+            ...createRandomReport(7, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,

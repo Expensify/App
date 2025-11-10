@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +23,7 @@ import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/Car
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -34,12 +34,14 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useExpensifyCardContext from './useExpensifyCardContext';
 
-type ExpensifyCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
+type ExpensifyCardPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
+    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL>;
 
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
@@ -61,11 +63,8 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
     }
 }
 
-function ExpensifyCardPage({
-    route: {
-        params: {cardID = ''},
-    },
-}: ExpensifyCardPageProps) {
+function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
+    const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -79,6 +78,7 @@ function ExpensifyCardPage({
     const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch'] as const);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -128,7 +128,8 @@ function ExpensifyCardPage({
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.country ?? cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
@@ -191,13 +192,19 @@ function ExpensifyCardPage({
                             />
                         )}
                         {virtualCards.map((card) => (
-                            <>
+                            <React.Fragment key={card.cardID}>
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (
                                     <CardDetails
                                         pan={cardsDetails[card.cardID]?.pan}
                                         expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
-                                        domain={domain}
+                                        onUpdateAddressPress={() => {
+                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(String(card.cardID)));
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                        }}
                                     />
                                 ) : (
                                     <>
@@ -214,6 +221,10 @@ function ExpensifyCardPage({
                                                         onPress={() => {
                                                             if (isAccountLocked) {
                                                                 showLockedAccountModal();
+                                                                return;
+                                                            }
+                                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
                                                             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
@@ -235,27 +246,28 @@ function ExpensifyCardPage({
                                     <MenuItemWithTopDescription
                                         title={translate('cardPage.reportFraud')}
                                         titleStyle={styles.walletCardMenuItem}
-                                        icon={Expensicons.Flag}
+                                        icon={expensifyIcons.Flag}
                                         shouldShowRightIcon
                                         onPress={() => {
                                             if (isAccountLocked) {
                                                 showLockedAccountModal();
                                                 return;
                                             }
+                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                return;
+                                            }
                                             Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
                                         }}
                                     />
                                 )}
-                            </>
+                            </React.Fragment>
                         ))}
                         {isTravelCard &&
                             travelCards.map((card) => (
-                                <>
+                                <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
-                                        <CardDetails
-                                            cvv={cardsDetails[card.cardID]?.cvv}
-                                            domain={domain}
-                                        />
+                                        <CardDetails cvv={cardsDetails[card.cardID]?.cvv} />
                                     ) : (
                                         <>
                                             <MenuItemWithTopDescription
@@ -286,12 +298,12 @@ function ExpensifyCardPage({
                                         <MenuItemWithTopDescription
                                             title={translate('cardPage.reportTravelFraud')}
                                             titleStyle={styles.walletCardMenuItem}
-                                            icon={Expensicons.Flag}
+                                            icon={expensifyIcons.Flag}
                                             shouldShowRightIcon
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     )}
-                                </>
+                                </React.Fragment>
                             ))}
                         {shouldShowReportLostCardButton && (
                             <>
@@ -301,15 +313,17 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardPin')}
-                                    title={maskPin(pin)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
-                                />
+                                {shouldShowPIN && (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.physicalCardPin')}
+                                        title={maskPin(pin)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                    />
+                                )}
                                 <MenuItem
                                     title={translate('reportCardLostOrDamaged.screenTitle')}
-                                    icon={Expensicons.Flag}
+                                    icon={expensifyIcons.Flag}
                                     shouldShowRightIcon
                                     onPress={() => {
                                         if (isAccountLocked) {
@@ -322,7 +336,7 @@ function ExpensifyCardPage({
                             </>
                         )}
                         <MenuItem
-                            icon={Expensicons.MoneySearch}
+                            icon={expensifyIcons.MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
                             style={styles.mt3}
                             onPress={() => {

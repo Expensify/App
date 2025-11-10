@@ -3,8 +3,8 @@ import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
-import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
+import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
@@ -27,11 +27,11 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         return route;
     }, [attachmentsContext, route]);
 
-    if (route.name === SCREENS.ATTACHMENTS) {
+    if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.ATTACHMENTS>}
-                navigation={navigation as NavigationType<typeof SCREENS.ATTACHMENTS>}
+                route={routeWithContext as RouteType<typeof SCREENS.REPORT_ATTACHMENTS>}
+                navigation={navigation as NavigationType<typeof SCREENS.REPORT_ATTACHMENTS>}
             />
         );
     }

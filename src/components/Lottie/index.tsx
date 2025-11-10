@@ -40,7 +40,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
             return;
         }
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });

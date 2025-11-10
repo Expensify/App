@@ -1,4 +1,5 @@
 import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**
  * Validates a receipt file and processes it for upload
@@ -6,7 +7,7 @@ import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
  */
 function validateReceiptFile(
     receiptFilename: string | undefined,
-    receiptPath: string | undefined,
+    receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
     onSuccess: (file: File) => void,
     onFailure: () => void,
