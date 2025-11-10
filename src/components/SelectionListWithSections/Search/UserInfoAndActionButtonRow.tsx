@@ -10,6 +10,7 @@ import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isActionLoadingSelector from '@src/selectors/ReportMetaData';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
@@ -30,13 +31,13 @@ function UserInfoAndActionButtonRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-    const isLoading = 'isActionLoading' in item ? item?.isActionLoading : reportMetadata?.isActionLoading;
+    const isLoading = 'isActionLoading' in item ? item?.isActionLoading : isActionLoading;
     return (
         <View
             style={[
