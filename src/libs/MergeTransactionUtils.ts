@@ -269,6 +269,9 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             if (field === 'taxValue') {
                 mergeableData.taxCode = isTargetValueEmpty ? sourceTransaction?.taxCode : targetTransaction?.taxCode;
+                if (mergeableData.amount) {
+                    mergeableData.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeableData.taxValue as string, mergeableData.amount as number, mergeableData.currency as string));
+                }
             }
         } else {
             conflictFields.push(field);
