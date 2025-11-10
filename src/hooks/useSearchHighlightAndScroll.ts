@@ -46,11 +46,10 @@ function useSearchHighlightAndScroll({
     const searchTriggeredRef = useRef(false);
     const hasNewItemsRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
-    const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
+    const [newSearchResultKeys, setNewSearchResultKeys] = useState<Set<string> | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
-    const hasProcessedInitialChangeRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     const existingSearchResultIDs = useMemo(() => {
@@ -81,15 +80,6 @@ function useSearchHighlightAndScroll({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        if (!initializedRef.current) {
-            return;
-        }
-
-        if (!hasProcessedInitialChangeRef.current) {
-            hasProcessedInitialChangeRef.current = true;
-            return;
-        }
-
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -174,7 +164,6 @@ function useSearchHighlightAndScroll({
 
         highlightedIDs.current = new Set(existingSearchResultIDs);
         initializedRef.current = true;
-        hasProcessedInitialChangeRef.current = false;
     }, [searchResults?.data, isChat, existingSearchResultIDs]);
 
     // Detect new items (transactions or report actions)
@@ -193,11 +182,13 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newReportActionID = newReportActionIDs.at(0) ?? '';
-            const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportActionID}`;
-
-            setNewSearchResultKey(newReportActionKey);
-            highlightedIDs.current.add(newReportActionID);
+            const newKeys = new Set<string>();
+            newReportActionIDs.forEach((id) => {
+                const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
+                highlightedIDs.current.add(newReportActionKey);
+                newKeys.add(newReportActionKey);
+            });
+            setNewSearchResultKeys(newKeys);
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
@@ -209,26 +200,28 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newTransactionID = newTransactionIDs.at(0) ?? '';
-            const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
-
-            setNewSearchResultKey(newTransactionKey);
-            highlightedIDs.current.add(newTransactionID);
+            const newKeys = new Set<string>();
+            newTransactionIDs.forEach((id) => {
+                const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+                highlightedIDs.current.add(newTransactionKey);
+                newKeys.add(newTransactionKey);
+            });
+            setNewSearchResultKeys(newKeys);
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
 
     // Reset newSearchResultKey after it's been used
     useEffect(() => {
-        if (newSearchResultKey === null) {
+        if (newSearchResultKeys === null) {
             return;
         }
 
         const timer = setTimeout(() => {
-            setNewSearchResultKey(null);
+            setNewSearchResultKeys(null);
         }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
 
         return () => clearTimeout(timer);
-    }, [newSearchResultKey]);
+    }, [newSearchResultKeys]);
 
     /**
      * Callback to handle scrolling to the new search result.
@@ -237,7 +230,8 @@ function useSearchHighlightAndScroll({
         (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
-            if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
+            const newSearchResultKey = newSearchResultKeys?.values().next().value;
+            if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
                 return;
             }
 
@@ -275,10 +269,10 @@ function useSearchHighlightAndScroll({
             // Reset the trigger flag to prevent unintended future scrolls and highlights
             triggeredByHookRef.current = false;
         },
-        [newSearchResultKey, isChat],
+        [newSearchResultKeys, isChat],
     );
 
-    return {newSearchResultKey, handleSelectionListScroll, newTransactions};
+    return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
 }
 
 /**
