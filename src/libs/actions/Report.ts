@@ -190,11 +190,11 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -2896,7 +2896,9 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}} as unknown as Partial<OnyxTypes.ReportActions>,
+            value: {
+                [reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
+            } as unknown as Partial<OnyxTypes.ReportActions>,
         },
 
         {
