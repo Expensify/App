@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, CompanyCardFeedWithNumber, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
@@ -78,11 +78,10 @@ function addNewCompanyCardsFeed(
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
 
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedType,
+            value: feedType as unknown as CompanyCardFeedWithNumber,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -122,11 +121,10 @@ function addNewCompanyCardsFeed(
     ];
 
     const successData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedType,
+            value: feedType as unknown as CompanyCardFeedWithNumber,
         },
     ];
     const finallyData: OnyxUpdate[] = [

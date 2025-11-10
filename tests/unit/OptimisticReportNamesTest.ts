@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
@@ -112,9 +113,8 @@ describe('OptimisticReportNames', () => {
                 key: 'report_123' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -20000},
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = computeReportNameIfNeeded(mockReport, update, mockContext);
             expect(result).toEqual('Expense Report - $200.00');
         });
@@ -124,14 +124,13 @@ describe('OptimisticReportNames', () => {
                 key: 'report_456' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {description: 'Updated description'},
-            };
+            } as OnyxUpdate;
 
             const result = computeReportNameIfNeeded(
                 {
                     ...mockReport,
                     reportName: 'Expense Report - $100.00',
                 },
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 update,
                 mockContext,
             );
@@ -153,9 +152,8 @@ describe('OptimisticReportNames', () => {
                         type: 'expense',
                     },
                 },
-            ];
+            ] as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
             expect(result.at(1)).toEqual({
@@ -172,9 +170,8 @@ describe('OptimisticReportNames', () => {
                     onyxMethod: Onyx.METHOD.MERGE,
                     value: {total: -25000},
                 },
-            ];
+            ] as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
             expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
@@ -218,10 +215,9 @@ describe('OptimisticReportNames', () => {
                     key: 'policy_policy1' as OnyxKey,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value: {name: 'Updated Policy Name'},
-                },
+                } as OnyxUpdate,
             ];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
 
             expect(result).toHaveLength(4);
@@ -260,9 +256,8 @@ describe('OptimisticReportNames', () => {
                     onyxMethod: Onyx.METHOD.MERGE,
                     value: {someData: 'value'},
                 },
-            ];
+            ] as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toEqual(updates); // Unchanged
         });
@@ -274,9 +269,8 @@ describe('OptimisticReportNames', () => {
                 key: 'report_999' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -10000},
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = computeReportNameIfNeeded(undefined, update, mockContext);
             expect(result).toBeNull();
         });
@@ -306,9 +300,8 @@ describe('OptimisticReportNames', () => {
                     created: '2024-02-15', // Updated date
                     reportID: '123',
                 },
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should include original update + new report name update
@@ -387,9 +380,8 @@ describe('OptimisticReportNames', () => {
                     amount: -4000, // Updated amount
                     // No reportID provided in update
                 },
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should still find the report through context lookup and generate update
@@ -446,9 +438,8 @@ describe('OptimisticReportNames', () => {
                     created: '2024-03-15', // Updated date that should be used in formula
                     modifiedCreated: '2024-03-15',
                 },
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             expect(result).toHaveLength(2);

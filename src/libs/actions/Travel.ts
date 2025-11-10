@@ -6,6 +6,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
@@ -60,13 +61,12 @@ function acceptSpotnanaTerms(domain?: string) {
 
 function requestTravelAccess() {
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
                 lastTravelSignupRequestTime: Date.now(),
-            },
+            } as unknown as Partial<OnyxTypes.TravelSettings>,
         },
     ];
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});

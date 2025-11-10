@@ -2236,17 +2236,15 @@ describe('actions/IOU', () => {
                 (item) => item[julesChatCreatedAction.reportActionID].reportID,
             );
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
                 ...reportCollectionDataSet,
-            })
+            } as Parameters<typeof Onyx.mergeCollection<typeof ONYXKEYS.COLLECTION.REPORT>>[1])
                 .then(() =>
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
                         ...carlosActionsCollectionDataSet,
                         ...julesCreatedActionsCollectionDataSet,
                         ...julesActionsCollectionDataSet,
-                    }),
+                    } as Parameters<typeof Onyx.mergeCollection<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>[1]),
                 )
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction?.transactionID}`, julesExistingTransaction))
                 .then(() => {

@@ -7,6 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {VacationDelegate} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false, currentDelegate?: string) {
@@ -37,13 +38,12 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
                 errors: ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('statusPage.vacationDelegateError'),
-            },
+            } as unknown as Partial<OnyxTypes.VacationDelegate>,
         },
     ];
 
@@ -89,7 +89,6 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
@@ -97,7 +96,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
                 creator,
                 delegate,
                 errors: ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('statusPage.vacationDelegateError'),
-            },
+            } as unknown as Partial<OnyxTypes.VacationDelegate>,
         },
     ];
 

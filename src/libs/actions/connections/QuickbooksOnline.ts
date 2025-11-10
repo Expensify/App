@@ -105,7 +105,6 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -124,12 +123,11 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                         },
                     },
                 },
-            },
+            } as unknown as Partial<Policy>,
         },
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -148,7 +146,7 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                         },
                     },
                 },
-            },
+            } as unknown as Partial<Policy>,
         },
     ];
 

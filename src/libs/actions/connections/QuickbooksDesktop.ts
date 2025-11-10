@@ -13,6 +13,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 
 function buildOnyxDataForMultipleQuickbooksExportConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']['export']>>(
     policyID: string,
@@ -90,7 +91,6 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -111,12 +111,11 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
                         },
                     },
                 },
-            },
+            } as Partial<Policy>,
         },
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -137,7 +136,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
                         },
                     },
                 },
-            },
+            } as Partial<Policy>,
         },
     ];
 

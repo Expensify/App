@@ -432,7 +432,6 @@ function dismissDuplicateTransactionViolation(
         });
     }
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -443,13 +442,12 @@ function dismissDuplicateTransactionViolation(
                       [optimisticDismissedViolationReportAction.reportActionID]: optimisticDismissedViolationReportAction as ReportAction,
                   }
                 : undefined,
-        };
+        } as OnyxUpdate;
     });
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+        value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) as TransactionViolations,
     }));
 
     optimisticData.push(...optimisticDataTransactionViolations);
@@ -476,8 +474,7 @@ function dismissDuplicateTransactionViolation(
     const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        value: transactionViolations.violations?.map((violation) => violation),
+        value: transactionViolations.violations?.map((violation) => violation) as TransactionViolations,
     }));
 
     const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
@@ -488,7 +485,6 @@ function dismissDuplicateTransactionViolation(
         },
     }));
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -499,14 +495,13 @@ function dismissDuplicateTransactionViolation(
                       [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
-        };
+        } as OnyxUpdate;
     });
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -517,7 +512,7 @@ function dismissDuplicateTransactionViolation(
                       [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
-        };
+        } as OnyxUpdate;
     });
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
@@ -585,8 +580,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+                value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER) as TransactionViolations,
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
@@ -816,8 +810,7 @@ function changeTransactionsReport(
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) as TransactionViolations,
                     });
                 });
             }
@@ -853,11 +846,10 @@ function changeTransactionsReport(
                 false,
             );
             optimisticData.push(violationData);
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[transaction.transactionID],
+                value: allTransactionViolation?.[transaction.transactionID] as TransactionViolations,
             });
             const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
             const hasOtherViolationsBesideDuplicates =
@@ -1023,10 +1015,9 @@ function changeTransactionsReport(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
                     policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
-                },
+                } as Partial<Report>,
             });
         }
 
@@ -1270,11 +1261,10 @@ function changeTransactionsReport(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
         value: optimisticNextStep,
     });
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: reportNextStep,
+        value: reportNextStep as ReportNextStep,
     });
 
     const parameters: ChangeTransactionsReportParams = {

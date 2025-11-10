@@ -124,6 +124,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
@@ -434,21 +435,19 @@ function deleteWorkspace(
                 pendingAction: null,
             },
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: policyCardFeeds,
+            value: policyCardFeeds as OnyxTypes.CardFeeds,
         },
     ];
 
     if (policyID === activePolicyID) {
         const personalPolicyID = PolicyUtils.getPersonalPolicy()?.id;
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: personalPolicyID,
+            value: personalPolicyID as string,
         });
 
         failureData.push({
@@ -535,18 +534,15 @@ function deleteWorkspace(
         for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
             const transactionViolation = transactionViolations?.[transactionViolationKey];
             const transactionID = transactionViolationKey.slice(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS.length);
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: transactionViolation?.filter((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION),
+                value: transactionViolation?.filter((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION) as OnyxTypes.TransactionViolations,
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: transactionViolation,
+                value: transactionViolation as OnyxTypes.TransactionViolations,
             });
         }
     });
@@ -1272,13 +1268,12 @@ function createPolicyExpenseChats(
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 },
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             workspaceMembersChats.onyxOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${oldChat.reportID}`,
                 value: {
                     private_isArchived: false,
-                },
+                } as unknown as Partial<OnyxTypes.ReportNameValuePairs>,
             });
             const currentTime = DateUtils.getDBTime();
             const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
@@ -2348,11 +2343,10 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     ];
 
     if (shouldSetCreatedPolicyAsActive) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID,
+            value: activePolicyID as string,
         });
     }
 
@@ -2664,8 +2658,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2768,8 +2761,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxOptimisticData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2845,8 +2837,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxSuccessData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3935,7 +3926,6 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
 function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldNavigateToReceiptPartnersPage?: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -3944,7 +3934,7 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                     pendingFields: {
                         receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
-                },
+                } as Partial<OnyxTypes.Policy>,
             },
         ],
         successData: [
@@ -3959,7 +3949,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
             },
         ],
         failureData: [
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -3968,7 +3957,7 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                     pendingFields: {
                         receiptPartners: null,
                     },
-                },
+                } as Partial<OnyxTypes.Policy>,
             },
         ],
     };

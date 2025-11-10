@@ -23,6 +23,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
@@ -48,7 +49,6 @@ type IssueNewCardFlowData = {
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
@@ -56,7 +56,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
                 cardID,
                 isLoading: true,
                 errors: null,
-            },
+            } as Partial<OnyxTypes.Form>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

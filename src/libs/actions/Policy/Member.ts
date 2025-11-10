@@ -27,7 +27,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    Policy,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -546,13 +556,12 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers,
                 },
             },
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
                     private_isArchived: true,
-                },
+                } as unknown as Partial<ReportNameValuePairs>,
             },
         );
         const currentTime = DateUtils.getDBTime();
@@ -591,13 +600,12 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers: null,
                 },
             },
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
                     private_isArchived: false,
-                },
+                } as unknown as Partial<ReportNameValuePairs>,
             },
         );
     });

@@ -1379,22 +1379,20 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     };
 
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
             value,
-        },
+        } as OnyxUpdate,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureData: OnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: name,
                   value: revertedValue,
-              },
+              } as OnyxUpdate,
           ]
         : undefined;
 

@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
@@ -813,14 +814,13 @@ describe('APITests', () => {
                 key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
                 value: 'onboarding.errorSelection',
             },
-        ];
+        ] as OnyxUpdate[];
 
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT},
             [ONYXKEYS.NETWORK]: {isOffline: false},
         })
             .then(() => {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })

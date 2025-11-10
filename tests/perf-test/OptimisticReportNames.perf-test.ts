@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
@@ -91,9 +92,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 key: `report_${report?.reportID}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -20000},
-            };
+            } as OnyxUpdate;
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => computeReportNameIfNeeded(report, update, mockContext));
         });
     });
@@ -110,9 +110,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     currency: 'USD',
                     lastVisibleActionCreated: new Date().toISOString(),
                 },
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -122,9 +121,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 key,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -(Math.random() * 100000)},
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -139,7 +137,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     currency: 'USD',
                     lastVisibleActionCreated: new Date().toISOString(),
                 },
-            }));
+            })) as OnyxUpdate[];
 
             const existingReportUpdates = Object.keys(mockReports)
                 .slice(0, 50)
@@ -147,11 +145,11 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     key: key as OnyxKey,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value: {total: -(Math.random() * 125000)},
-                }));
+                })) as OnyxUpdate[];
 
+            // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
         });
     });
@@ -162,10 +160,9 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 key: 'policy_policy1' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {name: 'Updated Policy Name'},
-            };
+            } as OnyxUpdate;
 
             // This should trigger name computation for all reports using policy1
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], mockContext));
         });
 
@@ -174,9 +171,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 key: `policy_policy${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {name: `Bulk Updated Policy ${i}`},
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
         });
     });
@@ -193,9 +189,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     currency: 'USD',
                     lastVisibleActionCreated: new Date().toISOString(),
                 },
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -205,9 +200,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 key: `transaction_${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {description: `Updated transaction ${i}`},
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
         });
     });
@@ -254,9 +248,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     total: -10000,
                     currency: 'USD',
                 },
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithoutFormulas));
         });
 
@@ -279,9 +272,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     total: -10000,
                     currency: 'USD',
                 },
-            }));
+            })) as OnyxUpdate[];
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithMissingData));
         });
     });

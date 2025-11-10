@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
@@ -77,7 +78,6 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -94,12 +94,11 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         },
                     },
                 },
-            },
+            } as Partial<Policy>,
         },
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -116,7 +115,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         },
                     },
                 },
-            },
+            } as Partial<Policy>,
         },
     ];
 

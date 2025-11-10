@@ -194,6 +194,7 @@ import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -2877,13 +2878,12 @@ function buildNewReportOptimisticData(
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
                 data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
-            },
+            } as unknown as Partial<OnyxTypes.SearchResults>,
         });
     }
 
@@ -2896,8 +2896,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}} as unknown as Partial<OnyxTypes.ReportActions>,
         },
 
         {
@@ -2926,9 +2925,8 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     errorFields: null,
-                },
+                } as Partial<OnyxTypes.ReportAction>,
             },
         },
         {
@@ -2937,9 +2935,8 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     errorFields: null,
-                },
+                } as Partial<OnyxTypes.ReportAction>,
             },
         },
     ];
@@ -4080,8 +4077,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
         },
     ];
 
-    if (shouldHideMessage) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    if (shouldHideMessage && originalReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
@@ -4913,11 +4909,10 @@ function deleteAppReport(reportID: string | undefined) {
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    value: transactionViolations,
+                    value: transactionViolations as OnyxTypes.TransactionViolations,
                 },
             );
 
@@ -5043,11 +5038,10 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: reportActionsForReport,
+        value: reportActionsForReport as OnyxTypes.ReportActions,
     });
 
     // 7. Delete the report
@@ -5057,11 +5051,10 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: report,
+        value: report as OnyxTypes.Report,
     });
 
     // 8. Delete chat report preview
@@ -5452,7 +5445,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
  */
 function dismissChangePolicyModal() {
     const date = new Date();
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
@@ -5464,7 +5457,6 @@ function dismissChangePolicyModal() {
             },
         },
     ];
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
@@ -5595,11 +5587,10 @@ function buildOptimisticChangePolicyData(
             }),
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep,
+            value: reportNextStep as OnyxTypes.ReportNextStep,
         });
     }
 
@@ -5682,11 +5673,10 @@ function buildOptimisticChangePolicyData(
                 lastVisibleActionCreated,
             },
         });
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`,
-            value: chatReport,
+            value: chatReport as OnyxTypes.Report,
         });
     }
 
@@ -5777,13 +5767,12 @@ function buildOptimisticChangePolicyData(
 
     // Search data might not have the new policy data so we should add it optimistically.
     if (policy && currentSearchQueryJSON) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
                 data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
-            },
+            } as unknown as Partial<OnyxTypes.SearchResults>,
         });
     }
 

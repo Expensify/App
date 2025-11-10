@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 type EReceiptStory = StoryFn<typeof EReceipt>;
@@ -153,8 +154,7 @@ const transactionData = {
     },
 } as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
-// @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
+Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction>);
 Onyx.merge('cardList', {
     4: {bank: 'Expensify Card', lastFourPAN: '1000'},
     5: {bank: 'Expensify Card', lastFourPAN: '4444'},

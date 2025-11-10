@@ -45,6 +45,7 @@ import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, R
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type SearchResultsType from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -247,7 +248,6 @@ function getOnyxLoadingData(
     ];
 
     const failureData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -259,7 +259,7 @@ function getOnyxLoadingData(
                     isLoading: false,
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-            },
+            } as Partial<SearchResultsType>,
         },
     ];
 
@@ -519,7 +519,6 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null, reportAction?: OptimisticExportIntegrationAction | null): OnyxUpdate[] => [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -527,7 +526,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
                 data: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: update,
                 },
-            },
+            } as unknown as Partial<SearchResultsType>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -596,8 +595,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // @ts-ignore - TS2590: Expression produces a union type that is too complex (TypeScript limitation, not a type error)
     const optimisticData: OnyxUpdate[] = [
         ...loadingOptimisticData,
         {
@@ -606,8 +604,8 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
             value: {
                 data: Object.fromEntries(
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
-                ) as Partial<SearchTransaction>,
-            },
+                ),
+            } as unknown as Partial<SearchResultsType>,
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -939,8 +937,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     const onyxUpdates: OnyxUpdate[] = [];
 
     // Set optimistic parent report
-    if (!hasParentReport) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    if (!hasParentReport && report) {
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
