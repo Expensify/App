@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -465,19 +465,21 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    const getItemStyle = useCallback(
+        (item: Item, hovered: boolean) => [
+            styles.workspaceSectionMoreFeaturesItem,
+            shouldUseNarrowLayout && styles.flexBasis100,
+            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
+            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
+        ],
+        [styles.workspaceSectionMoreFeaturesItem, styles.flexBasis100, styles.hoveredComponentBG, shouldUseNarrowLayout, StyleUtils],
+    );
+
     const renderItem = useCallback(
         (item: Item) => (
-            <Hoverable>
+            <Hoverable key={item.titleTranslationKey}>
                 {(hovered) => (
-                    <View
-                        key={item.titleTranslationKey}
-                        style={[
-                            styles.workspaceSectionMoreFeaturesItem,
-                            shouldUseNarrowLayout && styles.flexBasis100,
-                            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
-                            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
-                        ]}
-                    >
+                    <View style={getItemStyle(item, hovered)}>
                         <ToggleSettingOptionRow
                             icon={item.icon}
                             disabled={item.disabled}
