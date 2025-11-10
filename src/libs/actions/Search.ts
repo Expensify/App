@@ -542,7 +542,6 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
     const optimisticReportActionID = optimisticAction.reportActionID;
 
     const createOnyxData = (update: Partial<ReportMetadata> | null, reportAction?: OptimisticExportIntegrationAction | null): OnyxUpdate[] => [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
