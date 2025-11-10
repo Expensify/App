@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {workspaceOrDomainSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
@@ -49,7 +49,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
             unsubscribe();
 
             // If we open this screen from a different tab, then it won't have animation.
-            if (!workspaceSplitsWithoutEnteringAnimation.has(route.key)) {
+            if (!workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key)) {
                 return;
             }
 

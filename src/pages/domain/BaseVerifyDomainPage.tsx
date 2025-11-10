@@ -24,7 +24,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -36,7 +36,15 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     );
 }
 
-function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo: 'WORKSPACES_DOMAIN_VERIFIED' | 'DOMAIN_VERIFIED'}) {
+type BaseVerifyDomainPageProps = {
+    /** The accountID of the domain */
+    accountID: number;
+
+    /** Route to navigate to after successful verification */
+    forwardTo: Route;
+};
+
+function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -52,7 +60,7 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
         if (!domain?.validated) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES[forwardTo].getRoute(accountID), {forceReplace: true}));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [accountID, domain?.validated, forwardTo]);
 
     useEffect(() => {
@@ -79,7 +87,7 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
 
     return (
         <ScreenWrapper
-            testID={VerifyDomainPage.displayName}
+            testID={BaseVerifyDomainPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -163,5 +171,5 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
     );
 }
 
-VerifyDomainPage.displayName = 'VerifyDomainPage';
-export default VerifyDomainPage;
+BaseVerifyDomainPage.displayName = 'BaseVerifyDomainPage';
+export default BaseVerifyDomainPage;

@@ -30,16 +30,22 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.CONCIERGE,
 ];
 
-const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const workspaceOrDomainSplitsWithoutEnteringAnimation = new Set<string>();
 
 const screensWithEnteringAnimation = new Set<string>();
 
-function handleOpenWorkspaceOrDomainSplitAction(
+/**
+ * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
+ *
+ * Pushes the workspace hub split navigator first and then pushes the split navigator.
+ * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
+ */
+function prepareStateUnderWorkspaceOrDomainNavigator(
     state: StackNavigationState<ParamListBase>,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
     actionToPushWorkspaceSplitNavigator: StackActionType,
-    splitNavigatorName: 'WorkspaceSplitNavigator' | 'DomainSplitNavigator',
+    splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
 ) {
     const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
 
@@ -63,7 +69,7 @@ function handleOpenWorkspaceOrDomainSplitAction(
     if (lastFullScreenRoute?.key) {
         // If the user opened the workspace/domain split navigator from a different tab, we don't want to animate the entering transition.
         // To make it feel like bottom tab navigator.
-        workspaceSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
+        workspaceOrDomainSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
     return stateWithSplitNavigator;
@@ -72,8 +78,6 @@ function handleOpenWorkspaceOrDomainSplitAction(
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
  * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
- * It will push the workspace hub split navigator first and then push the workspace split navigator.
- * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
  */
 function handleOpenWorkspaceSplitAction(
     state: StackNavigationState<ParamListBase>,
@@ -88,14 +92,12 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    return handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, 'WorkspaceSplitNavigator');
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
 }
 
 /**
  * Handles the OPEN_DOMAIN_SPLIT action.
  * If the user is on other tab than workspaces and the domain split is "remembered", this action will be called after pressing the settings tab.
- * It will push the workspace hub split navigator first and then push the domain split navigator.
- * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
  */
 function handleOpenDomainSplitAction(
     state: StackNavigationState<ParamListBase>,
@@ -110,7 +112,7 @@ function handleOpenDomainSplitAction(
         },
     });
 
-    return handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, 'DomainSplitNavigator');
+    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
 }
 
 function handlePushFullscreenAction(
@@ -231,6 +233,6 @@ export {
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
-    workspaceSplitsWithoutEnteringAnimation,
+    workspaceOrDomainSplitsWithoutEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
 };

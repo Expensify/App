@@ -13,9 +13,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
-function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirectTo: 'WORKSPACES_VERIFY_DOMAIN' | 'DOMAIN_VERIFY'}) {
+type BaseDomainVerifiedPageProps = {
+    /** The accountID of the domain */
+    accountID: number;
+
+    /** Route to redirect to when trying to access the page for an unverified domain */
+    redirectTo: Route;
+
+    /** Function to run after clicking the confirmation button */
+    navigateAfterConfirmation: () => void;
+};
+
+function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmation}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -28,7 +39,7 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
         if (!doesDomainExist || domain?.validated) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES[redirectTo].getRoute(accountID), {forceReplace: true}));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [accountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (domainMetadata.status === 'loading') {
@@ -41,7 +52,7 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
 
     return (
         <ScreenWrapper
-            testID={DomainVerifiedPage.displayName}
+            testID={BaseDomainVerifiedPage.displayName}
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
@@ -56,11 +67,11 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => (redirectTo === 'WORKSPACES_VERIFY_DOMAIN' ? Navigation.dismissModal() : Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute()))}
+                onButtonPress={navigateAfterConfirmation}
             />
         </ScreenWrapper>
     );
 }
 
-DomainVerifiedPage.displayName = 'DomainVerifiedPage';
-export default DomainVerifiedPage;
+BaseDomainVerifiedPage.displayName = 'BaseDomainVerifiedPage';
+export default BaseDomainVerifiedPage;
