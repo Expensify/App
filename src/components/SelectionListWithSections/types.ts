@@ -310,6 +310,9 @@ type TransactionListItemType = ListItem &
 
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
+
+        /** The main action that can be performed for the transaction */
+        action: SearchTransactionAction;
     };
 
 type ReportActionListItemType = ListItem &
