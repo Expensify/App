@@ -114,27 +114,13 @@ function TransactionListItem<TItem extends ListItem>({
             currentSearchHash,
             transactionItem,
             () => onSelectRow(item, transactionPreviewData),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
         );
-    }, [
-        currentSearchHash,
-        transactionItem,
-        transactionPreviewData,
-        shouldUseNarrowLayout,
-        canSelectMultiple,
-        snapshotReport,
-        snapshotPolicy,
-        lastPaymentMethod,
-        currentSearchKey,
-        onSelectRow,
-        item,
-        onDEWModalOpen,
-    ]);
+    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
@@ -179,6 +165,7 @@ function TransactionListItem<TItem extends ListItem>({
                         item={transactionItem}
                         handleActionButtonPress={handleActionButtonPress}
                         shouldShowUserInfo={!!transactionItem?.from}
+                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                     />
                 )}
                 <TransactionItemRow

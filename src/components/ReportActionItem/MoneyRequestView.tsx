@@ -14,11 +14,9 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -280,7 +278,7 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable =
         (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
@@ -293,9 +291,6 @@ function MoneyRequestView({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
-    const {isBetaEnabled} = usePermissions();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
     const hasViolations = useCallback(
@@ -337,19 +332,9 @@ function MoneyRequestView({
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(
-                transaction.transactionID,
-                report?.reportID,
-                newBillable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-            );
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, isASAPSubmitBetaEnabled],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     const saveReimbursable = useCallback(
@@ -358,19 +343,9 @@ function MoneyRequestView({
             if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestReimbursable(
-                transaction.transactionID,
-                report?.reportID,
-                newReimbursable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-            );
+            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
         },
-        [transaction, report, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, isASAPSubmitBetaEnabled],
+        [transaction, report, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {

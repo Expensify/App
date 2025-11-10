@@ -94,9 +94,6 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
-            currentUserAccountIDParam: 1,
-            currentUserEmailParam: 'test@example.com',
-            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -216,9 +213,6 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
-            currentUserAccountIDParam: 1,
-            currentUserEmailParam: 'test@example.com',
-            isASAPSubmitBetaEnabled: false,
         });
 
         await waitForBatchedUpdates();
@@ -313,9 +307,6 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
-            currentUserAccountIDParam: 1,
-            currentUserEmailParam: 'test@example.com',
-            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -392,9 +383,6 @@ describe('mergeTransactionRequest', () => {
                 policy: undefined,
                 policyTags: undefined,
                 policyCategories: undefined,
-                currentUserAccountIDParam: 1,
-                currentUserEmailParam: 'test@example.com',
-                isASAPSubmitBetaEnabled: false,
             });
 
             await mockFetch?.resume?.();

@@ -19,6 +19,25 @@ Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensif
 />
 ```
 
+### Checkbox Inputs
+
+When using `CheckboxWithLabel` in a form, it should be wrapped with `InputWrapper` just like other form inputs. The `CheckboxWithLabel` component automatically handles controlled/uncontrolled behavior when used with `FormProvider`:
+
+- When used within a `FormProvider`, the `value` prop is automatically provided by `InputWrapper`, making the checkbox a controlled component
+- The checkbox will always synchronize with the form's state, ensuring the visual state matches the actual form value
+- This prevents issues where the checkbox state could diverge from the form state during validation or state updates
+
+```jsx
+<InputWrapper
+    InputComponent={CheckboxWithLabel}
+    inputID={INPUT_IDS.ACCEPT_TERMS}
+    label="I accept the Terms of Service"
+/>
+```
+
+> [!NOTE]
+> The `CheckboxWithLabel` component prioritizes the `value` prop (provided by `FormProvider`) over internal state when the `value` prop is defined. This ensures proper synchronization between the checkbox's visual state and the form's actual state, preventing scenarios where a checkbox might appear unchecked even though the form state indicates it should be checked.
+
 ### Labels, Placeholders, & Hints
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
