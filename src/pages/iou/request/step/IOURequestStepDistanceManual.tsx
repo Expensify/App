@@ -98,7 +98,7 @@ function IOURequestStepDistanceManual({
             return;
         }
         numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance]);
+    }, [distance, selectedTab]);
 
     const shouldSkipConfirmation: boolean = useMemo(() => {
         if (!skipConfirmation || !report?.reportID) {
