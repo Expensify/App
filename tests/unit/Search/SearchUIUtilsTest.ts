@@ -78,7 +78,6 @@ const report1 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -100,7 +99,6 @@ const report2 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -123,7 +121,6 @@ const report3 = {
     currency: 'VND',
     isOneTransactionReport: false,
     isOwnPolicyExpenseChat: false,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: approverAccountID,
     nonReimbursableTotal: 0,
@@ -156,7 +153,6 @@ const report5 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -372,7 +368,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -387,7 +382,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
             hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
@@ -415,7 +409,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -430,7 +423,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
             hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
@@ -460,7 +452,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -488,7 +479,6 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
-            description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
@@ -503,7 +493,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
             amount: 3200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -529,7 +518,6 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
-            description: '',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -841,7 +829,6 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -908,7 +895,6 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -981,7 +967,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1049,7 +1034,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1080,7 +1064,6 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
         managerID: 18439984,
@@ -1117,7 +1100,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1186,7 +1168,6 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
         managerID: 18439984,
@@ -1223,7 +1204,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
@@ -1291,7 +1271,6 @@ const transactionReportGroupListItems = [
         currency: 'VND',
         isOneTransactionReport: false,
         isOwnPolicyExpenseChat: false,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         managerID: 1111111,
         nonReimbursableTotal: 0,
@@ -1338,7 +1317,6 @@ const transactionReportGroupListItems = [
             login: undefined,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
         managerID: 18439984,
@@ -1840,7 +1818,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 56;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1868,7 +1846,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 56;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2385,7 +2363,6 @@ describe('SearchUIUtils', () => {
                         canHold: true,
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
-                        action: 'approve',
                         comment: {
                             comment: '',
                         },
@@ -2492,7 +2469,6 @@ describe('SearchUIUtils', () => {
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
                     isOwnPolicyExpenseChat: false,
-                    isPolicyExpenseChat: false,
                     isWaitingOnBankAccount: false,
                     managerID: adminAccountID,
                     nonReimbursableTotal: 0,
@@ -2501,7 +2477,6 @@ describe('SearchUIUtils', () => {
                     parentReportActionID: '5568426544518647396',
                     parentReportID: '4128157185472356',
                     policyID: '137DA25D273F2423',
-                    private_isArchived: '',
                     reportID: '6523565988285061',
                     reportName: 'Expense Report #6523565988285061',
                     stateNum: 1,
@@ -2520,7 +2495,6 @@ describe('SearchUIUtils', () => {
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
-                    action: 'approve',
                     comment: {
                         comment: '',
                     },
