@@ -12,7 +12,6 @@ import * as OptimisticReportNames from '@libs/OptimisticReportNames';
 import {getUpdateContext, initialize as initializeOptimisticReportNamesContext} from '@libs/OptimisticReportNamesConnectionManager';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
-import sendRequestIdToTelemetry from '@libs/TelemetrySynchronizer';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -51,9 +50,6 @@ addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
 addMiddleware(FraudMonitoring);
-
-// Intercept requestID and send it with telemetry data
-addMiddleware(sendRequestIdToTelemetry);
 
 // Initialize OptimisticReportNames context on module load
 initializeOptimisticReportNamesContext().catch(() => {
