@@ -2408,10 +2408,14 @@ function getColumnsToShow(
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
         }
 
-        const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const managerID = report?.managerID;
-        if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+        if (!Array.isArray(data)) {
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const reportActionsByTransactionIDMap = createReportActionsByTransactionIDMap(data);
+            const reportAction = reportActionsByTransactionIDMap.get(transaction.transactionID);
+            const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
+            if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+            }
         }
     };
 
