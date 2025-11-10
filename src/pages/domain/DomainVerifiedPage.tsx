@@ -20,8 +20,9 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
     const styles = useThemeStyles();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
-
+    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
     const doesDomainExist = !!domain;
+    const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`];
 
     useEffect(() => {
         if (!doesDomainExist || domain?.validated) {
@@ -34,7 +35,7 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain) {
+    if (!domain || !isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
@@ -55,7 +56,7 @@ function DomainVerifiedPage({accountID, redirectTo}: {accountID: number; redirec
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.dismissModal()}
+                onButtonPress={() => (redirectTo === 'WORKSPACES_VERIFY_DOMAIN' ? Navigation.dismissModal() : Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute()))}
             />
         </ScreenWrapper>
     );

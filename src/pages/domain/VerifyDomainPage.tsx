@@ -44,8 +44,9 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
-
+    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
     const doesDomainExist = !!domain;
+    const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`];
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -72,7 +73,7 @@ function VerifyDomainPage({accountID, forwardTo}: {accountID: number; forwardTo:
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain) {
+    if (!domain || !isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 

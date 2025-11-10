@@ -45,18 +45,20 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const doesDomainExist = !!domain;
+    const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`];
 
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={DomainSamlPage.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={domainResults.status === 'loaded' && !domain}
+                shouldShow={domainResults.status === 'loaded' && (!doesDomainExist || !isAdmin || domain?.validated)}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
