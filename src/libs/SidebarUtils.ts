@@ -13,6 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {
@@ -975,6 +976,7 @@ function getOptionData({
 
     result.icons = getIcons(
         report,
+        formatPhoneNumberPhoneUtils,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
@@ -1017,7 +1019,7 @@ function getWelcomeMessage(
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {
-                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID}),
+                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                 workspaceName: getPolicyName({report}),
             });
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
@@ -1093,7 +1095,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                   // eslint-disable-next-line @typescript-eslint/no-deprecated
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;

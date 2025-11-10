@@ -27,7 +27,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -120,7 +120,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
