@@ -1144,23 +1144,6 @@ function openReport(
             },
         });
 
-        // Update the snapshot with the new transactionThreadReportID and moneyRequestReportActionID if we're coming from search
-        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-        if (currentSearchQueryJSON?.hash) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                            transactionThreadReportID: reportID,
-                            moneyRequestReportActionID: iouReportActionID,
-                        },
-                    },
-                },
-            });
-        }
-
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
         // Log how often the legacy transaction fallback path is taken

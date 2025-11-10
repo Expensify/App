@@ -919,7 +919,7 @@ describe('actions/Report', () => {
         expect(transaction).toBeTruthy();
 
         // Call openReport with transaction object to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID,);
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
