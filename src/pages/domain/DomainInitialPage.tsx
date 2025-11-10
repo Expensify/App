@@ -46,13 +46,13 @@ type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainInitialPage({route}: DomainInitialPageProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
-    const {singleExecution} = useSingleExecution();
+    const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const accountID = route.params.accountID;
+    const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
 
@@ -80,9 +80,9 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
+                onBackButtonPress={() => Navigation.dismissModal()}
                 onLinkPress={Navigation.goBackToHome}
-                shouldShow={false}
+                shouldShow={!domain}
                 addBottomSafeAreaPadding
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
@@ -97,11 +97,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                            In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                            In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                         */}
                         {domainMenuItems.map((item) => (
                             <HighlightableMenuItem
                                 key={item.translationKey}
+                                disabled={isExecuting}
                                 title={translate(item.translationKey)}
                                 icon={item.icon}
                                 onPress={item.action}

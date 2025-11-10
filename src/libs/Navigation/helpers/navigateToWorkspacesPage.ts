@@ -16,6 +16,7 @@ type Params = {
     currentUserLogin?: string;
     shouldUseNarrowLayout: boolean;
     policy?: Policy;
+    domainAccountID?: number;
 };
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
@@ -48,7 +49,7 @@ const getWorkspaceNavigationRouteState = () => {
 };
 
 // Navigates to the appropriate workspace tab or workspace list page.
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domainAccountID}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
 
     if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
@@ -89,6 +90,19 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
                 });
             }
             return;
+        }
+
+        // Domain route found: try to restore last domain screen.
+        if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) {
+            // Restore to last-visited domain tab or show initial tab
+            if (domainAccountID) {
+                const domainScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.DOMAIN.INITIAL;
+
+                return navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT,
+                    payload: {accountID: domainAccountID, screenName: domainScreenName},
+                });
+            }
         }
 
         // Fallback: any other state, go to the list.
