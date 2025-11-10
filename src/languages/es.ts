@@ -796,6 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Dividir por porcentaje',
         addSplit: 'Añadir división',
         makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',

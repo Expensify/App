@@ -1501,6 +1501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         chooseWorkspace: 'Kies een werkruimte',
         percent: 'Procent',
+        splitByPercentage: 'Splitsen op percentage',
     },
     transactionMerge: {
         listPage: {

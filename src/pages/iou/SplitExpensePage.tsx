@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
@@ -42,6 +42,7 @@ import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {calculateSplitAmountFromPercentage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -76,7 +77,7 @@ const tabs: TabType[] = [
         key: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
         testID: `split-expense-tab-${CONST.IOU.SPLIT_TYPE.PERCENTAGE}`,
         titleKey: 'iou.percent',
-        icon: Expensicons.PlusMinus,
+        icon: Expensicons.Percent,
     },
 ];
 
@@ -92,8 +93,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
 
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: tabs.length}, (v, i) => i), []);
-    const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const affectedAnimatedTabs = useMemo(() => Array.from({length: tabs.length}, (v, i) => i), []);
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
     const tabSelectorViewRef = useRef<View>(null);
@@ -272,18 +272,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const onSplitExpensePercentageChange = useCallback(
         (currentItemTransactionID: string, percentage: number) => {
-            if (!transactionDetailsAmount) {
-                updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, 0);
-                return;
-            }
-            const clamped = Math.min(100, Math.max(0, Math.round(percentage)));
-            const totalAbs = Math.abs(transactionDetailsAmount);
-            const amountInCents = Math.round((totalAbs * clamped) / 100);
+            const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, percentage);
             updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
         },
         [draftTransaction, transactionDetailsAmount],
     );
-
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
     const [sections] = useMemo(() => {
@@ -448,7 +441,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 })}
             </View>
         );
-    }, [isPercentageMode, shouldUseNarrowLayout, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, translate]);
+    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {

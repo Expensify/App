@@ -13627,9 +13627,11 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const currency = getCurrency(draftTransaction);
+
     // Use allowNegative=true and disableOppositeConversion=true to preserve original amount sign
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
 
+    // Guard clause for missing data
     if (!originalTransactionID || splitExpenses.length === 0) {
         return;
     }
@@ -13640,7 +13642,7 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
         ...splitExpense,
-        amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, 'floorToLast'),
+        amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true),
     }));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {

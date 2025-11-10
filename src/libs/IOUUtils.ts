@@ -59,9 +59,9 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param total - IOU total amount in backend format (cents, no matter the currency)
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
- * @param roundingMode - 'round' (default, legacy behavior) or 'floorToLast' to floor all and put full remainder on the default user
+ * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
  */
-function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, roundingMode: 'round' | 'floorToLast' = 'round'): number {
+function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
     const currencyUnit = Math.min(100, getCurrencyUnit(currency));
@@ -69,18 +69,12 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
     const totalParticipants = numberOfSplits + 1;
 
     // New optional mode
-    if (roundingMode === 'floorToLast') {
-        let baseShareSubunit: number;
-        let remainderSubunit: number;
+    if (useFloorToLastRounding) {
         // For positive totals, floor for everyone and add the full remainder to the default user
-        if (totalInCurrencySubunit >= 0) {
-            baseShareSubunit = Math.floor(totalInCurrencySubunit / totalParticipants);
-            remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
-        } else {
-            // For negative totals, use ceil to move toward zero instead of further down
-            baseShareSubunit = Math.ceil(totalInCurrencySubunit / totalParticipants);
-            remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
-        }
+        // For negative totals, do the inverse of above and round up using Math.ceil to calculate the base share
+        const baseShareSubunit = totalInCurrencySubunit >= 0 ? Math.floor(totalInCurrencySubunit / totalParticipants) : Math.ceil(totalInCurrencySubunit / totalParticipants);
+        const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+
         const subunitAmount = baseShareSubunit + (isDefaultUser ? remainderSubunit : 0);
         return Math.round((subunitAmount * 100) / currencyUnit);
     }
@@ -94,6 +88,18 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
         finalAmount = totalInCurrencySubunit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
     return Math.round((finalAmount * 100) / currencyUnit);
+}
+
+/**
+ * Calculate a split amount in backend cents from a percentage of the original amount.
+ * - Clamps percentage to [0, 100]
+ * - Rounds percentage to whole numbers (per product spec)
+ * - Uses absolute value of the total amount (cents)
+ */
+function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
+    const totalAbs = Math.abs(totalInCents);
+    const clamped = Math.min(100, Math.max(0, Math.round(percentage)));
+    return Math.round((totalAbs * clamped) / 100);
 }
 
 /**
@@ -247,6 +253,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
 
 export {
     calculateAmount,
+    calculateSplitAmountFromPercentage,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
