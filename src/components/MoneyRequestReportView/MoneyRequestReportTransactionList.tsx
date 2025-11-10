@@ -277,6 +277,7 @@ function MoneyRequestReportTransactionList({
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction, report as SearchReport));
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
         return {

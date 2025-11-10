@@ -607,6 +607,7 @@ function getTransactionItemCommonFormattedProperties(
     to: SearchPersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     report: SearchReport,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
@@ -757,6 +758,7 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
     return isAmountTooLong(amount);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction, report: SearchReport | undefined) {
     const isFromExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
     const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
@@ -770,6 +772,7 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     let isAmountWide = false;
     let isTaxAmountWide = false;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const processTransaction = (transaction: TransactionListItemType | SearchTransaction, report: SearchReport | undefined) => {
         isAmountWide ||= isTransactionAmountTooLong(transaction);
         isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction, report);
@@ -780,12 +783,14 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
             if (isTransactionGroupListItemType(item)) {
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     processTransaction(transaction, transaction?.report as SearchReport);
                     if (isAmountWide && isTaxAmountWide) {
                         break;
                     }
                 }
             } else if (isTransactionListItemType(item)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 processTransaction(item, item?.report as SearchReport);
             }
             return isAmountWide && isTaxAmountWide;
