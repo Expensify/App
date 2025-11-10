@@ -197,8 +197,12 @@ function buildNextStep(
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
+    const ownerDisplayName =
+        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    const policyOwnerDisplayName =
+        policyOwnerPersonalDetails?.displayName ??
+        policyOwnerPersonalDetails?.login ??
+        getDisplayNameForParticipant({accountID: policy.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
@@ -506,7 +510,7 @@ function buildNextStep(
                               text: 'an admin',
                           }
                         : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                              text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                               type: 'strong',
                           },
                     {
