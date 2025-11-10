@@ -54,11 +54,7 @@ function AddNewCardPage({policy, route}: AddNewCardPageProps) {
     }
 
     return (
-        <ScreenWrapper
-            testID={AddNewCardPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnablePickerAvoiding={false}
-        >
+        <ScreenWrapper testID={AddNewCardPage.displayName}>
             <FullScreenLoadingIndicator />
         </ScreenWrapper>
     );
