@@ -2049,6 +2049,8 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: "Assurons-nous que c'est bien vous",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Veuillez <a href="${missingDetailsLink}">ajouter vos informations personnelles</a>, puis réessayez.`,
+        unexpectedError: 'Une erreur s’est produite lors de la récupération des informations de votre carte Expensify. Veuillez réessayer.',
         cardFraudAlert: {
             confirmButtonText: 'Oui, je le fais',
             reportFraudButtonText: "Non, ce n'était pas moi.",
@@ -4644,9 +4646,9 @@ ${amount} pour ${merchant} - ${date}`,
             addShippingDetails: "Ajouter les détails d'expédition",
             issuedCard: ({assignee}: AssigneeParams) => `a émis une carte Expensify à ${assignee} ! La carte arrivera dans 2-3 jours ouvrables.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d’expédition auront été confirmés.`,
+                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d'expédition auront été confirmés.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `a émis une ${link} virtuelle à ${assignee} ! La carte peut être utilisée immédiatement.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les détails d'expédition. La carte Expensify arrivera dans 2-3 jours ouvrables.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les informations d’expédition. La carte Expensify arrivera dans 2 à 3 jours ouvrés.`,
             verifyingHeader: 'Vérification en cours',
             bankAccountVerifiedHeader: 'Compte bancaire vérifié',
             verifyingBankAccount: 'Vérification du compte bancaire...',
@@ -5025,6 +5027,10 @@ ${amount} pour ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Impossible de rendre toutes les balises facultatives',
                 description: `Au moins une étiquette doit rester obligatoire car les paramètres de votre espace de travail exigent des étiquettes.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Impossible de rendre la liste des balises obligatoire',
+                description: 'Vous ne pouvez rendre une liste de balises obligatoire que si votre stratégie comporte plusieurs niveaux de balises configurés.',
             },
             tagCount: () => ({
                 one: '1 jour',
