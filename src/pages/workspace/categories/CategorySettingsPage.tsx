@@ -18,7 +18,14 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireItemizedReceiptsOverText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {
+    formatDefaultTaxRateText,
+    formatRequireItemizedReceiptsOverText,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
+    getDecodedCategoryName,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
