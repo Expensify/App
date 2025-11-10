@@ -58,7 +58,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={domainResults.status === 'loaded' && (!doesDomainExist || !isAdmin || domain?.validated)}
+                shouldShow={domainResults.status === 'loaded' && (!doesDomainExist || !isAdmin)}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
