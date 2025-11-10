@@ -16,4 +16,3 @@ type RulesRequiredItemizedReceiptAmountForm = Form<
 
 export type {RulesRequiredItemizedReceiptAmountForm};
 export default INPUT_IDS;
-
