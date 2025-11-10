@@ -311,7 +311,7 @@ function MoneyRequestConfirmationList({
             !transactionID ||
             !policy?.id ||
             !isPolicyExpenseChat ||
-            !isMovingTransactionFromTrackExpense
+            isMovingTransactionFromTrackExpense
         ) {
             return;
         }
@@ -325,7 +325,7 @@ function MoneyRequestConfirmationList({
         }
 
         setCustomUnitRateID(transactionID, rateID);
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest, isMovingTransactionFromTrackExpense]);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
