@@ -946,6 +946,9 @@ function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['da
     return reportActionsByTransactionID;
 }
 
+/**
+ * Calculates the "to" field value for a given transaction item based on the associated report and search data.
+ */
 function getToFieldValueForTransaction(transactionItem: SearchTransaction, report: OnyxTypes.Report | undefined, data: OnyxTypes.SearchResults['data']): SearchPersonalDetails {
     const shouldShowBlankTo = !report || isOpenExpenseReport(report);
     if (shouldShowBlankTo) {
