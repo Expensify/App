@@ -169,6 +169,7 @@ const report5 = {
 
 const reportAction1 = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:21',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
@@ -183,6 +184,7 @@ const reportAction1 = {
 
 const reportAction2 = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:22',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
@@ -197,6 +199,7 @@ const reportAction2 = {
 
 const reportAction3 = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:23',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
@@ -211,6 +214,7 @@ const reportAction3 = {
 
 const reportAction4 = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:24',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
@@ -1822,7 +1826,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 56;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1850,7 +1854,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 56;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2636,7 +2640,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2648,7 +2651,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2660,7 +2662,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: 'Office Supplies',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2672,7 +2673,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: 'Project A',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2684,7 +2684,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: 'Business meeting lunch'},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2696,9 +2695,17 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: approverAccountID, // Different from current user
                 managerID: adminAccountID, // Different from current user
                 reportID: reportID2, // Needs to be a submitter report for 'To' to show
+            };
+            const differentUsersTransactionIOUAction = {
+                ...reportAction2,
+                accountID: approverAccountID,
+                actorAccountID: approverAccountID,
+                originalMessage: {
+                    IOUTransactionID: 'differentUsers',
+                    IOUReportID: report2.reportID,
+                },
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
@@ -2736,6 +2743,7 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+                [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
