@@ -1809,7 +1809,6 @@ describe('SearchUIUtils', () => {
                     [`transactions_${distanceTransactionID}`]: {
                         ...searchResults.data[`transactions_${transactionID}`],
                         transactionID: distanceTransactionID,
-                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     },
                 },
@@ -1835,7 +1834,6 @@ describe('SearchUIUtils', () => {
                     [`transactions_${distanceTransactionID}`]: {
                         ...searchResults.data[`transactions_${transactionID}`],
                         transactionID: distanceTransactionID,
-                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     },
                 },

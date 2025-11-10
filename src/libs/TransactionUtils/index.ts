@@ -49,6 +49,7 @@ import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardList,
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
@@ -267,6 +268,42 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
     }
 
     return getRequestType(transaction);
+}
+
+/**
+ * Determines the transaction type based on custom unit name or card name.
+ * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'cash' for cash transactions, or 'card' for card transactions.
+ *
+ * @param transaction - The transaction to check
+ * @param cardList - Optional card list to check for cash transactions
+ * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ */
+function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
+    if (!transaction) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+    }
+
+    const customUnitName = transaction?.comment?.customUnit?.name;
+
+    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+        return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
+    }
+
+    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+        return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
+    }
+
+    const cardID = transaction?.cardID;
+    if (cardID && cardList?.[cardID]?.cardName === '__CASH__') {
+        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
+    }
+
+    if (transaction?.cardName && transaction?.cardName?.includes(CONST.EXPENSE.TYPE.CASH_CARD_NAME)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
+    }
+
+    return CONST.SEARCH.TRANSACTION_TYPE.CARD;
 }
 
 function isManualRequest(transaction: Transaction): boolean {
@@ -2048,6 +2085,7 @@ export {
     getDescription,
     getRequestType,
     getExpenseType,
+    getTransactionType,
     isManualRequest,
     isScanRequest,
     getAmount,

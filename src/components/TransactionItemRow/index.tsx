@@ -75,9 +75,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show the description, that is provided on Reports page */
     shouldShowDescription?: boolean;
 
-    /** Type of transaction */
-    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
     /** Precomputed violations */
     violations?: TransactionViolation[];
 

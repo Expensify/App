@@ -440,9 +440,6 @@ type SearchWithdrawalIDGroup = {
     debitPosted: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
@@ -478,7 +475,6 @@ export type {
     ListItemDataType,
     SearchTask,
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
     SearchPersonalDetails,
     SearchDataTypes,
