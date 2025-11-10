@@ -65,15 +65,31 @@ function TroubleshootPage() {
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
-
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
-        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+        if (!tryNewDot?.classicRedirect?.dismissed) {
             return false;
         }
-        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+
+        const dismissedReasons = tryNewDot.classicRedirect?.dismissedReasons;
+        let timestampToCheck: Date = tryNewDot.classicRedirect?.timestamp;
+
+        if (dismissedReasons && dismissedReasons.length > 0) {
+            const earliestReason = dismissedReasons.reduce((earliest, current) => {
+                const currentDate = new Date(current.timestamp);
+                const earliestDate = new Date(earliest.timestamp);
+                return currentDate < earliestDate ? current : earliest;
+            });
+            timestampToCheck = earliestReason.timestamp;
+        }
+
+        if (!timestampToCheck) {
+            return false;
+        }
+
+        const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed, tryNewDot?.classicRedirect?.dismissedReasons]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
