@@ -2658,211 +2658,208 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {
-                ...policy,
-                areCategoriesEnabled: true,
-                areTagsEnabled: isTagsOptionSelected,
-                areDistanceRatesEnabled: isCustomUnitsOptionSelected,
-                areInvoicesEnabled: isInvoicesOptionSelected,
-                areRulesEnabled: isRulesOptionSelected,
-                areWorkflowsEnabled: isWorkflowsOptionSelected,
-                areReportFieldsEnabled: isReportsOptionSelected,
-                areConnectionsEnabled: isConnectionsOptionSelected,
-                arePerDiemRatesEnabled: isPerDiemOptionSelected,
-                workspaceAccountID: undefined,
-                tax: isTaxesOptionSelected ? policy?.tax : undefined,
-                employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
-                id: targetPolicyID,
-                name: policyName,
-                fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
-                connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: getCustomUnitsForDuplication(policy, isCustomUnitsOptionSelected, isPerDiemOptionSelected),
-                taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                pendingFields: {
-                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                avatarURL: file?.uri,
-                originalFileName: file?.name,
+    const optimisticData: OnyxUpdate[] = [];
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+        value: {
+            ...policy,
+            areCategoriesEnabled: true,
+            areTagsEnabled: isTagsOptionSelected,
+            areDistanceRatesEnabled: isCustomUnitsOptionSelected,
+            areInvoicesEnabled: isInvoicesOptionSelected,
+            areRulesEnabled: isRulesOptionSelected,
+            areWorkflowsEnabled: isWorkflowsOptionSelected,
+            areReportFieldsEnabled: isReportsOptionSelected,
+            areConnectionsEnabled: isConnectionsOptionSelected,
+            arePerDiemRatesEnabled: isPerDiemOptionSelected,
+            workspaceAccountID: undefined,
+            tax: isTaxesOptionSelected ? policy?.tax : undefined,
+            employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
+            id: targetPolicyID,
+            name: policyName,
+            fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
+            connections: isConnectionsOptionSelected ? policy?.connections : undefined,
+            customUnits: getCustomUnitsForDuplication(policy, isCustomUnitsOptionSelected, isPerDiemOptionSelected),
+            taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            pendingFields: {
+                autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
+            avatarURL: file?.uri,
+            originalFileName: file?.name,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
-            value: {
-                isOptimisticReport: true,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+        value: {
+            isOptimisticReport: true,
+        },
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+        value: {
+            pendingFields: {
+                addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
+            ...adminsChatData,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...adminsChatData,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+        value: {
+            pendingChatMembers,
+        },
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+        value: adminsReportActionData,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+        value: {
+            pendingFields: {
+                addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
+            ...expenseChatData,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
-            value: {
-                pendingChatMembers,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: adminsReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...expenseChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: expenseReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${targetPolicyID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
-            value: null,
-        },
-        ...announceRoomChat.onyxOptimisticData,
-    ];
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        value: expenseReportActionData,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${targetPolicyID}`,
+        value: null,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
+        value: null,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+        value: null,
+    });
+    optimisticData.push(...announceRoomChat.onyxOptimisticData);
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {
-                pendingAction: null,
-                pendingFields: {
-                    autoReporting: null,
-                    approvalMode: null,
-                    reimbursementChoice: null,
-                    name: null,
-                    outputCurrency: null,
-                    address: null,
-                    description: null,
-                    type: null,
-                    areReportFieldsEnabled: null,
-                },
+    const successData: OnyxUpdate[] = [];
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+        value: {
+            pendingAction: null,
+            pendingFields: {
+                autoReporting: null,
+                approvalMode: null,
+                reimbursementChoice: null,
+                name: null,
+                outputCurrency: null,
+                address: null,
+                description: null,
+                type: null,
+                areReportFieldsEnabled: null,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
-                },
-                pendingAction: null,
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+        value: {
+            pendingFields: {
+                addWorkspaceRoom: null,
             },
+            pendingAction: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
-            value: {
-                isOptimisticReport: false,
-                pendingChatMembers: [],
-            },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+        value: {
+            isOptimisticReport: false,
+            pendingChatMembers: [],
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: {
-                [adminsCreatedReportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
-                },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+        value: {
+            [adminsCreatedReportActionID]: {
                 pendingAction: null,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
-            value: {
-                isOptimisticReport: false,
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+        value: {
+            pendingFields: {
+                addWorkspaceRoom: null,
+            },
+            pendingAction: null,
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+        value: {
+            isOptimisticReport: false,
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        value: {
+            [expenseCreatedReportActionID]: {
+                pendingAction: null,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: {
-                [expenseCreatedReportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-        ...announceRoomChat.onyxSuccessData,
-    ];
+    });
+    successData.push(...announceRoomChat.onyxSuccessData);
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {employeeList: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.duplicateWorkspace.error')},
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: null,
-        },
-        ...announceRoomChat.onyxFailureData,
-    ];
+    const failureData: OnyxUpdate[] = [];
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+        value: {employeeList: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.duplicateWorkspace.error')},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+        value: null,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+        value: null,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+        value: null,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        value: null,
+    });
+    failureData.push(...announceRoomChat.onyxFailureData);
 
     if (optimisticCategoriesData?.optimisticData) {
         optimisticData.push(...optimisticCategoriesData.optimisticData);

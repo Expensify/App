@@ -53,7 +53,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
-                cardID,
+                cardID: String(cardID),
                 isLoading: true,
                 errors: null,
             },
