@@ -107,6 +107,7 @@ import {
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
+import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getCategory,
     getDescription,
@@ -945,6 +946,33 @@ function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['da
     return reportActionsByTransactionID;
 }
 
+function getToFieldValueForTransaction(transactionItem: SearchTransaction, report: OnyxTypes.Report | undefined, data: OnyxTypes.SearchResults['data']): SearchPersonalDetails {
+    const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+    if (shouldShowBlankTo) {
+        return emptyPersonalDetails;
+    }
+
+    const moneyRequestReportActionID = transactionItem.moneyRequestReportActionID;
+    if (moneyRequestReportActionID) {
+        const reportActions = data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
+        const reportAction = reportActions[moneyRequestReportActionID];
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
+        if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && report.ownerAccountID) {
+            return data.personalDetailsList?.[report.ownerAccountID] ?? emptyPersonalDetails;
+        }
+    }
+
+    const isIOUReport = report.type === CONST.REPORT.TYPE.IOU;
+    if (report?.managerID) {
+        if (isIOUReport) {
+            return getIOUPayerAndReceiver(report?.managerID ?? CONST.DEFAULT_NUMBER_ID, report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, data.personalDetailsList, transactionItem.amount)
+                .to as SearchPersonalDetails;
+        }
+        return data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails;
+    }
+    return emptyPersonalDetails;
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -1003,7 +1031,7 @@ function getTransactionsSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
             const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
-            const to = report?.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(report?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
             const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
@@ -1472,7 +1500,7 @@ function getReportSections(
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = report?.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
