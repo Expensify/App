@@ -532,7 +532,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    errorText={!rate ? translate('common.rateOutOfPolicy') : ''}
+                    errorText={shouldDisplayDistanceRateError ? translate('violations.customUnitOutOfPolicy') : ''}
                     interactive={!!rate && !isReadOnly}
                 />
             ),
