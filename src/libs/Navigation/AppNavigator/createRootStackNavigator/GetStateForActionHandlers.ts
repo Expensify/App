@@ -46,7 +46,7 @@ function handleOpenWorkspaceOrDomainSplitAction(
     const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
 
     if (!stateWithWorkspacesList) {
-        Log.hmmm('[handleOpenWorkspaceorDomainSplitAction] WorkspacesList has not been found in the navigation state.');
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspacesList has not been found in the navigation state.');
         return null;
     }
 
@@ -54,7 +54,7 @@ function handleOpenWorkspaceOrDomainSplitAction(
     const stateWithSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithWorkspacesList, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithSplitNavigator) {
-        Log.hmmm(`[handleOpenWorkspaceorDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
+        Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }
 
@@ -88,7 +88,7 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, 'WorkspaceSplitNavigator');
+    return handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushWorkspaceSplitNavigator, 'WorkspaceSplitNavigator');
 }
 
 /**
@@ -110,7 +110,7 @@ function handleOpenDomainSplitAction(
         },
     });
 
-    handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, 'DomainSplitNavigator');
+    return handleOpenWorkspaceOrDomainSplitAction(state, configOptions, stackRouter, actionToPushDomainSplitNavigator, 'DomainSplitNavigator');
 }
 
 function handlePushFullscreenAction(
