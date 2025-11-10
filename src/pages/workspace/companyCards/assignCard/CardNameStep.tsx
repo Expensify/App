@@ -29,7 +29,7 @@ function CardNameStep({route}: CardNameStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const policyID = route.params?.policyID;
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const data = assignCard?.data;

@@ -22,7 +22,7 @@ import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type AvailableCompanyCardTypes = {

@@ -14,17 +14,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type AmexCustomFeedProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED>;
 
 function AmexCustomFeed({route}: AmexCustomFeedProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params?.policyID;
 
     useAddNewCardNavigation(policyID, route.params?.backTo);
@@ -36,7 +36,7 @@ function AmexCustomFeed({route}: AmexCustomFeedProps) {
             setHasError(true);
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
+        setAddNewCompanyCardStepAndData({
             step: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.CORPORATE ? CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
             data: {
                 feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
@@ -50,7 +50,7 @@ function AmexCustomFeed({route}: AmexCustomFeedProps) {
     }, [addNewCard?.data.selectedAmexCustomFeed]);
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [

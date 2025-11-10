@@ -12,8 +12,8 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import {useAddNewCardNavigation} from '../utils';
+import type SCREENS from '@src/SCREENS';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 
 type AddNewCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW> & WithPolicyAndFullscreenLoadingProps;
 
@@ -54,7 +54,9 @@ function AddNewCardPage({policy, route}: AddNewCardPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={AddNewCardPage.displayName}>
+        <ScreenWrapper
+            testID={AddNewCardPage.displayName}
+        >
             <FullScreenLoadingIndicator />
         </ScreenWrapper>
     );

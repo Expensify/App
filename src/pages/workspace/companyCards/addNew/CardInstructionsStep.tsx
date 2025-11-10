@@ -21,7 +21,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 function getCardInstructionHeader(feedProvider: CardFeedProvider) {

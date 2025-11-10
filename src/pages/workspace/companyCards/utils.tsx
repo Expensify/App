@@ -5,7 +5,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -387,8 +386,8 @@ function getExportMenuItem(
     }
 }
 
-function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined, isStartStep: boolean = false) {
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined, isStartStep = false) {
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
     const previousStepRef = useRef(currentStep);
     const firstAssigneeEmail = useInitial(assignCard?.data?.email);
@@ -423,11 +422,11 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
         if (targetRoute) {
             Navigation.navigate(targetRoute);
         }
-    }, [currentStep, policyID, feed, backTo]);
+    }, [currentStep, policyID, feed, backTo, isStartStep, shouldUseBackToParam]);
 }
 
-function useAddNewCardNavigation(policyID: string | undefined, backTo?: string | undefined, isStartStep: boolean = false) {
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+function useAddNewCardNavigation(policyID: string | undefined, backTo?: string | undefined, isStartStep = false) {
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const currentStep = addNewCard?.currentStep;
     const previousStepRef = useRef(currentStep);
     const {isBetaEnabled} = usePermissions();
@@ -467,7 +466,7 @@ function useAddNewCardNavigation(policyID: string | undefined, backTo?: string |
         if (targetRoute) {
             Navigation.navigate(targetRoute);
         }
-    }, [currentStep, policyID, backTo, isStartStep, addNewCard?.data?.selectedBank]);
+    }, [currentStep, policyID, backTo, isStartStep, addNewCard?.data?.selectedBank, defaultStep]);
 }
 
 // eslint-disable-next-line import/prefer-default-export

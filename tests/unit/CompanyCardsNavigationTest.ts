@@ -15,7 +15,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 // Mock usePermissions hook
 const mockIsBetaEnabled = jest.fn();
 jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
     default: () => ({
         isBetaEnabled: mockIsBetaEnabled,
     }),

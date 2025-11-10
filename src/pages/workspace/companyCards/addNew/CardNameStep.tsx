@@ -18,7 +18,7 @@ import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type CardNameStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_NAME>;
