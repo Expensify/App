@@ -174,7 +174,7 @@ function IOURequestStepTag({
             )}
             {!!shouldShowTag && (
                 <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {policyTagListName})}</Text>
                     <TagPicker
                         policyID={policyID}
                         tagListName={policyTagListName}

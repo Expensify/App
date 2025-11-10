@@ -5,6 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type TagSelectionParams = {
+    policyTagListName?: string;
+};
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -1267,4 +1271,5 @@ export type {
     MergeAccountIntoParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    TagSelectionParams,
 };
