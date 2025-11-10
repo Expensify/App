@@ -115,11 +115,12 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
+            await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                1234: {
+                '1234': {
                     accountID: 1234,
                     login: 'testaccount+1@gmail.com',
                     displayName: 'Test User 1',
@@ -150,10 +151,13 @@ describe('AssignCardFeedPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Verify that Assign card button is visible on the screen
-        await waitFor(() => {
-            expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
-        });
+        // Wait for navigation to ConfirmationStep and verify that Assign card button is visible on the screen
+        await waitFor(
+            () => {
+                expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
+            },
+            {timeout: 5000},
+        );
 
         // Click the Assign Card button
         const assignCardButton = screen.getByTestId('assignCardButtonTestID');
@@ -190,16 +194,17 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
+            await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                1234: {
+                '1234': {
                     accountID: 1234,
                     login: 'testaccount+1@gmail.com',
                     displayName: 'Test User 1',
                 },
-                5678: {
+                '5678': {
                     accountID: 5678,
                     login: 'testaccount+2@gmail.com',
                     displayName: 'Test User 2',
@@ -229,6 +234,14 @@ describe('AssignCardFeedPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        // Wait for navigation to ConfirmationStep
+        await waitFor(
+            () => {
+                expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
+            },
+            {timeout: 5000},
+        );
+
         // Mock the action of changing the assignee of the card
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
@@ -236,11 +249,6 @@ describe('AssignCardFeedPage', () => {
                     email: 'testaccount+2@gmail.com',
                 },
             });
-        });
-
-        // Verify that Assign card button is visible on the screen
-        await waitFor(() => {
-            expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
         });
 
         // Click the Assign Card button
