@@ -1705,6 +1705,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterMagicCode: ({contactMethod}) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Por favor, <a href="${missingDetailsLink}">agrega tus datos personales</a> y vuelve a intentarlo.`,
+        unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
             reportFraudButtonText: 'No, no fui yo',

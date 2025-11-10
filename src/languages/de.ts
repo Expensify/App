@@ -2047,6 +2047,9 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) =>
+            `Bitte <a href="${missingDetailsLink}">fügen Sie Ihre persönlichen Daten hinzu</a> und versuchen Sie es dann erneut.`,
+        unexpectedError: 'Beim Abrufen Ihrer Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich.',
             reportFraudButtonText: 'Nein, das war ich nicht.',
@@ -4636,7 +4639,7 @@ ${amount} für ${merchant} - ${date}`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald die Versanddetails bestätigt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card wird in 2-3 Werktagen ankommen.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card trifft in 2–3 Werktagen ein.`,
             verifyingHeader: 'Überprüfen',
             bankAccountVerifiedHeader: 'Bankkonto verifiziert',
             verifyingBankAccount: 'Bankkonto wird überprüft...',
