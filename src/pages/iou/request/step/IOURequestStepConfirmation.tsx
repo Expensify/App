@@ -521,7 +521,7 @@ function IOURequestStepConfirmation({
             const optimisticCreatedReportActionID = rand64();
             const optimisticReportPreviewActionID = rand64();
 
-            let existingIOUReport: Report;
+            let existingIOUReport: Report | undefined;
 
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
