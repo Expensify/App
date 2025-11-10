@@ -271,9 +271,6 @@ type SearchTransaction = {
     /** The transaction category */
     category: string;
 
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
     /** The type of report the transaction is associated with */
     reportType: string;
 
