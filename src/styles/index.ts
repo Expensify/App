@@ -5010,6 +5010,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateSamlIllustration: {
+            width: 218,
+            height: 190,
+        },
+
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
