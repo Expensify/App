@@ -1,12 +1,12 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import Icon from '@components/Icon';
-import {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';
 const SAMPLE_SEASON_ID = 'car-blue100';
 
-describe('CustomAvatarCatalog', () => {
+describe('PresetAvatarCatalog', () => {
     it('resolves a local component for a default avatar ID', () => {
         const AvatarComponent = getAvatarLocal(SAMPLE_DEFAULT_ID);
         expect(AvatarComponent).toBeDefined();
@@ -49,10 +49,12 @@ describe('CustomAvatarCatalog', () => {
 
     it('throws or returns undefined for an unknown ID', () => {
         // @ts-expect-error - This is a test for an unknown ID
-        expect(() => getAvatarLocal('not-a-real-id')).toThrow();
+        expect(getAvatarLocal('not-a-real-id')).toBeUndefined();
+        // @ts-expect-error - This is a test for an unknown ID
+        expect(getAvatarURL('not-a-real-id')).toBeUndefined();
     });
 
     it('ALL contains both default and seasonal IDs', () => {
-        expect(Object.keys(ALL_CUSTOM_AVATARS)).toEqual(expect.arrayContaining([SAMPLE_DEFAULT_ID, SAMPLE_SEASON_ID]));
+        expect(Object.keys(PRESET_AVATAR_CATALOG)).toEqual(expect.arrayContaining([SAMPLE_DEFAULT_ID, SAMPLE_SEASON_ID]));
     });
 });
