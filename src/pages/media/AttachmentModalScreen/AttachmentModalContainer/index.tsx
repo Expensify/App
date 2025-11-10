@@ -27,7 +27,8 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
 
     const closeModal = useCallback(() => {
         Navigation.dismissModal();
-    }, []);
+        resetAttachmentModalAndClose();
+    }, [resetAttachmentModalAndClose]);
 
     useEffect(() => {
         onShow?.();

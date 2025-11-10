@@ -1,6 +1,6 @@
 import ImageSize from 'react-native-image-size';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
     /** File object of the image */
@@ -32,7 +32,7 @@ function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioW
     return {width, height, originX, originY};
 }
 
-const IMAGE_TYPE = 'png';
+const IMAGE_TYPE = 'image/jpeg';
 
 function cropImageToAspectRatio(
     /** Source image */
@@ -58,7 +58,7 @@ function cropImageToAspectRatio(
             }
 
             const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, shouldAlignTop);
-            const croppedFilename = `receipt_cropped_${Date.now()}.${IMAGE_TYPE}`;
+            const croppedFilename = `receipt_cropped_${Date.now()}.jpeg`;
 
             return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
                 if (!croppedImage?.uri || !croppedImage?.name) {

@@ -30,11 +30,17 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+
+    /** Optional custom header title */
+    headerTitle?: string;
+
+    /** Optional custom completion handler */
+    onComplete?: (values: PersonalDetailsForm, validateCode: string) => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
@@ -84,9 +90,13 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
+            if (onComplete) {
+                onComplete(values, validateCode);
+                return;
+            }
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
         },
-        [countryCode, values],
+        [countryCode, values, onComplete],
     );
 
     const handleNextScreen = useCallback(() => {
@@ -112,9 +122,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetailsContent.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>

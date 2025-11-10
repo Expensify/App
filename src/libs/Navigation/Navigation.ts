@@ -35,6 +35,7 @@ import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
+// eslint-disable-next-line unicorn/prefer-set-has
 const SET_UP_2FA_ROUTES: Route[] = [
     ROUTES.REQUIRE_TWO_FACTOR_AUTH,
     ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
@@ -550,7 +551,7 @@ const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
         // Let React Navigation finish modal transition
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fireModalDismissed();
         });
@@ -577,7 +578,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             return;
         }
         dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });
@@ -661,6 +662,12 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function isValidateLoginFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -716,6 +723,7 @@ export default {
     clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
+    isValidateLoginFlow,
 };
 
 export {navigationRef};

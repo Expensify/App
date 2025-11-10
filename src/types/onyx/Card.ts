@@ -102,6 +102,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card product under which the card is provisioned */
         feedCountry?: string;
 
+        /** Issued card country */
+        country?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
@@ -128,10 +131,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     }> &
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
+        OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
-            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-        }>;
+            Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
+        >;
 }>;
 
 /** Model of card just added to a wallet */
