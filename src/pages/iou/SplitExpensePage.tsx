@@ -350,8 +350,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
+    const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions]);
+
     const listFooterContent = useMemo(() => {
-        const shouldShowMakeSplitsEven = childTransactions.length === 0;
         return (
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem
@@ -370,7 +371,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
@@ -406,6 +407,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 
     const headerContent = useMemo(() => {
+        // Only show split tab selector if we are creating a split (not editing existing splits)
+        if (!shouldShowMakeSplitsEven) {
+            return;
+        }
         return (
             <View
                 ref={tabSelectorViewRef}
@@ -441,7 +446,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 })}
             </View>
         );
-    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, translate]);
+    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, shouldShowMakeSplitsEven, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {

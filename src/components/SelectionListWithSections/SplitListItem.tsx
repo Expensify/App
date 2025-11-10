@@ -140,6 +140,7 @@ function SplitListItem<TItem extends ListItem>({
                 <PercentageForm
                     onInputChange={onSplitExpensePercentageChange}
                     value={String(splitItem.percentage ?? 0)}
+                    textInputContainerStyles={styles.wFitContent}
                     containerStyles={styles.optionRowPercentInputContainer}
                     inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
                     onFocus={focusHandler}
