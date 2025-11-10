@@ -104,6 +104,7 @@ export type {default as UpdateStatusParams} from './UpdateStatusParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
+export type {default as UpdateRoomAvatarParams} from './UpdateRoomAvatarParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
@@ -439,3 +440,4 @@ export type {default as AddReportApproverParams} from './AddReportApproverParams
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
+export type {default as DomainParams} from './DomainParams';

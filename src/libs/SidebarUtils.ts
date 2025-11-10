@@ -52,6 +52,7 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomAvatarUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
@@ -99,7 +100,6 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
-    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -121,6 +121,7 @@ import {
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
@@ -744,6 +745,12 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    // For 1:1 DMs, add the other participant's selected timezone
+    if (isOneOnOneChat(report)) {
+        const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
+        result.timezone = recipientPersonalDetail?.timezone;
+    }
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
 
@@ -761,15 +768,6 @@ function getOptionData({
                   accountID: report.lastActorAccountID,
               }
             : null;
-    }
-
-    // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
-    // to ensures that lastActorDetails.accountID is correctly set in case it's empty string
-    if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
-        lastActorDetails = {
-            ...lastActorDetails,
-            accountID: lastAction.actorAccountID,
-        };
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
@@ -896,14 +894,14 @@ function getOptionData({
             result.alternateText = getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             result.alternateText = getUpdateRoomDescriptionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
+            result.alternateText = getRoomAvatarUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage());
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {

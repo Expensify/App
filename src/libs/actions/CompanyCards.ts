@@ -78,6 +78,7 @@ function addNewCompanyCardsFeed(
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
@@ -121,6 +122,7 @@ function addNewCompanyCardsFeed(
     ];
 
     const successData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,

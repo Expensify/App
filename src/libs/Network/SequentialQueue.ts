@@ -94,6 +94,7 @@ Onyx.connectWithoutView({
 });
 
 function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {

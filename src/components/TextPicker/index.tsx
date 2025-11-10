@@ -8,7 +8,20 @@ import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
 function TextPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, interactive = true, required = false, ...rest}: TextPickerProps,
+    {
+        value,
+        description,
+        placeholder = '',
+        errorText = '',
+        onInputChange,
+        onValueCommitted,
+        furtherDetails,
+        rightLabel,
+        disabled = false,
+        interactive = true,
+        required = false,
+        ...rest
+    }: TextPickerProps,
     forwardedRef: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
@@ -29,6 +42,7 @@ function TextPicker(
         if (updatedValue !== value) {
             onInputChange?.(updatedValue);
         }
+        onValueCommitted?.(updatedValue);
         hidePickerModal();
     };
 

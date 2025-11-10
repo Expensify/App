@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
@@ -121,6 +122,17 @@ function isCategoryMissing(category: string | undefined): boolean {
     return emptyCategories.includes(category ?? '');
 }
 
+function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return false;
+    }
+    return !!policyCategories[category]?.areCommentsRequired;
+}
+
+function getDecodedCategoryName(categoryName: string) {
+    return Str.htmlDecode(categoryName);
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -131,4 +143,6 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
+    isCategoryDescriptionRequired,
+    getDecodedCategoryName,
 };
