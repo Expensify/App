@@ -140,7 +140,7 @@ describe('TransactionPreviewUtils', () => {
         it('displays description when receipt is being scanned', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
                 originalTransaction: undefined,
                 merchant: 'Expense',
             };
