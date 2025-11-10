@@ -242,7 +242,7 @@ describe('CustomFormula', () => {
 
         test('should compute expenses count', () => {
             const result = compute('{report:expensescount}', mockContext);
-            expect(result).toBe('3');
+            expect(result).toBe('0');
         });
 
         test('should compute expenses count using allTransactions from context', () => {
@@ -317,6 +317,7 @@ describe('CustomFormula', () => {
                 ...mockContext,
                 report: {
                     ...mockContext.report,
+                    transactionCount: 3,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
             };
@@ -330,6 +331,7 @@ describe('CustomFormula', () => {
                 report: {
                     ...mockContext.report,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    transactionCount: 3,
                 },
             };
             const result = compute('{report:type} {report:id} - {report:status} - Total: {report:total} ({report:expensescount} expenses)', contextWithStatus);
