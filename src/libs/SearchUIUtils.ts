@@ -999,18 +999,15 @@ function getTransactionsSections(
         }
 
         if (shouldShow) {
+            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
-            const from =
-                transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? (personalDetailsMap.get((currentAccountID ?? CONST.DEFAULT_NUMBER_ID).toString()) ?? emptyPersonalDetails)
-                    : (personalDetailsMap.get((report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID).toString()) ?? emptyPersonalDetails);
+            const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = report?.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(report?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
-            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -1468,6 +1465,7 @@ function getReportSections(
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
+            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
@@ -1476,10 +1474,7 @@ function getReportSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
 
-            const from =
-                transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? (data.personalDetailsList?.[currentAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails)
-                    : (data.personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails);
+            const from = reportAction?.actorAccountID && !shouldShowBlankTo ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = report?.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
@@ -1490,7 +1485,7 @@ function getReportSections(
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
-                reportAction: reportActionsByTransactionIDMap.get(transactionItem.transactionID),
+                reportAction,
                 policy,
                 from,
                 to,
@@ -2351,6 +2346,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
+    const reportActionsByTransactionIDMap = Array.isArray(data) ? undefined : createReportActionsByTransactionIDMap(data);
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
@@ -2378,10 +2374,11 @@ function getColumnsToShow(
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
+        const reportAction = reportActionsByTransactionIDMap?.get(transaction.transactionID);
 
         // Handle From&To columns that are only shown in the Reports page
         // if From or To differ from current user in any transaction, show the columns
-        const accountID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? currentAccountID : report?.ownerAccountID;
+        const accountID = reportAction?.actorAccountID;
         if (accountID && accountID !== currentAccountID) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
         }
