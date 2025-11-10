@@ -1470,7 +1470,7 @@ function getReportSections(
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
 
-                const fromDetails = transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails;
+                const fromDetails = data.personalDetailsList[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
 
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
                 const formattedFrom = fromDetails === emptyPersonalDetails ? '' : formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
