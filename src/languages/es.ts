@@ -5556,7 +5556,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 requireItemizedReceiptsOver: 'Requerir recibos detallados para importes superiores a',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
+                    default: ({defaultAmount}) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
                     never: 'Nunca requerir recibos detallados',
                     always: 'Requerir recibos detallados siempre',
                 },
@@ -5699,7 +5699,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
             }
@@ -6915,7 +6915,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return message;
         },
-        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
+        itemizedReceiptRequired: ({formattedLimit}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseType}) => {
             const preMessage = 'Gasto prohibido:';
             switch (prohibitedExpenseType) {
