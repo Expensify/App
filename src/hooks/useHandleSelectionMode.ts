@@ -34,7 +34,7 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] 
         }
     }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused, selectedItems.length]);
 
-    useEffect(() => turnOffMobileSelectionMode, []);
+    useEffect(() => () => turnOffMobileSelectionMode(), []);
 }
 
 export default useHandleSelectionMode;
