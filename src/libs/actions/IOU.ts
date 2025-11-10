@@ -478,6 +478,7 @@ type PerDiemExpenseInformationParams = {
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     gpsPoint?: GPSPoint;
@@ -490,13 +491,13 @@ type RequestMoneyInformation = {
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
-    optimisticIOUCreatedReportActionID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
 };
 
 type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -509,7 +510,6 @@ type MoneyRequestInformationParams = {
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
-    optimisticIOUCreatedReportActionID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
@@ -3395,6 +3395,7 @@ function getSendInvoiceInformation(
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
     const {
         parentChatReport,
+        existingIOUReport,
         transactionParams,
         participantParams,
         policyParams = {},
@@ -3407,7 +3408,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
-        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
@@ -3468,7 +3468,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
-    if (moneyRequestReportID) {
+    if (existingIOUReport) {
+        iouReport = existingIOUReport;
+    } else if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
@@ -3477,6 +3479,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
+    console.log('new report?', shouldCreateNewMoneyRequestReport);
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
         iouReport = isPolicyExpenseChat
@@ -3585,7 +3588,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             transactionID: optimisticTransaction.transactionID,
             paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
-            optimisticIOUCreatedReportActionID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
@@ -5864,9 +5866,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): Pick<MoneyRequestInformation, 'iouReport'> | undefined {
     const {
         report,
+        existingIOUReport,
         participantParams,
         policyParams = {},
         transactionParams,
@@ -5878,7 +5881,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
-        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
     } = requestMoneyInformation;
@@ -5953,6 +5955,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         onyxData,
     } = getMoneyRequestInformation({
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        existingIOUReport,
         participantParams,
         policyParams,
         transactionParams,
@@ -5964,7 +5967,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
-        optimisticIOUCreatedReportActionID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
         action,
@@ -6098,6 +6100,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
         );
     }
+
+    return {iouReport};
 }
 
 /**

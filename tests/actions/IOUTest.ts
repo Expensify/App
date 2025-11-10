@@ -2065,64 +2065,6 @@ describe('actions/IOU', () => {
 
             expect(newNonReimbursableTotal).toBe(-100);
         });
-
-        it('should create CREATED action with the passed optimistic ID', async () => {
-            const optimisticIOUCreatedReportActionID = rand64();
-            const optimisticIOUReportID = rand64();
-            const chatReportID = '123';
-            requestMoney({
-                report: {reportID: chatReportID},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                },
-                shouldGenerateTransactionThreadReport: true,
-                optimisticIOUCreatedReportActionID,
-                optimisticIOUReportID,
-            });
-            requestMoney({
-                report: {reportID: chatReportID},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                },
-                shouldGenerateTransactionThreadReport: true,
-                optimisticIOUCreatedReportActionID,
-                optimisticIOUReportID,
-            });
-
-            await waitForBatchedUpdates();
-
-            const iouReportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReportID}`,
-                    callback: (reportActions) => {
-                        resolve(reportActions);
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
-            const createdActions = Object.values(iouReportActions ?? {}).find(
-                (reportAction) => isCreatedAction(reportAction) && reportAction.reportActionID === optimisticIOUCreatedReportActionID,
-            );
-            expect(createdActions).not.toBeUndefined();
-        });
     });
 
     describe('createDistanceRequest', () => {

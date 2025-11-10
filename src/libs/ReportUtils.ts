@@ -693,7 +693,6 @@ type BaseOptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
-    optimisticIOUCreatedReportActionID?: string;
     reportActionID?: string;
 };
 
@@ -8467,7 +8466,6 @@ function buildOptimisticMoneyRequestEntities({
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
-    optimisticIOUCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
 }: OptimisticMoneyRequestEntities): [
@@ -8481,11 +8479,7 @@ function buildOptimisticMoneyRequestEntities({
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
-    const createdActionForIOUReport = buildOptimisticCreatedReportAction(
-        payeeEmail,
-        DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1),
-        optimisticIOUCreatedReportActionID,
-    );
+    const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
 
     const iouAction = buildOptimisticIOUReportAction({
         type,
