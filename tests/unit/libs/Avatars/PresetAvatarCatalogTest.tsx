@@ -49,7 +49,9 @@ describe('PresetAvatarCatalog', () => {
 
     it('throws or returns undefined for an unknown ID', () => {
         // @ts-expect-error - This is a test for an unknown ID
-        expect(() => getAvatarLocal('not-a-real-id')).toThrow();
+        expect(getAvatarLocal('not-a-real-id')).toBeUndefined();
+        // @ts-expect-error - This is a test for an unknown ID
+        expect(getAvatarURL('not-a-real-id')).toBeUndefined();
     });
 
     it('ALL contains both default and seasonal IDs', () => {
