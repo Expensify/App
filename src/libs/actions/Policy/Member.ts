@@ -450,7 +450,10 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     selectedMemberEmails.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
-        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
+        failureMembersState[email] = {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
+        };
     });
 
     Object.keys(policy?.employeeList ?? {}).forEach((employeeEmail) => {
