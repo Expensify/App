@@ -5865,7 +5865,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): Pick<MoneyRequestInformation, 'iouReport'> | undefined {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
     const {
         report,
         existingIOUReport,
@@ -5979,7 +5979,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): Pick<Mo
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
-                return;
+                return {};
             }
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
