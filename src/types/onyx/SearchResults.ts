@@ -307,9 +307,6 @@ type SearchTransaction = {
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
-    /** The main action that can be performed for the transaction */
-    action: SearchTransactionAction;
-
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 

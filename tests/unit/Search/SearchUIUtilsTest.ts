@@ -368,7 +368,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -411,7 +410,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -456,7 +454,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -499,7 +496,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
             amount: 3200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -2377,7 +2373,6 @@ describe('SearchUIUtils', () => {
                         canHold: true,
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
-                        action: 'approve',
                         comment: {
                             comment: '',
                         },
@@ -2510,7 +2505,6 @@ describe('SearchUIUtils', () => {
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
-                    action: 'approve',
                     comment: {
                         comment: '',
                     },
