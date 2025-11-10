@@ -2002,6 +2002,15 @@ function createTypeMenuSections(
                                                   return;
                                               }
 
+                                              if (
+                                                  workspaceIDForReportCreation &&
+                                                  shouldRestrictUserBillableActions(workspaceIDForReportCreation) &&
+                                                  groupPoliciesWithChatEnabled.length === 1
+                                              ) {
+                                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                                  return;
+                                              }
+
                                               // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
                                               Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                           });

@@ -5021,6 +5021,10 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Kan niet alle tags optioneel maken',
                 description: `Er moet minstens één tag verplicht blijven omdat uw werkruimte-instellingen tags vereisen.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Kan geen taglijst maken vereist',
+                description: 'Je kunt een taglijst alleen verplicht stellen als je beleid meerdere tagniveaus heeft geconfigureerd.',
+            },
             tagCount: () => ({
                 one: '1 Dag',
                 other: (count: number) => `${count} Tags`,

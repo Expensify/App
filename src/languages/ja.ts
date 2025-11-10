@@ -4986,6 +4986,10 @@ ${date} - ${merchant}に${amount}`,
                 title: 'すべてのタグをオプションにすることはできません',
                 description: `ワークスペースの設定でタグが必要なため、少なくとも1つのタグを必須にする必要があります。`,
             },
+            cannotMakeTagListRequired: {
+                title: 'タグリストを必須にすることはできません',
+                description: 'ポリシーに複数のタグレベルが設定されている場合のみ、タグリストを必須にできます。',
+            },
             tagCount: () => ({
                 one: '1日',
                 other: (count: number) => `${count} タグ`,
