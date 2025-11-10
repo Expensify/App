@@ -92,7 +92,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
-    Log.warn('Unknown attachment modal screen. Make sure to add the new screen to the AttachmentModalScreen component.', {route});
+    Log.warn('Unknown attachment modal screen. Make sure to add the new screen as a route to the AttachmentModalScreen component.', {route});
 
     return null;
 }
