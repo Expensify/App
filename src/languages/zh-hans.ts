@@ -4918,6 +4918,10 @@ ${merchant}的${amount} - ${date}`,
                 title: '无法将所有标签设为可选',
                 description: `至少需要保留一个标签为必填项，因为您的工作区设置要求使用标签。`,
             },
+            cannotMakeTagListRequired: {
+                title: '无法强制要求标签列表',
+                description: '仅当策略配置了多个标签级别时，才可将标签列表设为必填项。',
+            },
             tagCount: () => ({
                 one: '1 标签',
                 other: (count: number) => `${count} 个标签`,
