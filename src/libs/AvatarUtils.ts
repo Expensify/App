@@ -112,7 +112,8 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
 
 function getValidatedImageSource(source: AvatarSource | undefined) {
     const numberSource = Number(source);
-    if (numberSource !== 0) {
+
+    if (!Number.isNaN(numberSource) && numberSource !== 0) {
         return numberSource;
     }
 
