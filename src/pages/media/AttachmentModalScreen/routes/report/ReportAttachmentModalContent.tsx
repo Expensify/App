@@ -93,6 +93,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
     const modalType = useReportAttachmentModalType(source);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
 
