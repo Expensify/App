@@ -316,6 +316,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
      * Helper function to create a report name update with pending field if needed
      */
     function createReportNameUpdate(reportID: string, reportNameUpdate: ReportNameUpdate): OnyxUpdate {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         return {
             key: getReportKey(reportID),
             onyxMethod: Onyx.METHOD.MERGE,
