@@ -72,6 +72,7 @@ import {
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isCategoryBeingAnalyzed,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -303,8 +304,6 @@ function MoneyRequestView({
         [getViolationsForField],
     );
 
-    const pendingAutoCategorizationTime = transaction?.comment?.pendingAutoCategorizationTime;
-
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
@@ -405,47 +404,6 @@ function MoneyRequestView({
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
-    // Check if we're within the 5-minute grace period for auto-categorization or if request is being created
-    const isAnalyzingCategory = useMemo(() => {
-        // Show analyzing for manual requests being created (optimistic, awaiting server)
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            console.debug('[AutoCategorization] Manual request pending creation (pendingAction === add)');
-            return true;
-        }
-
-        // Show analyzing for auto-categorization within 5-minute grace period
-        if (!pendingAutoCategorizationTime) {
-            return false;
-        }
-
-        console.debug('[AutoCategorization] Found pendingAutoCategorizationTime:', pendingAutoCategorizationTime);
-
-        // Convert timestamp format from "YYYY-MM-DD HH:MM:SS" to ISO format for Date parsing
-        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
-
-        if (Number.isNaN(pendingTime.getTime())) {
-            console.debug('[AutoCategorization] Invalid timestamp format');
-            return false;
-        }
-
-        const currentTime = new Date();
-        const elapsedMs = currentTime.getTime() - pendingTime.getTime();
-
-        // 5-minute grace period
-        const fiveMinutesMs = 5 * 60 * 1000;
-
-        const isWithinGracePeriod = elapsedMs < fiveMinutesMs;
-        console.debug('[AutoCategorization] Grace period check:', {
-            pendingTime: pendingTime.toISOString(),
-            currentTime: currentTime.toISOString(),
-            elapsedMs,
-            elapsedMinutes: (elapsedMs / 1000 / 60).toFixed(2),
-            isWithinGracePeriod,
-        });
-
-        return isWithinGracePeriod;
-    }, [pendingAction, pendingAutoCategorizationTime]);
-
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
@@ -480,11 +438,6 @@ function MoneyRequestView({
                 return translate('violations.customUnitOutOfPolicy');
             }
 
-            // Suppress category violations if we're within the auto-categorization grace period
-            if (field === 'category' && isAnalyzingCategory) {
-                return '';
-            }
-
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
@@ -510,7 +463,6 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
-            isAnalyzingCategory,
         ],
     );
 
@@ -691,30 +643,7 @@ function MoneyRequestView({
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
     const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
-
-    // Show "Analyzing..." when transaction doesn't have a category AND within the 5-minute grace period
-    const shouldShowCategoryAnalyzing = useMemo(() => {
-        const currentCategoryValue = updatedTransaction?.category ?? transactionCategory;
-        const isUncategorized = !currentCategoryValue || currentCategoryValue === 'uncategorized' || currentCategoryValue === 'Uncategorized';
-
-        // Don't show analyzing text for partial transactions (merchant is empty and amount is zero)
-        const isPartialTransaction = isEmptyMerchant && transactionAmount === 0;
-        if (isPartialTransaction) {
-            return false;
-        }
-
-        // Show "Analyzing..." if transaction is uncategorized AND within the 5-minute grace period
-        const shouldShow = isUncategorized && isAnalyzingCategory;
-        console.debug('[AutoCategorization] Analyzing label check:', {
-            transactionID: transaction?.transactionID,
-            currentCategoryValue,
-            isUncategorized,
-            isAnalyzingCategory,
-            shouldShowCategoryAnalyzing: shouldShow,
-        });
-
-        return shouldShow;
-    }, [updatedTransaction?.category, transactionCategory, isEmptyMerchant, transactionAmount, isAnalyzingCategory, transaction?.transactionID]);
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
