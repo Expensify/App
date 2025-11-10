@@ -229,6 +229,7 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             runOnJS(focusCamera)(point);
         });
 
