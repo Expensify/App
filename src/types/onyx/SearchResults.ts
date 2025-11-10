@@ -274,9 +274,6 @@ type SearchTransaction = {
     /** The type of request */
     transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
-    /** The type of report the transaction is associated with */
-    reportType: string;
-
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 

@@ -607,8 +607,9 @@ function getTransactionItemCommonFormattedProperties(
     to: SearchPersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    report: SearchReport,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
-    const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
     const formattedFrom = formatPhoneNumber(fromName);
@@ -756,9 +757,8 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
     return isAmountTooLong(amount);
 }
 
-function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
-    const reportType = (transactionItem as TransactionListItemType)?.reportType;
-    const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
+function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction, report: SearchReport | undefined) {
+    const isFromExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
     const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
     return isAmountTooLong(taxAmount);
 }
@@ -770,9 +770,9 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     let isAmountWide = false;
     let isTaxAmountWide = false;
 
-    const processTransaction = (transaction: TransactionListItemType | SearchTransaction) => {
+    const processTransaction = (transaction: TransactionListItemType | SearchTransaction, report: SearchReport | undefined) => {
         isAmountWide ||= isTransactionAmountTooLong(transaction);
-        isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction);
+        isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction, report);
     };
 
     if (Array.isArray(data)) {
@@ -780,13 +780,13 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
             if (isTransactionGroupListItemType(item)) {
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
-                    processTransaction(transaction);
+                    processTransaction(transaction, transaction?.report as SearchReport);
                     if (isAmountWide && isTaxAmountWide) {
                         break;
                     }
                 }
             } else if (isTransactionListItemType(item)) {
-                processTransaction(item);
+                processTransaction(item, item?.report as SearchReport);
             }
             return isAmountWide && isTaxAmountWide;
         });
@@ -794,7 +794,8 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
         Object.keys(data).some((key) => {
             if (isTransactionEntry(key)) {
                 const item = data[key];
-                processTransaction(item);
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+                processTransaction(item, report);
             }
             return isAmountWide && isTaxAmountWide;
         });
@@ -988,7 +989,14 @@ function getTransactionsSections(
             const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
             const to = report?.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(report?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
             const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
             const transactionSection: TransactionListItemType = {
@@ -1457,7 +1465,14 @@ function getReportSections(
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = report?.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
 
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
             const transaction = {
