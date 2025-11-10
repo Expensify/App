@@ -27,23 +27,22 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
 
-    const selectedTransactionIDs = Object.keys(context.selectedTransactions);
-    const selectedTransactions = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]).filter((transaction) => transaction);
+    const selectedTransactions = context.selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]).filter((transaction) => transaction);
     const transactionsAncestors = useTransactionsAncestors(selectedTransactions);
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, transactionsAncestors);
+                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, transactionsAncestors);
                 context.clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, selectedTransactionIDs, comment, allTransactions, allReportActions);
+                holdMoneyRequestOnSearch(context.currentSearchHash, context.selectedTransactionIDs, comment, allTransactions, allReportActions);
                 context.clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, selectedTransactionIDs, allTransactions, transactionsAncestors, allReportActions],
+        [route.name, context, reportID, context.selectedTransactionIDs, allTransactions, transactionsAncestors, allReportActions],
     );
 
     const validate = useCallback(
