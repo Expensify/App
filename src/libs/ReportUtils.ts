@@ -4673,10 +4673,9 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
  * This is not the case when the report is automatically created by adding expenses to the chat where no open report is available.
  * Can be simplified by comparing actorAccountID to accountID when mentioned issue is no longer a thing on a BE side.
  */
-function isActionOrReportPreviewOwner(report: Report) {
-    const parentAction = getReportAction(report.parentReportID, report.parentReportActionID);
+function isActionOrReportPreviewOwner(parentReportAction: OnyxEntry<ReportAction>) {
     const {accountID} = currentUserPersonalDetails ?? {};
-    const {actorAccountID, actionName, childOwnerAccountID} = parentAction ?? {};
+    const {actorAccountID, actionName, childOwnerAccountID} = parentReportAction ?? {};
     if (typeof accountID === 'number' && typeof actorAccountID === 'number' && accountID === actorAccountID) {
         return true;
     }
@@ -4699,7 +4698,7 @@ function canHoldUnholdReportAction(
     const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID);
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
-    const isActionOwner = isActionOrReportPreviewOwner(report);
+    const isActionOwner = isActionOrReportPreviewOwner(parentReportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails?.accountID);
     const isAdmin = isPolicyAdminPolicyUtils(policy);
