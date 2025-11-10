@@ -70,13 +70,10 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 
     // New optional mode
     if (useFloorToLastRounding) {
-        let baseShareSubunit: number;
-        let remainderSubunit: number;
-
         // For positive totals, floor for everyone and add the full remainder to the default user
         // For negative totals, do the inverse of above and round up using Math.ceil to calculate the base share
-        baseShareSubunit = totalInCurrencySubunit >= 0 ? Math.floor(totalInCurrencySubunit / totalParticipants) : Math.ceil(totalInCurrencySubunit / totalParticipants);
-        remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+        const baseShareSubunit = totalInCurrencySubunit >= 0 ? Math.floor(totalInCurrencySubunit / totalParticipants) : Math.ceil(totalInCurrencySubunit / totalParticipants);
+        const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
 
         const subunitAmount = baseShareSubunit + (isDefaultUser ? remainderSubunit : 0);
         return Math.round((subunitAmount * 100) / currencyUnit);
