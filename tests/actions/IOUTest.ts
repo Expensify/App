@@ -1093,7 +1093,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '',
+                            merchant: '(none)',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,

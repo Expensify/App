@@ -800,7 +800,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -868,7 +868,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -1114,7 +1114,7 @@ const transactionReportGroupListItems = [
                 date: '2024-12-21',
                 description: '',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1219,7 +1219,7 @@ const transactionReportGroupListItems = [
                 date: '2024-12-21',
                 description: '',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
