@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Compter',
         cancel: 'Annuler',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Envoyer',
         na: 'N/A',
         noResultsFound: 'Aucun résultat trouvé',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Aucun résultat trouvé correspondant à "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Aucun résultat trouvé correspondant à "${searchString}"`,
         recentDestinations: 'Destinations récentes',
         timePrefix: "C'est",
         conjunctionFor: 'pour',
@@ -1071,10 +1071,6 @@ const translations = {
     receipt: {
         upload: 'Télécharger le reçu',
         uploadMultiple: 'Télécharger des reçus',
-        dragReceiptBeforeEmail: 'Faites glisser un reçu sur cette page, transférez un reçu à',
-        dragReceiptsBeforeEmail: 'Faites glisser les reçus sur cette page, transférez les reçus à',
-        dragReceiptAfterEmail: 'ou choisissez un fichier à télécharger ci-dessous.',
-        dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
@@ -1350,11 +1346,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             genericUnholdExpenseFailureMessage: 'Erreur inattendue lors de la suppression de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             receiptDeleteFailureError: 'Erreur inattendue lors de la suppression de ce reçu. Veuillez réessayer plus tard.',
-            receiptFailureMessage: "Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez",
+            receiptFailureMessage: `<rbr>Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez <a href="download">enregistrer le reçu</a> et <a href="retry">réessayer</a> plus tard.</rbr>`,
             receiptFailureMessageShort: "Une erreur s'est produite lors du téléchargement de votre reçu.",
-            tryAgainMessage: 'réessayer',
-            saveFileMessage: 'enregistrer le reçu',
-            uploadLaterMessage: 'à télécharger plus tard.',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
             genericSmartscanFailureMessage: 'La transaction comporte des champs manquants',
@@ -1375,7 +1368,10 @@ const translations = {
         enableWallet: 'Activer le portefeuille',
         hold: 'Attente',
         unhold: 'Supprimer la suspension',
-        holdExpense: 'Mettre la dépense en attente',
+        holdExpense: () => ({
+            one: 'Mettre la dépense en attente',
+            other: 'Mettre les dépenses en attente',
+        }),
         unholdExpense: 'Débloquer la dépense',
         heldExpense: 'retenu cette dépense',
         unheldExpense: 'débloqué cette dépense',
@@ -1386,7 +1382,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
         newReport: 'Nouveau rapport',
-        explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
+        explainHold: () => ({
+            one: 'Expliquez pourquoi vous mettez cette dépense en attente.',
+            other: 'Expliquez pourquoi vous mettez ces dépenses en attente.',
+        }),
         retracted: 'retraité',
         retract: 'Retirer',
         reopened: 'rouvert',
@@ -2073,8 +2072,6 @@ ${amount} pour ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
-        delaySubmissionTitle: 'Retarder les soumissions',
-        delaySubmissionDescription: 'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel des dépenses.',
         submissionFrequency: 'Fréquence de soumission',
         submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
         disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
@@ -5028,6 +5025,10 @@ ${amount} pour ${merchant} - ${date}`,
                 title: 'Impossible de rendre toutes les balises facultatives',
                 description: `Au moins une étiquette doit rester obligatoire car les paramètres de votre espace de travail exigent des étiquettes.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Impossible de rendre la liste des balises obligatoire',
+                description: 'Vous ne pouvez rendre une liste de balises obligatoire que si votre stratégie comporte plusieurs niveaux de balises configurés.',
+            },
             tagCount: () => ({
                 one: '1 jour',
                 other: (count: number) => `${count} Tags`,
@@ -7401,7 +7402,7 @@ ${amount} pour ${merchant} - ${date}`,
         upload: 'Télécharger',
         uploadPhoto: 'Télécharger une photo',
         selectAvatar: 'Sélectionner un avatar',
-        chooseCustomAvatar: 'Ou choisissez un avatar personnalisé',
+        choosePresetAvatar: 'Ou choisissez un avatar personnalisé',
     },
     openAppFailureModal: {
         title: "Quelque chose s'est mal passé...",
@@ -7433,4 +7434,4 @@ ${amount} pour ${merchant} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
