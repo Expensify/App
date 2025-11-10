@@ -58,6 +58,8 @@ function TransactionListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, transactionItem.reportID]);
 
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true});
+
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
@@ -189,7 +191,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? snapshotReport.isActionLoading}
+                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? reportMetadata.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}

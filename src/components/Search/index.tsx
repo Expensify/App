@@ -257,6 +257,7 @@ function Search({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true});
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -405,7 +406,19 @@ function Search({
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, email ?? '', formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections({
+            type,
+            data: searchResults.data,
+            currentAccountID: accountID,
+            currentUserEmail: email ?? '',
+            formatPhoneNumber,
+            groupBy: validGroupBy,
+            reportActions: exportReportActions,
+            currentSearch: searchKey,
+            archivedReportsIDList: archivedReportsIdSet,
+            queryJSON,
+            reportMetadata,
+        });
         return [data1, data1.length];
     }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email]);
 

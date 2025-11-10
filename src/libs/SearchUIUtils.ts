@@ -294,6 +294,20 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
+type GetSectionsParams = {
+    type: SearchDataTypes;
+    data: OnyxTypes.SearchResults['data'];
+    currentAccountID: number | undefined;
+    currentUserEmail: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    groupBy?: SearchGroupBy;
+    reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+    currentSearch?: SearchKey;
+    archivedReportsIDList?: ArchivedReportsIDSet;
+    queryJSON?: SearchQueryJSON;
+    reportMetadata?: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined;
+};
+
 /**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
@@ -1392,6 +1406,7 @@ function getReportSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    reportMetadata: OnyxTypes.ReportMetadata | undefined = undefined,
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1428,7 +1443,7 @@ function getReportSections(
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
             let shouldShow = true;
-            if (queryJSON && !reportItem.isActionLoading) {
+            if (queryJSON && reportMetadata && !reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`]?.isActionLoading) {
                 if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = queryJSON.status;
 
@@ -1634,18 +1649,19 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections(
-    type: SearchDataTypes,
-    data: OnyxTypes.SearchResults['data'],
-    currentAccountID: number | undefined,
-    currentUserEmail: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    groupBy?: SearchGroupBy,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    archivedReportsIDList?: ArchivedReportsIDSet,
-    queryJSON?: SearchQueryJSON,
-) {
+function getSections({
+    type,
+    data,
+    currentAccountID,
+    currentUserEmail,
+    formatPhoneNumber,
+    groupBy,
+    reportActions = {},
+    currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    archivedReportsIDList,
+    queryJSON,
+    reportMetadata,
+}: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }

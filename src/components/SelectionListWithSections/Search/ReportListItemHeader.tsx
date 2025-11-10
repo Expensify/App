@@ -108,6 +108,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true});
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -180,7 +181,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
+                        isLoading={reportMetadata?.isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}

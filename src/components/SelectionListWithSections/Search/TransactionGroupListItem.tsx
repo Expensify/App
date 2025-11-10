@@ -94,6 +94,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -102,13 +103,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections(
-            CONST.SEARCH.DATA_TYPES.EXPENSE,
-            transactionsSnapshot?.data,
-            accountID,
-            currentUserDetails.email ?? '',
+        const sectionData = getSections({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            data: transactionsSnapshot?.data,
+            currentAccountID: accountID,
+            currentUserEmail: currentUserDetails.email ?? '',
             formatPhoneNumber,
-        ) as TransactionListItemType[];
+            reportMetadata,
+        }) as TransactionListItemType[];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),

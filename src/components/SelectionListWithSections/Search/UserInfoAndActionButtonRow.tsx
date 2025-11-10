@@ -1,7 +1,6 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,7 +10,6 @@ import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
@@ -30,17 +28,12 @@ function UserInfoAndActionButtonRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
-    const {currentSearchHash} = useSearchContext();
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-
-    const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
-    }, [snapshot, transactionItem.reportID]);
 
     return (
         <View
@@ -74,7 +67,7 @@ function UserInfoAndActionButtonRow({
                     action={item.action}
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
-                    isLoading={item.isActionLoading ?? snapshotReport.isActionLoading}
+                    isLoading={item.isActionLoading ?? reportMetadata.isActionLoading}
                     policyID={item.policyID}
                     reportID={item.reportID}
                     hash={item.hash}
