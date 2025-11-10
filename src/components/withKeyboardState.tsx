@@ -78,7 +78,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             onEnd: () => {
                 'worklet';
 
-                scheduleOnRN(setIsKeyboardAnimating, true);
+                scheduleOnRN(setIsKeyboardAnimating, false);
             },
         },
         [],
