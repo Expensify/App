@@ -118,6 +118,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -20000},
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = computeReportNameIfNeeded(mockReport, update, mockContext);
             expect(result?.name).toEqual('Expense Report - $200.00');
         });
@@ -134,6 +135,7 @@ describe('OptimisticReportNames', () => {
                     ...mockReport,
                     reportName: 'Expense Report - $100.00',
                 },
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 update,
                 mockContext,
             );
@@ -157,6 +159,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
             expect(result.at(1)).toEqual({
@@ -175,6 +178,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
             expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
@@ -221,6 +225,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
 
             expect(result).toHaveLength(4);
@@ -261,6 +266,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toEqual(updates); // Unchanged
         });
@@ -274,6 +280,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = computeReportNameIfNeeded(undefined, update, mockContext);
             expect(result).toBeNull();
         });
@@ -305,6 +312,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should include original update + new report name update
@@ -385,6 +393,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should still find the report through context lookup and generate update
@@ -443,6 +452,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             expect(result).toHaveLength(2);

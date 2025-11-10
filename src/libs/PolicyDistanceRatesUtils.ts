@@ -70,6 +70,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
+    // eslint-disable-next-line unicorn/prefer-set-has
     const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
 
     for (const rateID of Object.keys(customUnit.rates)) {
