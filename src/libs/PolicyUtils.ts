@@ -1338,10 +1338,10 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
-function hasNoPolicyOtherThanPersonalType() {
+function hasNoPolicyOtherThanPersonalType(policies: OnyxCollection<Policy>) {
     return (
-        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .length === 0
+        Object.values(policies ?? {}).findIndex((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ===
+        -1
     );
 }
 
