@@ -6287,7 +6287,7 @@ describe('actions/IOU', () => {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
-                merchant: 'test merchant',
+                merchant: '',
                 modifiedMerchant: undefined,
             };
 
@@ -6337,7 +6337,7 @@ describe('actions/IOU', () => {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
-                merchant: 'test merchant',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
             };
 
