@@ -82,6 +82,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
         <View style={[styles.flex1]}>
             <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
+                    attachmentID={item.attachmentID}
                     source={item.source}
                     previewSource={item.previewSource}
                     file={item.file}
