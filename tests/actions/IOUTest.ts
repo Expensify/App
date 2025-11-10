@@ -72,7 +72,6 @@ import {
     getSortedReportActions,
     isActionableTrackExpense,
     isActionOfType,
-    isCreatedAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';

@@ -3479,7 +3479,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
-    console.log('new report?', shouldCreateNewMoneyRequestReport);
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
         iouReport = isPolicyExpenseChat
