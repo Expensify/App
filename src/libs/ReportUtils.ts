@@ -10990,6 +10990,7 @@ function prepareOnboardingOnyxData(
     companySize?: OnboardingCompanySize,
     selectedInterestedFeatures: string[] = [],
     isInvitedAccountant?: boolean,
+    onboardingPurposeSelected?: OnboardingPurpose,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11492,7 +11493,7 @@ function prepareOnboardingOnyxData(
     let selfDMParameters: SelfDMParameters = {};
     if (
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        (introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE)
+        (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE)
     ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
