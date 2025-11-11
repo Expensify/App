@@ -825,8 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Dien een uitgave in, verwijs uw baas',
-            subtitleText: 'Wil je dat je baas ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
+            title: 'Dien een uitgave in, verwijs uw team',
+            subtitleText: 'Wil je dat je team ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
         },
     },
     videoChatButtonAndMenu: {
@@ -6733,9 +6733,9 @@ ${amount} voor ${merchant} - ${date}`,
             body: 'Wil je dat je vrienden ook Expensify gebruiken? Begin gewoon een chat met hen en wij doen de rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Dien een uitgave in, <success><strong>verwijs je baas</strong></success>.',
-            header: 'Dien een uitgave in, verwijs uw baas',
-            body: 'Wil je dat je baas ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
+            buttonText: 'Dien een uitgave in, <success><strong>verwijs je team</strong></success>.',
+            header: 'Dien een uitgave in, verwijs uw team',
+            body: 'Wil je dat je team ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Verwijs een vriend',
