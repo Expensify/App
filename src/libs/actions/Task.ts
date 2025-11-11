@@ -55,7 +55,6 @@ type CreateTaskAndNavigateParams = {
     policyID?: string;
     isCreatedUsingMarkdown?: boolean;
     quickAction?: OnyxEntry<OnyxTypes.QuickAction>;
-    ancestors?: ReportUtils.Ancestor[];
 };
 
 let allReportActions: OnyxCollection<ReportActions>;
@@ -119,7 +118,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
         isCreatedUsingMarkdown = false,
         quickAction = {},
-        ancestors = [],
     } = params;
     if (!parentReportID) {
         return;
@@ -284,7 +282,13 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     });
 
     // If needed, update optimistic data for parent report action of the parent report.
-    optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReport, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    optimisticParentReportData.forEach((parentReportData) => {
+        if (isEmptyObject(parentReportData)) {
+            return;
+        }
+        optimisticData.push(parentReportData);
+    });
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
@@ -1058,7 +1062,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): stri
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
-function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean, currentUserAccountID: number, ancestors: ReportUtils.Ancestor[]) {
+function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean, currentUserAccountID: number) {
     if (!report) {
         return;
     }
@@ -1127,7 +1131,17 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
     // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
     const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
-        optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, parentReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            parentReport,
+            parentReport?.lastVisibleActionCreated ?? '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        optimisticParentReportData.forEach((parentReportData) => {
+            if (isEmptyObject(parentReportData)) {
+                return;
+            }
+            optimisticData.push(parentReportData);
+        });
     }
 
     const successData: OnyxUpdate[] = [

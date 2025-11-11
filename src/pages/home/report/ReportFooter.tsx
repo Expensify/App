@@ -12,7 +12,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
@@ -106,7 +105,6 @@ function ReportFooter({
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
@@ -171,11 +169,10 @@ function ReportFooter({
                 policyID: report.policyID,
                 isCreatedUsingMarkdown: true,
                 quickAction,
-                ancestors,
             });
             return true;
         },
-        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
