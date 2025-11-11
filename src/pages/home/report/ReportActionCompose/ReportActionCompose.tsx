@@ -422,7 +422,7 @@ function ReportActionCompose({
 
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
-        })
+        });
     }, [isSendDisabled, debouncedValidate, composerRefShared]);
 
     // eslint-disable-next-line react-compiler/react-compiler
