@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -34,8 +35,8 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** The default value for the date of birth input */
     dobDefaultValue: string;
 
-    /** Optional footer component */
-    footerComponent?: React.ReactNode;
+	/** Optional footer component */
+	footerComponent?: React.ReactNode;
 };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -46,8 +47,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     stepFields,
     dobInputID,
     dobDefaultValue,
-    isEditing,
-    footerComponent,
+	isEditing,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -98,7 +98,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
             />
-            {footerComponent}
+			<HelpDotLink containerStyles={[styles.mt5]} />
         </FormProvider>
     );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,13 +9,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-function HelpDotLink() {
+type HelpDotLinkProps = {
+	/** Optional container styles to control spacing/alignment */
+	containerStyles?: StyleProp<ViewStyle>;
+};
+
+function HelpDotLink({containerStyles}: HelpDotLinkProps) {
 	const styles = useThemeStyles();
 	const theme = useTheme();
 	const {translate} = useLocalize();
 
 	return (
-		<View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+		<View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
 			<Icon
 				src={Expensicons.QuestionMark}
 				width={12}

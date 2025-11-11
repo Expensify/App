@@ -8,7 +8,6 @@ import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditional
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY] as Array<FormOnyxKeys<keyof OnyxFormValuesMapping>>;
@@ -35,8 +34,7 @@ function DateOfBirthStep({onNext, onMove, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             dobInputID={PERSONAL_INFO_DOB_KEY as keyof FormOnyxValues}
-            dobDefaultValue={dobDefaultValue}
-			footerComponent={<HelpDotLink />}
+			dobDefaultValue={dobDefaultValue}
         />
     );
 }

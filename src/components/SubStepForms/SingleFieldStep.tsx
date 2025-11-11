@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -61,11 +62,8 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** Placeholder displayed inside input */
     placeholder?: string;
 
-    /** Whether to delay autoFocus to avoid conflicts with navigation animations */
-    shouldDelayAutoFocus?: boolean;
-
-	/** Optional footer component rendered at the bottom */
-	footerComponent?: React.ReactNode;
+	/** Whether to delay autoFocus to avoid conflicts with navigation animations */
+	shouldDelayAutoFocus?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -86,7 +84,6 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
-	footerComponent,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -126,8 +123,12 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         ref={internalInputRef}
                     />
                 </View>
-				{shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
-				{footerComponent}
+				{shouldShowHelpLinks && (
+					<>
+						<HelpLinks containerStyles={[styles.mt5]} />
+						<HelpDotLink containerStyles={[styles.mt2]} />
+					</>
+				)}
             </View>
         </FormProvider>
     );

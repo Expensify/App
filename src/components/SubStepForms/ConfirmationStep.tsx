@@ -39,14 +39,11 @@ type ConfirmationStepProps = SubStepProps & {
     /** The error message to display */
     error?: string;
 
-    /** Whether to apply safe area padding bottom */
-    shouldApplySafeAreaPaddingBottom?: boolean;
-
-	/** Optional footer component rendered near the bottom */
-	footerComponent?: React.ReactNode;
+	/** Whether to apply safe area padding bottom */
+	shouldApplySafeAreaPaddingBottom?: boolean;
 };
 
-function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true, footerComponent}: ConfirmationStepProps) {
+function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -96,7 +93,6 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
             )}
 
             <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
-				{footerComponent}
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage
                         textStyles={[styles.formError]}

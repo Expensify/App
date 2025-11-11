@@ -10,6 +10,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -49,9 +50,6 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
     /** Custom label of the last name input */
     customLastNameLabel?: string;
-
-	/** Optional footer component rendered at the bottom */
-	footerComponent?: React.ReactNode;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -67,7 +65,6 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
-	footerComponent,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,8 +148,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                 />
-                {shouldShowHelpLinks && <HelpLinks />}
-				{footerComponent}
+				{shouldShowHelpLinks && (
+					<>
+						<HelpLinks />
+						<HelpDotLink />
+					</>
+				)}
             </View>
         </FormProvider>
     );

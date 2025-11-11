@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -158,8 +159,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldAllowCountryChange={shouldAllowCountryChange}
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
-				{!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
-				{footerComponent}
+				{!!shouldShowHelpLinks && (
+					<>
+						<HelpLinks containerStyles={[styles.mt6]} />
+						<HelpDotLink containerStyles={[styles.mt2]} />
+					</>
+				)}
             </View>
         </FormProvider>
     );
