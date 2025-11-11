@@ -41,11 +41,13 @@ const mockTransaction: TransactionListItemType = {
         outputCurrency: 'USD',
         isPolicyExpenseChatEnabled: true,
     },
+    parentReportAction: undefined,
     reportAction: {
         reportActionID: '2454187434077044186',
         actionName: 'IOU',
         created: '2025-09-19',
     },
+    holdReportAction: undefined,
     merchant: '(none)',
     modifiedAmount: -1284,
     modifiedCreated: '2025-09-07',
