@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
-import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -162,7 +162,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{!!shouldShowHelpLinks && (
 					<>
 						<HelpLinks containerStyles={[styles.mt6]} />
-						<HelpDotLink containerStyles={[styles.mt2]} />
+						<PatriotActLink containerStyles={[styles.mt2]} />
 					</>
 				)}
             </View>

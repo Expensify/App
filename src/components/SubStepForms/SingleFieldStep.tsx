@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
-import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -126,7 +126,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{shouldShowHelpLinks && (
 					<>
 						<HelpLinks containerStyles={[styles.mt5]} />
-						<HelpDotLink containerStyles={[styles.mt2]} />
+						<PatriotActLink containerStyles={[styles.mt2]} />
 					</>
 				)}
             </View>

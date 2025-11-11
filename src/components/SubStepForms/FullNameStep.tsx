@@ -10,7 +10,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
-import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -151,7 +151,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{shouldShowHelpLinks && (
 					<>
 						<HelpLinks />
-						<HelpDotLink />
+						<PatriotActLink />
 					</>
 				)}
             </View>

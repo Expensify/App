@@ -9,12 +9,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type HelpDotLinkProps = {
+type PatriotActLinkProps = {
 	/** Optional container styles to control spacing/alignment */
 	containerStyles?: StyleProp<ViewStyle>;
 };
 
-function HelpDotLink({containerStyles}: HelpDotLinkProps) {
+function PatriotActLink({containerStyles}: PatriotActLinkProps) {
 	const styles = useThemeStyles();
 	const theme = useTheme();
 	const {translate} = useLocalize();
@@ -37,8 +37,8 @@ function HelpDotLink({containerStyles}: HelpDotLinkProps) {
 	);
 }
 
-HelpDotLink.displayName = 'HelpDotLink';
+PatriotActLink.displayName = 'PatriotActLink';
 
-export default HelpDotLink;
+export default PatriotActLink;
 
 
