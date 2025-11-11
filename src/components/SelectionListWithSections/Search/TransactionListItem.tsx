@@ -24,7 +24,7 @@ import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils'
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isActionLoadingSelector from '@src/selectors/ReportMetaData';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';

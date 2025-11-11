@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isActionLoadingSelector from '@src/selectors/ReportMetaData';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
