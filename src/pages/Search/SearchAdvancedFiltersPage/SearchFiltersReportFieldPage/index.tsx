@@ -1,4 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import {createAllPolicyReportFieldsSelector} from '@selectors/Policy';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -15,7 +17,7 @@ import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyReportField} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import ReportFieldDate from './ReportFieldDate';
 import ReportFieldList from './ReportFieldList';
 import ReportFieldText from './ReportFieldText';
@@ -27,21 +29,10 @@ function SearchFiltersReportFieldPage() {
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
     const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const policyReportFieldsSelector = useCallback((policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare), [localeCompare]);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
-        selector: (policies) => {
-            const allPolicyReportFields = Object.values(policies ?? {}).reduce<Record<string, PolicyReportField>>((acc, policy) => {
-                Object.assign(acc, policy?.fieldList ?? {});
-                return acc;
-            }, {});
-
-            const nonFormulaReportFields = Object.entries(allPolicyReportFields)
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .filter(([_, value]) => value.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE)
-                .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));
-
-            return Object.fromEntries(nonFormulaReportFields);
-        },
+        selector: policyReportFieldsSelector,
     });
 
     const listItems = useMemo(() => {
