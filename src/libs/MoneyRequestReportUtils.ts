@@ -21,8 +21,7 @@ import {isTransactionPendingDelete} from './TransactionUtils';
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
  * at the top
  */
-// eslint-disable-next-line unicorn/prefer-set-has
-const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+const IOU_ACTIONS_TO_FILTER_OUT = new Set<OriginalMessageIOU['type']>([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK]);
 
 /**
  * Returns whether a specific action should be displayed in the feed/message list on MoneyRequestReportView.
@@ -34,7 +33,7 @@ const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.
 function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
     if (isMoneyRequestAction(action)) {
         const originalMessage = getOriginalMessage(action);
-        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.includes(originalMessage.type) : false;
+        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.has(originalMessage.type) : false;
     }
 
     return action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
