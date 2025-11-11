@@ -657,10 +657,9 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions as ReportActions,
         },
-
-        // Update optimistic data for parent report action if the report is a child report
-        ...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
     ];
+
+    optimisticData.push(...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
