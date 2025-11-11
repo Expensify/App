@@ -750,6 +750,7 @@ function ComposerWithSuggestions({
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
             updateComment('', true);
+            updateComment('', true);
         },
         [onCleared, updateComment],
     );
@@ -792,6 +793,8 @@ function ComposerWithSuggestions({
         [measureParentContainer, cursorPositionValue, selection],
     );
 
+    const debouncedUpdateComment = useCallback((newComment: string) => updateComment(newComment, true), [updateComment]);
+
     const isTouchEndedRef = useRef(false);
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
@@ -827,7 +830,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={onChangeText}
+                    onChangeText={debouncedUpdateComment}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
