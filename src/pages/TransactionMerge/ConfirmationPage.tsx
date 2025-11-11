@@ -92,9 +92,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
         if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            // Navigate to search money report screen if we're on Reports
             if (isSearchTopmostFullScreenRoute()) {
+                // Close the current modal screen
                 Navigation.dismissModal();
+                // Ensure the dismiss completes first
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    // Navigate to the money request report in search results
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
                 });
                 return;
