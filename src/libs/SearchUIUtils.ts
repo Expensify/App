@@ -758,7 +758,6 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
     return isAmountTooLong(amount);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     // it won't matter if pass true or false as second argument to getTaxAmount here because isAmountTooLong function uses Math.abs on the returned value of getTaxAmount
     const taxAmount = getTaxAmount(transactionItem, false);
@@ -772,7 +771,6 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     let isAmountWide = false;
     let isTaxAmountWide = false;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const processTransaction = (transaction: TransactionListItemType | SearchTransaction) => {
         isAmountWide ||= isTransactionAmountTooLong(transaction);
         isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction);
@@ -783,14 +781,12 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
             if (isTransactionGroupListItemType(item)) {
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     processTransaction(transaction);
                     if (isAmountWide && isTaxAmountWide) {
                         break;
                     }
                 }
             } else if (isTransactionListItemType(item)) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 processTransaction(item);
             }
             return isAmountWide && isTaxAmountWide;
