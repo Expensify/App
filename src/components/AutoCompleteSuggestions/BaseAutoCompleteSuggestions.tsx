@@ -108,6 +108,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    style={styles.overscrollBehaviorContain}
                 />
             </ColorSchemeWrapper>
         </Animated.View>
