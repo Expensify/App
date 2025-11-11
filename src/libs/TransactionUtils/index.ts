@@ -1334,12 +1334,18 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Checks if a violation is dismissed for the given transaction
+ * Checks if a violation is dismissed for the given transaction, optionally by a particular email address
  */
 function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: TransactionViolation | undefined, currentUserEmail?: string): boolean {
     if (!transaction || !violation) {
         return false;
     }
+
+    // If we don't provide an email, we just check if the violation has been dismissed by anyone
+    if (!currentUserEmail) {
+        return !!transaction?.comment?.dismissedViolations?.[violation.name];
+    }
+
     return !!transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail ?? deprecatedCurrentUserEmail];
 }
 
