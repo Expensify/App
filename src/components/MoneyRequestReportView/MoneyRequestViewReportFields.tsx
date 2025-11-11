@@ -12,10 +12,10 @@ import {
     getFieldViolation,
     getFieldViolationTranslation,
     getReportFieldKey,
-    isAdminOwnerApproverOrReportOwner,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
@@ -96,7 +96,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = field.value ?? field.defaultValue;
-                const isFieldDisabled = isReportFieldDisabled(report, field, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
                 const fieldKey = getReportFieldKey(field.fieldID);
 
                 const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
