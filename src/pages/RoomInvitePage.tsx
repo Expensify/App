@@ -147,11 +147,10 @@ function RoomInvitePage({
         });
 
         // Filtering out selected users from the search results
-        // eslint-disable-next-line unicorn/prefer-set-has
-        const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
+        const selectedLogins = new Set(selectedOptions.map(({login}) => login));
+        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.has(login)) : [];
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
-        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
+        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.has(userToInvite.login);
 
         sectionsArr.push({
             title: translate('common.contacts'),
