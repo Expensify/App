@@ -6,8 +6,7 @@ import {parseDocument} from 'htmlparser2';
 import CONST from '@src/CONST';
 import type GetCurrentSelection from './types';
 
-// eslint-disable-next-line unicorn/prefer-set-has
-const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user'];
+const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
 
 /**
@@ -121,7 +120,7 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNod
         const child = dom.children.at(0);
         if (dom.attribs?.[tagAttribute]) {
             // If it's a markdown element, rename it according to the value of data-testid, so ExpensiMark can parse it
-            if (markdownElements.includes(dom.attribs[tagAttribute])) {
+            if (markdownElements.has(dom.attribs[tagAttribute])) {
                 domName = dom.attribs[tagAttribute];
             }
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement && child) {
