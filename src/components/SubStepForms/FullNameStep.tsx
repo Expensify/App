@@ -50,6 +50,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
     /** Custom label of the last name input */
     customLastNameLabel?: string;
+
+	/** Whether to show the Patriot Act help link (EnablePayments-only) */
+	showPatriotActLink?: boolean;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -65,6 +68,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
+	showPatriotActLink = false,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,7 +155,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{shouldShowHelpLinks && (
 					<>
 						<HelpLinks />
-						<PatriotActLink />
+						{showPatriotActLink && <PatriotActLink />}
 					</>
 				)}
             </View>

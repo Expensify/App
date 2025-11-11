@@ -37,6 +37,7 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
 			defaultValues={defaultValues}
+			showPatriotActLink
         />
     );
 }

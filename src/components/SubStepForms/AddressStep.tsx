@@ -77,6 +77,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
 	/** Optional footer component rendered at the bottom */
 	footerComponent?: React.ReactNode;
+
+	/** Whether to show the Patriot Act help link (EnablePayments-only) */
+	showPatriotActLink?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -100,6 +103,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
 	footerComponent,
+	showPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -162,7 +166,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{!!shouldShowHelpLinks && (
 					<>
 						<HelpLinks containerStyles={[styles.mt6]} />
-						<PatriotActLink containerStyles={[styles.mt2]} />
+						{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
 					</>
 				)}
             </View>
