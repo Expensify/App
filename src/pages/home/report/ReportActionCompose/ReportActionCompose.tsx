@@ -4,7 +4,8 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {runOnUI, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -288,7 +289,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        runOnUI(clear)();
+        scheduleOnUI(clear);
     }, []);
 
     /**
@@ -397,14 +398,20 @@ function ReportActionCompose({
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
-    }>({clear: undefined});
+        reset: (() => void) | undefined;
+    }>({clear: undefined, reset: undefined});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        runOnUI(() => {
+        const {reset} = composerRefShared.get();
+
+        reset?.();
+        setIsComposerFullSize(reportID, false);
+
+        scheduleOnUI(() => {
             'worklet';
 
             const {clear: clearComposer} = composerRefShared.get();
@@ -415,8 +422,8 @@ function ReportActionCompose({
 
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
-        })();
-    }, [isSendDisabled, debouncedValidate, composerRefShared]);
+        });
+    }, [isSendDisabled, debouncedValidate, composerRefShared, reportID]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
@@ -523,6 +530,7 @@ function ReportActionCompose({
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
                                     clear: ref?.clear,
+                                    reset: ref?.reset,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}

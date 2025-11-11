@@ -150,6 +150,7 @@ type ComposerRef = {
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
     clear: () => void;
+    reset: () => void;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -704,6 +705,9 @@ function ComposerWithSuggestions({
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
+            reset: () => {
+                setComposerHeight(36);
+            },
             getCurrentText,
         }),
         [blur, clear, focus, replaceSelectionWithText, getCurrentText],
@@ -716,13 +720,9 @@ function ComposerWithSuggestions({
     const onLayout = useCallback(
         (e: LayoutChangeEvent) => {
             onLayoutProps?.(e);
-            const composerLayoutHeight = e.nativeEvent.layout.height;
-            if (composerHeight === composerLayoutHeight) {
-                return;
-            }
-            setComposerHeight(composerLayoutHeight);
+            setComposerHeight(0);
         },
-        [composerHeight, onLayoutProps],
+        [onLayoutProps],
     );
 
     const onClear = useCallback(
@@ -811,7 +811,7 @@ function ComposerWithSuggestions({
                     onChangeText={updateComment}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
