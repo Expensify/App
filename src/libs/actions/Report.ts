@@ -1149,6 +1149,7 @@ function openReport(
         // preventing duplicate reportActionID when moneyRequestReportActionID still empty
         const currentSearchQueryJSON = getCurrentSearchQueryJSON();
         if (currentSearchQueryJSON?.hash) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
