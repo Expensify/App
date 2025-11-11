@@ -318,7 +318,8 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
 
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
-        return canHoldUnholdReportAction(report, action, parentReportAction, transaction, policy).canUnholdRequest;
+        const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
+        return canHoldUnholdReportAction(report, action, parentReportAction, holdReportAction, transaction, policy).canUnholdRequest;
     });
 }
 

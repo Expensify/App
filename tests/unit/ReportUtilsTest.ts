@@ -15,7 +15,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
@@ -3451,7 +3451,10 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, expenseTransaction, undefined)).toEqual({canHoldRequest: true, canUnholdRequest: false});
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, undefined, expenseTransaction, undefined)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
 
             putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
             await waitForBatchedUpdates();
@@ -3492,9 +3495,19 @@ describe('ReportUtils', () => {
                     },
                 });
             });
+            const transactionThreadReportHoldReportAction = getReportAction(transactionThreadReport.reportID, `${expenseTransactionUpdated?.comment?.hold ?? ''}`);
 
             // canUnholdRequest should be true after the transaction is held.
-            expect(canHoldUnholdReportAction(expenseReportUpdated, expenseCreatedActionUpdated, reportPreviewUpdated, expenseTransactionUpdated, undefined)).toEqual({
+            expect(
+                canHoldUnholdReportAction(
+                    expenseReportUpdated,
+                    expenseCreatedActionUpdated,
+                    reportPreviewUpdated,
+                    transactionThreadReportHoldReportAction,
+                    expenseTransactionUpdated,
+                    undefined,
+                ),
+            ).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: true,
             });

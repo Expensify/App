@@ -33,8 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isThread, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -93,7 +92,7 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item.holdReportAction, item, item.policy);
 
     return [
         item.keyForList,
@@ -175,7 +174,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item.holdReportAction, item, item.policy);
 
     return {
         ...selectedTransactions,
@@ -461,6 +460,7 @@ function Search({
                         transactionItem.report,
                         transactionItem.reportAction,
                         transactionItem.parentReportAction,
+                        transactionItem.holdReportAction,
                         transactionItem,
                         transactionItem.policy,
                     );
@@ -506,6 +506,7 @@ function Search({
                     transactionItem.report,
                     transactionItem.reportAction,
                     transactionItem.parentReportAction,
+                    transactionItem.holdReportAction,
                     transactionItem,
                     transactionItem.policy,
                 );

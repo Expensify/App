@@ -4683,6 +4683,7 @@ function canHoldUnholdReportAction(
     report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     parentReportAction: OnyxEntry<ReportAction>,
+    holdReportAction: OnyxEntry<ReportAction>,
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
 ): {canHoldRequest: boolean; canUnholdRequest: boolean} {
@@ -4693,7 +4694,7 @@ function canHoldUnholdReportAction(
     const isRequestSettled = isSettled(report);
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
-    const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID);
+    const isHoldActionCreator = isActionCreator(holdReportAction);
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionOrReportPreviewOwner(parentReportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;

@@ -397,7 +397,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return false;
             }
             const parentReportAction = isThread(moneyRequestReport) ? getReportAction(moneyRequestReport.parentReportID, moneyRequestReport.parentReportActionID) : undefined;
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
+            const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
+            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, holdReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
         },
         onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
@@ -419,7 +420,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return false;
             }
             const parentReportAction = isThread(moneyRequestReport) ? getReportAction(moneyRequestReport.parentReportID, moneyRequestReport.parentReportActionID) : undefined;
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
+            const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
+            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, parentReportAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
         },
         onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
