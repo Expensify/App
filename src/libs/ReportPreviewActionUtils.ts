@@ -29,7 +29,7 @@ import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, currentUserEmail: string, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
         return false;
     }
@@ -44,9 +44,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    const hasAnyVisibleViolations =
-        hasMissingSmartscanFields(report.reportID, transactions) ||
-        (hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions));
+    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -56,7 +54,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyVisibleViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(
@@ -257,7 +255,7 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
-    if (canSubmit(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+    if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, currentUserEmail, policy, transactions)) {
