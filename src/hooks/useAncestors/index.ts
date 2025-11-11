@@ -1,11 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import type {Ancestor} from '@libs/ReportUtils';
-import {getAncestors} from '@libs/ReportUtils'
+import {getAncestors} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, } from '@src/types/onyx';
-
+import type {Report, ReportAction} from '@src/types/onyx';
 
 /**
  * Fetches ancestor reports and their associated actions for a given report.

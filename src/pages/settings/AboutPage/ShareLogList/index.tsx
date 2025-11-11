@@ -1,14 +1,14 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAncestors} from '@libs/ReportUtils';
 import {addAttachmentWithComment} from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
-import { useOnyx } from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import { getAncestors } from '@libs/ReportUtils';
 
 function ShareLogList({logSource}: ShareLogListProps) {
     const personalDetail = useCurrentUserPersonalDetails();
@@ -16,7 +16,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const onAttachLogToReport = (reportID: string, filename: string) => {
-        const report = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]
+        const report = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const ancestors = getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection);
         readFileAsync(
             logSource,
