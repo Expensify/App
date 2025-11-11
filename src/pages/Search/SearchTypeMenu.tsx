@@ -228,7 +228,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 showsVerticalScrollIndicator={false}
             >
                 {shouldShowSuggestedSearchSkeleton ? (
-                    <View style={[styles.pb4, styles.mh3]}>
+                    <View style={[styles.pb4]}>
                         <SuggestedSearchSkeleton />
                     </View>
                 ) : (
