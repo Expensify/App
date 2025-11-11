@@ -212,6 +212,21 @@ namespace margelo::nitro::utils::bridge::swift {
     return Func_void_TTIMeasurementValue_Wrapper(std::move(value));
   }
   
+  // pragma MARK: std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const TTIMeasurementValue& / * measurement * /)>>`.
+   */
+  using std__optional_std__function_void_const_TTIMeasurementValue_____measurement______ = std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>;
+  inline std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>> create_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______(const std::function<void(const TTIMeasurementValue& /* measurement */)>& value) noexcept {
+    return std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______(const std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const TTIMeasurementValue& /* measurement */)> get_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______(const std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>& optional) noexcept {
+    return *optional;
+  }
+  
   // pragma MARK: std::shared_ptr<HybridTTIMeasurementViewSpec>
   /**
    * Specialized version of `std::shared_ptr<HybridTTIMeasurementViewSpec>`.

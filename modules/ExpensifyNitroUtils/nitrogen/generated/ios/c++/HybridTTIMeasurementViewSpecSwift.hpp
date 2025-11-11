@@ -17,6 +17,7 @@ namespace margelo::nitro::utils { struct TTIMeasurementValue; }
 
 #include "TTIMeasurementValue.hpp"
 #include <functional>
+#include <optional>
 
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 
@@ -55,11 +56,11 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    inline std::function<void(const TTIMeasurementValue& /* measurement */)> getOnMeasurement() noexcept override {
+    inline std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>> getOnMeasurement() noexcept override {
       auto __result = _swiftPart.getOnMeasurement();
       return __result;
     }
-    inline void setOnMeasurement(const std::function<void(const TTIMeasurementValue& /* measurement */)>& onMeasurement) noexcept override {
+    inline void setOnMeasurement(const std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>& onMeasurement) noexcept override {
       _swiftPart.setOnMeasurement(onMeasurement);
     }
 

@@ -106,20 +106,33 @@ open class HybridTTIMeasurementViewSpec_cxx {
   }
 
   // Properties
-  public final var onMeasurement: bridge.Func_void_TTIMeasurementValue {
+  public final var onMeasurement: bridge.std__optional_std__function_void_const_TTIMeasurementValue_____measurement______ {
     @inline(__always)
     get {
-      return { () -> bridge.Func_void_TTIMeasurementValue in
-        let __closureWrapper = Func_void_TTIMeasurementValue(self.__implementation.onMeasurement)
-        return bridge.create_Func_void_TTIMeasurementValue(__closureWrapper.toUnsafe())
+      return { () -> bridge.std__optional_std__function_void_const_TTIMeasurementValue_____measurement______ in
+        if let __unwrappedValue = self.__implementation.onMeasurement {
+          return bridge.create_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______({ () -> bridge.Func_void_TTIMeasurementValue in
+            let __closureWrapper = Func_void_TTIMeasurementValue(__unwrappedValue)
+            return bridge.create_Func_void_TTIMeasurementValue(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
       }()
     }
     @inline(__always)
     set {
-      self.__implementation.onMeasurement = { () -> (TTIMeasurementValue) -> Void in
-        let __wrappedFunction = bridge.wrap_Func_void_TTIMeasurementValue(newValue)
-        return { (__measurement: TTIMeasurementValue) -> Void in
-          __wrappedFunction.call(__measurement)
+      self.__implementation.onMeasurement = { () -> ((_ measurement: TTIMeasurementValue) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_TTIMeasurementValue_____measurement______(newValue)
+          return { () -> (TTIMeasurementValue) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_TTIMeasurementValue(__unwrapped)
+            return { (__measurement: TTIMeasurementValue) -> Void in
+              __wrappedFunction.call(__measurement)
+            }
+          }()
+        } else {
+          return nil
         }
       }()
     }

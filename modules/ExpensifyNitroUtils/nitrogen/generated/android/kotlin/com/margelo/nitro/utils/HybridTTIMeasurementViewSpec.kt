@@ -38,18 +38,18 @@ abstract class HybridTTIMeasurementViewSpec: HybridView() {
   }
 
   // Properties
-  abstract var onMeasurement: (measurement: TTIMeasurementValue) -> Unit
+  abstract var onMeasurement: ((measurement: TTIMeasurementValue) -> Unit)?
   
-  private var onMeasurement_cxx: Func_void_TTIMeasurementValue
+  private var onMeasurement_cxx: Func_void_TTIMeasurementValue?
     @Keep
     @DoNotStrip
     get() {
-      return Func_void_TTIMeasurementValue_java(onMeasurement)
+      return onMeasurement?.let { Func_void_TTIMeasurementValue_java(it) }
     }
     @Keep
     @DoNotStrip
     set(value) {
-      onMeasurement = value
+      onMeasurement = value?.let { it }
     }
 
   // Methods

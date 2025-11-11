@@ -25,12 +25,12 @@ namespace margelo::nitro::utils::views {
                                                                const HybridTTIMeasurementViewProps& sourceProps,
                                                                const react::RawProps& rawProps):
     react::ViewProps(context, sourceProps, rawProps, filterObjectKeys),
-    onMeasurement([&]() -> CachedProp<std::function<void(const TTIMeasurementValue& /* measurement */)>> {
+    onMeasurement([&]() -> CachedProp<std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>> {
       try {
         const react::RawValue* rawValue = rawProps.at("onMeasurement", nullptr, nullptr);
         if (rawValue == nullptr) return sourceProps.onMeasurement;
         const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::function<void(const TTIMeasurementValue& /* measurement */)>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, "f"), sourceProps.onMeasurement);
+        return CachedProp<std::optional<std::function<void(const TTIMeasurementValue& /* measurement */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, "f"), sourceProps.onMeasurement);
       } catch (const std::exception& exc) {
         throw std::runtime_error(std::string("TTIMeasurementView.onMeasurement: ") + exc.what());
       }
