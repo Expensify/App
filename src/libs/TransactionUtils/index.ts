@@ -145,12 +145,10 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
-let deprecatedCurrentUserEmail = '';
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        deprecatedCurrentUserEmail = val?.email ?? '';
         deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -1346,7 +1344,7 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
         return !!transaction?.comment?.dismissedViolations?.[violation.name];
     }
 
-    return !!transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail ?? deprecatedCurrentUserEmail];
+    return !!transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail];
 }
 
 /**
