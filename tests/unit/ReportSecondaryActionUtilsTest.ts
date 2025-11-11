@@ -7,7 +7,6 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 
@@ -1834,7 +1833,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         it('should return false when there are more than 2 transactions', () => {
             const transactions = [{transactionID: '1', amount: 100} as Transaction, {transactionID: '2', amount: 200} as Transaction, {transactionID: '3', amount: 300} as Transaction];
             const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE} as Report];
-            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as SearchPolicy[];
+            const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
 
             const result = isMergeActionFromReportView(transactions, reports, policies);
 
