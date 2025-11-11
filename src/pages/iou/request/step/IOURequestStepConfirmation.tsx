@@ -416,9 +416,9 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
-            // This will allow the user to edit the participant field after going back and forward.
-            Navigation.goBack();
+            // If the participant was auto-assigned, we need to navigate to the start step
+            // Use the current reportID from the route to ensure consistency
+            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
             return;
         }
 
