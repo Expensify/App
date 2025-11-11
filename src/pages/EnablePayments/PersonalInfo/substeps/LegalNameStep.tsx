@@ -6,6 +6,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
@@ -37,6 +38,7 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
+			footerComponent={<HelpDotLink />}
         />
     );
 }

@@ -63,6 +63,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Whether to delay autoFocus to avoid conflicts with navigation animations */
     shouldDelayAutoFocus?: boolean;
+
+	/** Optional footer component rendered at the bottom */
+	footerComponent?: React.ReactNode;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -83,6 +86,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
+	footerComponent,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -122,7 +126,8 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         ref={internalInputRef}
                     />
                 </View>
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+				{shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+				{footerComponent}
             </View>
         </FormProvider>
     );

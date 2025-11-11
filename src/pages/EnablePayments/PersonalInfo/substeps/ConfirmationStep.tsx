@@ -8,6 +8,7 @@ import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
@@ -77,6 +78,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             onfidoLinksTitle={`${translate('personalInfoStep.byAddingThisBankAccount')} `}
             isLoading={isLoading}
             error={error}
+			footerComponent={<HelpDotLink />}
         />
     );
 }

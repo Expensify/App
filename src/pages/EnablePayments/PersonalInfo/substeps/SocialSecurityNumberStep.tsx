@@ -9,6 +9,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
@@ -58,6 +59,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+			footerComponent={<HelpDotLink />}
         />
     );
 }

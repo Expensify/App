@@ -49,6 +49,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
     /** Custom label of the last name input */
     customLastNameLabel?: string;
+
+	/** Optional footer component rendered at the bottom */
+	footerComponent?: React.ReactNode;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -64,6 +67,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
+	footerComponent,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -148,6 +152,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     containerStyles={[styles.mb6]}
                 />
                 {shouldShowHelpLinks && <HelpLinks />}
+				{footerComponent}
             </View>
         </FormProvider>
     );

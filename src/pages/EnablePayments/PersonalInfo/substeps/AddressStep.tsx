@@ -6,6 +6,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 
@@ -48,6 +49,7 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+			footerComponent={<HelpDotLink />}
         />
     );
 }

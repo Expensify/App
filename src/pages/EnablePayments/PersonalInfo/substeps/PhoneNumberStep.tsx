@@ -10,6 +10,7 @@ import {getFieldRequiredErrors, isValidPhoneNumber, isValidUSPhone} from '@libs/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import HelpDotLink from '@pages/EnablePayments/HelpDotLink';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
@@ -62,6 +63,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={defaultPhoneNumber}
             enabledWhenOffline
+			footerComponent={<HelpDotLink />}
         />
     );
 }
