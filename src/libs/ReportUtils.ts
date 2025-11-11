@@ -11490,7 +11490,10 @@ function prepareOnboardingOnyxData(
     }
 
     let selfDMParameters: SelfDMParameters = {};
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+    if (
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+        (introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE)
+    ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
