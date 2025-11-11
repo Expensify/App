@@ -156,6 +156,7 @@ import {
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
+    isPolicyAdminByID,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
@@ -8813,6 +8814,10 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | u
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
+function isLHNReport(report: Report): boolean {
+    return isPolicyExpenseChat(report) && !report.parentReportID;
+}
+
 /**
  * Should we display a RBR on the LHN on this report due to violations?
  */
@@ -8828,6 +8833,28 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     }
     if (!report.policyID || !reportsByPolicyID) {
         return false;
+    }
+
+    if (isLHNReport(report)) {
+        const isAdmin = isPolicyAdminByID(report.policyID);
+
+        if (!isAdmin) {
+            const policyReports = Object.values(reportsByPolicyID[report.policyID] ?? {});
+
+            const expenseReportsForThisChat = policyReports.filter(
+                (policyReport) => policyReport?.type === 'expense' && policyReport?.chatReportID === report.reportID && isCurrentUserSubmitter(policyReport),
+            );
+
+            if (expenseReportsForThisChat.length > 0) {
+                const hasOpenExpenseReport = expenseReportsForThisChat.some(
+                    (policyReport) => (policyReport?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN && (policyReport?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN,
+                );
+
+                if (!hasOpenExpenseReport) {
+                    return false;
+                }
+            }
+        }
     }
 
     // If any report has a violation, then it should have a RBR
