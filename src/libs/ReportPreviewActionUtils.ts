@@ -44,7 +44,9 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    const hasAnyVisibleViolations = hasMissingSmartscanFields(report.reportID, transactions) || (hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions));
+    const hasAnyVisibleViolations =
+        hasMissingSmartscanFields(report.reportID, transactions) ||
+        (hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions));
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -57,14 +59,23 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyVisibleViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, currentUserEmail: string, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
+function canApprove(
+    report: Report,
+    violations: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    policy?: Policy,
+    transactions?: Transaction[],
+    shouldConsiderViolations = true,
+) {
     const currentUserID = getCurrentUserAccountID();
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserID;
-    const hasAnyVisibleViolations = hasMissingSmartscanFields(report.reportID, transactions) || (hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy));
+    const hasAnyVisibleViolations =
+        hasMissingSmartscanFields(report.reportID, transactions) ||
+        (hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy));
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -112,7 +123,8 @@ function canPay(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
-    const hasAnyVisibleViolations = hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
+    const hasAnyVisibleViolations =
+        hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
 
     if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyVisibleViolations || !shouldConsiderViolations) && reimbursableSpend !== 0) {
         return true;
@@ -150,7 +162,8 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const isApproved = isReportApproved({report});
     const connectedIntegration = getValidConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasAnyVisibleViolations = hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
+    const hasAnyVisibleViolations =
+        hasAnyViolationsUtil(report.reportID, violations) && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
 
     if (!connectedIntegration || !isExpense || !isExporter) {
         return false;
