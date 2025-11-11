@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: '计数',
         cancel: '取消',
@@ -452,7 +452,7 @@ const translations = {
         send: '发送',
         na: 'N/A',
         noResultsFound: '未找到结果',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `未找到与“${searchString}”匹配的结果`,
+        noResultsFoundMatching: (searchString: string) => `未找到与“${searchString}”匹配的结果`,
         recentDestinations: '最近的目的地',
         timePrefix: '它是',
         conjunctionFor: '为',
@@ -466,7 +466,7 @@ const translations = {
         error: {
             invalidAmount: '无效金额',
             acceptTerms: '您必须接受服务条款才能继续',
-            phoneNumber: `请输入有效的电话号码，并包含国家代码（例如 ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `请输入完整的电话号码（例如 ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
             requestModified: '此请求正在被另一位成员修改中',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `字符数超出限制 (${length}/${limit})`,
@@ -673,8 +673,6 @@ const translations = {
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
-        getTheApp: '获取应用程序',
-        scanReceiptsOnTheGo: '从手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -1057,10 +1055,6 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
-        dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptsBeforeEmail: '将收据拖到此页面，转发收据至',
-        dragReceiptAfterEmail: '或者选择下方的文件上传。',
-        dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
         alternativeMethodsTitle: '添加收据的其他方式：',
@@ -1327,11 +1321,8 @@ const translations = {
             genericHoldExpenseFailureMessage: '暂时无法暂扣此费用，请稍后再试。',
             genericUnholdExpenseFailureMessage: '将此费用从保留状态中移除时发生意外错误。请稍后再试。',
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
-            receiptFailureMessage: '上传您的收据时出错。请',
+            receiptFailureMessage: '<rbr>上传收据时出错。请先 <a href="download">保存收据</a>，然后 <a href="retry">再试</a> 稍后。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
-            tryAgainMessage: '再试一次',
-            saveFileMessage: '保存收据',
-            uploadLaterMessage: '稍后上传。',
             genericDeleteFailureMessage: '删除此费用时出现意外错误。请稍后再试。',
             genericEditFailureMessage: '编辑此费用时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
@@ -1351,7 +1342,10 @@ const translations = {
         enableWallet: '启用钱包',
         hold: '保持',
         unhold: '移除保留',
-        holdExpense: '保留费用',
+        holdExpense: () => ({
+            one: '暂挂费用',
+            other: '挂起费用',
+        }),
         unholdExpense: '取消保留费用',
         heldExpense: '保留此费用',
         unheldExpense: '取消搁置此费用',
@@ -1362,7 +1356,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
         newReport: '新报告',
-        explainHold: '请解释您为何保留此费用。',
+        explainHold: () => ({
+            one: '请说明你为何搁置这笔费用。',
+            other: '请说明你为何将这些费用暂缓处理。',
+        }),
         retracted: '撤回',
         retract: '撤回',
         reopened: '重新打开',
@@ -2011,6 +2008,8 @@ const translations = {
         cardDetailsLoadingFailure: '加载卡片详情时发生错误。请检查您的互联网连接并重试。',
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `请<a href="${missingDetailsLink}">添加您的个人信息</a>，然后重试。`,
+        unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意。',
             reportFraudButtonText: '不，不是我',
@@ -2034,8 +2033,6 @@ ${merchant}的${amount} - ${date}`,
     workflowsPage: {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
-        delaySubmissionTitle: '延迟提交',
-        delaySubmissionDescription: '选择一个自定义的报销提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequency: '提交频率',
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
@@ -2090,7 +2087,6 @@ ${merchant}的${amount} - ${date}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系支持。',
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系客服。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
@@ -2551,15 +2547,15 @@ ${merchant}的${amount} - ${date}`,
             splitExpenseTask: {
                 title: '拆分支出',
                 description:
-                    '*与一个或多个人拆分支出*。\n' +
+                    '与一人或多人一起*分摊费用*。' +
                     '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *开始聊天*。\n' +
-                    '3. 输入电子邮件或电话号码。\n' +
-                    '4. 点击聊天中的灰色 *+* 按钮 > *拆分支出*。\n' +
-                    '5. 通过选择 *手动*、*扫描*或 *距离*创建支出。\n' +
+                    `点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。` +
+                    '2. 选择*开始聊天*。' +
+                    '3. 输入电子邮件地址或电话号码..' +
+                    '4. 在聊天中点击灰色的*+*按钮 > *拆分费用*。' +
+                    '5. 通过选择*手动*、*扫描*或*距离*来创建费用。' +
                     '\n' +
-                    '如有需要，随意添加更多详情，或直接发送。让我们让您获得报销！',
+                    '如果你愿意，可以补充更多细节，或者直接提交。让我们帮你尽快拿到报销款！',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `查看您的[工作区设置](${workspaceSettingsLink})`,
@@ -4553,7 +4549,7 @@ ${merchant}的${amount} - ${date}`,
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',
@@ -4717,7 +4713,6 @@ ${merchant}的${amount} - ${date}`,
                 defaultCard: '默认卡片',
                 downgradeTitle: `无法降级工作区`,
                 downgradeSubTitle: `由于连接了多个卡片馈送（不包括Expensify卡），此工作区无法降级。请 <a href="#">仅保留一个卡片信息流</a> 继续。`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `请在${connection}中添加账户并再次同步连接。`,
                 expensifyCardBannerTitle: '获取Expensify卡',
                 expensifyCardBannerSubtitle: '享受每笔美国消费的现金返还，Expensify账单最高可享50%折扣，无限虚拟卡等更多优惠。',
@@ -4924,6 +4919,10 @@ ${merchant}的${amount} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: '无法将所有标签设为可选',
                 description: `至少需要保留一个标签为必填项，因为您的工作区设置要求使用标签。`,
+            },
+            cannotMakeTagListRequired: {
+                title: '无法强制要求标签列表',
+                description: '仅当策略配置了多个标签级别时，才可将标签列表设为必填项。',
             },
             tagCount: () => ({
                 one: '1 标签',
@@ -7224,7 +7223,7 @@ ${merchant}的${amount} - ${date}`,
         exportInProgress: '正在导出',
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
-    avatarPage: {title: '编辑个人资料图片', upload: '上传', uploadPhoto: '上传照片', selectAvatar: '选择头像', chooseCustomAvatar: '或选择自定义头像'},
+    avatarPage: {title: '编辑个人资料图片', upload: '上传', uploadPhoto: '上传照片', selectAvatar: '选择头像', choosePresetAvatar: '或选择自定义头像'},
     openAppFailureModal: {title: '出了点问题...', subtitle: `我们未能加载您的所有数据。我们已收到通知，正在调查此问题。如果问题仍然存在，请联系`, refreshAndTryAgain: '刷新并重试'},
     domain: {
         notVerified: '未验证',
@@ -7250,4 +7249,4 @@ ${merchant}的${amount} - ${date}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;
