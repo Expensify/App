@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
+import { Platform } from 'react-native';
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
     enableTimeToInitialDisplay: true,
@@ -14,7 +15,7 @@ export default function (): void {
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         tracesSampleRate: 1.0,
-        profilesSampleRate: 1.0,
+        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations: [navigationIntegration],
