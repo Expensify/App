@@ -2666,16 +2666,10 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? dedent(`
-                        # La tua prova gratuita è iniziata! Iniziamo con la configurazione.
-                        👋 Ciao, sono il tuo specialista di configurazione di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!
-                    `)
-                    : dedent(`
-                        # La tua prova gratuita è iniziata! Iniziamo con la configurazione.
-                        👋 Ciao! Sono il tuo specialista di configurazione di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi di configurazione rimanenti qui sotto!
-                    `),
+            onboardingManageTeamMessage: dedent(`
+                # La tua prova gratuita è iniziata! Iniziamo con la configurazione.
+                👋 Ciao! Sono il tuo specialista per la configurazione di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',

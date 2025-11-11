@@ -2666,16 +2666,10 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? dedent(`
-                        # Je gratis proefperiode is gestart! Laten we je aan de slag helpen.
-                        👋 Hoi! Ik ben je Expensify-instelspecialist. Nu je een werkruimte hebt gemaakt, haal het meeste uit je 30-daagse gratis proefperiode door de onderstaande stappen te volgen!
-                    `)
-                    : dedent(`
-                        # Je gratis proefperiode is gestart! Laten we je op weg helpen.
-                        👋 Hoi, ik ben je Expensify-instellingsspecialist. Ik heb al een werkruimte aangemaakt om de bonnen en uitgaven van je team te beheren. Haal het meeste uit je gratis proefperiode van 30 dagen door de resterende stappen hieronder te doorlopen!
-                    `),
+            onboardingManageTeamMessage: dedent(`
+                # Je gratis proefperiode is gestart! Laten we je op weg helpen.
+                👋 Hoi, ik ben je Expensify-instelspecialist. Nu je een werkruimte hebt gemaakt, haal je het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',

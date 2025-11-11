@@ -2533,9 +2533,7 @@ ${amount} pour ${merchant} - ${date}`,
                     `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Connectez ${
-                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'
-                        } ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
+                        Connectez ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'} ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
 
                         1. Cliquez sur *Workspaces*.
                         2. Sélectionnez votre espace de travail.
@@ -2681,16 +2679,10 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? dedent(`
-                        # Votre essai gratuit a commencé ! Procédons à la configuration.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, tirez le meilleur parti de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
-                    `)
-                    : dedent(`
-                        # Votre essai gratuit a commencé ! Commençons la configuration.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de vos 30 jours d’essai gratuit, suivez simplement les étapes de configuration restantes ci-dessous !
-                    `),
+            onboardingManageTeamMessage: dedent(`
+                Votre essai gratuit a commencé ! Passons à la configuration.
+                👋 Salut ! Je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',

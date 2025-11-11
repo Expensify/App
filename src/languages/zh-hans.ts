@@ -2630,16 +2630,10 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? dedent(`
-                        # 您的免费试用已开始！让我们为您完成设置。
-                        👋 您好，我是您的 Expensify 设置专家。现在您已经创建了一个工作区，请按照以下步骤操作，充分利用为期 30 天的免费试用！
-                    `)
-                    : dedent(`
-                        # 你的免费试用已开始！让我们开始设置吧。
-                        👋 你好，我是你的 Expensify 设置专家。我已经创建了一个工作区，帮助管理你团队的收据和费用。为了充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤进行！
-                    `),
+            onboardingManageTeamMessage: dedent(`
+                您的免费试用已开始！让我们为您完成设置。
+                👋 您好，我是您的 Expensify 设置专员。既然您已创建了一个工作区，请按照以下步骤操作，充分利用为期 30 天的免费试用！
+            `),
             onboardingTrackWorkspaceMessage:
                 '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',

@@ -2661,16 +2661,10 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? dedent(`
-                        # Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.
-                        👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Po utworzeniu obszaru roboczego w pełni wykorzystaj 30‑dniowy bezpłatny okres próbny, wykonując poniższe kroki!
-                    `)
-                    : dedent(`
-                        # Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.
-                        👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzono już przestrzeń roboczą, aby ułatwić zarządzanie paragonami i wydatkami Twojego zespołu. Aby jak najlepiej wykorzystać 30‑dniowy bezpłatny okres próbny, wystarczy wykonać poniżej pozostałe kroki konfiguracji!
-                    `),
+            onboardingManageTeamMessage: dedent(`
+                # Twój bezpłatny okres próbny właśnie się rozpoczął! Zajmijmy się konfiguracją.
+                👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Po utworzeniu obszaru roboczego wykorzystaj w pełni 30‑dniowy bezpłatny okres próbny, wykonując poniższe kroki!
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
