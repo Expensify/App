@@ -798,7 +798,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
-            Abracadabra, hai effettuato l'accesso!
+            Abracadabra,
+            hai effettuato l'accesso!
         `),
         successfulSignInDescription: 'Torna alla tua scheda originale per continuare.',
         title: 'Ecco il tuo codice magico',

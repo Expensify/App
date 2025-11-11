@@ -801,7 +801,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
-            Abracadabra, vous êtes connecté(e) !
+            Abracadabra,
+            vous êtes connecté(e) !
         `),
         successfulSignInDescription: "Retournez à votre onglet d'origine pour continuer.",
         title: 'Voici votre code magique',
