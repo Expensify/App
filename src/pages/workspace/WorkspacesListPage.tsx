@@ -199,6 +199,8 @@ function WorkspacesListPage() {
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
 
     const confirmDelete = () => {
+        setIsDeleteModalOpen(false);
+
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
         }
@@ -214,7 +216,6 @@ function WorkspacesListPage() {
             lastPaymentMethod,
         );
         if (isOffline) {
-            setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
             setPolicyNameToDelete(undefined);
         }

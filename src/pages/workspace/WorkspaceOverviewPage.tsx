@@ -221,13 +221,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
     const confirmDelete = useCallback(() => {
+        setIsDeleteModalOpen(false);
         if (!policy?.id || !policyName) {
             return;
         }
 
         deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
         if (isOffline) {
-            setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
     }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
