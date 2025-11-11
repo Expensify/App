@@ -132,8 +132,8 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
         [ONYXKEYS.CARD_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            '12345': {
-                cardID: 12345,
+            '123456': {
+                cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
