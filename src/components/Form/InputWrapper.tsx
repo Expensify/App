@@ -1,6 +1,6 @@
 import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
-import type {SubmitBehavior} from 'react-native';
 import React, {useContext} from 'react';
+import type {SubmitBehavior} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
