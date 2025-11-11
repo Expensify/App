@@ -9861,7 +9861,7 @@ describe('actions/IOU', () => {
             expect(fullMessage).toBe('Waiting for Senior Manager User to approve %expenses.');
         });
 
-        it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
+        it('should refer an admin as "you" in optimistic next step message when admin takes control and approves', async () => {
             // Admin takes control
             const takeControlAction = {
                 reportActionID: 'takeControl2',
@@ -9885,10 +9885,10 @@ describe('actions/IOU', () => {
             expect(nextStep?.message).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment, which should mention the admin
-            // The message should equal "Waiting for Admin User to pay"
+            // the next step should be about payment, which should refer the admin as "you" since they are the one who will pay
+            // The message should equal "Waiting for you to pay"
             const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for an admin to pay %expenses.');
+            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
         });
     });
 
