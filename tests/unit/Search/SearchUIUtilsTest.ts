@@ -382,7 +382,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -423,7 +422,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -486,7 +484,6 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -527,7 +524,6 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -835,7 +831,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -902,7 +897,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: true,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -974,7 +968,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1041,7 +1034,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1111,7 +1103,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
@@ -1215,7 +1206,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: true,
                 violations: [
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -1818,7 +1808,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 56;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1846,7 +1836,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 56;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
