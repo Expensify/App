@@ -1847,6 +1847,8 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -1859,6 +1861,8 @@ describe('SearchUIUtils', () => {
                 [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
                 [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -2718,6 +2722,7 @@ describe('SearchUIUtils', () => {
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
                 [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
+                personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);

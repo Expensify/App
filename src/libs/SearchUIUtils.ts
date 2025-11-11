@@ -108,6 +108,7 @@ import {
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
+import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getCategory,
     getDescription,
@@ -930,6 +931,40 @@ function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['da
 }
 
 /**
+ * Calculates the "to" field value for a given transaction item based on the associated report and search data.
+ */
+function getToFieldValueForTransaction(
+    transactionItem: OnyxTypes.Transaction,
+    report: OnyxTypes.Report | undefined,
+    personalDetailsList: OnyxTypes.PersonalDetailsList,
+    reportAction: OnyxTypes.ReportAction | undefined,
+): OnyxTypes.PersonalDetails {
+    const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+    if (shouldShowBlankTo) {
+        return emptyPersonalDetails;
+    }
+
+    if (reportAction) {
+        const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+        if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && report.ownerAccountID) {
+            return personalDetailsList?.[report.ownerAccountID] ?? emptyPersonalDetails;
+        }
+    }
+
+    if (report?.managerID) {
+        const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
+        if (isIOUReport) {
+            return (
+                getIOUPayerAndReceiver(report?.managerID ?? CONST.DEFAULT_NUMBER_ID, report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetailsList, transactionItem.amount)?.to ??
+                emptyPersonalDetails
+            );
+        }
+        return personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails;
+    }
+    return emptyPersonalDetails;
+}
+
+/**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
@@ -989,7 +1024,7 @@ function getTransactionsSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = report?.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(report?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
@@ -1457,9 +1492,8 @@ function getReportSections(
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
-
             const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = report?.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
@@ -2365,20 +2399,23 @@ function getColumnsToShow(
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
-        const reportAction = reportActionsByTransactionIDMap?.get(transaction.transactionID);
+        // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
+        if (!Array.isArray(data)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
+            const reportAction = reportActionsByTransactionIDMap?.get(transaction.transactionID);
 
-        // Handle From&To columns that are only shown in the Reports page
-        // if From or To differ from current user in any transaction, show the columns
-        const accountID = reportAction?.actorAccountID;
-        if (accountID && accountID !== currentAccountID) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
-        }
+            // Handle From&To columns that are only shown in the Reports page
+            // if From or To differ from current user in any transaction, show the columns
+            const accountID = reportAction?.actorAccountID;
+            if (accountID && accountID !== currentAccountID) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
+            }
 
-        const managerID = report?.managerID;
-        if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+            const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
+            if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+            }
         }
     };
 
