@@ -1,10 +1,9 @@
-import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import {getIOUActionForReportID, isCurrentActionUnread} from '@libs/ReportActionsUtils';
+import {isCurrentActionUnread} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 /**
  * Traverses up the report hierarchy with the `parentReportID` until the root report,
@@ -27,15 +26,14 @@ function getAncestors(
     const ancestors: Ancestor[] = [];
     let currentReport = report;
 
-    // Traverse up the report hierarchy until currentReport has no parent
+    // Traverse up the report hierarchy until current report has no parent
     while (currentReport?.parentReportID && currentReport?.parentReportActionID) {
         const currentReportAction = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`]?.[`${currentReport.parentReportActionID}`];
         if (!currentReportAction) {
             return ancestors;
         }
 
-        // As we traverse up the report hierarchy, we need to reassign `currentReport`
-        // to the parent's own report.
+        // As we traverse up the report hierarchy, we need to reassign `currentReport` to the parent's own report.
         currentReport =
             reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`] ??
             reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentReport.parentReportID}`];

@@ -42,7 +42,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, context.selectedTransactionIDs, allTransactions, ancestors, allReportActions],
+        [route.name, context.clearSelectedTransactions, context.currentSearchHash, context.selectedTransactionIDs, reportID, allTransactions, ancestors, allReportActions],
     );
 
     const validate = useCallback(
