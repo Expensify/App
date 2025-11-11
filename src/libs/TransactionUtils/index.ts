@@ -1120,7 +1120,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
         return false;
     }
 
-    if (isCurrentUserSubmitter(report)) {
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) {
         return true;
     }
 
