@@ -1,5 +1,4 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
