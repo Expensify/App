@@ -96,7 +96,7 @@ type PersonalDetailsList = Record<string, PersonalDetails | null>;
 /** Current user's personal details */
 type CurrentUserPersonalDetails = PersonalDetails & {
     /**
-     * Curent user's email address
+     * Current user's email address
      */
     email?: string;
 };
