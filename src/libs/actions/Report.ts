@@ -124,7 +124,6 @@ import {
     getLastVisibleMessage,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
-    getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParsedComment,
@@ -5925,7 +5924,7 @@ function resolveConciergeCategoryOptions(
         return;
     }
 
-    addComment(reportID, notifyReportID ?? reportID, [], selectedCategory, timezoneParam);
+    addComment(reportID, notifyReportID ?? reportID, ancestors, selectedCategory, timezoneParam);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {

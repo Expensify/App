@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +39,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
-import useAncestors from '@hooks/useAncestors';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -50,7 +50,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
-    
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const personalDetail = useCurrentUserPersonalDetails();
@@ -61,7 +60,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const ancestors  = useAncestors(report);
+    const ancestors = useAncestors(report);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');

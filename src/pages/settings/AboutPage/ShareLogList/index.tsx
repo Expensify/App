@@ -6,15 +6,23 @@ import {addAttachmentWithComment} from '@userActions/Report';
 import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
+import { useOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import { getAncestors } from '@libs/ReportUtils';
 
 function ShareLogList({logSource}: ShareLogListProps) {
     const personalDetail = useCurrentUserPersonalDetails();
+    const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const onAttachLogToReport = (reportID: string, filename: string) => {
+        const report = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]
+        const ancestors = getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection);
         readFileAsync(
             logSource,
             filename,
             (file) => {
-                addAttachmentWithComment(reportID, reportID, file, undefined, personalDetail?.timezone);
+                addAttachmentWithComment(reportID, reportID, ancestors, file, undefined, personalDetail?.timezone);
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
                 Navigation.navigate(routeToNavigate);
             },

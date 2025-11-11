@@ -44,7 +44,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
-import useAncestors from '@hooks/useAncestors';
 
 type ReportFooterProps = {
     /** Report object for the current report */
@@ -179,7 +178,7 @@ function ReportFooter({
         [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`);
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});
     const targetReportAncestors = useAncestors(targetReport);
 
     const onSubmitComment = useCallback(
