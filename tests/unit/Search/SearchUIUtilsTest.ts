@@ -2752,6 +2752,7 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+                personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
