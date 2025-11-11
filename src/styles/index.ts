@@ -133,6 +133,8 @@ const link = (theme: ThemeColors) =>
         textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        // We do not want to have underline on links
+        textDecorationLine: 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
@@ -5478,6 +5480,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+        },
+        copyableTextField: {
+            color: theme.textSupporting,
+            flex: 1,
+            ...wordBreak.breakWord,
         },
     }) satisfies StaticStyles;
 

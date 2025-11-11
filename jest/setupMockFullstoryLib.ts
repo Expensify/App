@@ -17,12 +17,12 @@ export default function mockFSLibrary() {
             Page: FSPage,
             getChatFSClass: jest.fn(),
             init: jest.fn(),
-            onReady: jest.fn().mockResolvedValue(undefined),
+            onReady: jest.fn(),
             consent: jest.fn(),
             identify: jest.fn(),
             consentAndIdentify: jest.fn(),
             anonymize: jest.fn(),
-            getSessionId: jest.fn(),
+            getSessionId: jest.fn().mockResolvedValue(undefined),
         };
     });
 }

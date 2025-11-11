@@ -1,11 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -34,8 +34,8 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
 /**
  * Sets merge transaction data for a specific transaction
  */
-function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
+function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
 }
 
 /**
@@ -257,6 +257,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               ]
             : [];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
         transactionsOfSourceReport.length === 1
             ? [
@@ -323,6 +324,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
@@ -336,6 +338,8 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         };
     });
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticSourceTransactionData,
@@ -345,6 +349,8 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...optimisticSourceReportActionData,
     ];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.failureData ?? []),
         failureSourceTransactionData,
@@ -352,7 +358,10 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
+
+    const successData: OnyxUpdate[] = [];
+    successData.push(...successSourceReportActionData);
+    successData.push(...(onyxTargetTransactionData.successData ?? []));
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }

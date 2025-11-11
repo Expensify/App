@@ -4,9 +4,11 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -26,6 +28,7 @@ import {
     buildTransactionThread,
     canAddTransaction,
     canCreateRequest,
+    canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -464,6 +467,30 @@ describe('ReportUtils', () => {
             );
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+        });
+
+        it('includes avatar in optimistic Setup Specialist personal detail', () => {
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                '1',
+            );
+
+            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
+            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
+
+            expect(setupSpecialistDetail).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+
+            mergeSpy.mockRestore();
         });
     });
 
@@ -1631,7 +1658,6 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         merchant: 'Test Merchant',
                         transactionType: 'cash',
-                        action: 'submit',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
                     } as SearchTransaction;
@@ -2255,6 +2281,28 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            // The GBR should appear on the policy expense chat but not on the report itself
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+        });
+
+        it('returns true for expense report awaiting user payment/reimbursement', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                policyID: '1',
+                userID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(100, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+            };
 
             // The GBR should appear on the policy expense chat but not on the report itself
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
@@ -3412,6 +3460,24 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canDeleteMoneyRequestReport', () => {
+        it('should allow deletion if the report is open invoice report', async () => {
+            const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+            // since it relies on the session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+            expect(canDeleteMoneyRequestReport(invoiceReport, [], [])).toBe(true);
+        });
+    });
+
     describe('canEditMoneyRequest', () => {
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
@@ -3545,6 +3611,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
@@ -4334,6 +4401,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -4364,6 +4432,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -6951,38 +7020,47 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportStatusTranslation', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.BILLING, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
-            expect(getReportStatusTranslation(undefined, undefined)).toBe('');
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
-            expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
         });
     });
 
@@ -8323,6 +8401,7 @@ describe('ReportUtils', () => {
     describe('getReportOrDraftReport', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const mockSearchReport: SearchReport = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
@@ -8352,6 +8431,7 @@ describe('ReportUtils', () => {
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8359,6 +8439,7 @@ describe('ReportUtils', () => {
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8366,12 +8447,14 @@ describe('ReportUtils', () => {
         });
 
         test('returns fallback report when no other reports exist', () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
@@ -8403,6 +8486,7 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes onyx report over draft report when both exist', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
@@ -8412,6 +8496,7 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes draft report over fallback when both exist', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
@@ -8423,6 +8508,27 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID);
             expect(result).toEqual(mockOnyxReport);
+        });
+    });
+
+    describe('buildOptimisticExpenseReport', () => {
+        beforeEach(Onyx.clear);
+
+        it('should include the policy name in report name from report draft', async () => {
+            const chatReportID = '1';
+            const policyID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
 
