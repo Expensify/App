@@ -4,10 +4,10 @@ import {useEffect} from 'react';
 const preservedNavigatorStates: Record<string, StackNavigationState<ParamListBase>> = {};
 
 const cleanPreservedNavigatorStates = (state: NavigationState) => {
-    const currentSplitNavigatorKeys = state.routes.map((route) => route.key);
+    const currentSplitNavigatorKeys = new Set(state.routes.map((route) => route.key));
 
     for (const key of Object.keys(preservedNavigatorStates)) {
-        if (!currentSplitNavigatorKeys.includes(key)) {
+        if (!currentSplitNavigatorKeys.has(key)) {
             delete preservedNavigatorStates[key];
         }
     }

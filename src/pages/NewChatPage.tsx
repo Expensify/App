@@ -48,6 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
 type SelectedOption = ListItem &
@@ -71,7 +72,7 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
             {
@@ -79,6 +80,7 @@ function useOptions() {
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
@@ -86,7 +88,7 @@ function useOptions() {
             countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
