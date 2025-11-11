@@ -759,9 +759,9 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
 }
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction, report: SearchReport | undefined) {
-    const isFromExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
-    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
+    // it won't matter if pass true or false as second argument to getTaxAmount here because isAmountTooLong function uses Math.abs on the returned value of getTaxAmount
+    const taxAmount = getTaxAmount(transactionItem, false);
     return isAmountTooLong(taxAmount);
 }
 
@@ -773,9 +773,9 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     let isTaxAmountWide = false;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const processTransaction = (transaction: TransactionListItemType | SearchTransaction, report: SearchReport | undefined) => {
+    const processTransaction = (transaction: TransactionListItemType | SearchTransaction) => {
         isAmountWide ||= isTransactionAmountTooLong(transaction);
-        isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction, report);
+        isTaxAmountWide ||= isTransactionTaxAmountTooLong(transaction);
     };
 
     if (Array.isArray(data)) {
@@ -784,14 +784,14 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    processTransaction(transaction, transaction?.report as SearchReport);
+                    processTransaction(transaction);
                     if (isAmountWide && isTaxAmountWide) {
                         break;
                     }
                 }
             } else if (isTransactionListItemType(item)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                processTransaction(item, item?.report as SearchReport);
+                processTransaction(item);
             }
             return isAmountWide && isTaxAmountWide;
         });
@@ -799,8 +799,7 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
         Object.keys(data).some((key) => {
             if (isTransactionEntry(key)) {
                 const item = data[key];
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-                processTransaction(item, report);
+                processTransaction(item);
             }
             return isAmountWide && isTaxAmountWide;
         });
