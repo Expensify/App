@@ -49,17 +49,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
-            currentSearchHash,
+             currentSearchHash,
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
         );
-    }, [currentSearchHash, reportItem, onSelectRow, shouldUseNarrowLayout, canSelectMultiple, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
+    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,

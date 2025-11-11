@@ -53,7 +53,7 @@ function ExpenseReportListItemRow({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -85,6 +85,7 @@ function ExpenseReportListItemRow({
                     handleActionButtonPress={onButtonPress}
                     shouldShowUserInfo={showUserInfo}
                     containerStyles={[styles.mb2, styles.ph0]}
+                    isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                 />
                 <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
