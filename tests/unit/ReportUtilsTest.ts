@@ -4,12 +4,11 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import usePolicyData from '@hooks/usePolicyData';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
-import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -87,7 +86,7 @@ import {
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
-    pushTransactionViolationsOnyxData,
+    reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -113,7 +112,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
-    PolicyTag,
     Report,
     ReportAction,
     ReportActions,
@@ -121,19 +119,15 @@ import type {
     ReportNameValuePairs,
     Transaction,
 } from '@src/types/onyx';
-import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
-import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
-import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
-import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
+import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
@@ -355,6 +349,7 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -473,6 +468,30 @@ describe('ReportUtils', () => {
             );
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+        });
+
+        it('includes avatar in optimistic Setup Specialist personal detail', () => {
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                '1',
+            );
+
+            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
+            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
+
+            expect(setupSpecialistDetail).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toBeDefined();
+            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+
+            mergeSpy.mockRestore();
         });
     });
 
@@ -1640,7 +1659,6 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         merchant: 'Test Merchant',
                         transactionType: 'cash',
-                        action: 'submit',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
                     } as SearchTransaction;
@@ -2264,6 +2282,28 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            // The GBR should appear on the policy expense chat but not on the report itself
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+        });
+
+        it('returns true for expense report awaiting user payment/reimbursement', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                policyID: '1',
+                userID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(100, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+            };
 
             // The GBR should appear on the policy expense chat but not on the report itself
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
@@ -3572,6 +3612,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
@@ -4361,6 +4402,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -4391,6 +4433,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -6166,120 +6209,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('pushTransactionViolationsOnyxData', () => {
-        beforeAll(() => {
-            initOnyxDerivedValues();
-        });
-        it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
-            // Given policy categories, the first is pending deletion
-            const fakePolicyCategories = createRandomPolicyCategories(3);
-            const fakePolicyCategoryNameToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
-            const fakePolicyCategoriesUpdate = {
-                [fakePolicyCategoryNameToDelete]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    enabled: false,
-                },
-            };
-
-            // Given policy tags, the first is pending deletion
-            const fakePolicyTagListName = 'Tag List';
-            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 3);
-            const fakePolicyTagsToDelete = Object.entries(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {}).slice(1, 2);
-            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
-                [fakePolicyTagListName]: {
-                    tags: {
-                        ...fakePolicyTagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, [tagName]) => {
-                            acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
-                            return acc;
-                        }, {}),
-                    },
-                },
-            };
-
-            const fakePolicyID = '0';
-
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresTag: true,
-                areTagsEnabled: true,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
-                    ...mockIOUReport,
-                    policyID: fakePolicyID,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
-                    ...mockedChatReport,
-                    policyID: fakePolicyID,
-                },
-            };
-
-            // Populating Onyx with required data
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
-                    [mockIOUAction.reportActionID]: mockIOUAction,
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: mockIOUReport.reportID,
-                    policyID: fakePolicyID,
-                    category: fakePolicyCategoryNameToDelete,
-                    tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
-
-            const expectedOnyxData = {
-                // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
-                optimisticData: [
-                    {
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                        value: [
-                            {
-                                name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
-                                type: CONST.VIOLATION_TYPES.VIOLATION,
-                            },
-
-                            {
-                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                                type: CONST.VIOLATION_TYPES.VIOLATION,
-                            },
-                        ],
-                    },
-                ],
-
-                // Expecting the failure data to clear the violations.
-                failureData: [
-                    {
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                        value: null,
-                    },
-                ],
-            };
-
-            expect(onyxData).toMatchObject(expectedOnyxData);
-        });
-    });
-
     describe('canLeaveChat', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -7092,38 +7021,47 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportStatusTranslation', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.BILLING, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
-            expect(getReportStatusTranslation(undefined, undefined)).toBe('');
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
-            expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
         });
     });
 
@@ -8464,7 +8402,8 @@ describe('ReportUtils', () => {
     describe('getReportOrDraftReport', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
-        const mockSearchReport: Report = {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const mockSearchReport: SearchReport = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
@@ -8493,27 +8432,31 @@ describe('ReportUtils', () => {
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockDraftReport);
         });
 
         test('returns fallback report when no other reports exist', () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
         });
@@ -8544,7 +8487,8 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes onyx report over draft report when both exist', async () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8553,7 +8497,8 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes draft report over fallback when both exist', async () => {
-            const searchReports: Report[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const searchReports: SearchReport[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
             expect(result).toEqual(mockDraftReport);
@@ -8564,6 +8509,27 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID);
             expect(result).toEqual(mockOnyxReport);
+        });
+    });
+
+    describe('buildOptimisticExpenseReport', () => {
+        beforeEach(Onyx.clear);
+
+        it('should include the policy name in report name from report draft', async () => {
+            const chatReportID = '1';
+            const policyID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
 
@@ -8887,5 +8853,203 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
+    });
+
+    it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const expenseReportID = '10000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            hasOutstandingChildRequest: true,
+            iouReportID: expenseReportID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        await Onyx.clear();
+    });
+
+    it('should not surface a GBR when reimbursement is queued but not waiting on the payee bank account', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const expenseReportID = '10000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            hasOutstandingChildRequest: false,
+            iouReportID: expenseReportID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        await Onyx.clear();
+    });
+
+    it('should not surface a GBR when bank account is added, but reimbursement is disabled on the policy', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const policyID = '10000';
+        const expenseReportID = '20000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            iouReportID: expenseReportID,
+            policyID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+            policyID,
+        };
+        const pendingTransaction: Transaction = {
+            transactionID: `${expenseReportID}-transaction`,
+            reportID: expenseReportID,
+            amount: 10000,
+            currency: CONST.CURRENCY.USD,
+            created: '2025-01-01T00:00:00.000Z',
+            merchant: 'Expensify Card',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+        const policy1: Policy = {
+            id: policyID,
+            name: 'Policy',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingTransaction.transactionID}`, pendingTransaction),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        await Onyx.clear();
     });
 });
