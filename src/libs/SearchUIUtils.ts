@@ -910,7 +910,7 @@ function getTransactionViolations(
  * @private
  * Creates optimized lookup maps:
  * - Lookup parent report action by report ID
- * - Lookup money request acion by transaction ID
+ * - Lookup money request action by transaction ID
  * - Lookup hold action by transaction ID
  */
 function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
