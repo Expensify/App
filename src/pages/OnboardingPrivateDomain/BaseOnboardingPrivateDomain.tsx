@@ -73,7 +73,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                onBackButtonPress={() => Navigation.goBack((route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute())}
+                onBackButtonPress={() => {
+                    const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+                    Navigation.goBack(routeToNavigate);
+                }}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
