@@ -143,9 +143,6 @@ type AttachmentModalProps = {
     attachmentLink?: string;
 
     shouldHandleNavigationBack?: boolean;
-
-    /** Transaction object. When provided, will be used instead of fetching from Onyx. */
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 function AttachmentModal({
@@ -181,7 +178,6 @@ function AttachmentModal({
     iouType: iouTypeProp,
     attachmentLink = '',
     shouldHandleNavigationBack,
-    transaction: transactionProp,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -203,8 +199,7 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const transaction = transactionProp ?? transactionFromOnyx;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
@@ -525,7 +520,6 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
-                                            transaction={transaction}
                                             isUploaded={!isEmptyObject(report)}
                                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                                         />
