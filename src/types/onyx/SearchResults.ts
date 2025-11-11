@@ -283,9 +283,6 @@ type SearchTransaction = {
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction description */
-    description?: string;
-
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
 
@@ -303,9 +300,6 @@ type SearchTransaction = {
 
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
-
-    /** The main action that can be performed for the transaction */
-    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
