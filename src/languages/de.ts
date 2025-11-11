@@ -826,7 +826,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
+            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihre Team.',
             subtitleText: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
     },
@@ -6736,9 +6736,9 @@ ${amount} für ${merchant} - ${date}`,
             body: 'Möchten Sie, dass Ihre Freunde auch Expensify nutzen? Starten Sie einfach einen Chat mit ihnen und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihren Chef</strong></success>.',
-            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
-            body: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
+            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihr Team</strong></success>.',
+            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihr Team.',
+            body: 'Möchten Sie, dass Ihr Team auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Einen Freund empfehlen',
