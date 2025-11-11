@@ -1191,7 +1191,7 @@ describe('actions/IOU', () => {
                                     // The comment should be correct
                                     expect(transaction?.comment?.comment).toBe(comment);
 
-                                    expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
 
                                     // It should be pending
                                     expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
