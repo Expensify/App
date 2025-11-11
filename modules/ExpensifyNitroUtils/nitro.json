@@ -11,6 +11,10 @@
         "ContactsModule": {
             "swift": "HybridContactsModule",
             "kotlin": "HybridContactsModule"
+        },
+        "TTIMeasurementView": {
+            "swift": "HybridTTIMeasurementView",
+            "kotlin": "HybridTTIMeasurementView"
         }
     },
     "ignorePaths": ["node_modules"]
