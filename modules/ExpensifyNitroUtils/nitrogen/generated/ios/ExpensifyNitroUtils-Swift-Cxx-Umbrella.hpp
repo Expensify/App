@@ -14,20 +14,20 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
-// Forward declaration of `HybridTTIMeasurementViewSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridTTIMeasurementViewSpec; }
+// Forward declaration of `HybridTtiMeasurementViewSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiMeasurementViewSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
-// Forward declaration of `TTIMeasurementValue` to properly resolve imports.
-namespace margelo::nitro::utils { struct TTIMeasurementValue; }
+// Forward declaration of `TtiMeasurementValue` to properly resolve imports.
+namespace margelo::nitro::utils { struct TtiMeasurementValue; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
-#include "HybridTTIMeasurementViewSpec.hpp"
+#include "HybridTtiMeasurementViewSpec.hpp"
 #include "StringHolder.hpp"
-#include "TTIMeasurementValue.hpp"
+#include "TtiMeasurementValue.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>
@@ -49,8 +49,8 @@ namespace margelo::nitro::utils { struct TTIMeasurementValue; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
-// Forward declaration of `HybridTTIMeasurementViewSpec_cxx` to properly resolve imports.
-namespace ExpensifyNitroUtils { class HybridTTIMeasurementViewSpec_cxx; }
+// Forward declaration of `HybridTtiMeasurementViewSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridTtiMeasurementViewSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")

@@ -10,7 +10,7 @@
 // Include C++ implementation defined types
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
-#include "HybridTTIMeasurementViewSpecSwift.hpp"
+#include "HybridTtiMeasurementViewSpecSwift.hpp"
 
 namespace margelo::nitro::utils::bridge::swift {
 
@@ -46,27 +46,27 @@ namespace margelo::nitro::utils::bridge::swift {
     return swiftPart.toUnsafe();
   }
   
-  // pragma MARK: std::function<void(const TTIMeasurementValue& /* measurement */)>
-  Func_void_TTIMeasurementValue create_Func_void_TTIMeasurementValue(void* _Nonnull swiftClosureWrapper) noexcept {
-    auto swiftClosure = ExpensifyNitroUtils::Func_void_TTIMeasurementValue::fromUnsafe(swiftClosureWrapper);
-    return [swiftClosure = std::move(swiftClosure)](const TTIMeasurementValue& measurement) mutable -> void {
+  // pragma MARK: std::function<void(const TtiMeasurementValue& /* measurement */)>
+  Func_void_TtiMeasurementValue create_Func_void_TtiMeasurementValue(void* _Nonnull swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_TtiMeasurementValue::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const TtiMeasurementValue& measurement) mutable -> void {
       swiftClosure.call(measurement);
     };
   }
   
-  // pragma MARK: std::shared_ptr<HybridTTIMeasurementViewSpec>
-  std::shared_ptr<HybridTTIMeasurementViewSpec> create_std__shared_ptr_HybridTTIMeasurementViewSpec_(void* _Nonnull swiftUnsafePointer) noexcept {
-    ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx swiftPart = ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx::fromUnsafe(swiftUnsafePointer);
-    return std::make_shared<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift>(swiftPart);
+  // pragma MARK: std::shared_ptr<HybridTtiMeasurementViewSpec>
+  std::shared_ptr<HybridTtiMeasurementViewSpec> create_std__shared_ptr_HybridTtiMeasurementViewSpec_(void* _Nonnull swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx swiftPart = ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift>(swiftPart);
   }
-  void* _Nonnull get_std__shared_ptr_HybridTTIMeasurementViewSpec_(std__shared_ptr_HybridTTIMeasurementViewSpec_ cppType) noexcept {
-    std::shared_ptr<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift>(cppType);
+  void* _Nonnull get_std__shared_ptr_HybridTtiMeasurementViewSpec_(std__shared_ptr_HybridTtiMeasurementViewSpec_ cppType) noexcept {
+    std::shared_ptr<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift>(cppType);
     #ifdef NITRO_DEBUG
     if (swiftWrapper == nullptr) [[unlikely]] {
-      throw std::runtime_error("Class \"HybridTTIMeasurementViewSpec\" is not implemented in Swift!");
+      throw std::runtime_error("Class \"HybridTtiMeasurementViewSpec\" is not implemented in Swift!");
     }
     #endif
-    ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

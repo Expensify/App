@@ -11,7 +11,7 @@
 #import <type_traits>
 
 #include "HybridContactsModuleSpecSwift.hpp"
-#include "HybridTTIMeasurementViewSpecSwift.hpp"
+#include "HybridTtiMeasurementViewSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -30,9 +30,9 @@
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(
-    "TTIMeasurementView",
+    "TtiMeasurementView",
     []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<HybridTTIMeasurementViewSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createTTIMeasurementView();
+      std::shared_ptr<HybridTtiMeasurementViewSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createTtiMeasurementView();
       return hybridObject;
     }
   );
