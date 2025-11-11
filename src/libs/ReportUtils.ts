@@ -6714,6 +6714,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedTransactionTo', {
             reportUrl,
             reportName,
@@ -6722,10 +6723,12 @@ function getMovedTransactionMessage(action: ReportAction) {
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const selfDMReportID = findSelfDMReportID();
         reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedUnreportedTransaction', {
             reportUrl,
         });
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
         reportName,
@@ -6745,11 +6748,13 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const selfDMReportID = findSelfDMReportID();
         reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.unreportedTransaction', {
             reportUrl,
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
         reportName,
