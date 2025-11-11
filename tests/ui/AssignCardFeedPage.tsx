@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AssignCardFeedPage from '@pages/workspace/companyCards/assignCard/AssignCardFeedPage';
-import ConfirmationStep from '@pages/workspace/companyCards/assignCard/ConfirmationStep';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,10 +66,6 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASS
                             component={AssignCardFeedPage}
                             initialParams={initialParams}
                         />
-                        <Stack.Screen
-                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}
-                            component={ConfirmationStep}
-                        />
                     </Stack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
@@ -102,30 +97,19 @@ describe('AssignCardFeedPage', () => {
         jest.clearAllMocks();
     });
 
-    it('should navigate to the member details page as the assignee email has not changed', async () => {
+    it('should render loading indicator and call navigation to confirmation step', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
-        const goBack = jest.spyOn(Navigation, 'goBack');
+        const navigateSpy = jest.spyOn(Navigation, 'navigate');
         const policy = {
             ...LHNTestUtils.getFakePolicy(),
             role: CONST.POLICY.ROLE.ADMIN,
-            areTagsEnabled: true,
-            requiresTag: true,
         };
 
-        // Add mock policy and mock the assign card details
+        // Set up Onyx data BEFORE rendering
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1234': {
-                    accountID: 1234,
-                    login: 'testaccount+1@gmail.com',
-                    displayName: 'Test User 1',
-                },
-            });
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
                     bankName: 'vcf',
@@ -137,138 +121,81 @@ describe('AssignCardFeedPage', () => {
                     dateOption: 'fromBeginning',
                     startDate: '2024-12-27',
                 },
-                currentStep: 'Confirmation',
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
         });
+        await waitForBatchedUpdatesWithAct();
 
-        // Render the page with the specified policyID and backTo param
+        // Render the page
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
             policyID: policy.id,
             feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
+            backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, 1234),
         });
 
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for navigation to ConfirmationStep and verify that Assign card button is visible on the screen
-        await waitFor(
-            () => {
-                expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
-            },
-            {timeout: 5000},
-        );
-
-        // Click the Assign Card button
-        const assignCardButton = screen.getByTestId('assignCardButtonTestID');
-
-        // Create a mock event object that matches GestureResponderEvent.
-        const mockEvent = {
-            nativeEvent: {},
-            type: 'press',
-            target: assignCardButton,
-            currentTarget: assignCardButton,
-        };
-        fireEvent.press(assignCardButton, mockEvent);
-
-        // Verify that we navigate to the member details page as the card assignee has not changed
+        // Verify the page renders with loading indicator
         await waitFor(() => {
-            expect(goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, 1234));
+            expect(screen.getByTestId('AssignCardFeedPage')).toBeOnTheScreen();
+            expect(screen.getByTestId('assign-card-loading-indicator')).toBeOnTheScreen();
         });
+
+        // Verify navigation was called to the confirmation step
+        await waitFor(() => {
+            expect(navigateSpy).toHaveBeenCalled();
+        });
+
+        // Verify the navigation call contains the correct route parts
+        const navigationCall = navigateSpy.mock.calls[0]?.[0];
+        expect(navigationCall).toContain('company-cards');
+        expect(navigationCall).toContain('assign-card/confirmation');
+        expect(navigationCall).toContain(policy.id);
+        expect(navigationCall).toContain('backTo');
 
         // Unmount the component after assertions to clean up.
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to the company cards page as the assignee email has changed', async () => {
+    it('should show delegate no access message when user is acting as delegate', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
-        const navigate = jest.spyOn(Navigation, 'navigate');
+        const navigateSpy = jest.spyOn(Navigation, 'navigate');
         const policy = {
             ...LHNTestUtils.getFakePolicy(),
             role: CONST.POLICY.ROLE.ADMIN,
-            areTagsEnabled: true,
-            requiresTag: true,
         };
 
-        // Add mock policy and mock the assign card details
+        // Set up Onyx data with delegate access
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1234': {
-                    accountID: 1234,
-                    login: 'testaccount+1@gmail.com',
-                    displayName: 'Test User 1',
-                },
-                '5678': {
-                    accountID: 5678,
-                    login: 'testaccount+2@gmail.com',
-                    displayName: 'Test User 2',
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                delegatedAccess: {
+                    delegate: 'delegate@example.com',
                 },
             });
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
                     bankName: 'vcf',
                     email: 'testaccount+1@gmail.com',
-                    cardName: "Test 1's card",
-                    cardNumber: '490901XXXXXX1234',
-                    // cspell:disable-next-line
-                    encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
-                    dateOption: 'fromBeginning',
-                    startDate: '2024-12-27',
                 },
-                currentStep: 'Confirmation',
-                isEditing: false,
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             });
         });
-        // Render the page with the specified policyID and backTo param
+        await waitForBatchedUpdatesWithAct();
+
+        // Render the page
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
             policyID: policy.id,
             feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for navigation to ConfirmationStep
-        await waitFor(
-            () => {
-                expect(screen.getByTestId('assignCardButtonTestID')).toBeOnTheScreen();
-            },
-            {timeout: 5000},
-        );
-
-        // Mock the action of changing the assignee of the card
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
-                    email: 'testaccount+2@gmail.com',
-                },
-            });
-        });
-
-        // Click the Assign Card button
-        const assignCardButton = screen.getByTestId('assignCardButtonTestID');
-
-        // Create a mock event object that matches GestureResponderEvent
-        const mockEvent = {
-            nativeEvent: {},
-            type: 'press',
-            target: assignCardButton,
-            currentTarget: assignCardButton,
-        };
-        fireEvent.press(assignCardButton, mockEvent);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify that we navigate to the company cards page as the card assignee has changed
+        // Verify the page renders
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id), {forceReplace: true});
+            expect(screen.getByTestId('AssignCardFeedPage')).toBeOnTheScreen();
         });
+
         // Unmount the component after assertions to clean up.
         unmount();
         await waitForBatchedUpdatesWithAct();

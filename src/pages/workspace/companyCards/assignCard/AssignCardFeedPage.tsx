@@ -31,7 +31,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     useAssignCardNavigation(policyID, feed, backTo, true);
 
-    if (!isActingAsDelegate) {
+    if (isActingAsDelegate) {
         return (
             <ScreenWrapper
                 testID={AssignCardFeedPage.displayName}
@@ -45,7 +45,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     return (
         <ScreenWrapper testID={AssignCardFeedPage.displayName}>
-            <FullScreenLoadingIndicator />
+            <FullScreenLoadingIndicator testID="assign-card-loading-indicator" />
         </ScreenWrapper>
     );
 }
