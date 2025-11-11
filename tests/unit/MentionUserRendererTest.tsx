@@ -150,38 +150,33 @@ describe('MentionUserRenderer', () => {
         };
         const tnode = buildTNode({accountID: '102'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@alex@other.com');
+        expect(screen.getByText('@alex@other.com')).toBeVisible();
     });
 
     test('falls back to mention text when accountID not found in personal details', () => {
         mockPersonalDetails = {};
         const tnode = buildTNode({accountID: '999', data: '@user@test.com'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@user@test.com');
+        expect(screen.getByText('@user@test.com')).toBeVisible();
     });
 
     test('renders short mention (local part only) for same domain emails', () => {
         const tnode = buildTNode({data: '@john@example.com'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@john');
+        expect(screen.getByText('@john')).toBeVisible();
     });
 
     test('renders full email for different domain mentions', () => {
         const tnode = buildTNode({data: '@alex@other.com'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@alex@other.com');
+        expect(screen.getByText('@alex@other.com')).toBeVisible();
     });
 
     test('strips SMS domain from phone number mentions', () => {
         const tnode = buildTNode({data: '@+12018675309@expensify.sms'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@+12018675309');
-        expect(mention).not.toHaveTextContent('expensify.sms');
+        expect(screen.getByText('@+12018675309')).toBeVisible();
+        expect(screen.queryByText('expensify.sms')).not.toBeVisible();
     });
 
     test('renders null when neither accountID nor mention data is provided', () => {
@@ -218,9 +213,9 @@ describe('MentionUserRenderer', () => {
         };
         const tnode = buildTNode({accountID: '1'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@current');
+        expect(screen.getByText('@current')).toBeVisible();
         // Verify navigation to own profile works
+        const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.PROFILE.getRoute(1));
     });
@@ -231,10 +226,9 @@ describe('MentionUserRenderer', () => {
         };
         const tnode = buildTNode({accountID: '201'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
         // When login is empty, getShortMentionIfFound returns empty string
         // The component shows @ with empty displayText
-        expect(mention).toHaveTextContent('@');
+        expect(screen.getByText('@')).toBeVisible();
     });
 
     test('renders full email when mention domain differs from current user', () => {
@@ -243,7 +237,6 @@ describe('MentionUserRenderer', () => {
         };
         const tnode = buildTNode({accountID: '202'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@user@test.com');
+        expect(screen.getByText('@user@test.com')).toBeVisible();
     });
 });
