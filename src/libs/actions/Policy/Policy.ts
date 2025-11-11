@@ -2414,7 +2414,13 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks
     ) {
         const {onboardingMessages} = getOnboardingMessages();
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(deprecatedIntroSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+            introSelected: deprecatedIntroSelected,
+            engagementChoice,
+            onboardingMessage: onboardingMessages[engagementChoice],
+            adminsChatReportID,
+            onboardingPolicyID: policyID,
+        });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
