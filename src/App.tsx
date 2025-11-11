@@ -1,8 +1,11 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
+import TTIMeasurement from 'modules/ExpensifyNitroUtils/src/specs/TtiMeasurementView.nitro';
+import type {OnTtiMeasurement} from 'modules/ExpensifyNitroUtils/src/specs/TtiMeasurementView.nitro';
 import React, {useEffect} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {callback} from 'react-native-nitro-modules';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -77,6 +80,10 @@ function App() {
         HermesInternal?.ttiReached?.();
     }, []);
 
+    const handleTtiMeasurement: OnTtiMeasurement = (measurement) => {
+        console.log('TTI measurement:', measurement);
+    };
+
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
@@ -144,6 +151,7 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
+                                    <TTIMeasurement onMeasurement={callback(handleTtiMeasurement)} />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
