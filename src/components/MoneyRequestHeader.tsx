@@ -162,7 +162,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
             return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
