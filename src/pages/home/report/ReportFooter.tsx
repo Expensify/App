@@ -12,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -93,7 +93,7 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
@@ -106,6 +106,7 @@ function ReportFooter({
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const ancestors = useAncestors(report);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
@@ -121,7 +122,7 @@ function ReportFooter({
 
     const allPersonalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = getCurrentUserEmail();
+    const currentUserEmail = personalDetail.email ?? '';
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -145,8 +146,10 @@ function ReportFooter({
                 if (isValidMention) {
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
-                        const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(personalDetail.accountID, {
+                            accountID: generateAccountID(mentionWithDomain),
+                            login: mentionWithDomain,
+                        });
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
@@ -156,10 +159,23 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
+            createTaskAndNavigate({
+                parentReportID: report.reportID,
+                title,
+                description: '',
+                assigneeEmail: assignee?.login ?? '',
+                currentUserAccountID: personalDetail.accountID,
+                currentUserEmail,
+                assigneeAccountID: assignee?.accountID,
+                assigneeChatReport,
+                policyID: report.policyID,
+                isCreatedUsingMarkdown: true,
+                quickAction,
+                ancestors,
+            });
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
@@ -218,7 +234,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose

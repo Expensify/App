@@ -41,7 +41,7 @@ describe('QuickActionUtils', () => {
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
                 // When the report contains Manager McTest
-                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined);
+                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined);
 
                 // Then it should return false
                 expect(result).toBe(false);

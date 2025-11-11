@@ -100,7 +100,6 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 

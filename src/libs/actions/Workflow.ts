@@ -1,5 +1,4 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import lodashMapKeys from 'lodash/mapKeys';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -15,27 +14,12 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let authToken: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        authToken = value?.authToken;
-    },
-});
-
-let personalDetailsByEmail: PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (personalDetails) => {
-        personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-    },
-});
-
 type SetApprovalWorkflowApproverParams = {
     approver: Approver;
     approverIndex: number;
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
     policy: OnyxEntry<Policy>;
+    personalDetailsByEmail: OnyxEntry<PersonalDetailsList>;
 };
 
 type ClearApprovalWorkflowApproverParams = {
@@ -44,7 +28,7 @@ type ClearApprovalWorkflowApproverParams = {
 };
 
 function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -94,12 +78,12 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -160,7 +144,6 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 
     const parameters: UpdateWorkspaceApprovalParams = {
         policyID: policy.id,
-        authToken,
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
     };
@@ -168,7 +151,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
 }
 
 function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
-    if (!authToken || !policy) {
+    if (!policy) {
         return;
     }
 
@@ -217,7 +200,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
@@ -232,8 +215,8 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policy - The policy to set the approver for
  */
-function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy}: SetApprovalWorkflowApproverParams) {
-    if (!currentApprovalWorkflow || !policy?.employeeList) {
+function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy, personalDetailsByEmail}: SetApprovalWorkflowApproverParams) {
+    if (!currentApprovalWorkflow || !policy?.employeeList || !personalDetailsByEmail) {
         return;
     }
 
