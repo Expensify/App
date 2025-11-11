@@ -4274,16 +4274,6 @@ ${
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Les dépenses payées de votre poche seront exportées sous forme d’écritures comptables vers le compte NetSuite indiqué ci-dessous.
-
-                        Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        Les dépenses des cartes d’entreprise seront exportées sous forme d’écritures comptables vers le compte NetSuite spécifié ci-dessous.
-
-                        Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
-                    `),
                 },
             },
             advancedConfig: {

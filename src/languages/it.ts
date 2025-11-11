@@ -4254,16 +4254,6 @@ ${
                             Se desideri impostare un fornitore specifico per ciascuna carta, vai su *Settings > Domains > Company Cards*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Le spese out-of-pocket verranno esportate come scritture contabili sul conto NetSuite specificato di seguito.
-
-                        Se desideri impostare un fornitore specifico per ogni carta, vai a *Settings > Domains > Company Cards*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        Le spese delle carte aziendali verranno esportate come scritture contabili nel conto NetSuite indicato di seguito.
-
-                        Se desideri impostare un fornitore specifico per ciascuna carta, vai su *Settings > Domains > Company Cards*.
-                    `),
                 },
             },
             advancedConfig: {

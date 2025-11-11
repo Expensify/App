@@ -4266,16 +4266,6 @@ ${
                             Wenn Sie für jede Karte einen bestimmten Lieferanten festlegen möchten, gehen Sie zu *Einstellungen > Domains > Firmenkarten*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Auslagen werden als Journalbuchungen in das unten angegebene NetSuite-Konto exportiert.
-
-                        Wenn Sie für jede Karte einen bestimmten Lieferanten festlegen möchten, gehen Sie zu *Settings > Domains > Company Cards*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        Spesen von Firmenkarten werden als Journalbuchungen in das unten angegebene NetSuite-Konto exportiert.
-
-                        Wenn Sie für jede Karte einen bestimmten Lieferanten festlegen möchten, gehen Sie zu *Einstellungen > Domains > Firmenkarten*.
-                    `),
                 },
             },
             advancedConfig: {

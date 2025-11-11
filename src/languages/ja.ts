@@ -4222,16 +4222,6 @@ ${
                             各カードごとに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        立替経費は、以下で指定された NetSuite アカウントに仕訳としてエクスポートされます。
-
-                        各カードに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        会社カードの経費は、以下で指定されたNetSuiteアカウントに仕訳としてエクスポートされます。
-
-                        各カードごとに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
-                    `),
                 },
             },
             advancedConfig: {

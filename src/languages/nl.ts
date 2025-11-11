@@ -4250,16 +4250,6 @@ ${
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Settings > Domains > Company Cards*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Out-of-pocketkosten worden geëxporteerd als journaalposten naar de hieronder opgegeven NetSuite-rekening.
-
-                        Als je voor elke kaart een specifieke leverancier wilt instellen, ga naar *Instellingen > Domeinen > Bedrijfskaarten*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        Uitgaven op bedrijfskaarten worden als journaalposten geëxporteerd naar het hieronder opgegeven NetSuite-account.
-
-                        Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Settings > Domains > Company Cards*.
-                    `),
                 },
             },
             advancedConfig: {

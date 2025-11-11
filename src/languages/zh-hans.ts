@@ -4169,16 +4169,6 @@ ${
                             如果你想为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        自付费用将作为会计分录导出到下方指定的 NetSuite 账户。
-
-                        如果您希望为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        公司卡费用将作为日记账分录导出到下方指定的 NetSuite 账户。
-
-                        如果你想为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
-                    `),
                 },
             },
             advancedConfig: {

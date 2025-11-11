@@ -4240,16 +4240,6 @@ ${
                             Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Wydatki z własnej kieszeni zostaną wyeksportowane jako zapisy księgowe do konta NetSuite wskazanego poniżej.
-
-                        Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        Wydatki z firmowych kart zostaną wyeksportowane jako księgowania do wskazanego poniżej konta NetSuite.
-
-                        Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
-                    `),
                 },
             },
             advancedConfig: {

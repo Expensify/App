@@ -4243,16 +4243,6 @@ ${
                             Se você quiser definir um fornecedor específico para cada cartão, acesse *Configurações > Domínios > Cartões da empresa*.
                         `),
                     },
-                    reimbursableDescription: dedent(`
-                        Despesas do próprio bolso serão exportadas como lançamentos contábeis para a conta do NetSuite especificada abaixo.
-
-                        Se você quiser definir um fornecedor específico para cada cartão, vá para *Configurações > Domínios > Cartões da Empresa*.
-                    `),
-                    nonReimbursableDescription: dedent(`
-                        As despesas de cartão da empresa serão exportadas como lançamentos contábeis para a conta do NetSuite especificada abaixo.
-
-                        Se você quiser definir um fornecedor específico para cada cartão, acesse *Configurações > Domínios > Cartões da empresa*.
-                    `),
                 },
             },
             advancedConfig: {
