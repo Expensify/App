@@ -33,11 +33,11 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
-    SearchPolicy,
     SearchReport,
     SearchReportAction,
     SearchTask,
     SearchTransaction,
+    SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -112,6 +112,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -245,7 +248,7 @@ type TransactionListItemType = ListItem &
         report: Report | undefined;
 
         /** Policy to which the transaction belongs */
-        policy: SearchPolicy | undefined;
+        policy: Policy | undefined;
 
         /** Report IOU action to which the transaction belongs */
         reportAction: ReportAction | undefined;
@@ -303,6 +306,12 @@ type TransactionListItemType = ListItem &
 
         /** Parent report action id */
         moneyRequestReportActionID?: string;
+
+        /** The available actions that can be performed for the transaction */
+        allActions: SearchTransactionAction[];
+
+        /** The main action that can be performed for the transaction */
+        action: SearchTransactionAction;
     };
 
 type ReportActionListItemType = ListItem &
@@ -364,12 +373,19 @@ type TransactionGroupListItemType = ListItem & {
     transactionsQueryJSON?: SearchQueryJSON;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
+
+        /** The main action that can be performed for the report */
+        action: SearchTransactionAction | undefined;
+
+        /** The available actions that can be performed for the report */
+        allActions?: SearchTransactionAction[];
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
@@ -949,6 +965,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

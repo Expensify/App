@@ -58,6 +58,8 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
+Contributors are eligible to be paid via Expensify 18 months after they were first assigned to a job. More details at [PAYMENT_VIA_EXPENSIFY.md](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md)
+
 ### Regressions
 
 If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
