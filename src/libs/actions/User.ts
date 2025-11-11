@@ -63,11 +63,20 @@ import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
+let conciergeReportID: OnyxEntry<string>;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => {
+        conciergeReportID = value;
     },
 });
 
@@ -1480,14 +1489,35 @@ type RespondToProactiveAppReviewParams = {
     optimisticReportActionID?: number;
 };
 
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', optimisticReportActionID?: number) {
+/**
+ * Respond to the proactive app review prompt and optionally create a Concierge message
+ */
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', message?: string) {
     const params: RespondToProactiveAppReviewParams = {response};
 
-    if (optimisticReportActionID) {
-        params.optimisticReportActionID = optimisticReportActionID;
+    // For positive/negative responses, create an optimistic Concierge message
+    if (message && conciergeReportID && response !== 'skip') {
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message);
+        const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
+        const currentTime = DateUtils.getDBTime();
+
+        // Add optimistic comment to Onyx
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {
+            [optimisticReportActionID]: optimisticReportAction.reportAction,
+        });
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {
+            lastVisibleActionCreated: optimisticReportAction.reportAction.created,
+            lastMessageText: message,
+            lastActorAccountID: currentUserAccountID,
+            lastReadTime: currentTime,
+        });
+
+        params.optimisticReportActionID = Number(optimisticReportActionID);
     }
 
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params);
+
+    return conciergeReportID;
 }
 
 export {

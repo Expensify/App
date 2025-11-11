@@ -4,6 +4,7 @@ type ProactiveAppReviewTrigger = 'smartscan' | 'submit' | 'approve' | 'card' | '
 /** The user's response to the proactive app review prompt */
 type ProactiveAppReviewResponse = 'positive' | 'negative' | 'skip';
 
+/** Stores the state and response for the proactive app review prompt */
 type ProactiveAppReview = {
     /** The trigger that prompted the review request */
     trigger?: ProactiveAppReviewTrigger;
