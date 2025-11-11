@@ -38,7 +38,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial));
+        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial));
     }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
 
     if (!freeTrialText) {
