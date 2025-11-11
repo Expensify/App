@@ -5,7 +5,7 @@ import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChan
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
-import {runOnUI} from 'react-native-worklets';
+import {scheduleOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -295,7 +295,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        runOnUI(clear)();
+        scheduleOnUI(clear);
     }, []);
 
     /**
@@ -411,7 +411,7 @@ function ReportActionCompose({
             return;
         }
 
-        runOnUI(() => {
+        scheduleOnUI(() => {
             'worklet';
 
             const {clear: clearComposer} = composerRefShared.get();
@@ -422,7 +422,7 @@ function ReportActionCompose({
 
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
-        })();
+        })
     }, [isSendDisabled, debouncedValidate, composerRefShared]);
 
     // eslint-disable-next-line react-compiler/react-compiler
