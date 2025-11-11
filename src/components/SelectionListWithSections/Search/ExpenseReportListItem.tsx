@@ -34,7 +34,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
 
@@ -49,7 +48,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
-             currentSearchHash,
+            currentSearchHash,
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
