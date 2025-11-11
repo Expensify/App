@@ -1127,6 +1127,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Podziel wydatek',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} od ${merchant}`,
         addSplit: 'Dodaj podział',
+        makeSplitsEven: 'Wyrównaj podziały',
         editSplits: 'Edytuj podziały',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Całkowita kwota jest o ${amount} większa niż pierwotny wydatek.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Całkowita kwota jest o ${amount} mniejsza niż pierwotny wydatek.`,
@@ -4187,6 +4188,8 @@ ${amount} dla ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Jeśli zmienisz ustawienie eksportu kart firmowych na raporty wydatków, dostawcy NetSuite i konta księgowe dla poszczególnych kart zostaną wyłączone.\n\nNie martw się, nadal zapiszemy Twoje poprzednie wybory na wypadek, gdybyś chciał później wrócić do poprzednich ustawień.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z NetSuite każdego dnia.',

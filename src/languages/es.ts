@@ -796,6 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Dividir gasto',
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
         addSplit: 'Añadir división',
+        makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',
         totalAmountGreaterThanOriginal: ({amount}) => `El importe total es ${amount} mayor que el gasto original.`,
         totalAmountLessThanOriginal: ({amount}) => `El importe total es ${amount} menor que el gasto original.`,
@@ -3843,6 +3844,8 @@ ${amount} para ${merchant} - ${date}`,
                             'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Si cambias la configuración de exportación de tarjetas de empresa a informes de gastos, los proveedores de NetSuite y las cuentas de publicación para tarjetas individuales se deshabilitarán.\n\nNo te preocupes, aún guardaremos tus selecciones previas en caso de que quieras volver a cambiar más tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con NetSuite todos los días.',

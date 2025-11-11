@@ -1128,6 +1128,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Uitgave splitsen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
         addSplit: 'Splits toevoegen',
+        makeSplitsEven: 'Verdelingen gelijk maken',
         editSplits: 'Splits bewerken',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} meer dan de oorspronkelijke uitgave.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} minder dan de oorspronkelijke uitgave.`,
@@ -4197,6 +4198,8 @@ ${amount} voor ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Als je de exportinstelling voor bedrijfskaarten wijzigt naar onkostenrapporten, worden NetSuite-leveranciers en boekingsaccounts voor individuele kaarten uitgeschakeld.\n\nGeen zorgen, we bewaren je vorige selecties nog steeds voor het geval je later terug wilt schakelen.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify zal elke dag automatisch synchroniseren met NetSuite.',

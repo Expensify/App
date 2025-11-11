@@ -1131,6 +1131,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
         addSplit: 'Split hinzufügen',
+        makeSplitsEven: 'Aufteilungen angleichen',
         editSplits: 'Splits bearbeiten',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} höher als die ursprüngliche Ausgabe.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} weniger als die ursprüngliche Ausgabe.`,
@@ -4186,6 +4187,8 @@ ${amount} für ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Wenn Sie die Exporteinstellung für Firmenkarten auf Spesenabrechnungen umstellen, werden NetSuite-Lieferanten und Buchungskonten für einzelne Karten deaktiviert.\n\nKeine Sorge, wir speichern Ihre vorherigen Auswahlen trotzdem, falls Sie später wieder wechseln möchten.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify wird jeden Tag automatisch mit NetSuite synchronisiert.',
