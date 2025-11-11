@@ -1020,6 +1020,7 @@ class TranslationGenerator {
 
         // Add closing line with proper indentation for pretty formatting
         if (!text.endsWith('\n') && isTail) {
+            formattedLines.pop();
             formattedLines.push(' '.repeat(closingIndentation));
         }
 
