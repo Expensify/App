@@ -16,7 +16,7 @@
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/components/view/ViewProps.h>
 
-#include "TTIMeasurement.hpp"
+#include "TTIMeasurementValue.hpp"
 #include <functional>
 #include <memory>
 #include "HybridTTIMeasurementViewSpec.hpp"
@@ -44,7 +44,7 @@ namespace margelo::nitro::utils::views {
                                   const react::RawProps& rawProps);
 
   public:
-    CachedProp<std::function<void(const TTIMeasurement& /* measurement */)>> onMeasurement;
+    CachedProp<std::function<void(const TTIMeasurementValue& /* measurement */)>> onMeasurement;
     CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridTTIMeasurementViewSpec>& /* ref */)>>> hybridRef;
 
   private:

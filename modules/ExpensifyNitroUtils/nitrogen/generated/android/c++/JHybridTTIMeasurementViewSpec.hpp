@@ -49,8 +49,8 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    std::function<void(const TTIMeasurement& /* measurement */)> getOnMeasurement() override;
-    void setOnMeasurement(const std::function<void(const TTIMeasurement& /* measurement */)>& onMeasurement) override;
+    std::function<void(const TTIMeasurementValue& /* measurement */)> getOnMeasurement() override;
+    void setOnMeasurement(const std::function<void(const TTIMeasurementValue& /* measurement */)>& onMeasurement) override;
 
   public:
     // Methods

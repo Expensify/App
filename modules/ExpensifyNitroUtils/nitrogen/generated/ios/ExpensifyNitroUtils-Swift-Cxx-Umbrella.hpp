@@ -18,8 +18,8 @@ namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 namespace margelo::nitro::utils { class HybridTTIMeasurementViewSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
-// Forward declaration of `TTIMeasurement` to properly resolve imports.
-namespace margelo::nitro::utils { struct TTIMeasurement; }
+// Forward declaration of `TTIMeasurementValue` to properly resolve imports.
+namespace margelo::nitro::utils { struct TTIMeasurementValue; }
 
 // Include C++ defined types
 #include "Contact.hpp"
@@ -27,7 +27,7 @@ namespace margelo::nitro::utils { struct TTIMeasurement; }
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridTTIMeasurementViewSpec.hpp"
 #include "StringHolder.hpp"
-#include "TTIMeasurement.hpp"
+#include "TTIMeasurementValue.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>

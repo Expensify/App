@@ -12,10 +12,10 @@
 // Forward declaration of `HybridTTIMeasurementViewSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridTTIMeasurementViewSpec_cxx; }
 
-// Forward declaration of `TTIMeasurement` to properly resolve imports.
-namespace margelo::nitro::utils { struct TTIMeasurement; }
+// Forward declaration of `TTIMeasurementValue` to properly resolve imports.
+namespace margelo::nitro::utils { struct TTIMeasurementValue; }
 
-#include "TTIMeasurement.hpp"
+#include "TTIMeasurementValue.hpp"
 #include <functional>
 
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
@@ -55,11 +55,11 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    inline std::function<void(const TTIMeasurement& /* measurement */)> getOnMeasurement() noexcept override {
+    inline std::function<void(const TTIMeasurementValue& /* measurement */)> getOnMeasurement() noexcept override {
       auto __result = _swiftPart.getOnMeasurement();
       return __result;
     }
-    inline void setOnMeasurement(const std::function<void(const TTIMeasurement& /* measurement */)>& onMeasurement) noexcept override {
+    inline void setOnMeasurement(const std::function<void(const TTIMeasurementValue& /* measurement */)>& onMeasurement) noexcept override {
       _swiftPart.setOnMeasurement(onMeasurement);
     }
 

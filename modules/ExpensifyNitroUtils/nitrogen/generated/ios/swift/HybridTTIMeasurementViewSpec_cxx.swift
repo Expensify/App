@@ -106,19 +106,19 @@ open class HybridTTIMeasurementViewSpec_cxx {
   }
 
   // Properties
-  public final var onMeasurement: bridge.Func_void_TTIMeasurement {
+  public final var onMeasurement: bridge.Func_void_TTIMeasurementValue {
     @inline(__always)
     get {
-      return { () -> bridge.Func_void_TTIMeasurement in
-        let __closureWrapper = Func_void_TTIMeasurement(self.__implementation.onMeasurement)
-        return bridge.create_Func_void_TTIMeasurement(__closureWrapper.toUnsafe())
+      return { () -> bridge.Func_void_TTIMeasurementValue in
+        let __closureWrapper = Func_void_TTIMeasurementValue(self.__implementation.onMeasurement)
+        return bridge.create_Func_void_TTIMeasurementValue(__closureWrapper.toUnsafe())
       }()
     }
     @inline(__always)
     set {
-      self.__implementation.onMeasurement = { () -> (TTIMeasurement) -> Void in
-        let __wrappedFunction = bridge.wrap_Func_void_TTIMeasurement(newValue)
-        return { (__measurement: TTIMeasurement) -> Void in
+      self.__implementation.onMeasurement = { () -> (TTIMeasurementValue) -> Void in
+        let __wrappedFunction = bridge.wrap_Func_void_TTIMeasurementValue(newValue)
+        return { (__measurement: TTIMeasurementValue) -> Void in
           __wrappedFunction.call(__measurement)
         }
       }()

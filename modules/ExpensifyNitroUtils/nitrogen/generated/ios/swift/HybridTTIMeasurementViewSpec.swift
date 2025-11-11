@@ -11,7 +11,7 @@ import NitroModules
 /// See ``HybridTTIMeasurementViewSpec``
 public protocol HybridTTIMeasurementViewSpec_protocol: HybridObject, HybridView {
   // Properties
-  var onMeasurement: (_ measurement: TTIMeasurement) -> Void { get set }
+  var onMeasurement: (_ measurement: TTIMeasurementValue) -> Void { get set }
 
   // Methods
   

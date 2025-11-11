@@ -46,10 +46,10 @@ namespace margelo::nitro::utils::bridge::swift {
     return swiftPart.toUnsafe();
   }
   
-  // pragma MARK: std::function<void(const TTIMeasurement& /* measurement */)>
-  Func_void_TTIMeasurement create_Func_void_TTIMeasurement(void* _Nonnull swiftClosureWrapper) noexcept {
-    auto swiftClosure = ExpensifyNitroUtils::Func_void_TTIMeasurement::fromUnsafe(swiftClosureWrapper);
-    return [swiftClosure = std::move(swiftClosure)](const TTIMeasurement& measurement) mutable -> void {
+  // pragma MARK: std::function<void(const TTIMeasurementValue& /* measurement */)>
+  Func_void_TTIMeasurementValue create_Func_void_TTIMeasurementValue(void* _Nonnull swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_TTIMeasurementValue::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const TTIMeasurementValue& measurement) mutable -> void {
       swiftClosure.call(measurement);
     };
   }

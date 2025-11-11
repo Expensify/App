@@ -13,10 +13,10 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `TTIMeasurement` to properly resolve imports.
-namespace margelo::nitro::utils { struct TTIMeasurement; }
+// Forward declaration of `TTIMeasurementValue` to properly resolve imports.
+namespace margelo::nitro::utils { struct TTIMeasurementValue; }
 
-#include "TTIMeasurement.hpp"
+#include "TTIMeasurementValue.hpp"
 #include <functional>
 
 namespace margelo::nitro::utils {
@@ -46,8 +46,8 @@ namespace margelo::nitro::utils {
 
     public:
       // Properties
-      virtual std::function<void(const TTIMeasurement& /* measurement */)> getOnMeasurement() = 0;
-      virtual void setOnMeasurement(const std::function<void(const TTIMeasurement& /* measurement */)>& onMeasurement) = 0;
+      virtual std::function<void(const TTIMeasurementValue& /* measurement */)> getOnMeasurement() = 0;
+      virtual void setOnMeasurement(const std::function<void(const TTIMeasurementValue& /* measurement */)>& onMeasurement) = 0;
 
     public:
       // Methods
