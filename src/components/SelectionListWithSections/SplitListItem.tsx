@@ -135,20 +135,20 @@ function SplitListItem<TItem extends ListItem>({
     ]);
 
     const SplitPercentageComponent = useMemo(() => {
-        if (splitItem.isEditable) {
-            return (
-                <PercentageForm
-                    onInputChange={onSplitExpensePercentageChange}
-                    value={String(splitItem.percentage ?? 0)}
-                    textInputContainerStyles={styles.wFitContent}
-                    containerStyles={styles.optionRowPercentInputContainer}
-                    inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
-                    onFocus={focusHandler}
-                    onBlur={onInputBlur}
-                />
-            );
+        if (!splitItem.isEditable) {
+            return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
         }
-        return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
+        return (
+            <PercentageForm
+                onInputChange={onSplitExpensePercentageChange}
+                value={String(splitItem.percentage ?? 0)}
+                textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
+                containerStyles={styles.optionRowPercentInputContainer}
+                inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
+                onFocus={focusHandler}
+                onBlur={onInputBlur}
+            />
+        );
     }, [styles, splitItem.isEditable, splitItem.percentage, onSplitExpensePercentageChange, focusHandler, onInputBlur]);
 
     return (
