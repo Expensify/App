@@ -1,21 +1,23 @@
 import type {HybridView, HybridViewMethods, HybridViewProps} from 'react-native-nitro-modules';
 import {getHostComponent} from 'react-native-nitro-modules';
-import TTIMeasurementViewConfig from '../../nitrogen/generated/shared/json/TTIMeasurementViewConfig.json';
+import TtiMeasurementViewConfig from '../../nitrogen/generated/shared/json/TtiMeasurementViewConfig.json';
 
-type TTIMeasurementValue = {
+type TtiMeasurementValue = {
     timestamp: number;
 };
 
+type OnTtiMeasurement = (measurement: TtiMeasurementValue) => void;
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-interface TTIMeasurementViewProps extends HybridViewProps {
-    onMeasurement?: (measurement: TTIMeasurementValue) => void;
+interface TtiMeasurementViewProps extends HybridViewProps {
+    onMeasurement: OnTtiMeasurement;
 }
 
-type TTIMeasurementViewMethods = HybridViewMethods;
+type TtiMeasurementViewMethods = HybridViewMethods;
 
-type TTIMeasurementView = HybridView<TTIMeasurementViewProps, TTIMeasurementViewMethods>;
+type TtiMeasurementView = HybridView<TtiMeasurementViewProps, TtiMeasurementViewMethods>;
 
-const TTIMeasurement = getHostComponent<TTIMeasurementViewProps, TTIMeasurementViewMethods>('TTIMeasurementView', () => TTIMeasurementViewConfig);
+const TtiMeasurement = getHostComponent<TtiMeasurementViewProps, TtiMeasurementViewMethods>('TtiMeasurementView', () => TtiMeasurementViewConfig);
 
-export default TTIMeasurement;
-export type {TTIMeasurementView, TTIMeasurementViewProps, TTIMeasurementViewMethods};
+export default TtiMeasurement;
+export type {TtiMeasurementView, TtiMeasurementViewProps, TtiMeasurementViewMethods, TtiMeasurementValue, OnTtiMeasurement};
