@@ -753,6 +753,8 @@ function MoneyRequestReportActionsList({
                                     violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                     policy={policy}
+                                    hasComments={visibleReportActions.length > 0}
+                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                 />
                             </>
                         }
