@@ -75,9 +75,6 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Indicates if zip code format should be validated */
     shouldValidateZipCodeFormat?: boolean;
 
-	/** Optional footer component rendered at the bottom */
-	footerComponent?: React.ReactNode;
-
 	/** Whether to show the Patriot Act help link (EnablePayments-only) */
 	showPatriotActLink?: boolean;
 };
@@ -102,7 +99,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
-	footerComponent,
 	showPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();

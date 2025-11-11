@@ -51,6 +51,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobInputID,
     dobDefaultValue,
 	isEditing,
+	footerComponent,
 	showPatriotActLink = false,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -102,6 +103,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
             />
+			{footerComponent}
 			{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt5]} />}
         </FormProvider>
     );
