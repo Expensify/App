@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/react-native';
+import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
-import { Platform } from 'react-native';
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
     enableTimeToInitialDisplay: true,
