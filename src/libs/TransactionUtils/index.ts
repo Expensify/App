@@ -1376,11 +1376,11 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
     );
 }
 
-function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+function hasDuplicateTransactions(currentUserEmail: string, iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail));
 }
 
 /**
