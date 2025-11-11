@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Ungültiger Betrag',
             acceptTerms: 'Sie müssen die Nutzungsbedingungen akzeptieren, um fortzufahren.',
-            phoneNumber: `Bitte geben Sie eine gültige Telefonnummer mit der Landesvorwahl ein (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Bitte geben Sie eine vollständige Telefonnummer ein\n(z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
             requestModified: 'Diese Anfrage wird von einem anderen Mitglied bearbeitet.',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Zeichenlimit überschritten (${length}/${limit})`,
@@ -826,7 +826,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
+            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihre Team.',
             subtitleText: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
     },
@@ -6736,9 +6736,9 @@ ${amount} für ${merchant} - ${date}`,
             body: 'Möchten Sie, dass Ihre Freunde auch Expensify nutzen? Starten Sie einfach einen Chat mit ihnen und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihren Chef</strong></success>.',
-            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
-            body: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
+            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihr Team</strong></success>.',
+            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihr Team.',
+            body: 'Möchten Sie, dass Ihr Team auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Einen Freund empfehlen',

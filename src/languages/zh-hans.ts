@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: '无效金额',
             acceptTerms: '您必须接受服务条款才能继续',
-            phoneNumber: `请输入有效的电话号码，并包含国家代码（例如 ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `请输入完整的电话号码（例如 ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
             requestModified: '此请求正在被另一位成员修改中',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `字符数超出限制 (${length}/${limit})`,
@@ -820,8 +820,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: '提交报销，推荐给您的老板',
-            subtitleText: '想让你的老板也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
+            title: '提交报销，推荐给您的团队',
+            subtitleText: '想让你的团队也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
         },
     },
     videoChatButtonAndMenu: {
@@ -6587,9 +6587,9 @@ ${merchant}的${amount} - ${date}`,
             body: '想让你的朋友也使用Expensify吗？只需与他们开始聊天，我们会处理剩下的事情。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: '提交费用，<success><strong>推荐你的老板</strong></success>。',
-            header: '提交报销，推荐给您的老板',
-            body: '想让你的老板也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
+            buttonText: '提交费用，<success><strong>推荐你的团队</strong></success>。',
+            header: '提交报销，推荐给您的团队',
+            body: '想让你的团队也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: '推荐朋友',

@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Quantia inválida',
             acceptTerms: 'Você deve aceitar os Termos de Serviço para continuar',
-            phoneNumber: `Por favor, insira um número de telefone válido, com o código do país (ex.: ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Por favor, insira um número de telefone completo\n(ex.: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo é obrigatório',
             requestModified: 'Esta solicitação está sendo modificada por outro membro',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caracteres excedido (${length}/${limit})`,
@@ -825,8 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Envie uma despesa, indique seu chefe',
-            subtitleText: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            title: 'Envie uma despesa, indique seu team',
+            subtitleText: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -6733,9 +6733,9 @@ ${amount} para ${merchant} - ${date}`,
             body: 'Quer que seus amigos usem o Expensify também? Basta iniciar um chat com eles e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Enviar uma despesa, <success><strong>indique seu chefe</strong></success>.',
-            header: 'Envie uma despesa, indique seu chefe',
-            body: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            buttonText: 'Enviar uma despesa, <success><strong>indique seu team</strong></success>.',
+            header: 'Envie uma despesa, indique seu team',
+            body: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Indique um amigo',
