@@ -283,9 +283,6 @@ type SearchTransaction = {
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction sender ID */
-    accountID: number;
-
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
 
