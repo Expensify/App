@@ -108,6 +108,7 @@ import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
+import type ProactiveAppReview from './ProactiveAppReview';
 import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -285,4 +286,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    ProactiveAppReview,
 };

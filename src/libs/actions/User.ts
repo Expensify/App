@@ -1475,6 +1475,21 @@ function requestUnlockAccount() {
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
 }
 
+type RespondToProactiveAppReviewParams = {
+    response: 'positive' | 'negative' | 'skip';
+    optimisticReportActionID?: number;
+};
+
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', optimisticReportActionID?: number) {
+    const params: RespondToProactiveAppReviewParams = {response};
+
+    if (optimisticReportActionID) {
+        params.optimisticReportActionID = optimisticReportActionID;
+    }
+
+    API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params);
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1515,4 +1530,5 @@ export {
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
+    respondToProactiveAppReview,
 };
