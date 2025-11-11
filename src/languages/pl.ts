@@ -826,8 +826,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Złóż wydatek, poleć swojego szefa',
-            subtitleText: 'Chcesz, aby Twój szef również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
+            title: 'Złóż wydatek, poleć swojemu teamowi',
+            subtitleText: 'Chcesz, aby Twój team również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
         },
     },
     videoChatButtonAndMenu: {
@@ -6720,9 +6720,9 @@ ${amount} dla ${merchant} - ${date}`,
             body: 'Chcesz, aby Twoi znajomi również korzystali z Expensify? Po prostu rozpocznij z nimi czat, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Złóż wydatek, <success><strong>poleć swojego szefa</strong></success>.',
-            header: 'Złóż wydatek, poleć swojego szefa',
-            body: 'Chcesz, aby Twój szef również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
+            buttonText: 'Złóż wydatek, <success><strong>poleć swojemu teamowi</strong></success>.',
+            header: 'Złóż wydatek, poleć swojemu teamowi',
+            body: 'Chcesz, aby Twój team również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Poleć znajomego',
