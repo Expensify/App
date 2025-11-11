@@ -37,6 +37,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 
 const CURRENT_USER_ID = 1;
 const CURRENT_USER_EMAIL = 'test@example.com';
+const OTHER_USER_EMAIL = 'other@example.com';
 const SECOND_USER_ID = 2;
 const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
@@ -726,6 +727,60 @@ describe('TransactionUtils', () => {
             const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
             const result = TransactionUtils.isViolationDismissed(transaction, violation);
             expect(result).toBe(true);
+        });
+
+        it('should return true when violation is dismissed by another user and no email is provided', () => {
+            // Given a transaction with a violation dismissed by another user
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+            // When checking if the violation is dismissed without providing a user email
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, undefined);
+
+            // Then it should return true since the violation has been dismissed by someone
+            expect(result).toBe(true);
+        });
+
+        it('should return false when violation is not dismissed and no email is provided', () => {
+            // Given a transaction with no dismissed violations
+            const transaction = generateTransaction({
+                comment: {},
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+            // When checking if the violation is dismissed without providing a user email
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, undefined);
+
+            // Then it should return false since the violation has not been dismissed
+            expect(result).toBe(false);
+        });
+
+        it('should return false when violation is dismissed by different user and email is provided', () => {
+            // Given a transaction with a violation dismissed by a different user
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+            // When checking if the violation is dismissed for the current user
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL);
+
+            // Then it should return false since the current user has not dismissed it
+            expect(result).toBe(false);
         });
     });
 
