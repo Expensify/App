@@ -829,8 +829,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Soumettre une dépense, référer votre patron',
-            subtitleText: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            title: 'Soumettre une dépense, référer votre équipe',
+            subtitleText: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
     },
     videoChatButtonAndMenu: {
@@ -6743,9 +6743,9 @@ ${amount} pour ${merchant} - ${date}`,
             body: 'Vous voulez que vos amis utilisent aussi Expensify ? Commencez simplement une discussion avec eux et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre patron</strong></success>.',
-            header: 'Soumettre une dépense, référer votre patron',
-            body: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre équipe</strong></success>.',
+            header: 'Soumettre une dépense, référer votre équipe',
+            body: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Parrainez un ami',
