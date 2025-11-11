@@ -1,12 +1,12 @@
 import type {HybridView, HybridViewMethods, HybridViewProps} from 'react-native-nitro-modules';
 
-type TTIMeasurement = {
+type TTIMeasurementValue = {
     timestamp: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface TTIMeasurementViewProps extends HybridViewProps {
-    onMeasurement: (measurement: TTIMeasurement) => void;
+    onMeasurement: (measurement: TTIMeasurementValue) => void;
 }
 
 type TTIMeasurementViewMethods = HybridViewMethods;
