@@ -64,6 +64,36 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
+function areFullScreenRoutesEqual(matchingFullScreenRoute: NavigationPartialRoute, lastFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+    const lastRouteInLastFullScreenRoute = lastFullScreenRoute.state?.routes?.at(-1);
+
+    // We need to perform a manual check here, since it's possible to open the `WorkspaceRestrictedActionPage` via the FAB while still on the Settings page.
+    if (lastRouteInMatchingFullScreen?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
+        return false;
+    }
+
+    const isEqualFullScreenRoute = matchingFullScreenRoute.name === lastFullScreenRoute.name;
+
+    return isEqualFullScreenRoute;
+}
+
+function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+
+    const preloadedRoutes = currentState.preloadedRoutes;
+
+    return preloadedRoutes.some((preloadedRoute) => {
+        const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
+
+        // Compare the last route of the preloadedRoute and the last route of the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
+        const isMatchingLastRoute =
+            !lastRouteInMatchingFullScreen?.name || (preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen?.name);
+
+        return isMatchingFullScreenRoute && isMatchingLastRoute;
+    });
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -126,9 +156,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some((preloadedRoute) => preloadedRoute.name === matchingFullScreenRoute.name);
-                if (isMatchingRoutePreloaded) {
+
+            if (matchingFullScreenRoute && lastFullScreenRoute && !areFullScreenRoutesEqual(matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
