@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -71,6 +71,11 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    useEffect(() => {
+        gc();
+        HermesInternal?.ttiReached?.();
+    }, []);
 
     return (
         <StrictModeWrapper>
