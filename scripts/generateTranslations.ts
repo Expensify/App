@@ -1014,14 +1014,24 @@ class TranslationGenerator {
                 return isLastLine && isTail && text.endsWith('\n') ? ' '.repeat(closingIndentation) : '';
             }
 
-            // Preserve trailing spaces for template middles (before substitutions)
-            return isLastLine && !isTail ? getIndentedLine(line) : getIndentedLine(line).trimEnd();
+            return getIndentedLine(line);
         });
 
         // Add closing line with proper indentation for pretty formatting
-        if (!text.endsWith('\n') && isTail) {
-            formattedLines.pop();
-            formattedLines.push(' '.repeat(closingIndentation));
+        if (isTail) {
+            console.log('RORY_DEBUG text', `"${text}"`);
+            console.log(`RORY_DEBUG ends with newline: ${text.endsWith('\n')}`);
+            console.log(`RORY_DEBUG ends with indentation: ${text.endsWith(' '.repeat(closingIndentation))}`);
+        }
+
+        if (isTail && (text.endsWith(' '.repeat(closingIndentation)) || !text.endsWith('\n'))) {
+            if (text.endsWith(' '.repeat(closingIndentation))) {
+                formattedLines.pop();
+            }
+
+            if (!text.endsWith('\n')) {
+                formattedLines.push(' '.repeat(closingIndentation));
+            }
         }
 
         return formattedLines.join('\n');
