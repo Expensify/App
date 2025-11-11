@@ -93,7 +93,7 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
@@ -234,7 +234,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose

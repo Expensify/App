@@ -825,8 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Envie uma despesa, indique seu chefe',
-            subtitleText: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            title: 'Envie uma despesa, indique seu team',
+            subtitleText: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -4194,6 +4194,8 @@ ${amount} para ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Se você mudar a configuração de exportação de cartões corporativos para relatórios de despesas, os fornecedores do NetSuite e as contas de lançamento para cartões individuais serão desabilitados.\n\nNão se preocupe, ainda vamos salvar suas seleções anteriores caso você queira voltar às configurações anteriores mais tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'A Expensify sincronizará automaticamente com o NetSuite todos os dias.',
@@ -6736,9 +6738,9 @@ ${amount} para ${merchant} - ${date}`,
             body: 'Quer que seus amigos usem o Expensify também? Basta iniciar um chat com eles e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Enviar uma despesa, <success><strong>indique seu chefe</strong></success>.',
-            header: 'Envie uma despesa, indique seu chefe',
-            body: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            buttonText: 'Enviar uma despesa, <success><strong>indique seu team</strong></success>.',
+            header: 'Envie uma despesa, indique seu team',
+            body: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Indique um amigo',
