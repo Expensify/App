@@ -146,7 +146,7 @@ describe('AssignCardFeedPage', () => {
         });
 
         // Verify the navigation call contains the correct route parts
-        const navigationCall = navigateSpy.mock.calls[0]?.[0];
+        const navigationCall = navigateSpy.mock.calls.at(0)?.[0];
         expect(navigationCall).toContain('company-cards');
         expect(navigationCall).toContain('assign-card/confirmation');
         expect(navigationCall).toContain(policy.id);
@@ -160,7 +160,6 @@ describe('AssignCardFeedPage', () => {
     it('should show delegate no access message when user is acting as delegate', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
-        const navigateSpy = jest.spyOn(Navigation, 'navigate');
         const policy = {
             ...LHNTestUtils.getFakePolicy(),
             role: CONST.POLICY.ROLE.ADMIN,
