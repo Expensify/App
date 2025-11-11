@@ -42,7 +42,7 @@ function SplitListItem<TItem extends ListItem>({
         (amount: string) => {
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
         },
-        [splitItem],
+        [splitItem.transactionID, splitItem.onSplitExpenseAmountChange],
     );
 
     const onSplitExpensePercentageChange = useCallback(
@@ -50,7 +50,7 @@ function SplitListItem<TItem extends ListItem>({
             const percentageNumber = Number(value || 0);
             splitItem.onSplitExpensePercentageChange?.(splitItem.transactionID, Number.isNaN(percentageNumber) ? 0 : percentageNumber);
         },
-        [splitItem],
+        [splitItem.transactionID, splitItem.onSplitExpensePercentageChange],
     );
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
