@@ -79,7 +79,9 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
         return;
     }
     const mileageRates = Object.values(getMileageRates(policy)).sort((a, b) => {
-        return a.index! - b.index!;
+        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+        return aIndex - bIndex;
     });
 
     const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
