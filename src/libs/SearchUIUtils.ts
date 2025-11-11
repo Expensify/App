@@ -78,6 +78,7 @@ import {
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
+    isHoldAction,
     isMoneyRequestAction,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
@@ -908,24 +909,47 @@ function getTransactionViolations(
  * Creates an optimized lookup map for report actions indexed by transaction ID.
  */
 function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
-    const reportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    const parentReportActionsByReportID = new Map<string, OnyxTypes.ReportAction>();
+    const moneyRequestReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    const holdReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+
+    // Helper to match report action entries ("HOLD" report action) with transaction entries
+    const allHoldReportActions = new Map<string, OnyxTypes.ReportAction>();
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
-            const actions = Object.values(data[key]);
+            const actions = Object.values(data[key]) as OnyxTypes.ReportAction[];
             for (const action of actions) {
+                if (action.childReportID) {
+                    parentReportActionsByReportID.set(action.childReportID, action);
+                }
                 if (isMoneyRequestAction(action)) {
                     const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
                     const transactionID = originalMessage?.IOUTransactionID;
                     if (transactionID) {
-                        reportActionsByTransactionID.set(transactionID, action);
+                        moneyRequestReportActionsByTransactionID.set(transactionID, action);
                     }
+                } else if (isHoldAction(action)) {
+                    allHoldReportActions.set(action.reportActionID, action);
+                }
+            }
+        }
+        // Optimization: We don't need to iterate over all the transactions.
+        // We can stop as soon as all found "HOLD" report actions are matched with their transactions.
+        // Note: This optimization is possible only because reportActions appear before transactions (alphabetical order) and this order is guaranteed.
+        else if (isTransactionEntry(key) && allHoldReportActions.size > holdReportActionsByTransactionID.size) {
+            const transaction = data[key];
+            const holdReportActionID = transaction?.comment?.hold;
+            if (holdReportActionID) {
+                const action = allHoldReportActions.get(holdReportActionID);
+                if (action) {
+                    holdReportActionsByTransactionID.set(transaction.transactionID, action);
                 }
             }
         }
     }
 
-    return reportActionsByTransactionID;
+    return moneyRequestReportActionsByTransactionID;
 }
 
 /**
