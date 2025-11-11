@@ -1,5 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import openSearchReport from '@components/Search/openSearchReport';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -12,7 +13,6 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -25,7 +25,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -45,6 +44,7 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
+jest.mock('@components/Search/openSearchReport', () => jest.fn());
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -1853,6 +1853,8 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -1865,6 +1867,8 @@ describe('SearchUIUtils', () => {
                 [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
                 [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -2722,6 +2726,7 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+                personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
@@ -2813,12 +2818,12 @@ describe('SearchUIUtils', () => {
 
         test('Should not navigate if shouldNavigate = false', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(openSearchReport).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            expect(openSearchReport).toHaveBeenCalledWith(threadReportID, backTo);
         });
     });
 
