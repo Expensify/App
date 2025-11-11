@@ -73,6 +73,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
+
+    /** Additional data for the menu item */
+    additionalData?: Record<string, unknown>;
 };
 
 type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
@@ -509,6 +512,32 @@ function BasePopoverMenu({
         ...restMenuContainerStyle
     } = StyleSheet.flatten(menuContainerStyle) ?? {};
 
+    const {
+        paddingVertical: containerPaddingVertical,
+        paddingTop: containerPaddingTop,
+        paddingBottom: containerPaddingBottom,
+        ...restContainerStyles
+    } = StyleSheet.flatten(containerStyles) ?? {};
+
+    const scrollViewPaddingStyles = useMemo(
+        () => ({
+            paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
+            paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
+            paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+        }),
+        [
+            paddingTop,
+            containerPaddingTop,
+            menuContainerPaddingTop,
+            paddingBottom,
+            containerPaddingBottom,
+            menuContainerPaddingBottom,
+            paddingVertical,
+            containerPaddingVertical,
+            menuContainerPaddingVertical,
+        ],
+    );
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -543,18 +572,11 @@ function BasePopoverMenu({
             >
                 <View
                     onLayout={onLayout}
-                    style={[containerStyles, restMenuContainerStyle, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
+                    style={[restMenuContainerStyle, restContainerStyles, isWebOrDesktop ? styles.flex1 : styles.flexGrow1]}
                 >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
-                        [
-                            {
-                                paddingTop: menuContainerPaddingTop ?? paddingTop,
-                                paddingBottom: menuContainerPaddingBottom ?? paddingBottom,
-                                paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0,
-                            },
-                            restScrollContainerStyle,
-                        ],
+                        [scrollViewPaddingStyles, restScrollContainerStyle],
                         [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
                     )}
                 </View>

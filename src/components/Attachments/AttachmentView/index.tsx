@@ -104,6 +104,7 @@ function checkIsFileImage(source: string | number | ImageURISource | ImageURISou
 }
 
 function AttachmentView({
+    attachmentID,
     source,
     previewSource,
     file,
@@ -328,6 +329,7 @@ function AttachmentView({
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        attachmentID={attachmentID}
                         url={imageSource}
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
