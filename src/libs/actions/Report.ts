@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -336,19 +337,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-    },
-});
-
-const draftNoteMap: OnyxCollection<string> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
-        draftNoteMap[reportID] = value;
     },
 });
 
@@ -1873,49 +1861,52 @@ function handlePreexistingReport(report: Report) {
         return;
     }
 
-    // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
-    // In this case, the API will let us know by returning a preexistingReportID.
-    // We should clear out the optimistically created report and re-route the user to the preexisting report.
-    let callback = () => {
-        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+        // In this case, the API will let us know by returning a preexistingReportID.
+        // We should clear out the optimistically created report and re-route the user to the preexisting report.
+        let callback = () => {
+            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
 
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-            ...report,
-            reportID: preexistingReportID,
-            preexistingReportID: null,
-            // Replacing the existing report's participants to avoid duplicates
-            participants: existingReport?.participants ?? report.participants,
-        });
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
-    };
-    // Only re-route them if they are still looking at the optimistically created report
-    if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
-        const currCallback = callback;
-        callback = () => {
-            currCallback();
-            Navigation.setParams({reportID: preexistingReportID.toString()});
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                ...report,
+                reportID: preexistingReportID,
+                preexistingReportID: null,
+                // Replacing the existing report's participants to avoid duplicates
+                participants: existingReport?.participants ?? report.participants,
+            });
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
+        // Only re-route them if they are still looking at the optimistically created report
+        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+            const currCallback = callback;
+            callback = () => {
+                currCallback();
+                Navigation.setParams({reportID: preexistingReportID.toString()});
+            };
 
-        // The report screen will listen to this event and transfer the draft comment to the existing report
-        // This will allow the newest draft comment to be transferred to the existing report
-        DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-            preexistingReportID,
-            callback,
-        });
+            // The report screen will listen to this event and transfer the draft comment to the existing report
+            // This will allow the newest draft comment to be transferred to the existing report
+            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
+                preexistingReportID,
+                callback,
+            });
 
-        return;
-    }
+            return;
+        }
 
-    // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-    // after that clear the optimistically created report
-    const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-    if (!draftReportComment) {
-        callback();
-        return;
-    }
+        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+        // after that clear the optimistically created report
+        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+        if (!draftReportComment) {
+            callback();
+            return;
+        }
 
-    saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+    });
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
@@ -2877,6 +2868,7 @@ function buildNewReportOptimisticData(
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
@@ -2895,6 +2887,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
 
@@ -2924,6 +2917,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     errorFields: null,
                 },
             },
@@ -2934,6 +2928,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     errorFields: null,
                 },
             },
@@ -4077,6 +4072,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
     ];
 
     if (shouldHideMessage) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
@@ -4309,10 +4305,6 @@ function hasErrorInPrivateNotes(report: OnyxEntry<Report>): boolean {
 /** Clears all errors associated with a given private note */
 function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
-}
-
-function getDraftPrivateNote(reportID: string): string {
-    return draftNoteMap?.[reportID] ?? '';
 }
 
 /**
@@ -4908,6 +4900,7 @@ function deleteAppReport(reportID: string | undefined) {
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -5037,6 +5030,7 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -5050,6 +5044,7 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -5456,6 +5451,7 @@ function dismissChangePolicyModal() {
             },
         },
     ];
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
@@ -5586,6 +5582,7 @@ function buildOptimisticChangePolicyData(
             }),
         });
 
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
@@ -5672,6 +5669,7 @@ function buildOptimisticChangePolicyData(
                 lastVisibleActionCreated,
             },
         });
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`,
@@ -5766,6 +5764,7 @@ function buildOptimisticChangePolicyData(
 
     // Search data might not have the new policy data so we should add it optimistically.
     if (policy && currentSearchQueryJSON) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
@@ -6007,7 +6006,6 @@ export {
     flagComment,
     getCurrentUserAccountID,
     getCurrentUserEmail,
-    getDraftPrivateNote,
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
