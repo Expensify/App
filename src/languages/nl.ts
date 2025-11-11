@@ -467,7 +467,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Ongeldig bedrag',
             acceptTerms: 'U moet de Servicevoorwaarden accepteren om door te gaan',
-            phoneNumber: `Voer een geldig telefoonnummer in, met de landcode (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Voer een volledig telefoonnummer in\n(bijv. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dit veld is verplicht',
             requestModified: 'Dit verzoek wordt door een ander lid gewijzigd.',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Tekenlimiet overschreden (${length}/${limit})`,
@@ -2040,6 +2040,8 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Laten we ervoor zorgen dat jij het bent',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Voer de magische code in die naar ${contactMethod} is gestuurd om uw kaartgegevens te bekijken. Het zou binnen een minuut of twee moeten aankomen.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">Voeg je persoonlijke gegevens toe</a> en probeer het daarna opnieuw.`,
+        unexpectedError: 'Er is een fout opgetreden bij het ophalen van je Expensify-kaartgegevens. Probeer het opnieuw.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik.',
             reportFraudButtonText: 'Nee, dat was ik niet.',
@@ -2586,7 +2588,7 @@ ${amount} voor ${merchant} - ${date}`,
             splitExpenseTask: {
                 title: 'Splits een uitgave',
                 description:
-                    '*Splits uitgaven* met één of meer personen.\n' +
+                    '*Uitgaven splitsen* met één of meer personen.' +
                     '\n' +
                     `1. Klik op de +-knop.\n` +
                     '2. Kies *Start chat*.\n' +
@@ -4648,7 +4650,7 @@ ${amount} voor ${merchant} - ${date}`,
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn bevestigd.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card zal binnen 2-3 werkdagen arriveren.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card wordt binnen 2-3 werkdagen bezorgd.`,
             verifyingHeader: 'Verifiëren',
             bankAccountVerifiedHeader: 'Bankrekening geverifieerd',
             verifyingBankAccount: 'Bankrekening verifiëren...',
@@ -5021,6 +5023,10 @@ ${amount} voor ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Kan niet alle tags optioneel maken',
                 description: `Er moet minstens één tag verplicht blijven omdat uw werkruimte-instellingen tags vereisen.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Kan geen taglijst maken vereist',
+                description: 'Je kunt een taglijst alleen verplicht stellen als je beleid meerdere tagniveaus heeft geconfigureerd.',
             },
             tagCount: () => ({
                 one: '1 Dag',

@@ -167,6 +167,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Number of transactions in the report */
+        transactionCount?: number;
+
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 

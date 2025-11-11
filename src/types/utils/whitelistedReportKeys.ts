@@ -78,6 +78,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
                 dateTime: unknown;
             };
         };
+        transactionCount: unknown;
     },
     PolicyReportField['fieldID']
 >;
