@@ -5712,7 +5712,7 @@ describe('ReportUtils', () => {
                 approver: currentUserEmail,
             };
             const report: Report = {
-                ...createRandomReport(10002),
+                ...createRandomReport(10002, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
