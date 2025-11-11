@@ -3,11 +3,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
+import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
+import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -27,7 +29,10 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    allTransactions?: Record<string, Transaction>;
 };
+
+type FieldList = Record<string, {name: string; defaultValue: string}>;
 
 const FORMULA_PART_TYPES = {
     REPORT: 'report',
@@ -191,6 +196,70 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
+ * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
+ */
+function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
+    const formulaValues = extract(fieldValue);
+    if (formulaValues.length === 0 || isEmptyObject(fieldList)) {
+        return false;
+    }
+
+    const visitedLists = new Set<string>();
+    const fieldsByName = new Map<string, {name: string; defaultValue: string}>(Object.values(fieldList).map((field) => [field.name, field]));
+
+    // Helper function to check if a field has circular references
+    const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
+        // If we've already visited this field in the current path, return true
+        if (visitedLists.has(currentFieldName)) {
+            return true;
+        }
+
+        // Add current field to the visited lists
+        visitedLists.add(currentFieldName);
+
+        // Extract all formula values from the current field
+        const currentFormulaValues = extract(currentFieldValue);
+
+        for (const formula of currentFormulaValues) {
+            const part = parsePart(formula);
+
+            // Only check field references (skip report, user, or freetext)
+            if (part.type !== FORMULA_PART_TYPES.FIELD) {
+                continue;
+            }
+
+            // Get the referenced field name (first element in fieldPath)
+            const referencedFieldName = part.fieldPath.at(0)?.trim();
+            if (!referencedFieldName) {
+                continue;
+            }
+
+            // Check if this reference creates a cycle
+            if (referencedFieldName === fieldName || visitedLists.has(referencedFieldName)) {
+                visitedLists.delete(currentFieldName);
+                return true;
+            }
+
+            const referencedField = fieldsByName.get(referencedFieldName);
+
+            if (referencedField?.defaultValue) {
+                // Recursively check the referenced field
+                if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
+                    visitedLists.delete(currentFieldName);
+                    return true;
+                }
+            }
+        }
+
+        // Remove current field from visited lists
+        visitedLists.delete(currentFieldName);
+        return false;
+    };
+
+    return hasCircularReferencesRecursive(fieldValue, fieldName);
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -260,7 +329,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
-    const {report, policy} = context;
+    const {report, policy, allTransactions} = context;
     const [field, ...additionalPath] = part.fieldPath;
     // Reconstruct format string by joining additional path elements with ':'
     // This handles format strings with colons like 'HH:mm:ss'
@@ -271,6 +340,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     }
 
     switch (field.toLowerCase()) {
+        case 'id':
+            return getBase62ReportID(Number(report.reportID));
+        case 'status':
+            return formatStatus(report.statusNum);
+        case 'expensescount':
+            return String(getExpensesCount(report, allTransactions));
         case 'type':
             return formatType(report.type);
         case 'startdate':
@@ -299,6 +374,35 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         default:
             return part.definition;
     }
+}
+
+/**
+ * Get the number of expenses in a report
+ * @param report - The report to get expenses for
+ * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
+ */
+function getExpensesCount(report: Report, allTransactions?: Record<string, Transaction>): number {
+    if (!report.reportID) {
+        return 0;
+    }
+
+    if (allTransactions) {
+        const transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === report.reportID);
+        return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
+    }
+
+    return report.transactionCount ?? 0;
+}
+
+/**
+ * Format a report status number to human-readable string
+ */
+function formatStatus(statusNum: number | undefined): string {
+    if (statusNum === undefined) {
+        return '';
+    }
+
+    return getHumanReadableStatus(statusNum);
 }
 
 /**
@@ -682,6 +786,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse};
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
 
-export type {FormulaContext, FormulaPart};
+export type {FormulaContext, FormulaPart, FieldList};
