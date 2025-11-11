@@ -2103,7 +2103,7 @@ describe('generateTranslations', () => {
             // This test reproduces a bug where unchanged properties get incorrectly
             // flagged as changed when nearby properties are modified and cause line number shifts
 
-            // OLD file (before changes) - line numbers after dedent():
+            // OLD file (before changes) - line numbers before dedent():
             // 1: const strings = {
             // 2:     prop1: 'First property',
             // 3:     prop2: 'Second property',
@@ -2168,22 +2168,6 @@ describe('generateTranslations', () => {
             );
 
             mockIsValidRef.mockReturnValue(true);
-
-            // Simulating git diff that causes the bug:
-            // Git.parseDiff() pairs removed line 2 (OLD) with added line 4 (NEW), making line 4 "modified"
-            //
-            // THE BUG (before fix):
-            // - extractRemovedPaths() receives modifiedLines [4] (NEW file line number!)
-            // - It searches OLD file at line 4
-            // - Line 4 in OLD = 'Third property' (prop3!)
-            // - Marks prop3 as "removed"
-            // - Cleanup sees prop3 still exists in NEW en.ts -> moves to pathsToModify
-            // - Result: prop3 gets incorrectly retranslated!
-            //
-            // With the fix:
-            // - extractRemovedPaths() only receives removedLines [2] (OLD file line numbers)
-            // - Correctly identifies only prop1 as removed
-            // - prop3 is NOT retranslated
             mockDiff.mockReturnValue({
                 files: [
                     {
