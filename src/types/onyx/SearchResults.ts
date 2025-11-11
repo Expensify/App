@@ -207,6 +207,9 @@ type SearchReportAction = {
 
     /** The name of the report */
     reportName: string;
+
+    /** The ID of childReport */
+    childReportID?: string;
 };
 
 /** Model of transaction search result */
@@ -260,6 +263,9 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */

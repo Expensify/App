@@ -247,11 +247,17 @@ type TransactionListItemType = ListItem &
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
+        /** Parent report action */
+        parentReportAction: ReportAction | undefined;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
         /** Report IOU action to which the transaction belongs */
         reportAction: ReportAction | undefined;
+
+        /** Transaction thread HOLD action if the transaction is on hold */
+        holdReportAction: ReportAction | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
