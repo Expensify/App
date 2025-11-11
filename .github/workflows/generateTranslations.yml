@@ -135,21 +135,12 @@ jobs:
 
           readonly PARROT_HEADER="## 🦜 Polyglot Parrot! 🦜"
           readonly PARROT_INTRO="_Squawk!_ Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
-
           PARROT_FOOTER="$(cat <<'EOF'
           > [!NOTE]
           > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply`
           EOF
           )"
           readonly PARROT_FOOTER
-
-          DISCLAIMER="$(cat <<'EOF'
-          > [!WARNING]
-          > For very large diffs, `gh gist view --raw` may not work as expected due to https://github.com/cli/cli/issues/11739. If you encounter that, just copy the raw diff in your web browser and run `pbpaste | git apply`.
-          EOF
-          )"
-          readonly DISCLAIMER
-
 
           if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
             # Small diff - include in comment
@@ -185,8 +176,6 @@ jobs:
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo
               echo "$PARROT_FOOTER_WITH_CMD 😉"
-              echo
-              echo "$DISCLAIMER"
             } > "$TEMP_COMMENT_FILE"
           fi
 
