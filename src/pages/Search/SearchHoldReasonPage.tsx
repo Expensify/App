@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {useTransactionsAncestors} from '@hooks/useAncestors';
+import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
@@ -27,13 +27,13 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
 
-    const selectedTransactions = context.selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]).filter((transaction) => transaction);
-    const transactionsAncestors = useTransactionsAncestors(selectedTransactions);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const ancestors = useAncestors(report);
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, transactionsAncestors);
+                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
                 context.clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, context.selectedTransactionIDs, comment, allTransactions, allReportActions);
@@ -42,7 +42,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, context.selectedTransactionIDs, allTransactions, transactionsAncestors, allReportActions],
+        [route.name, context, reportID, context.selectedTransactionIDs, allTransactions, ancestors, allReportActions],
     );
 
     const validate = useCallback(

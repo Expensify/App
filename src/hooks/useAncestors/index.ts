@@ -14,7 +14,7 @@ import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/
  * @param reportCollection - Collection of reports.
  * @param reportDraftCollection - Collection of report drafts.
  * @param reportActionsCollection - Collection of report actions.
- * @param shouldExcludeAncestorReportActionCallback - Callback to determine if an ancestor should be excluded.
+ * @param shouldExcludeAncestorReportActionCallback - Callback to determine if an ancestor should be excluded. Check shouldExcludeAncestorReportAction in ReportUtils.ts for implementation.
  * @returns An array of ancestor reports and their associated actions.
  */
 function getAncestors(
@@ -66,53 +66,7 @@ function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActi
     const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    return useMemo(() => {
-        return getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback);
-    }, [report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback]);
+    return getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback);
 }
 
-/**
- * Fetches ancestor reports and their associated actions for a list of transactions.
- *
- * @param transactions - The transactions for which to fetch ancestor reports and actions.
- * @returns A mapping of transaction IDs to their respective ancestor reports and actions.
- */
-function useTransactionsAncestors(transactions: Array<OnyxEntry<Transaction>>): Record<string, Ancestor[]> {
-    const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
-    const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-
-    return useMemo(() => {
-        if (!transactions || transactions.length === 0) {
-            return {};
-        }
-
-        const result: Record<string, Ancestor[]> = {};
-
-        for (const transaction of transactions) {
-            if (!transaction) {
-                continue;
-            }
-
-            const iouAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (!iouAction) {
-                continue;
-            }
-
-            const childReportID = iouAction.childReportID;
-            const threadReport = childReportID
-                ? (reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] ??
-                  reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${childReportID}`] ?? {
-                      reportID: childReportID,
-                      parentReportID: transaction.reportID,
-                      parentReportActionID: iouAction.reportActionID,
-                  })
-                : {reportID: '', parentReportID: transaction.reportID, parentReportActionID: iouAction.reportActionID};
-
-            result[transaction.transactionID] = getAncestors(threadReport, reportCollection, reportDraftCollection, reportActionsCollection);
-        }
-        return result;
-    }, [transactions, reportCollection, reportDraftCollection, reportActionsCollection]);
-}
-
-export {useAncestors, useTransactionsAncestors};
+export default useAncestors;
