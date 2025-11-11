@@ -198,6 +198,8 @@ function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
         return null;
     }
 
+    // We have used HOC component approach here as we need the correct value from `useOnyx` hook for initial useState value
+    // and onyx value might not available immediately in the mount cycle of the component.
     return (
         <PrivateNotesEditPageInternal
             report={report}
