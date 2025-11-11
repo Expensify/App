@@ -8,6 +8,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
@@ -85,6 +86,7 @@ import {
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
+    reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -1657,7 +1659,6 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         merchant: 'Test Merchant',
                         transactionType: 'cash',
-                        action: 'submit',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
                     } as SearchTransaction;
@@ -3611,6 +3612,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
@@ -4400,6 +4402,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -4430,6 +4433,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
@@ -8508,6 +8512,27 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticExpenseReport', () => {
+        beforeEach(Onyx.clear);
+
+        it('should include the policy name in report name from report draft', async () => {
+            const chatReportID = '1';
+            const policyID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
+        });
+    });
+
     describe('hasEmptyReportsForPolicy', () => {
         const policyID = 'workspace-001';
         const otherPolicyID = 'workspace-002';
@@ -8828,5 +8853,203 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
+    });
+
+    it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const expenseReportID = '10000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            hasOutstandingChildRequest: true,
+            iouReportID: expenseReportID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        await Onyx.clear();
+    });
+
+    it('should not surface a GBR when reimbursement is queued but not waiting on the payee bank account', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const expenseReportID = '10000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            hasOutstandingChildRequest: false,
+            iouReportID: expenseReportID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        await Onyx.clear();
+    });
+
+    it('should not surface a GBR when bank account is added, but reimbursement is disabled on the policy', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const policyID = '10000';
+        const expenseReportID = '20000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            iouReportID: expenseReportID,
+            policyID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+            policyID,
+        };
+        const pendingTransaction: Transaction = {
+            transactionID: `${expenseReportID}-transaction`,
+            reportID: expenseReportID,
+            amount: 10000,
+            currency: CONST.CURRENCY.USD,
+            created: '2025-01-01T00:00:00.000Z',
+            merchant: 'Expensify Card',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+        const policy1: Policy = {
+            id: policyID,
+            name: 'Policy',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingTransaction.transactionID}`, pendingTransaction),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
+        ]);
+        await waitForBatchedUpdates();
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        await Onyx.clear();
     });
 });
