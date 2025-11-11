@@ -23,7 +23,6 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
-import useLocalize from '@hooks/useLocalize';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
@@ -1197,8 +1196,6 @@ Onyx.connect({
         unavailableTranslation = translateLocal('workspace.common.unavailable');
     },
 });
-
-const {translate} = useLocalize();
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
@@ -6744,7 +6741,8 @@ function getMovedTransactionMessage(action: ReportAction) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
-        return translate('iou.movedTransactionTo', {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.movedTransactionTo', {
             reportUrl,
             reportName,
         });
@@ -6752,11 +6750,13 @@ function getMovedTransactionMessage(action: ReportAction) {
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const selfDMReportID = findSelfDMReportID();
         reportUrl = `${environmentURL}/r/${selfDMReportID}`;
-        return translate('iou.movedUnreportedTransaction', {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.movedUnreportedTransaction', {
             reportUrl,
         });
     }
-    return translate('iou.movedTransactionFrom', {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
         reportName,
     });
@@ -6775,12 +6775,14 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const selfDMReportID = findSelfDMReportID();
         reportUrl = `${environmentURL}/r/${selfDMReportID}`;
-        return translate('iou.unreportedTransaction', {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.unreportedTransaction', {
             reportUrl,
         });
     }
 
-    return translate('iou.movedTransactionFrom', {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
         reportName,
     });
