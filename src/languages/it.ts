@@ -826,8 +826,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Invia una spesa, riferisci al tuo capo',
-            subtitleText: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
+            title: 'Invia una spesa, riferisci al tuo team',
+            subtitleText: 'Vuoi che anche il tuo team usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1128,6 +1128,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
         addSplit: 'Aggiungi divisione',
+        makeSplitsEven: 'Uniformare le suddivisioni',
         editSplits: 'Modifica suddivisioni',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} maggiore della spesa originale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} inferiore alla spesa originale.`,
@@ -6751,9 +6752,9 @@ ${amount} per ${merchant} - ${date}`,
             body: 'Vuoi che i tuoi amici usino Expensify, anche loro? Inizia una chat con loro e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro capo</strong></success>.',
-            header: 'Invia una spesa, riferisci al tuo capo',
-            body: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
+            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro team</strong></success>.',
+            header: 'Invia una spesa, riferisci al tuo team',
+            body: 'Vuoi che anche il tuo team usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Segnala un amico',
