@@ -734,7 +734,9 @@ type UpdateSplitTransactionsParams = {
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+    isChatReportArchived?: boolean;
 };
 
 type ReplaceReceipt = {
@@ -13704,7 +13706,9 @@ function updateSplitTransactions({
     policy,
     policyRecentlyUsedCategories,
     iouReport,
+    chatReport,
     firstIOU,
+    isChatReportArchived,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -13965,26 +13969,7 @@ function updateSplitTransactions({
         });
 
         if (firstIOU) {
-            const updatedReportAction = {
-                [firstIOU.reportActionID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    previousMessage: firstIOU.message,
-                    message: [
-                        {
-                            type: 'COMMENT',
-                            html: '',
-                            text: '',
-                            isEdited: true,
-                            isDeletedParentAction: true,
-                        },
-                    ],
-                    originalMessage: {
-                        IOUTransactionID: null,
-                    },
-                    errors: null,
-                },
-            };
-            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`];
+            const {updatedReportAction, transactionThread} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU, iouReport, chatReport, isChatReportArchived);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
