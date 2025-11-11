@@ -117,6 +117,16 @@ function ParentNavigationSubtitle({
             }
         }
 
+        // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
+        // to preserve the search context instead of navigating away.
+        if (openParentReportInCurrentTab && currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
+            if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+                return;
+            }
+        }
+
         if (isVisibleAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
         } else {
@@ -125,12 +135,11 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1, styles.mnw0]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             {!!statusText && (
                 <View
                     style={[
                         styles.reportStatusContainer,
-                        styles.flexShrink0,
                         styles.mr1,
                         {
                             backgroundColor: statusTextBackgroundColor,
@@ -142,7 +151,7 @@ function ParentNavigationSubtitle({
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1, textStyles]}
                 numberOfLines={1}
             >
                 {!!reportName && (
@@ -154,6 +163,7 @@ function ParentNavigationSubtitle({
                             onPress={onPress}
                             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
                             style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link, textStyles]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {reportName}
                         </TextLink>
