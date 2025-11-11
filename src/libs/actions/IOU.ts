@@ -13962,7 +13962,7 @@ function updateSplitTransactions({
             const updatedReportAction = {
                 [firstIOU.reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    previousMessage: firstIOU.message,
+                    previousMessage: firstIOU.message ?? '',
                     message: [
                         {
                             type: 'COMMENT',
