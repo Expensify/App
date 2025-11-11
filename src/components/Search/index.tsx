@@ -93,8 +93,7 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
-    const parentReportAction = isThread(item.report) ? getReportAction(item.report.parentReportID, item.report.parentReportActionID) : undefined;
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, parentReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item, item.policy);
 
     return [
         item.keyForList,
@@ -176,8 +175,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    const parentReportAction = isThread(item.report) ? getReportAction(item.report.parentReportID, item.report.parentReportActionID) : undefined;
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, parentReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item, item.policy);
 
     return {
         ...selectedTransactions,
@@ -459,13 +457,10 @@ function Search({
                         return;
                     }
 
-                    const parentReportAction = isThread(transactionItem.report)
-                        ? getReportAction(transactionItem.report.parentReportID, transactionItem.report.parentReportActionID)
-                        : undefined;
                     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                         transactionItem.report,
                         transactionItem.reportAction,
-                        parentReportAction,
+                        transactionItem.parentReportAction,
                         transactionItem,
                         transactionItem.policy,
                     );
@@ -507,11 +502,10 @@ function Search({
                     return;
                 }
 
-                const parentReportAction = isThread(transactionItem.report) ? getReportAction(transactionItem.report.parentReportID, transactionItem.report.parentReportActionID) : undefined;
                 const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                     transactionItem.report,
                     transactionItem.reportAction,
-                    parentReportAction,
+                    transactionItem.parentReportAction,
                     transactionItem,
                     transactionItem.policy,
                 );
