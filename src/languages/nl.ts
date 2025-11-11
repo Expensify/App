@@ -825,8 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Dien een uitgave in, verwijs uw baas',
-            subtitleText: 'Wil je dat je baas ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
+            title: 'Dien een uitgave in, verwijs uw team',
+            subtitleText: 'Wil je dat je team ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1128,6 +1128,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Uitgave splitsen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
         addSplit: 'Splits toevoegen',
+        makeSplitsEven: 'Verdelingen gelijk maken',
         editSplits: 'Splits bewerken',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} meer dan de oorspronkelijke uitgave.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} minder dan de oorspronkelijke uitgave.`,
@@ -4199,6 +4200,8 @@ ${amount} voor ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Als je de exportinstelling voor bedrijfskaarten wijzigt naar onkostenrapporten, worden NetSuite-leveranciers en boekingsaccounts voor individuele kaarten uitgeschakeld.\n\nGeen zorgen, we bewaren je vorige selecties nog steeds voor het geval je later terug wilt schakelen.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify zal elke dag automatisch synchroniseren met NetSuite.',
@@ -6735,9 +6738,9 @@ ${amount} voor ${merchant} - ${date}`,
             body: 'Wil je dat je vrienden ook Expensify gebruiken? Begin gewoon een chat met hen en wij doen de rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Dien een uitgave in, <success><strong>verwijs je baas</strong></success>.',
-            header: 'Dien een uitgave in, verwijs uw baas',
-            body: 'Wil je dat je baas ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
+            buttonText: 'Dien een uitgave in, <success><strong>verwijs je team</strong></success>.',
+            header: 'Dien een uitgave in, verwijs uw team',
+            body: 'Wil je dat je team ook Expensify gebruikt? Dien gewoon een onkostendeclaratie bij hen in en wij doen de rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Verwijs een vriend',

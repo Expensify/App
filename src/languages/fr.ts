@@ -339,7 +339,7 @@ const translations: TranslationDeepObject<typeof en> = {
         notNow: 'Pas maintenant',
         noThanks: 'Non merci',
         learnMore: 'En savoir plus',
-        buttonConfirm: 'Compris',
+        buttonConfirm: "J'ai compris",
         name: 'Nom',
         attachment: 'Pièce jointe',
         attachments: 'Pièces jointes',
@@ -829,8 +829,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Soumettre une dépense, référer votre patron',
-            subtitleText: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            title: 'Soumettre une dépense, référer votre équipe',
+            subtitleText: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1133,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Ajouter une répartition',
+        makeSplitsEven: 'Uniformiser les répartitions',
         editSplits: 'Modifier les répartitions',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Le montant total est de ${amount} supérieur à la dépense initiale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Le montant total est de ${amount} inférieur à la dépense originale.`,
@@ -4195,6 +4196,8 @@ ${amount} pour ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Si vous changez le paramètre d’exportation des cartes d’entreprise vers les rapports de frais, les fournisseurs NetSuite et les comptes de publication pour les cartes individuelles seront désactivés.\n\nNe vous inquiétez pas, nous sauvegarderons toujours vos sélections précédentes au cas où vous voudriez revenir en arrière plus tard.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se synchronisera automatiquement avec NetSuite tous les jours.',
@@ -6745,9 +6748,9 @@ ${amount} pour ${merchant} - ${date}`,
             body: 'Vous voulez que vos amis utilisent aussi Expensify ? Commencez simplement une discussion avec eux et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre patron</strong></success>.',
-            header: 'Soumettre une dépense, référer votre patron',
-            body: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre équipe</strong></success>.',
+            header: 'Soumettre une dépense, référer votre équipe',
+            body: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Parrainez un ami',
