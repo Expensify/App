@@ -522,8 +522,14 @@ function clearPolicyTagListErrorField({policyID, tagListIndex, errorField, polic
     });
 }
 
-function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type ClearPolicyTagListErrorsProps = {
+    policyID: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPolicyTagListErrorsProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag) {
         return;
@@ -704,18 +710,10 @@ function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps
     };
 
     if (!policyTags) {
-        const defaultTagList: PolicyTagLists = {
-            Tag: {
-                name: 'Tag',
-                orderWeight: 0,
-                required: false,
-                tags: {},
-            },
-        };
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            value: defaultTagList,
+            value: CONST.POLICY.DEFAULT_TAG_LIST,
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,

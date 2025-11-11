@@ -216,7 +216,7 @@ function PaymentMethodList({
 
     const getCardBrickRoadIndicator = useCallback(
         (card: Card) => {
-            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
                 return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
@@ -237,7 +237,7 @@ function PaymentMethodList({
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
-                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
+                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card)) {
@@ -258,7 +258,7 @@ function PaymentMethodList({
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
@@ -292,7 +292,11 @@ function PaymentMethodList({
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        if (
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
+                            Object.keys(assignedCardsGroupedItem.errors).length > 0
+                        ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }
@@ -333,7 +337,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles, translate);
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
@@ -456,6 +460,7 @@ function PaymentMethodList({
                     pendingAction={item.pendingAction}
                     errors={item.errors}
                     errorRowStyles={styles.ph6}
+                    shouldShowErrorMessages={false}
                     canDismissError={item.canDismissError}
                 >
                     <MenuItem

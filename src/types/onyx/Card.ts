@@ -111,6 +111,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card product under which the card is provisioned */
         feedCountry?: string;
 
+        /** Issued card country */
+        country?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
