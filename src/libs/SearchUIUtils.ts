@@ -288,7 +288,7 @@ type GetSectionsParams = {
     currentSearch?: SearchKey;
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
-    reportMetadata?: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined;
+    isActionLoadingSet?: ReadonlySet<string>;
 };
 
 /**
@@ -1388,7 +1388,7 @@ function getReportSections(
     currentAccountID: number | undefined,
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    reportMetadata: Record<string, OnyxTypes.ReportMetadata | undefined> | undefined,
+    isActionLoadingSet: ReadonlySet<string> | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1426,7 +1426,7 @@ function getReportSections(
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
             let shouldShow = true;
-            if (queryJSON && reportMetadata && !reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`]?.isActionLoading) {
+            if (queryJSON && isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`)) {
                 if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = queryJSON.status;
 
@@ -1643,7 +1643,7 @@ function getSections({
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     archivedReportsIDList,
     queryJSON,
-    reportMetadata,
+    isActionLoadingSet,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1653,7 +1653,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportMetadata, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
     }
 
     if (groupBy) {
