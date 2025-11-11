@@ -486,21 +486,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
-        const loginsToUpdate: string[] = [];
-        const accountIDsToUpdate: number[] = [];
+        const loginsToUpdate = selectedEmployees.filter((login) => {
+            return policy?.employeeList?.[login]?.role !== role;
+        });
 
-        // It would be redundant to update the role for employees who already have the target role
-        // so we only update the role for employees who don't already have the target role
-        for (const login of selectedEmployees) {
-            if (policy?.employeeList?.[login]?.role === role) {
-                continue;
-            }
-            loginsToUpdate.push(login);
-            const accountID = policyMemberEmailsToAccountIDs[login];
-            if (accountID !== undefined) {
-                accountIDsToUpdate.push(accountID);
-            }
-        }
+        const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
         setSelectedEmployees([]);
         updateWorkspaceMembersRole(route.params.policyID, loginsToUpdate, accountIDsToUpdate, role);
