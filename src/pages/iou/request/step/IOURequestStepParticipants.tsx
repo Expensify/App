@@ -209,7 +209,7 @@ function IOURequestStepParticipants({
 
             const firstParticipant = val.at(0);
 
-            if (firstParticipant?.isSelfDM) {
+            if (firstParticipant?.isSelfDM && !isSplitRequest) {
                 trackExpense();
                 return;
             }
@@ -271,17 +271,18 @@ function IOURequestStepParticipants({
             }
         },
         [
-            action,
+            isSplitRequest,
+            allPolicies,
             iouType,
             transactions,
             isMovingTransactionFromTrackExpense,
             reportID,
+            action,
             trackExpense,
-            allPolicies,
-            personalPolicy,
-            lastSelectedDistanceRates,
             initialTransactionID,
+            lastSelectedDistanceRates,
             localeCompare,
+            personalPolicy?.autoReporting,
         ],
     );
 

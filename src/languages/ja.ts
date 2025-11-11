@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: '無効な金額',
             acceptTerms: '続行するには、利用規約に同意する必要があります。',
-            phoneNumber: `有効な電話番号を国コードとともに入力してください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `電話番号を完全に入力してください\n(例: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは他のメンバーによって変更されています。',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えました（${length}/${limit}）`,
@@ -2033,6 +2033,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
+        unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです。',
             reportFraudButtonText: 'いいえ、それは私ではありませんでした。',
@@ -2575,15 +2577,15 @@ ${date} - ${merchant}に${amount}`,
             splitExpenseTask: {
                 title: '経費を分割する',
                 description:
-                    '*経費を分割する* には、1人または複数の人と共有します。\n' +
+                    '1人以上の相手と*経費を分割*します。' +
                     '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *チャットを開始*を選択します。\n' +
-                    '3. メールアドレスまたは電話番号を入力します。\n' +
-                    '4. チャット内の灰色の*+*ボタンをクリック > *経費を分割*。\n' +
-                    '5. *手動* 、*スキャン* 、または*距離*を選択して経費を作成します。\n' +
+                    `${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。` +
+                    '2.「*Start chat*」を選択します。' +
+                    '3. メールアドレスまたは電話番号を入力します..' +
+                    '4. チャットでグレーの*+*ボタンをクリック > *経費を分割*。' +
+                    '5. *Manual*、*Scan*、または*Distance* を選択して経費を作成します。' +
                     '\n' +
-                    '必要ならば詳細を追加するか、単に送信します。払い戻しをありましょう！',
+                    '必要なら詳細を追加しても、そのまま送信しても構いません。さあ、精算してもらいましょう！',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペース設定](${workspaceSettingsLink})を確認する`,
@@ -4611,7 +4613,7 @@ ${date} - ${merchant}に${amount}`,
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',
             verifyingBankAccount: '銀行口座を確認しています...',
