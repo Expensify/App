@@ -826,8 +826,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Złóż wydatek, poleć swojego szefa',
-            subtitleText: 'Chcesz, aby Twój szef również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
+            title: 'Złóż wydatek, poleć swojemu teamowi',
+            subtitleText: 'Chcesz, aby Twój team również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1127,6 +1127,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Podziel wydatek',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} od ${merchant}`,
         addSplit: 'Dodaj podział',
+        makeSplitsEven: 'Wyrównaj podziały',
         editSplits: 'Edytuj podziały',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Całkowita kwota jest o ${amount} większa niż pierwotny wydatek.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Całkowita kwota jest o ${amount} mniejsza niż pierwotny wydatek.`,
@@ -4187,6 +4188,8 @@ ${amount} dla ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Jeśli zmienisz ustawienie eksportu kart firmowych na raporty wydatków, dostawcy NetSuite i konta księgowe dla poszczególnych kart zostaną wyłączone.\n\nNie martw się, nadal zapiszemy Twoje poprzednie wybory na wypadek, gdybyś chciał później wrócić do poprzednich ustawień.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z NetSuite każdego dnia.',
@@ -6720,9 +6723,9 @@ ${amount} dla ${merchant} - ${date}`,
             body: 'Chcesz, aby Twoi znajomi również korzystali z Expensify? Po prostu rozpocznij z nimi czat, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Złóż wydatek, <success><strong>poleć swojego szefa</strong></success>.',
-            header: 'Złóż wydatek, poleć swojego szefa',
-            body: 'Chcesz, aby Twój szef również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
+            buttonText: 'Złóż wydatek, <success><strong>poleć swojemu teamowi</strong></success>.',
+            header: 'Złóż wydatek, poleć swojemu teamowi',
+            body: 'Chcesz, aby Twój team również korzystał z Expensify? Po prostu prześlij mu raport wydatków, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Poleć znajomego',
