@@ -52,19 +52,6 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
-/**
- * We use a module-level variable to cache all search snapshots.
- * This allows us to read the current state synchronously when performing optimistic updates.
- */
-let searchSnapshots: OnyxCollection<SearchResults> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        searchSnapshots = value;
-    },
-});
-
 type OnyxSearchResponse = {
     data: [];
     search: {
@@ -607,9 +594,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
-    // Read current search snapshot from cache
-    const currentSearchResults = searchSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], currentSearchResults?: SearchResults) {
     const currentMetadata = currentSearchResults?.search;
 
     // Calculate total amount of transactions being deleted
