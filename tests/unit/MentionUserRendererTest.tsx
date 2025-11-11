@@ -140,9 +140,8 @@ describe('MentionUserRenderer', () => {
         };
         const tnode = buildTNode({accountID: '101'});
         renderMention({tnode});
-        const mention = screen.getByTestId('mention-user');
-        expect(mention).toHaveTextContent('@+15005550006');
-        expect(mention).not.toHaveTextContent('John Doe');
+        expect(screen.getByText('@+15005550006')).toBeVisible();
+        expect(screen.queryByText('John Doe')).not.toBeVisible();
     });
 
     test('renders email mention when user has email login', () => {
