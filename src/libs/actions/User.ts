@@ -63,20 +63,11 @@ import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
-let conciergeReportID: OnyxEntry<string>;
-
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => {
-        conciergeReportID = value;
     },
 });
 
@@ -1486,38 +1477,73 @@ function requestUnlockAccount() {
 
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
-    optimisticReportActionID?: number;
+    optimisticReportActionID?: string;
 };
 
 /**
  * Respond to the proactive app review prompt and optionally create a Concierge message
  */
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', message?: string) {
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', message?: string, conciergeChatReportID?: string) {
     const params: RespondToProactiveAppReviewParams = {response};
+    let optimisticData: OnyxUpdate[] = [];
+    let successData: OnyxUpdate[] = [];
+    let failureData: OnyxUpdate[] = [];
 
     // For positive/negative responses, create an optimistic Concierge message
-    if (message && conciergeReportID && response !== 'skip') {
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message);
+    if (message && conciergeChatReportID && response !== 'skip') {
+        const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID);
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
-        // Add optimistic comment to Onyx
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {
-            [optimisticReportActionID]: optimisticReportAction.reportAction,
-        });
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {
-            lastVisibleActionCreated: optimisticReportAction.reportAction.created,
-            lastMessageText: message,
-            lastActorAccountID: currentUserAccountID,
-            lastReadTime: currentTime,
-        });
+        params.optimisticReportActionID = optimisticReportActionID;
 
-        params.optimisticReportActionID = Number(optimisticReportActionID);
+        optimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: optimisticReportAction.reportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+                value: {
+                    lastVisibleActionCreated: optimisticReportAction.reportAction.created,
+                    lastMessageText: message,
+                    lastActorAccountID: conciergeAccountID,
+                    lastReadTime: currentTime,
+                },
+            },
+        ];
+
+        successData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ];
+
+        failureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ];
     }
 
-    API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params);
-
-    return conciergeReportID;
+    API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
 
 export {

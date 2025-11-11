@@ -1,7 +1,6 @@
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
-    optimisticReportActionID?: number;
+    optimisticReportActionID?: string;
 };
 
 export default RespondToProactiveAppReviewParams;
-
