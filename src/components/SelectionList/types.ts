@@ -96,9 +96,6 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
 
-    /** Whether to include padding bottom */
-    includeSafeAreaPaddingBottom?: boolean;
-
     /** Whether to show the empty list content */
     showListEmptyContent?: boolean;
 

@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Nieprawidłowa kwota',
             acceptTerms: 'Musisz zaakceptować Warunki korzystania z usługi, aby kontynuować',
-            phoneNumber: `Proszę wprowadzić prawidłowy numer telefonu z kodem kraju (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Proszę wprowadzić pełny numer telefonu\n(np. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'To pole jest wymagane',
             requestModified: 'To żądanie jest modyfikowane przez innego członka.',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Przekroczono limit znaków (${length}/${limit})`,
@@ -2037,6 +2037,8 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Proszę <a href="${missingDetailsLink}">dodać swoje dane osobowe</a>, a następnie spróbuj ponownie.`,
+        unexpectedError: 'Wystąpił błąd podczas próby pobrania szczegółów Twojej karty Expensify. Spróbuj ponownie.',
         cardFraudAlert: {
             confirmButtonText: 'Tak, robię',
             reportFraudButtonText: 'Nie, to nie byłem ja',
@@ -2579,7 +2581,7 @@ ${amount} dla ${merchant} - ${date}`,
                     'Elke chat wordt ook omgezet in een e-mail of sms waar ze direct op kunnen reageren.',
             },
             splitExpenseTask: {
-                title: 'Splits een uitgave',
+                title: 'Podziel wydatek',
                 description:
                     '*Splits uitgaven* met één of meer personen.\n' +
                     '\n' +
@@ -4636,7 +4638,7 @@ ${amount} dla ${merchant} - ${date}`,
             issuedCard: ({assignee}: AssigneeParams) => `wydano ${assignee} kartę Expensify! Karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `Wydano ${assignee} kartę Expensify! Karta zostanie wysłana po potwierdzeniu danych wysyłkowych.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `wydano ${assignee} wirtualną ${link}! Karta może być używana od razu.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} dodał szczegóły wysyłki. Karta Expensify dotrze w ciągu 2-3 dni roboczych.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} dodał(a) szczegóły wysyłki. Expensify Card dotrze w ciągu 2-3 dni roboczych.`,
             verifyingHeader: 'Weryfikacja',
             bankAccountVerifiedHeader: 'Zweryfikowano konto bankowe',
             verifyingBankAccount: 'Weryfikacja konta bankowego...',
@@ -5011,6 +5013,10 @@ ${amount} dla ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Nie można ustawić wszystkich tagów jako opcjonalne.',
                 description: `Co najmniej jeden tag musi pozostać wymagany, ponieważ ustawienia Twojego miejsca pracy wymagają tagów.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Nie można utworzyć listy tagów wymaganych',
+                description: 'Listę tagów można ustawić jako obowiązkową tylko wtedy, gdy w polityce skonfigurowano wiele poziomów tagów.',
             },
             tagCount: () => ({
                 one: '1 dzień',

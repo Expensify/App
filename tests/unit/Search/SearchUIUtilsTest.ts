@@ -1,5 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import openSearchReport from '@components/Search/openSearchReport';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -13,7 +14,6 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -26,7 +26,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -46,6 +45,7 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
+jest.mock('@components/Search/openSearchReport', () => jest.fn());
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -369,7 +369,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -384,8 +383,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
-            hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -412,7 +409,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
-            action: 'view',
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -427,8 +423,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            description: '',
-            hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -457,7 +451,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             accountID: adminAccountID,
             amount: 1200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -485,7 +478,6 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
-            description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
@@ -493,14 +485,12 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
             amount: 3200,
-            action: 'view',
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -526,7 +516,6 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
-            description: '',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -536,7 +525,6 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -838,14 +826,12 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -905,7 +891,6 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -913,7 +898,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: true,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -978,7 +962,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -986,7 +969,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1046,7 +1028,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1054,7 +1035,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1117,7 +1097,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1129,7 +1108,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
@@ -1226,7 +1204,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
@@ -1238,7 +1215,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: true,
                 violations: [
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -1849,7 +1825,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1877,7 +1853,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 55;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2394,7 +2370,6 @@ describe('SearchUIUtils', () => {
                         canHold: true,
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
-                        action: 'approve',
                         comment: {
                             comment: '',
                         },
@@ -2527,7 +2502,6 @@ describe('SearchUIUtils', () => {
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
-                    action: 'approve',
                     comment: {
                         comment: '',
                     },
@@ -2856,12 +2830,12 @@ describe('SearchUIUtils', () => {
 
         test('Should not navigate if shouldNavigate = false', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(openSearchReport).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            expect(openSearchReport).toHaveBeenCalledWith(threadReportID, backTo);
         });
     });
 
