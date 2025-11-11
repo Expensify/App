@@ -228,6 +228,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
                             exact: true,
@@ -661,6 +665,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC]: {
+                            path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
+                            path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
@@ -1729,6 +1739,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.DOMAIN]: {
+                    screens: {
+                        [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+                            path: ROUTES.WORKSPACES_VERIFY_DOMAIN.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
+                            exact: true,
+                        },
+                    },
+                },
             },
         },
 
@@ -1870,6 +1892,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     },
                 },
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
+                [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: {path: ROUTES.SHARE_DETAILS_ATTACHMENT},
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },

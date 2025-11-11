@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -5480,6 +5482,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+        },
+        copyableTextField: {
+            color: theme.textSupporting,
+            flex: 1,
+            ...wordBreak.breakWord,
         },
     }) satisfies StaticStyles;
 
