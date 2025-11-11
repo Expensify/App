@@ -10,6 +10,7 @@
 // Include C++ implementation defined types
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridTTIMeasurementViewSpecSwift.hpp"
 
 namespace margelo::nitro::utils::bridge::swift {
 
@@ -42,6 +43,30 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void(const TTIMeasurement& /* measurement */)>
+  Func_void_TTIMeasurement create_Func_void_TTIMeasurement(void* _Nonnull swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_TTIMeasurement::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const TTIMeasurement& measurement) mutable -> void {
+      swiftClosure.call(measurement);
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTTIMeasurementViewSpec>
+  std::shared_ptr<HybridTTIMeasurementViewSpec> create_std__shared_ptr_HybridTTIMeasurementViewSpec_(void* _Nonnull swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx swiftPart = ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift>(swiftPart);
+  }
+  void* _Nonnull get_std__shared_ptr_HybridTTIMeasurementViewSpec_(std__shared_ptr_HybridTTIMeasurementViewSpec_ cppType) noexcept {
+    std::shared_ptr<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridTTIMeasurementViewSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridTTIMeasurementViewSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridTTIMeasurementViewSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

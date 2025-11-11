@@ -28,8 +28,12 @@ target_sources(
   ../nitrogen/generated/android/ExpensifyNitroUtilsOnLoad.cpp
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridContactsModuleSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridTTIMeasurementViewSpec.cpp
+  ../nitrogen/generated/shared/c++/views/HybridTTIMeasurementViewComponent.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridContactsModuleSpec.cpp
+  ../nitrogen/generated/android/c++/JHybridTTIMeasurementViewSpec.cpp
+  ../nitrogen/generated/android/c++/views/JHybridTTIMeasurementViewStateUpdater.cpp
 )
 
 # Define a flag to check if we are building properly

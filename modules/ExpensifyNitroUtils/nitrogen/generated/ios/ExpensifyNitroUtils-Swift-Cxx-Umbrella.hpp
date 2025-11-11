@@ -14,17 +14,24 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridTTIMeasurementViewSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTTIMeasurementViewSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
+// Forward declaration of `TTIMeasurement` to properly resolve imports.
+namespace margelo::nitro::utils { struct TTIMeasurement; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridTTIMeasurementViewSpec.hpp"
 #include "StringHolder.hpp"
+#include "TTIMeasurement.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -42,6 +49,8 @@ namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridTTIMeasurementViewSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridTTIMeasurementViewSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")
