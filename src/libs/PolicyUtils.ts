@@ -1338,11 +1338,8 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
-function hasNoPolicyOtherThanPersonalType(policies: OnyxCollection<Policy>) {
-    return (
-        Object.values(policies ?? {}).findIndex((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ===
-        -1
-    );
+function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
+    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
@@ -1687,7 +1684,7 @@ export {
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
-    hasNoPolicyOtherThanPersonalType,
+    hasOnlyPersonalPolicies,
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
