@@ -827,8 +827,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: '経費を提出し、上司に紹介する',
-            subtitleText: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            title: '経費を提出し、チームに紹介する',
+            subtitleText: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
     },
     videoChatButtonAndMenu: {
@@ -1130,6 +1130,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant}から${amount}`,
         addSplit: '分割を追加',
+        makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}多いです。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
@@ -6684,9 +6685,9 @@ ${date} - ${merchant}に${amount}`,
             body: '友達にもExpensifyを使ってほしいですか？ 彼らとチャットを始めるだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: '経費を提出し、<success><strong>上司に紹介する</strong></success>。',
-            header: '経費を提出し、上司に紹介する',
-            body: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            buttonText: '経費を提出し、<success><strong>チームに紹介する</strong></success>。',
+            header: '経費を提出し、チームに紹介する',
+            body: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: '友達を紹介する',
