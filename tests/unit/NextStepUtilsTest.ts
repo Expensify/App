@@ -541,7 +541,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
+                        text: `you`,
                     },
                     {
                         text: ' to ',
@@ -574,7 +574,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
+                        text: `you`,
                     },
                     {
                         text: ' to ',
@@ -834,7 +834,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'an admin',
+                        text: 'you',
                     },
                     {
                         text: ' to ',
@@ -875,7 +875,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'an admin',
+                        text: 'you',
                     },
                     {
                         text: ' to ',
