@@ -607,8 +607,7 @@ function getTransactionItemCommonFormattedProperties(
     to: SearchPersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    report: SearchReport,
+    report: OnyxTypes.Report,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
