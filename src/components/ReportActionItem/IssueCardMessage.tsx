@@ -15,7 +15,7 @@ import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, should
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -29,7 +29,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const styles = useThemeStyles();
     const session = useSession();
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const expensifyCard = useGetExpensifyCardFromReportAction({reportAction: action, policyID}) ?? ({cardID: 1} as Card);
+    const expensifyCard = useGetExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
