@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -336,19 +337,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-    },
-});
-
-const draftNoteMap: OnyxCollection<string> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
-        draftNoteMap[reportID] = value;
     },
 });
 
@@ -1868,49 +1856,52 @@ function handlePreexistingReport(report: Report) {
         return;
     }
 
-    // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
-    // In this case, the API will let us know by returning a preexistingReportID.
-    // We should clear out the optimistically created report and re-route the user to the preexisting report.
-    let callback = () => {
-        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+        // In this case, the API will let us know by returning a preexistingReportID.
+        // We should clear out the optimistically created report and re-route the user to the preexisting report.
+        let callback = () => {
+            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
 
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-            ...report,
-            reportID: preexistingReportID,
-            preexistingReportID: null,
-            // Replacing the existing report's participants to avoid duplicates
-            participants: existingReport?.participants ?? report.participants,
-        });
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
-    };
-    // Only re-route them if they are still looking at the optimistically created report
-    if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
-        const currCallback = callback;
-        callback = () => {
-            currCallback();
-            Navigation.setParams({reportID: preexistingReportID.toString()});
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                ...report,
+                reportID: preexistingReportID,
+                preexistingReportID: null,
+                // Replacing the existing report's participants to avoid duplicates
+                participants: existingReport?.participants ?? report.participants,
+            });
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
+        // Only re-route them if they are still looking at the optimistically created report
+        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+            const currCallback = callback;
+            callback = () => {
+                currCallback();
+                Navigation.setParams({reportID: preexistingReportID.toString()});
+            };
 
-        // The report screen will listen to this event and transfer the draft comment to the existing report
-        // This will allow the newest draft comment to be transferred to the existing report
-        DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-            preexistingReportID,
-            callback,
-        });
+            // The report screen will listen to this event and transfer the draft comment to the existing report
+            // This will allow the newest draft comment to be transferred to the existing report
+            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
+                preexistingReportID,
+                callback,
+            });
 
-        return;
-    }
+            return;
+        }
 
-    // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-    // after that clear the optimistically created report
-    const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-    if (!draftReportComment) {
-        callback();
-        return;
-    }
+        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+        // after that clear the optimistically created report
+        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+        if (!draftReportComment) {
+            callback();
+            return;
+        }
 
-    saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+    });
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
@@ -4311,10 +4302,6 @@ function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-function getDraftPrivateNote(reportID: string): string {
-    return draftNoteMap?.[reportID] ?? '';
-}
-
 /**
  * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
@@ -6015,7 +6002,6 @@ export {
     flagComment,
     getCurrentUserAccountID,
     getCurrentUserEmail,
-    getDraftPrivateNote,
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
