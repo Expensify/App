@@ -19,6 +19,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -124,6 +125,9 @@ function IOURequestStepDistance({
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const hasRouteError = !!transaction?.errorFields?.route;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isWaypointEmpty = (waypoint?: Waypoint) => {
         if (!waypoint) {
             return true;
@@ -370,6 +374,10 @@ function IOURequestStepDistance({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    transactionViolations,
+                    isASAPSubmitBetaEnabled,
                 });
                 return;
             }
@@ -434,6 +442,8 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         reportID,
         lastSelectedDistanceRates,
+        transactionViolations,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const getError = () => {
@@ -509,6 +519,9 @@ function IOURequestStepDistance({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;
@@ -533,6 +546,9 @@ function IOURequestStepDistance({
         transaction?.routes,
         report?.reportID,
         policy,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(

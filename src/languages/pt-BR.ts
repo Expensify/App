@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contagem',
         cancel: 'Cancelar',
@@ -452,7 +452,7 @@ const translations = {
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'Nenhum resultado encontrado',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Nenhum resultado encontrado correspondente a "${searchString}"`,
         recentDestinations: 'Destinos recentes',
         timePrefix: 'É',
         conjunctionFor: 'para',
@@ -599,7 +599,6 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exportação básica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -678,8 +677,6 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Obtenha o aplicativo',
-        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -1131,7 +1128,6 @@ const translations = {
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Adicionar divisão',
-        makeSplitsEven: 'Tornar as divisões iguais',
         editSplits: 'Editar divisões',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} maior que a despesa original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} a menos que a despesa original.`,
@@ -1342,11 +1338,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Por favor, tente novamente mais tarde.',
             genericUnholdExpenseFailureMessage: 'Erro inesperado ao remover esta despesa da retenção. Por favor, tente novamente mais tarde.',
             receiptDeleteFailureError: 'Erro inesperado ao excluir este recibo. Por favor, tente novamente mais tarde.',
-            receiptFailureMessage: 'Houve um erro ao enviar seu recibo. Por favor,',
+            receiptFailureMessage: '<rbr>Houve um erro ao enviar seu recibo. Por favor, <a href="download">salve o recibo</a> e <a href="retry">tente novamente</a> mais tarde.</rbr>',
             receiptFailureMessageShort: 'Houve um erro ao enviar seu recibo.',
-            tryAgainMessage: 'tente novamente',
-            saveFileMessage: 'salvar o recibo',
-            uploadLaterMessage: 'para enviar mais tarde.',
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Por favor, tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Por favor, tente novamente mais tarde.',
             genericSmartscanFailureMessage: 'A transação está com campos faltando',
@@ -4934,6 +4927,7 @@ ${amount} para ${merchant} - ${date}`,
             existingReportFieldNameError: 'Um campo de relatório com este nome já existe',
             reportFieldNameRequiredError: 'Por favor, insira um nome de campo de relatório',
             reportFieldTypeRequiredError: 'Por favor, escolha um tipo de campo de relatório',
+            circularReferenceError: 'Este campo não pode se referir a si mesmo. Atualize.',
             reportFieldInitialValueRequiredError: 'Por favor, escolha um valor inicial para o campo do relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Por favor, tente novamente.',
         },
@@ -5144,7 +5138,6 @@ ${amount} para ${merchant} - ${date}`,
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
-                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
@@ -5496,8 +5489,8 @@ ${amount} para ${merchant} - ${date}`,
             enableRate: 'Habilitar taxa',
             status: 'Status',
             unit: 'Unidade',
-            taxFeatureNotEnabledMessage: 'Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para',
-            changePromptMessage: 'para fazer essa alteração.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Os impostos devem estar ativados no espaço de trabalho para usar este recurso. Vá para <a href="#">Mais funcionalidades</a> para fazer essa alteração.</muted-text>',
             deleteDistanceRate: 'Excluir taxa de distância',
             areYouSureDelete: () => ({
                 one: 'Tem certeza de que deseja excluir esta taxa?',
@@ -5696,6 +5689,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Crie e gerencie suas próprias tarifas, acompanhe em milhas ou quilômetros e defina categorias padrão para despesas de distância.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As tarifas de distância estão disponíveis no plano Collect, começando em <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            auditor: {
+                title: 'Auditor',
+                description: 'Os auditores têm acesso somente de leitura a todos os relatórios para visibilidade total e monitoramento de conformidade.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Os auditores estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Vários níveis de aprovação',
@@ -6857,7 +6856,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
-        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
@@ -7383,14 +7381,36 @@ ${amount} para ${merchant} - ${date}`,
         upload: 'Carregar',
         uploadPhoto: 'Carregar foto',
         selectAvatar: 'Selecionar avatar',
-        chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+        choosePresetAvatar: 'Ou escolha um avatar personalizado',
     },
     openAppFailureModal: {
         title: 'Algo deu errado...',
         subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
         refreshAndTryAgain: 'Atualize e tente novamente',
     },
+    domain: {
+        notVerified: 'Não verificado',
+        retry: 'Tentar novamente',
+        verifyDomain: {
+            title: 'Verificar domínio',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Antes de prosseguir, verifique se você é o proprietário de <strong>${domainName}</strong> atualizando as configurações de DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Acesse seu provedor de DNS e abra as configurações de DNS para <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Adicione o seguinte registro TXT:',
+            saveChanges: 'Salve as alterações e volte aqui para verificar seu domínio.',
+            youMayNeedToConsult: `Talvez seja necessário consultar o departamento de TI da sua organização para concluir a verificação. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Saiba mais</a>.`,
+            warning: 'Após a verificação, todos os membros do Expensify no seu domínio receberão um e-mail informando que suas contas serão gerenciadas sob seu domínio.',
+            codeFetchError: 'Não foi possível obter o código de verificação',
+            genericError: 'Não conseguimos verificar seu domínio. Tente novamente e entre em contato com o Concierge se o problema persistir.',
+        },
+        domainVerified: {
+            title: 'Domínio verificado',
+            header: 'Uhul! Seu domínio foi verificado',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>O domínio <strong>${domainName}</strong> foi verificado com sucesso e agora você pode configurar SAML e outros recursos de segurança.</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

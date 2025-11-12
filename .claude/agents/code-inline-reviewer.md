@@ -248,17 +248,17 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 6. **Each comment must reference exactly one Rule ID.**
 7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
-8. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
-   LGTM 👍 Thank you for your hard work!
-9. **Output LGTM if and only if**:
+8. **If no violations are found, add a reaction to the PR**:
+   Add a 👍 (+1) reaction to the PR body using the `.github/scripts/addPrReaction.sh` script.
+9. **Add reaction if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules
    - You found ZERO violations matching the exact rule criteria
    - You verified no false negatives by checking each rule systematically
-    If you found even ONE violation or have ANY uncertainty do NOT create LGTM comment - create inline comments instead.
+    If you found even ONE violation or have ANY uncertainty do NOT add the reaction - create inline comments instead.
 10. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 11. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
-    Only inline comments regarding rules violations or general comment with LGTM message are allowed.
+    Only inline comments regarding rules violations are allowed. If no violations are found, add a reaction instead of creating any comment.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
 ## Tool Usage Example
@@ -273,22 +273,13 @@ mcp__github_inline_comment__create_inline_comment:
   body: '<Body of the comment according to the Comment Format>'
 ```
 
-If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
+If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
 
 ```bash
-gh pr comment --body 'LGTM :feelsgood:. Thank you for your hard work!'
+.github/scripts/addPrReaction.sh <PR_NUMBER>
 ```
 
-**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
-
-Example:
-```bash
-# Good
-gh pr comment --body 'Use `useMemo` to optimize performance'
-
-# Bad
-gh pr comment --body "Use `useMemo` to optimize performance"
-```
+**IMPORTANT**: Always use the `.github/scripts/addPrReaction.sh` script instead of calling `gh api` directly. This script provides a secure, restricted interface that only allows adding +1 reactions to PRs, preventing arbitrary GitHub API calls.
 
 ## Comment Format
 

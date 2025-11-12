@@ -930,6 +930,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const restrictedReadOnlyActions: TranslationPaths[] = ['reportActionContextMenu.replyInThread', 'reportActionContextMenu.editAction', 'reportActionContextMenu.joinThread', 'common.delete'];
 
 const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
