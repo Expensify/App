@@ -22,7 +22,7 @@ import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
@@ -40,7 +40,7 @@ import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
+function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
@@ -68,7 +68,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
                 return false;
             }
 
-            const phoneLogin = appendCountryCodeWithCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
+            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
@@ -139,7 +139,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
 
         const loginTrim = StringUtils.removeInvisibleCharacters(login.trim());
 
-        const phoneLogin = appendCountryCodeWithCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
@@ -175,7 +175,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
     }, [account?.isLoading]);
 
     useEffect(() => {
-        if (blurOnSubmit) {
+        if (submitBehavior === 'blurAndSubmit') {
             input.current?.blur();
         }
 
@@ -184,7 +184,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
             return;
         }
         input.current?.focus();
-    }, [blurOnSubmit, isVisible, prevIsVisible]);
+    }, [submitBehavior, isVisible, prevIsVisible]);
 
     useImperativeHandle(ref, () => ({
         isInputFocused() {
