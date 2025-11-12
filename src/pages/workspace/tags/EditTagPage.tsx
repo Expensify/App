@@ -63,10 +63,7 @@ function EditTagPage({route}: EditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            try {
-                if (!policy) {
-                    throw Error('Policy is required to rename tag');
-                }
+            if (policy) {
                 renamePolicyTag({
                     policyTag: {
                         oldName: route.params.tagName,
@@ -76,16 +73,14 @@ function EditTagPage({route}: EditTagPageProps) {
                     policyTags,
                     policy,
                 });
-            } catch (e) {
-                Log.alert('[EditTagPage] Error renaming policy tag', {error: String(e)});
-            } finally {
-                Keyboard.dismiss();
-                Navigation.goBack(
-                    isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName, backTo)
-                        : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
-                );
             }
+
+            Keyboard.dismiss();
+            Navigation.goBack(
+                isQuickSettingsFlow
+                    ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName, backTo)
+                    : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
+            );
         },
         [route.params.tagName, route.params.orderWeight, policyTags, policy, isQuickSettingsFlow, policyID, backTo],
     );
