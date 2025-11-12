@@ -71,12 +71,7 @@ function TextInput({
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-
-            if (text === '') {
-                setFocusedIndex(-1);
-            } else {
                 setFocusedIndex(0);
-            }
         },
         [onChangeText, setFocusedIndex],
     );
