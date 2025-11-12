@@ -1246,10 +1246,12 @@ function PureReportActionItem({
             const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
             const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
+            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
-            if (!toReport && !fromReport) {
+            if (!toReport && !hasFromReport) {
                 children = emptyHTML;
             } else {
                 children = (
