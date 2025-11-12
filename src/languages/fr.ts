@@ -2155,7 +2155,7 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Payeur autorisé',
         genericErrorMessage: "Le payeur autorisé n'a pas pu être modifié. Veuillez réessayer.",
         admins: 'Admins',
-        payer: 'Payer',
+        payer: 'Payeur',
         paymentAccount: 'Compte de paiement',
     },
     reportFraudPage: {
