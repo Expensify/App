@@ -82,6 +82,7 @@ function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isFocused = useIsFocused();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -119,7 +120,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
     const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
-    // const [showSceletons, setShowSceletons] = useState<boolean>(true);
+    // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
         () => [
             ...new Set(
@@ -158,6 +159,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
+            // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
                     templateName,
@@ -168,6 +170,7 @@ function SearchPage({route}: SearchPageProps) {
                     policyID,
                 });
             } else {
+                // Otherwise, we will use the selected transactionIDs and reportIDs directly
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
@@ -227,6 +230,8 @@ function SearchPage({route}: SearchPageProps) {
                     return;
                 }
                 const isPolicyPaymentMethod = !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
+                // If lastPolicyPaymentMethod is not type of CONST.IOU.PAYMENT_TYPE, we're using workspace to pay the IOU
+                // Then we should move it to that workspace.
                 if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
@@ -275,7 +280,9 @@ function SearchPage({route}: SearchPageProps) {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
+        // Gets the list of options for the export sub-menu
         const getExportOptions = () => {
+            // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
@@ -309,14 +316,18 @@ function SearchPage({route}: SearchPageProps) {
                 },
             ];
 
+            // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
+            // If we're grouping by invoice or report, and all the expenses on the report are selected, or if all
+            // the selected expenses are the only expenses of their parent expense report include the report level export option.
             const includeReportLevelExport = ((typeExpenseReport || typeInvoice) && areFullReportsSelected) || (typeExpense && !typeExpenseReport && isAllOneTransactionReport);
 
+            // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
@@ -345,10 +356,12 @@ function SearchPage({route}: SearchPageProps) {
             subMenuItems: getExportOptions(),
         };
 
+        // If all matching items are selected, we don't give the user additional options, we only allow them to export the selected items
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
         }
 
+        // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -368,6 +381,7 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
+                    // Check if any of the selected items have DEW enabled
                     const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
                         : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
@@ -572,6 +586,9 @@ function SearchPage({route}: SearchPageProps) {
 
         setIsDeleteExpensesConfirmModalVisible(false);
 
+        // Translations copy for delete modal depends on amount of selected items,
+        // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
@@ -690,6 +707,10 @@ function SearchPage({route}: SearchPageProps) {
         return [styles.mtAuto];
     }, [shouldShowFooter, styles]);
 
+    // Handles video player cleanup:
+    // 1. On mount: Resets player if navigating from report screen
+    // 2. On unmount: Stops video when leaving this screen
+    // in narrow layout, the reset will be handled by the attachment modal, so we don't need to do it here to preserve autoplay
     useEffect(() => {
         if (shouldUseNarrowLayout) {
             return;
@@ -751,7 +772,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const shouldRenderContent = !isDataMissing;
 
-    const shouldShowLoadingState = !isFocused || isDataMissing;
+    const shouldShowLoadingState = !isFocused;
 
     return (
         <FullPageNotFoundView
