@@ -9,6 +9,7 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
@@ -63,21 +64,6 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
-};
-
-/** Model of personal details search result */
-type SearchPersonalDetails = {
-    /** ID of user account */
-    accountID: number;
-
-    /** User's avatar URL */
-    avatar: string;
-
-    /** User's display name */
-    displayName?: string;
-
-    /** User's email */
-    login?: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -443,7 +429,7 @@ type SearchResults = {
 
     /** Search results data */
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
@@ -468,7 +454,6 @@ export type {
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
-    SearchPersonalDetails,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
