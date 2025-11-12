@@ -620,7 +620,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -702,6 +702,8 @@ function IOURequestStepScan({
         },
         [initialTransaction, iouType, shouldStartLocationPermissionFlow, navigateToConfirmationStep, shouldSkipConfirmation],
     );
+
+    const submitMultiScanReceipts = useCallback(() => submitReceipts(receiptFiles), [receiptFiles, submitReceipts]);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
@@ -1004,7 +1006,7 @@ function IOURequestStepScan({
             {canUseMultiScan && (
                 <ReceiptPreviews
                     isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitReceipts}
+                    submit={submitMultiScanReceipts}
                 />
             )}
         </>
