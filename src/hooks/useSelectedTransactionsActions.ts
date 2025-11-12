@@ -283,7 +283,6 @@ function useSelectedTransactionsActions({
             });
         }
 
-        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
         const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeAction(report, selectedTransactionsList, policy);
         if (canMergeTransaction) {
             options.push({
