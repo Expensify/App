@@ -25,14 +25,13 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchPersonalDetails,
     SearchReport,
     SearchTask,
     SearchTransaction,
@@ -253,10 +252,10 @@ type TransactionListItemType = ListItem &
         reportAction: ReportAction | undefined;
 
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -316,7 +315,7 @@ type TransactionListItemType = ListItem &
 type ReportActionListItemType = ListItem &
     ReportAction & {
         /** The personal details of the user posting comment */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -334,10 +333,10 @@ type ReportActionListItemType = ListItem &
 type TaskListItemType = ListItem &
     SearchTask & {
         /** The personal details of the user who is assigned to the task */
-        assignee: SearchPersonalDetails;
+        assignee: PersonalDetails;
 
         /** The personal details of the user who created the task */
-        createdBy: SearchPersonalDetails;
+        createdBy: PersonalDetails;
 
         /** final and formatted "assignee" value used for displaying and sorting */
         formattedAssignee: string;
@@ -378,10 +377,10 @@ type TransactionGroupListItemType = ListItem & {
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -390,9 +389,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
