@@ -31,9 +31,8 @@ function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmatio
     const styles = useThemeStyles();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false});
-    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
+    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
-    const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`];
 
     useEffect(() => {
         if (!doesDomainExist || domain?.validated) {
@@ -42,7 +41,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmatio
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [accountID, domain?.validated, doesDomainExist, redirectTo]);
 
-    if (domainMetadata.status === 'loading') {
+    if (domainMetadata.status === 'loading' || isAdminMetadata.status === 'loading') {
         return <FullScreenLoadingIndicator />;
     }
 
