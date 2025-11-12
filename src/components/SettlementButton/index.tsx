@@ -70,6 +70,7 @@ function SettlementButton({
     enablePaymentsRoute,
     iouReport,
     isDisabled = false,
+    shouldStayNormalOnDisable = false,
     isLoading = false,
     formattedAmount = '',
     onPress,
@@ -564,6 +565,7 @@ function SettlementButton({
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={shouldUseSplitButton}
                     isDisabled={isDisabled}
+                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
