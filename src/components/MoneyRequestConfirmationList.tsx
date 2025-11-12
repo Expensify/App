@@ -40,6 +40,7 @@ import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} fro
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -890,8 +891,14 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            const transactionTag = getTag(transaction);
+            if (transactionTag.length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 setFormError('iou.error.invalidTagLength');
+                return;
+            }
+
+            if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
+                setFormError('violations.tagOutOfPolicy');
                 return;
             }
 
@@ -935,6 +942,10 @@ function MoneyRequestConfirmationList({
             }
         },
         [
+            routeError,
+            transactionID,
+            iouType,
+            policy,
             selectedParticipants,
             isEditingSplitBill,
             isMerchantRequired,
@@ -942,23 +953,19 @@ function MoneyRequestConfirmationList({
             shouldDisplayFieldError,
             transaction,
             iouCategory.length,
-            formError,
-            iouType,
+            policyTags,
+            isPerDiemRequest,
+            reportID,
             setFormError,
-            onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            isPerDiemRequest,
             isDistanceRequestWithPendingRoute,
             iouAmount,
+            formError,
             onConfirm,
-            transactionID,
-            reportID,
-            policy,
-            routeError,
             isDelegateAccessRestricted,
+            onSendMoney,
             showDelegateNoAccessModal,
-            setDidConfirmSplit,
         ],
     );
 
