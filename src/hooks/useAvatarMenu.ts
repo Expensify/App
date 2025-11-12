@@ -11,7 +11,7 @@ type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
 
 type UseAvatarMenuParams = {
     /** Whether the user is using a default avatar */
-    isUsingDefaultAvatar: boolean;
+    shouldHideAvatarEdit: boolean;
     /** Source of newly uploaded avatar */
     source?: string;
     /** File name of newly uploaded avatar */
@@ -29,7 +29,7 @@ type UseAvatarMenuParams = {
 /**
  * Custom hook to create avatar menu items
  */
-function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
+function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
     const {translate} = useLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
 
@@ -51,7 +51,7 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                 },
             ];
             // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
-            if (isUsingDefaultAvatar) {
+            if (shouldHideAvatarEdit) {
                 return menuItems;
             }
             if (!source) {
@@ -79,7 +79,7 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                 },
             ];
         },
-        [translate, isUsingDefaultAvatar, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+        [translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
     );
 
     return {createMenuItems};
