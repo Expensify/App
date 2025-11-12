@@ -25,7 +25,7 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 const TIMING_TO_CALL_PRELOAD = 1000;
 
 // Currently, only the Inbox, Workspaces, Account tabs are preloaded. The remaining tabs will be supported soon.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS,  NAVIGATION_TABS.SEARCH];
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME,NAVIGATION_TABS.SEARCH, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
@@ -99,7 +99,8 @@ function usePreloadFullScreenNavigators() {
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const route = useRoute();
     const state = navigation.getState();
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
+    // The fallback is used to prevent crashing from the UI test
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
