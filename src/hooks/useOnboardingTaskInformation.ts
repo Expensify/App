@@ -1,7 +1,7 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
-import useOnyx from './useOnyx';
 import useHasOutstandingChildTask from './useHasOutstandingChildTask';
+import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
 function useOnboardingTaskInformation(taskName: IntroSelectedTask) {
