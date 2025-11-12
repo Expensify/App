@@ -4,8 +4,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnUI} from 'react-native-worklets';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -44,6 +43,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
+    getAncestors,
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
@@ -150,10 +150,9 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? ''}`, {
         canBeMissing: true,
     });
-
     const ancestors = useAncestors(transactionThreadReport ?? report);
     /**
      * Updates the Highlight state of the composer
@@ -295,7 +294,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        scheduleOnUI(clear);
+        runOnUI(clear)();
     }, []);
 
     /**
@@ -324,7 +323,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID, ancestors],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID, ancestors, report],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -411,7 +410,7 @@ function ReportActionCompose({
             return;
         }
 
-        scheduleOnUI(() => {
+        runOnUI(() => {
             'worklet';
 
             const {clear: clearComposer} = composerRefShared.get();
@@ -422,7 +421,7 @@ function ReportActionCompose({
 
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
-        });
+        })();
     }, [isSendDisabled, debouncedValidate, composerRefShared]);
 
     // eslint-disable-next-line react-compiler/react-compiler
