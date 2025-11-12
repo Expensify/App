@@ -403,7 +403,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp Adhoc build"
   lane :build_adhoc_hybrid do
-    ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.ios"
+    ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.ios"
 
     setupIOSSigningCertificate()
 
