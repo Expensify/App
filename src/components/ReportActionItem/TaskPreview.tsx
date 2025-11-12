@@ -14,7 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -99,7 +99,7 @@ function TaskPreview({
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useOutstandingChildTask(taskReport);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
     const isTaskActionable = canActionTask(taskReport, currentUserPersonalDetails.accountID, parentReport, parentReportAction, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();

@@ -16,7 +16,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -65,7 +65,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useOutstandingChildTask(report);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const parentReportAction = useParentReportAction(report);
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, parentReportAction, isParentReportArchived);

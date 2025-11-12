@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -25,7 +25,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useOutstandingChildTask(report);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, parentReportAction, isParentReportArchived);
 

@@ -11,7 +11,7 @@ import useOnyx from './useOnyx';
  * @param taskReport - The task report to check
  * @returns boolean indicating if there are outstanding child tasks
  */
-function useOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
+function useHasOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`, {
         canBeMissing: true,
     });
@@ -40,4 +40,4 @@ function useOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
     }, [taskReport?.parentReportID, taskReport?.reportID, reportActions]);
 }
 
-export default useOutstandingChildTask;
+export default useHasOutstandingChildTask;

@@ -26,7 +26,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -118,7 +118,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
-    const hasOutstandingChildTask = useOutstandingChildTask(report);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();

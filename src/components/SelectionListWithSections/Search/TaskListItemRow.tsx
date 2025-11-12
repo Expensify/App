@@ -10,7 +10,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useOutstandingChildTask from '@hooks/useOutstandingChildTask';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -74,7 +74,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useOutstandingChildTask(taskItem.report);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);
     const parentReportAction = useParentReportAction(taskItem.report);
     const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, parentReportAction, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
