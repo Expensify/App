@@ -50,6 +50,7 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
 type BuildSearchQueryJSONOptions = {
     preserveRawFilterList?: boolean;
+    manualRawFilterList?: RawQueryFilter[];
 };
 
 // This map contains chars that match each operator
@@ -62,8 +63,6 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
-
-const manualQueryRawFilterStore = new Map<string, RawQueryFilter[]>();
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -406,7 +405,7 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  * In a way this is the reverse of buildSearchQueryString()
  */
 function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQueryJSONOptions = {}) {
-    const {preserveRawFilterList = false} = options;
+    const {preserveRawFilterList = false, manualRawFilterList} = options;
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
@@ -420,10 +419,8 @@ function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQuer
         result.similarSearchHash = similarSearchHash;
 
         const parsedRawFilterList = Array.isArray(result.rawFilterList) ? result.rawFilterList : [];
-        const storedRawFilters = manualQueryRawFilterStore.get(query);
-        if (storedRawFilters && storedRawFilters.length > 0) {
-            result.rawFilterList = storedRawFilters;
-            manualQueryRawFilterStore.delete(query);
+        if (manualRawFilterList && manualRawFilterList.length > 0) {
+            result.rawFilterList = manualRawFilterList;
         } else if (preserveRawFilterList && parsedRawFilterList.length > 0) {
             result.rawFilterList = parsedRawFilterList;
         } else {
@@ -533,6 +530,51 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
     }
 
     return sanitizedFilters;
+}
+
+function serializeManualQueryFilters(rawFilters?: RawQueryFilter[]) {
+    if (!rawFilters || rawFilters.length === 0) {
+        return undefined;
+    }
+
+    try {
+        return JSON.stringify(rawFilters);
+    } catch (error) {
+        Log.warn('[SEARCH] Failed to serialize manual query filters', {error});
+    }
+
+    return undefined;
+}
+
+function parseManualQueryFilters(serializedFilters?: string) {
+    if (!serializedFilters) {
+        return undefined;
+    }
+
+    const parseValue = (value: string) => {
+        try {
+            const parsed = JSON.parse(value) as unknown;
+            return Array.isArray(parsed) ? (parsed as RawQueryFilter[]) : undefined;
+        } catch {
+            return undefined;
+        }
+    };
+
+    const parsed = parseValue(serializedFilters);
+    if (parsed) {
+        return parsed;
+    }
+
+    try {
+        const decodedValue = decodeURIComponent(serializedFilters);
+        if (decodedValue) {
+            return parseValue(decodedValue);
+        }
+    } catch (error) {
+        Log.warn('[Search] Failed to decode manual query filters', {error});
+    }
+
+    return undefined;
 }
 
 /**
@@ -1325,6 +1367,11 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
     return standardQuery;
 }
 
+type UpdatedQueryWithValuesResult = {
+    canonicalQuery?: SearchQueryString;
+    rawFilterList?: RawQueryFilter[];
+};
+
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
@@ -1341,11 +1388,10 @@ function getQueryWithUpdatedValues(query: string) {
     const sanitizedRawFilters = getSanitizedRawFilters(standardizedQuery);
     const canonicalQueryString = buildSearchQueryString(standardizedQuery);
 
-    if (sanitizedRawFilters) {
-        manualQueryRawFilterStore.set(canonicalQueryString, sanitizedRawFilters);
-    }
-
-    return canonicalQueryString;
+    return {
+        canonicalQuery: canonicalQueryString,
+        rawFilterList: sanitizedRawFilters,
+    };
 }
 
 function getCurrentSearchQueryJSON() {
@@ -1428,4 +1474,6 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    serializeManualQueryFilters,
+    parseManualQueryFilters,
 };

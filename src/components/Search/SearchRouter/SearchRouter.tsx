@@ -35,7 +35,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getQueryWithUpdatedValues, sanitizeSearchValue, serializeManualQueryFilters} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -280,19 +280,27 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString) => {
+        (queryString: SearchQueryString, options: {shouldPreserveRawFilters?: boolean} = {}) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQueryResult = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQuery = updatedQueryResult?.canonicalQuery;
             if (!updatedQuery) {
                 return;
             }
+
+            const manualRawFilters = options.shouldPreserveRawFilters ? serializeManualQueryFilters(updatedQueryResult?.rawFilterList) : undefined;
 
             // Reset the search query flag when performing a new search
             setShouldResetSearchQuery(false);
 
             backHistory(() => {
                 onRouterClose();
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_ROOT.getRoute({
+                        query: updatedQuery,
+                        manualRawFilters,
+                    }),
+                );
             });
 
             setTextInputValue('');
@@ -507,7 +515,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         const focusedOption = listRef.current?.getFocusedOption();
 
                         if (!focusedOption) {
-                            submitSearch(textInputValue);
+                            submitSearch(textInputValue, {shouldPreserveRawFilters: true});
                             return;
                         }
 

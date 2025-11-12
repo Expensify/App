@@ -45,7 +45,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(defaultQuery);
+            expect(result?.canonicalQuery).toEqual(defaultQuery);
         });
 
         test('returns query with updated amounts', () => {
@@ -53,7 +53,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -61,7 +61,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} from:12345 hello`);
         });
 
         test('returns query with user emails substituted and preserves user ids', () => {
@@ -69,7 +69,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 to:112233`);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} from:12345 to:112233`);
         });
 
         test('returns query with all of the fields correctly substituted', () => {
@@ -77,7 +77,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
         });
 
         test('returns query with updated groupBy', () => {
@@ -85,7 +85,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
     });
 
@@ -261,13 +261,14 @@ describe('SearchQueryUtils', () => {
 
         test('preserves manual filter order for raw queries', () => {
             const queryString = 'type:expense date:this-month groupBy:from tag:travel';
-            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryResult = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryString = canonicalQueryResult?.canonicalQuery;
 
             if (!canonicalQueryString) {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -280,13 +281,14 @@ describe('SearchQueryUtils', () => {
 
         test('preserves status all default value from manual query', () => {
             const queryString = 'type:expense status:all merchant:Uber';
-            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryResult = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryString = canonicalQueryResult?.canonicalQuery;
 
             if (!canonicalQueryString) {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -299,13 +301,14 @@ describe('SearchQueryUtils', () => {
 
         test('maps workspace names and maintains manual order', () => {
             const queryString = 'policyID:123 type:expense merchant:Starbucks';
-            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryResult = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryString = canonicalQueryResult?.canonicalQuery;
 
             if (!canonicalQueryString) {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
                     name: 'Team Space',
@@ -319,6 +322,22 @@ describe('SearchQueryUtils', () => {
             const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
+        });
+
+        test('manual raw filters override parser results when provided', () => {
+            const queryString = 'type:expense status:all merchant:Uber';
+            const canonicalQueryResult = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryString = canonicalQueryResult?.canonicalQuery;
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSONWithoutManualFilters = buildSearchQueryJSON(canonicalQueryString);
+            expect(queryJSONWithoutManualFilters?.rawFilterList).toBeUndefined();
+
+            const queryJSONWithManualFilters = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
+            expect(queryJSONWithManualFilters?.rawFilterList).toEqual(canonicalQueryResult?.rawFilterList);
         });
     });
 
