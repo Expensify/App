@@ -197,7 +197,6 @@ const mockReportItemWithHold = {
             parentTransactionID: '',
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
-            reportType: 'expense',
             tag: '',
             transactionID: '5345995386715609966',
             transactionThreadReportID: '740282333335072',

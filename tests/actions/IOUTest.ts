@@ -23,6 +23,7 @@ import {
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
+    evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
     getReportPreviewAction,
@@ -2909,6 +2910,7 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
+                chatReport: expenseReport,
                 firstIOU: iouAction,
             });
 
@@ -3010,6 +3012,7 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
+                chatReport: expenseReport,
                 firstIOU: undefined,
             });
 
@@ -3124,6 +3127,7 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
+                chatReport,
                 firstIOU: undefined,
             });
 
@@ -7256,6 +7260,246 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('evenlyDistributeSplitExpenseAmounts', () => {
+        it('distributes evenly across 3 splits with remainder on last split', async () => {
+            const originalTransactionID = 'orig-last';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-2',
+                amount: 100, // in cents = $1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'x', amount: 0, description: 'X', created: DateUtils.getDBTime()},
+                        {transactionID: 'y', amount: 0, description: 'Y', created: DateUtils.getDBTime()},
+                        {transactionID: 'z', amount: 0, description: 'Z', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-2',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraft).toBeTruthy();
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([33, 33, 34]);
+        });
+
+        it('assigns full amount when there is only one split', async () => {
+            const originalTransactionID = 'orig-single';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-3',
+                amount: 1000, // in cents = $10.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [{transactionID: 'only', amount: 0, description: 'Only', created: DateUtils.getDBTime()}],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-3',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([1000]);
+        });
+
+        it('evenly distributes equal split with no remainder (4-way $1.00 -> 25¢ each)', async () => {
+            const originalTransactionID = 'orig-equal-4';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-4',
+                amount: 100, // in cents = $1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: '1', amount: 0, description: '1', created: DateUtils.getDBTime()},
+                        {transactionID: '2', amount: 0, description: '2', created: DateUtils.getDBTime()},
+                        {transactionID: '3', amount: 0, description: '3', created: DateUtils.getDBTime()},
+                        {transactionID: '4', amount: 0, description: '4', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-4',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([25, 25, 25, 25]);
+        });
+
+        it('2-way split equal (even cents) -> 50¢ / 50¢', async () => {
+            const originalTransactionID = 'orig-2-equal';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-5',
+                amount: 100, // in cents = $1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'a', amount: 0, description: 'A', created: DateUtils.getDBTime()},
+                        {transactionID: 'b', amount: 0, description: 'B', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-5',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([50, 50]);
+        });
+
+        it('2-way split with remainder (odd cents) -> 50¢ / 51¢', async () => {
+            const originalTransactionID = 'orig-2-rem';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-6',
+                amount: 101, // in cents = $1.01
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'a', amount: 0, description: 'A', created: DateUtils.getDBTime()},
+                        {transactionID: 'b', amount: 0, description: 'B', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-6',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([50, 51]);
+        });
+
+        it('3-way split of $1001 with remainder -> [$333.66, $333.66, $333.68]', async () => {
+            const originalTransactionID = 'orig-1001-3-last';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-7',
+                amount: 100100, // in cents = $1001.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'p', amount: 0, description: 'P', created: DateUtils.getDBTime()},
+                        {transactionID: 'q', amount: 0, description: 'Q', created: DateUtils.getDBTime()},
+                        {transactionID: 'r', amount: 0, description: 'R', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-7',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([33366, 33366, 33368]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(100100);
+        });
+
+        it('preserves negative sign and evenly distributes with remainder on last for 3-way split', async () => {
+            const originalTransactionID = 'orig-neg-3';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-3',
+                amount: -100, // in cents = -$1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'n1', amount: 0, description: 'N1', created: DateUtils.getDBTime()},
+                        {transactionID: 'n2', amount: 0, description: 'N2', created: DateUtils.getDBTime()},
+                        {transactionID: 'n3', amount: 0, description: 'N3', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-3',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-33, -33, -34]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-100);
+        });
+
+        it('preserves negative sign for 2-way odd-cent split -> [-$0.51, -$0.50]', async () => {
+            const originalTransactionID = 'orig-neg-2';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-2',
+                amount: -101, // in cents = -$1.01
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test 2-way',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'nA', amount: 0, description: 'NA', created: DateUtils.getDBTime()},
+                        {transactionID: 'nB', amount: 0, description: 'NB', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-2',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-50, -51]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
+        });
+    });
+
     describe('updateSplitExpenseAmountField', () => {
         it('should update amount expense field to draft transaction', async () => {
             const originalTransactionID = '123';
@@ -7688,6 +7932,7 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
+                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -7829,6 +8074,7 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
+                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -7984,6 +8230,7 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
+                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
