@@ -1599,8 +1599,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpTextBeforeEmail: '領収書を送信する方法を追加してください。それらを転送する先は',
-        helpTextAfterEmail: 'または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
+        helpText: ({email}: {email: string}) =>
+            `領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="${email}"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。`,
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
@@ -6758,22 +6758,37 @@ ${date} - ${merchant}に${amount}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} アルコール`;
-                case 'gambling':
-                    return `${preMessage} ギャンブル`;
-                case 'tobacco':
-                    return `${preMessage} タバコ`;
-                case 'adultEntertainment':
-                    return `${preMessage} アダルトエンターテインメント`;
-                case 'hotelIncidentals':
-                    return `${preMessage} ホテル雑費`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `アルコール`;
+                    case 'gambling':
+                        return `ギャンブル`;
+                    case 'tobacco':
+                        return `タバコ`;
+                    case 'adultEntertainment':
+                        return `アダルトエンターテインメント`;
+                    case 'hotelIncidentals':
+                        return `ホテル雑費`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',

@@ -393,7 +393,6 @@ const searchResults: OnyxTypes.SearchResults = {
             parentTransactionID: '',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             reportID,
-            reportType: 'expense',
             tag: '',
             transactionID,
             transactionThreadReportID: '456',
@@ -431,7 +430,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
             reportID: reportID2,
-            reportType: 'expense',
             tag: '',
             transactionID: transactionID2,
             transactionThreadReportID: '456',
@@ -471,7 +469,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: '',
             parentTransactionID: '',
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
@@ -510,7 +507,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: '',
             parentTransactionID: '',
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
@@ -807,7 +803,6 @@ const transactionsListItems = [
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -871,7 +866,6 @@ const transactionsListItems = [
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -929,7 +923,6 @@ const transactionsListItems = [
         modifiedMerchant: '',
         parentTransactionID: '',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '3',
         transactionThreadReportID: '8287398995021380',
@@ -994,7 +987,6 @@ const transactionsListItems = [
         modifiedMerchant: '',
         parentTransactionID: '',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '4',
         transactionThreadReportID: '1014872441234902',
@@ -1108,7 +1100,6 @@ const transactionReportGroupListItems = [
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1215,7 +1206,6 @@ const transactionReportGroupListItems = [
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1802,7 +1792,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1830,7 +1820,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2368,7 +2358,6 @@ describe('SearchUIUtils', () => {
                             state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         },
                         reportID: '6523565988285061',
-                        reportType: 'expense',
                         tag: '',
                         transactionID: '1805965960759424086',
                         transactionThreadReportID: '4139222832581831',
@@ -2499,7 +2488,6 @@ describe('SearchUIUtils', () => {
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                     },
                     reportID: '6523565988285061',
-                    reportType: 'expense',
                     tag: '',
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
