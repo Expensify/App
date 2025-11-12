@@ -211,15 +211,10 @@ function TransactionPreviewContent({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.cardBG,
     });
-    const transactionWrapperStyles = [
-        styles.border,
-        styles.moneyRequestPreviewBox,
-        (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending,
-        animatedHighlightStyle,
-    ];
+    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
     return (
-        <Animated.View style={[transactionWrapperStyles, containerStyles]}>
+        <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}

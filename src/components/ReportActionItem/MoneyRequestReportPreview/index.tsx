@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, type LayoutChangeEvent, type ListRenderItem} from 'react-native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import usePolicy from '@hooks/usePolicy';
@@ -109,21 +109,13 @@ function MoneyRequestReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
-    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-    const prevTransactionIDs = usePrevious(transactions.map((tra) => tra.transactionID));
-    useEffect(() => {
-        const newTransactionIDs = transactions.filter((tran) => !prevTransactionIDs.includes(tran.transactionID)).map((tra) => tra.transactionID);
-        if (!newTransactionIDs.length) {
-            return;
-        }
-        const newItemsToHighlight = new Set<string>();
-        newTransactionIDs.forEach((item) => {
-            newItemsToHighlight.add(item);
-        });
-        InteractionManager.runAfterInteractions(() => {
-            setItemsToHighlight(newItemsToHighlight);
-        });
-    }, [transactions]);
+
+    const prevTransactionIDs = usePrevious(transactions.map((transaction) => transaction.transactionID));
+    const newTransactionIDs = useMemo(() => {
+        return transactions
+            .filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !prevTransactionIDs.includes(transaction.transactionID))
+            .map((transaction) => transaction.transactionID);
+    }, [prevTransactionIDs, transactions]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -145,7 +137,7 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={!!itemsToHighlight?.has(item.transactionID)}
+            shouldHighlight={newTransactionIDs.includes(item.transactionID)}
         />
     );
 
@@ -153,7 +145,7 @@ function MoneyRequestReportPreview({
 
     return (
         <MoneyRequestReportPreviewContent
-            itemsToHighlight={itemsToHighlight}
+            newTransactionIDs={newTransactionIDs}
             iouReportID={iouReportID}
             chatReportID={chatReportID}
             iouReport={iouReport}

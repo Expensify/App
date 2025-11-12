@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, InteractionManager, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
@@ -95,7 +95,7 @@ const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) =>
 const onScrollToIndexFailed = () => {};
 function MoneyRequestReportPreviewContent({
     iouReportID,
-    itemsToHighlight,
+    newTransactionIDs,
     chatReportID,
     action,
     containerStyles,
@@ -416,13 +416,18 @@ function MoneyRequestReportPreviewContent({
         return {itemVisiblePercentThreshold: 100};
     }, []);
     useEffect(() => {
-        const index = carouselTransactions.findIndex((trans) => itemsToHighlight?.has(trans.transactionID));
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
 
         if (index < 0) {
             return;
         }
-        carouselRef.current?.scrollToIndex({index});
-    }, [itemsToHighlight]);
+        setTimeout(() => {
+            carouselRef.current?.scrollToIndex({index});
+        }, CONST.ANIMATED_TRANSITION);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
