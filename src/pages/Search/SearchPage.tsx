@@ -75,6 +75,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -87,7 +88,6 @@ import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
-import { getTransactionViolationsOfTransaction } from '@libs/TransactionUtils';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -478,6 +478,59 @@ function SearchPage({route}: SearchPageProps) {
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
+                },
+            });
+        }
+
+        // Check if any items are explicitly not rejectable (only when data is hydrated)
+        // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
+        const login = currentUserPersonalDetails?.login ?? '';
+        const areAnyExplicitlyNotRejectable =
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.some((id) => {
+                const report = getReportOrDraftReport(id);
+                if (!report) {
+                    return false;
+                }
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                if (!policyForReport) {
+                    return false;
+                }
+                return !canRejectReportAction(login, report, policyForReport);
+            });
+
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
+            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
+            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+
+        // Check if all selected items have hydrated Onyx data for rejection
+        const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
+
+        // Show the Reject option unless we know for sure it's not allowed
+        const shouldShowRejectOption = !isOffline && !areAnyExplicitlyNotRejectable && hasNoRejectedTransaction;
+
+        // Disabled if not hydrated
+        const isRejectDisabled = !areItemsHydratedForReject;
+
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: Expensicons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                disabled: isRejectDisabled,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (!areItemsHydratedForReject) {
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                 },
             });
         }
