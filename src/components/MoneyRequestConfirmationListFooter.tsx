@@ -286,7 +286,7 @@ function MoneyRequestConfirmationListFooter({
 
         return outstandingReports.filter((report) => {
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            return !isArchivedReport(reportNameValuePair);
+            return !isArchivedReport(reportNameValuePair) && isReportOutstanding(report, report?.policyID, reportNameValuePairs, false);
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
