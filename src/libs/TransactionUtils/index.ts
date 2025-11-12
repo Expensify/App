@@ -280,10 +280,6 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
  * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
  */
 function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
-    if (!transaction) {
-        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
-    }
-
     const customUnitName = transaction?.comment?.customUnit?.name;
 
     if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
@@ -295,7 +291,7 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
     }
 
     const cardID = transaction?.cardID;
-    if (cardID && cardList?.[cardID]?.cardName === '__CASH__') {
+    if (cardID && cardList?.[cardID]?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
         return CONST.SEARCH.TRANSACTION_TYPE.CASH;
     }
 
