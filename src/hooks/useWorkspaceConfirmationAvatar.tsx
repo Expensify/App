@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import Avatar from '@components/Avatar';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import useThemeStyles from './useThemeStyles';
 
