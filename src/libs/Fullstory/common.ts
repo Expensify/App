@@ -17,14 +17,14 @@ Onyx.connectWithoutView({
     },
 });
 
-const allowedReportChatTypes: Array<ValueOf<typeof CONST.REPORT.CHAT_TYPE>> = [
+const allowedReportChatTypes = new Set<ValueOf<typeof CONST.REPORT.CHAT_TYPE>>([
     CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
     CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
     CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
     CONST.REPORT.CHAT_TYPE.INVOICE,
-];
+]);
 
-const allowedReportTypes: Array<ValueOf<typeof CONST.REPORT.TYPE>> = [CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE];
+const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE]);
 
 const getChatFSClass: GetChatFSClass = (report) => {
     if (!report) {
@@ -37,18 +37,18 @@ const getChatFSClass: GetChatFSClass = (report) => {
     }
 
     // Workspace expense chat, #admins, #announce rooms and invoices should be unmasked.
-    if (report.chatType && allowedReportChatTypes.includes(report.chatType)) {
+    if (report.chatType && allowedReportChatTypes.has(report.chatType)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
     // IOUs, expenses and invoices should be unmasked.
-    if (report.type && (allowedReportTypes as string[]).includes(report.type)) {
+    if (report.type && allowedReportTypes.has(report.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
     // If the report doesn't meet the condition above we check if the parent report is an IOU, expense or invoice.
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    if (parentReport?.type && (allowedReportTypes as string[]).includes(parentReport.type)) {
+    if (parentReport?.type && allowedReportTypes.has(parentReport.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
