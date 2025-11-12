@@ -35,7 +35,7 @@ function SearchFiltersStatusPage() {
         return searchAdvancedFiltersForm.status;
     });
 
-    const items = useMemo(() => getStatusOptions(currentType), [currentType]);
+    const items = useMemo(() => getStatusOptions(translate, currentType), [translate, currentType]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((statusOption) => ({
