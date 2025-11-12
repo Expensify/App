@@ -157,6 +157,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReport,
                     isChatIOUReportArchived,
                     allSnapshotKeys,
+                    isSingleTransactionView,
                     deletedTransactionIDs,
                     transactionIDs,
                 );
