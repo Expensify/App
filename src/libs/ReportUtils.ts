@@ -11507,7 +11507,7 @@ function prepareOnboardingOnyxData({
     let selfDMParameters: SelfDMParameters = {};
     if (
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE)
+        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND))
     ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
