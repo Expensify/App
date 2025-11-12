@@ -29,8 +29,9 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
             return false;
         }
 
-        // Don't show if user has already responded
-        if (proactiveAppReview.response) {
+        // Don't show if user gave a definitive answer (positive/negative)
+        // Only allow re-prompting if they skipped
+        if (proactiveAppReview.response && proactiveAppReview.response !== 'skip') {
             return false;
         }
 
