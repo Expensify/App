@@ -1,5 +1,4 @@
 import React from 'react';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,8 +21,8 @@ function ShareLogList({logSource}: ShareLogListProps) {
         const report = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const ancestors = getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection);
         const src = `file://${logSource}`;
-        addAttachmentWithComment(reportID, reportID, ancestors, {name: filename, source: src, uri: src, type: 'text/plain'} as File, undefined, personalDetail.timezone);
 
+        addAttachmentWithComment(reportID, reportID, ancestors, {name: filename, source: src, uri: src, type: 'text/plain'} as File, undefined, personalDetail.timezone);
         const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(routeToNavigate);
     };
