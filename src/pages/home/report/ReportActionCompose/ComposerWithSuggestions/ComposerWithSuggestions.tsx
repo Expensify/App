@@ -730,7 +730,7 @@ function ComposerWithSuggestions({
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', true);
+            updateComment('');
         },
         [onCleared, updateComment],
     );
