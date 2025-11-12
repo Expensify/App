@@ -2857,6 +2857,11 @@ describe('SearchUIUtils', () => {
                 canUnhold,
                 convertedAmount,
                 convertedCurrency,
+                transactionThreadReportID,
+                isFromOneTransactionReport,
+                accountID,
+                policyID: searchPolicyID,
+                transactionType,
                 ...expectedTransaction
             } = legacyTransactionItem;
 
