@@ -8985,6 +8985,36 @@ describe('ReportUtils', () => {
         });
     });
 
+    it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
+        const workspaceChat = {
+            ...createPolicyExpenseChat(41000),
+            hasOutstandingChildTask: true,
+        };
+        const cardMissingAddressAction: ReportAction = {
+            reportActionID: 'card-missing-address-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: 'task-11000',
+            created: DateUtils.getDBTime(),
+            originalMessage: {
+                assigneeAccountID: currentUserAccountID,
+                cardID: 11000,
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+            [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+        const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+        expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+        expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
+    });
+
     it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {
         await Onyx.clear();
 
