@@ -673,6 +673,7 @@ function SearchFiltersBar({
     }, [filters.length]);
 
     const renderFilterItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
         ({item}: {item: FilterItem}) => (
             <DropdownButton
                 label={item.label}
@@ -683,13 +684,18 @@ function SearchFiltersBar({
         [],
     );
 
+    const filterButtonText = useMemo(
+        () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
+        [translate, hiddenSelectedFilters.length],
+    );
+
     const renderListFooter = useCallback(
         () => (
             <Button
                 link
                 small
                 shouldUseDefaultHover={false}
-                text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
+                text={filterButtonText}
                 iconFill={theme.link}
                 iconHoverFill={theme.linkHover}
                 icon={Expensicons.Filter}
@@ -697,7 +703,7 @@ function SearchFiltersBar({
                 onPress={openAdvancedFilters}
             />
         ),
-        [translate, hiddenSelectedFilters.length, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters],
+        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters],
     );
 
     if (hasErrors) {
