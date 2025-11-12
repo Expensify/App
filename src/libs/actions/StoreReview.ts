@@ -5,7 +5,7 @@ import * as StoreReview from 'expo-store-review';
  * This should only be called when the user has indicated they're enjoying the app
  */
 function requestReview() {
-    StoreReview.requestReview();
+    void StoreReview.requestReview();
 }
 
 /**
