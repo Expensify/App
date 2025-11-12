@@ -273,6 +273,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/confirm-magic-code',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
     },
+    SETTINGS_WALLET_CARD_MISSING_DETAILS: {
+        route: 'settings/wallet/card/:cardID/missing-details',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
+    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -1295,14 +1299,8 @@ const ROUTES = {
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         route: 'workspaces/:policyID/invite-message/role',
 
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_INVITE_MESSAGE_ROLE route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite-message/role`, backTo)}` as const,
     },
     WORKSPACE_OVERVIEW: {
         route: 'workspaces/:policyID/overview',
@@ -1485,6 +1483,26 @@ const ROUTES = {
             }
 
             return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/card-reconciliation/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/card-reconciliation/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/card-reconciliation/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/sage-intacct/card-reconciliation/autosync` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
@@ -1775,7 +1793,13 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const,
+        getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_CARD_RECONCILIATION route');
+            }
+
+            return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',
@@ -2420,6 +2444,7 @@ const ROUTES = {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
     },
+    SHARE_DETAILS_ATTACHMENT: 'share/details/:reportOrAccountID/attachment',
     SHARE_SUBMIT_DETAILS: {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
@@ -3213,11 +3238,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
             }
-            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const;
+            // eslint-disable-next-line no-restricted-syntax
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
@@ -3336,6 +3362,14 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
+    WORKSPACES_VERIFY_DOMAIN: {
+        route: 'workspaces/verify-domain/:accountID',
+        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_VERIFIED: {
+        route: 'workspaces/domain-verified/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
     },
 } as const;
 
