@@ -48,8 +48,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const areDistanceRatesEnabled = policy?.areDistanceRatesEnabled;
-    const areInvoicesEnabled = policy?.areInvoicesEnabled;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -142,7 +140,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
-            ratesCount > 0 && areDistanceRatesEnabled
+            ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
                       translation: translate('workspace.common.distanceRates'),
                       value: 'distanceRates',
@@ -157,7 +155,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
+            policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
@@ -171,8 +169,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         policy,
         translate,
         formattedAddress,
-        areDistanceRatesEnabled,
-        areInvoicesEnabled,
         totalMembers,
         reportFields,
         connectedIntegration,
