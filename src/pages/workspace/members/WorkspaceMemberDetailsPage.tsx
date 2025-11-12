@@ -326,9 +326,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+            if (value !== member?.role) {
+                updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+            }
         },
-        [accountID, memberLogin, policyID],
+        [accountID, member?.role, memberLogin, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {

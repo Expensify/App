@@ -183,37 +183,15 @@ function SearchList({
         }
         return data;
     }, [data, groupBy, type]);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
-    const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
-        }
-        return [];
-    }, [data, type]);
-
-    const selectedItemsLength = useMemo(() => {
-        const selectedTransactions = flattenedItems.reduce((acc, item) => {
-            return acc + (item?.isSelected ? 1 : 0);
-        }, 0);
-
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            const selectedEmptyReports = emptyReports.reduce((acc, item) => {
-                return acc + (item.isSelected ? 1 : 0);
-            }, 0);
-
-            return selectedEmptyReports + selectedTransactions;
-        }
-
-        return selectedTransactions;
-    }, [flattenedItems, type, data, emptyReports]);
-
-    const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return emptyReports.length + flattenedItems.length;
-        }
-
-        return flattenedItems.length;
-    }, [data, type, flattenedItems, emptyReports]);
+    const selectedItemsLength = useMemo(
+        () =>
+            flattenedItems.reduce((acc, item) => {
+                return item?.isSelected ? acc + 1 : acc;
+            }, 0),
+        [flattenedItems],
+    );
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -259,6 +237,10 @@ function SearchList({
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0 && !groupBy) {
+                return;
+            }
             if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item, itemTransactions);
                 return;
@@ -267,7 +249,7 @@ function SearchList({
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -391,7 +373,7 @@ function SearchList({
 
     const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -401,7 +383,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== totalItems}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}

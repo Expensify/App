@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
+import {isDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
