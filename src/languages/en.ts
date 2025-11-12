@@ -445,7 +445,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No results found matching "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -459,7 +459,7 @@ const translations = {
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Please enter a complete phone number\n(e.g. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required',
             requestModified: 'This request is being modified by another member',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Character limit exceeded (${length}/${limit})`,
@@ -816,8 +816,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Submit an expense, refer your boss',
-            subtitleText: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            title: 'Submit an expense, refer your team',
+            subtitleText: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
     },
     videoChatButtonAndMenu: {
@@ -1117,6 +1117,7 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
@@ -1323,11 +1324,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
-            receiptFailureMessage: 'There was an error uploading your receipt. Please ',
+            receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
-            tryAgainMessage: 'try again ',
-            saveFileMessage: ' save the receipt',
-            uploadLaterMessage: ' to upload later.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
@@ -1347,7 +1345,10 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         unhold: 'Remove hold',
-        holdExpense: 'Hold expense',
+        holdExpense: () => ({
+            one: 'Hold expense',
+            other: 'Hold expenses',
+        }),
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
@@ -1358,7 +1359,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         newReport: 'New report',
-        explainHold: "Explain why you're holding this expense.",
+        explainHold: () => ({
+            one: "Explain why you're holding this expense.",
+            other: "Explain why you're holding these expenses.",
+        }),
         retracted: 'retracted',
         retract: 'Retract',
         reopened: 'reopened',
@@ -1543,7 +1547,7 @@ const translations = {
         upload: 'Upload',
         uploadPhoto: 'Upload photo',
         selectAvatar: 'Select avatar',
-        chooseCustomAvatar: 'Or choose a custom avatar',
+        choosePresetAvatar: 'Or choose a custom avatar',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
@@ -2029,6 +2033,8 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Please <a href="${missingDetailsLink}">add your personal details</a>, then try again.`,
+        unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
             reportFraudButtonText: "No, it wasn't me",
@@ -4171,6 +4177,8 @@ const translations = {
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    "If you switch the company card export setting to expense reports, NetSuite vendors and posting accounts for individual cards will be disabled.\n\nDon't worry, we’ll still save your previous selections in case you want to switch back later.",
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
@@ -4905,6 +4913,7 @@ const translations = {
             existingReportFieldNameError: 'A report field with this name already exists',
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
+            circularReferenceError: "This field can't refer to itself. Please update.",
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -4988,6 +4997,10 @@ const translations = {
             cannotMakeAllTagsOptional: {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Cannot make tag list required',
+                description: 'You can only make a tag list required if your policy has multiple tag levels configured.',
             },
             tagCount: () => ({
                 one: '1 Tag',
@@ -5466,8 +5479,8 @@ const translations = {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
-            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
-            changePromptMessage: ' to make that change.',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -6692,9 +6705,9 @@ const translations = {
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Submit an expense, <success><strong>refer your boss</strong></success>.',
-            header: 'Submit an expense, refer your boss',
-            body: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
+            header: 'Submit an expense, refer your team',
+            body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Refer a friend',
@@ -6824,7 +6837,6 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
-        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -7339,6 +7351,27 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
+    domain: {
+        notVerified: 'Not verified',
+        retry: 'Retry',
+        verifyDomain: {
+            title: 'Verify domain',
+            beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Access your DNS provider and open DNS settings for <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Add the following TXT record:',
+            saveChanges: 'Save changes and return here to verify your domain.',
+            youMayNeedToConsult: `You may need to consult your organization's IT department to complete verification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">Learn more</a>.`,
+            warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+            codeFetchError: 'Couldn’t fetch verification code',
+            genericError: "We couldn't verify your domain. Please try again and reach out to Concierge if the problem persists.",
+        },
+        domainVerified: {
+            title: 'Domain verified',
+            header: 'Wooo! Your domain has been verified',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
+        },
     },
 };
 

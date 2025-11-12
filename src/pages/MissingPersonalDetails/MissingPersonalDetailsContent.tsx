@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -28,13 +29,20 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+
+    /** Optional custom header title */
+    headerTitle?: string;
+
+    /** Optional custom completion handler */
+    onComplete?: (values: PersonalDetailsForm, validateCode: string) => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -46,8 +54,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
-        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
-    }, [values]);
+        if (!onComplete) {
+            Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+            return;
+        }
+        setIsValidateCodeActionModalVisible(true);
+    }, [onComplete, values]);
 
     const {
         componentToRender: SubStep,
@@ -78,6 +90,16 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
+    const handleSubmitForm = useCallback(
+        (validateCode: string) => {
+            if (!onComplete) {
+                return;
+            }
+            onComplete(values, validateCode);
+        },
+        [values, onComplete],
+    );
+
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
@@ -103,7 +125,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             testID={MissingPersonalDetailsContent.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
@@ -119,6 +141,11 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
+            />
+            <MissingPersonalDetailsMagicCodeModal
+                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );
