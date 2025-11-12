@@ -1,6 +1,5 @@
 import type {ViewStyle} from 'react-native';
 import overflowAuto from './overflowAuto';
-import overflowMoneyRequestView from './overflowMoneyRequestView';
 import overflowXHidden from './overflowXHidden';
 import overscrollBehaviorContain from './overscrollBehaviorContain';
 
@@ -31,6 +30,4 @@ export default {
     overscrollBehaviorContain,
 
     overflowAuto,
-
-    overflowMoneyRequestView,
 } satisfies Record<string, ViewStyle>;

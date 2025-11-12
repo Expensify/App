@@ -80,6 +80,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import overflowMoneyRequestView from '@styles/utils/overflowMoneyRequestView';
 import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -628,7 +629,7 @@ function MoneyRequestView({
     }
 
     return (
-        <View style={[styles.pRelative, styles.overflowMoneyRequestView, styles.pt4, styles.mtn4]}>
+        <View style={[styles.pRelative, overflowMoneyRequestView, styles.pt4, styles.mtn4]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
