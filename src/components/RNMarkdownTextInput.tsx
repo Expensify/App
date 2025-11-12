@@ -67,7 +67,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
             'worklet';
 
             mentionsSharedVal.set(availableLoginsList);
-        })();
+        });
     }, [availableLoginsList, mentionsSharedVal]);
 
     return (

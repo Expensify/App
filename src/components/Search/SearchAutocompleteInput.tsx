@@ -139,7 +139,7 @@ function SearchAutocompleteInput({
             'worklet';
 
             emailListSharedValue.set(emailList);
-        })();
+        });
     }, [emailList, emailListSharedValue]);
 
     useEffect(() => {
@@ -147,7 +147,7 @@ function SearchAutocompleteInput({
             'worklet';
 
             currencySharedValue.set(currencyAutocompleteList);
-        })();
+        });
     }, [currencyAutocompleteList, currencySharedValue]);
 
     useEffect(() => {
@@ -155,7 +155,7 @@ function SearchAutocompleteInput({
             'worklet';
 
             categorySharedValue.set(categoryAutocompleteList);
-        })();
+        });
     }, [categorySharedValue, categoryAutocompleteList]);
 
     useEffect(() => {
@@ -163,7 +163,7 @@ function SearchAutocompleteInput({
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        })();
+        });
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
