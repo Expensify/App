@@ -10,6 +10,10 @@ const MFACallbacks: {
 /* eslint-disable @typescript-eslint/naming-convention */
 const RESPONSE_TRANSLATION_PATH = {
     UNKNOWN: 'unknownResponse',
+    REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: {
+        400: 'noPublicKeysRegistered',
+        200: 'revokedAccess',
+    },
     REQUEST_BIOMETRIC_CHALLENGE: {
         401: 'registrationRequired',
         200: 'challengeGenerated',

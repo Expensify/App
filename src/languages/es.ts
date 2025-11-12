@@ -551,6 +551,8 @@ const translations: TranslationDeepObject<typeof en> = {
             badRequest: 'Invalid request',
             signatureInvalid: 'Signature is invalid',
             unknownResponse: 'Unrecognized response type',
+            noPublicKeysRegistered: 'No public keys are currently registered',
+            revokedAccess: 'Successfully revoked access on all devices',
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: 'Enter your verification code to continue',

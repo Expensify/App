@@ -52,16 +52,19 @@ type Register<T = boolean> = RegisterFunction<{chainedWithAuthorization: true}, 
     RegisterFunction<{chainedWithAuthorization?: false}, MultifactorAuthenticationStatus<T>> &
     RegisterFunction<{chainedWithAuthorization?: boolean}, MultifactorAuthenticationStatus<T> | MultifactorAuthenticationPartialStatus<string>>;
 
+type BiometricsStatus = {
+    isAnyDeviceRegistered: boolean;
+    isBiometryRegisteredLocally: boolean;
+    isLocalPublicKeyInAuth: boolean;
+};
+
 /**
  * Information about the device's multifactorial authentication capabilities and configuration state
  */
 type MultifactorAuthenticationInfo = {
     /** Whether the device supports biometric authentication (fingerprint/face) or fallback (PIN/pattern) */
     deviceSupportBiometrics: boolean;
-
-    /** Whether biometrics is already set up with a stored public key */
-    isBiometryConfigured: boolean;
-};
+} & BiometricsStatus;
 
 /**
  * User-facing status messages for the current multifactorial authentication state
@@ -85,12 +88,12 @@ type UseBiometricsSetup = MultifactorAuthenticationStep &
         register: Register;
 
         /** Clears multifactorial authentication configuration by removing stored keys */
-        revoke: () => Promise<MultifactorAuthenticationStatus<boolean>>;
+        revoke: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
 
         /** Completes current request and updates UI state accordingly */
-        cancel: () => MultifactorAuthenticationStatus<boolean>;
+        cancel: () => MultifactorAuthenticationStatus<BiometricsStatus>;
 
-        refresh: () => Promise<MultifactorAuthenticationStatus<boolean>>;
+        refresh: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
     };
 
 type UseMultifactorAuthentication = {
@@ -151,4 +154,5 @@ export type {
     UseMultifactorAuthentication,
     MultifactorAuthenticationScenarioStatus,
     MultifactorAuthenticationStatusMessage,
+    BiometricsStatus,
 };

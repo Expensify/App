@@ -13,7 +13,7 @@ function MFARevokePage() {
     const {translate} = useLocalize();
     const {trigger, info} = useMultifactorAuthenticationContext();
 
-    const isAccessRevokedOnAllDevices = !info.isBiometryConfigured; // TODO: This information should be retrieved from the backend, create a mock
+    const isAccessRevokedOnAllDevices = !info.isAnyDeviceRegistered;
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 

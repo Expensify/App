@@ -1,12 +1,13 @@
 import {useCallback, useEffect, useMemo} from 'react';
 import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys, Status} from '@hooks/MultifactorAuthentication/helpers';
-import type {MultifactorAuthenticationStatusKeyType, Register, UseBiometricsSetup} from '@hooks/MultifactorAuthentication/types';
+import type {BiometricsStatus, MultifactorAuthenticationStatusKeyType, Register, UseBiometricsSetup} from '@hooks/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {generateKeyPair} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {processRegistration} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import type {MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import {revokePublicKeys} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
 /**
@@ -22,7 +23,14 @@ import CONST from '@src/CONST';
  */
 function useNativeBiometricsSetup(): UseBiometricsSetup {
     /** Tracks whether biometrics is properly configured and ready for authentication */
-    const [status, setStatus] = useMultifactorAuthenticationStatus<boolean>(false, CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION);
+    const [status, setStatus] = useMultifactorAuthenticationStatus<BiometricsStatus>(
+        {
+            isBiometryRegisteredLocally: false,
+            isAnyDeviceRegistered: false,
+            isLocalPublicKeyInAuth: false,
+        },
+        CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
+    );
     const {accountID} = useCurrentUserPersonalDetails();
 
     /**
@@ -39,9 +47,22 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Safe to call frequently as it doesn't trigger authentication prompts.
      */
     const refreshStatus = useCallback(
-        async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<boolean>>, overwriteType?: MultifactorAuthenticationStatusKeyType) => {
-            const isConfigured = await isBiometryConfigured(accountID);
-            return setStatus(Status.createRefreshStatusStatus(isConfigured, overwriteStatus), overwriteType);
+        async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>, overwriteType?: MultifactorAuthenticationStatusKeyType) => {
+            const setupStatus = await isBiometryConfigured(accountID);
+
+            const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
+
+            return setStatus(
+                Status.createRefreshStatusStatus(
+                    {
+                        isLocalPublicKeyInAuth,
+                        isAnyDeviceRegistered,
+                        isBiometryRegisteredLocally,
+                    },
+                    overwriteStatus,
+                ),
+                overwriteType,
+            );
         },
         [accountID, setStatus],
     );
@@ -57,6 +78,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      */
     const revoke = useCallback(async () => {
         await resetKeys(accountID);
+        await revokePublicKeys();
         return refreshStatus(
             {
                 reason: 'multifactorAuthentication.reason.success.keyDeletedFromSecureStore',
@@ -174,8 +196,8 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
     return useMemo(
         () => ({
             ...status.step,
+            ...status.value,
             deviceSupportBiometrics,
-            isBiometryConfigured: status.value,
             message: status.message,
             title: status.title,
             register,

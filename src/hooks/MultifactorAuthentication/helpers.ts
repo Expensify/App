@@ -9,8 +9,9 @@ import type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
+import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import type {AuthTypeName, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
+import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
 
 const failedStep = {
     wasRecentStepSuccessful: false,
@@ -65,7 +66,18 @@ function doesDeviceSupportBiometrics() {
  * A stored public key indicates successful prior configuration.
  */
 async function isBiometryConfigured(accountID: number) {
-    return !!(await PublicKeyStore.get(accountID)).value;
+    const {value: localPublicKey} = await PublicKeyStore.get(accountID);
+    const {publicKeys: authPublicKeys = []} = await requestBiometricChallenge();
+
+    const isAnyDeviceRegistered = !!authPublicKeys.length;
+    const isBiometryRegisteredLocally = !!localPublicKey;
+    const isLocalPublicKeyInAuth = isBiometryRegisteredLocally && authPublicKeys.includes(localPublicKey);
+
+    return {
+        isAnyDeviceRegistered,
+        isBiometryRegisteredLocally,
+        isLocalPublicKeyInAuth,
+    };
 }
 
 /**
@@ -90,10 +102,14 @@ const createBaseStep = (wasSuccessful: boolean, isRequestFulfilled: boolean, req
  * Creates a status indicating the device lacks multifactorial authentication capability.
  * Sets success to false but marks request as fulfilled since no further scenario is possible.
  */
-function createUnsupportedDeviceStatus(prevStatus: MultifactorAuthenticationStatus<boolean>) {
+function createUnsupportedDeviceStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
     return {
         ...prevStatus,
-        value: false,
+        value: {
+            isAnyDeviceRegistered: prevStatus.value.isAnyDeviceRegistered,
+            isLocalPublicKeyInAuth: false,
+            isBiometryRegisteredLocally: false,
+        },
         step: createBaseStep(false, true),
     };
 }
@@ -102,7 +118,7 @@ function createUnsupportedDeviceStatus(prevStatus: MultifactorAuthenticationStat
  * Creates a status requesting a validation code from the user.
  * Sets success to false and unfulfilled since user input is required.
  */
-function createValidateCodeMissingStatus(prevStatus: MultifactorAuthenticationStatus<boolean>): MultifactorAuthenticationStatus<boolean> {
+function createValidateCodeMissingStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
     return {
         ...prevStatus,
         step: createBaseStep(false, false, CONST.MULTI_FACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE),
@@ -115,7 +131,7 @@ function createValidateCodeMissingStatus(prevStatus: MultifactorAuthenticationSt
  * Preserves the error details but marks the request as fulfilled since retry is needed.
  */
 function createKeyErrorStatus({reason, type}: MultifactorAuthenticationPartialStatus<boolean, true>) {
-    return (prevStatus: MultifactorAuthenticationStatus<boolean>): MultifactorAuthenticationStatus<boolean> => ({
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
         ...prevStatus,
         reason,
         type,
@@ -127,8 +143,8 @@ function createKeyErrorStatus({reason, type}: MultifactorAuthenticationPartialSt
  * Creates a status reflecting the result of registering with the backend.
  * Success is based on the API response but always marks as fulfilled.
  */
-function createRegistrationResultStatus(partialStatus: Partial<MultifactorAuthenticationPartialStatus<boolean>>) {
-    return (prevStatus: MultifactorAuthenticationStatus<boolean>): MultifactorAuthenticationStatus<boolean> => ({
+function createRegistrationResultStatus(partialStatus: Partial<MultifactorAuthenticationPartialStatus<BiometricsStatus>>) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
         ...prevStatus,
         ...partialStatus,
         step: createBaseStep(!!partialStatus.step?.wasRecentStepSuccessful, true),
@@ -140,7 +156,7 @@ function createRegistrationResultStatus(partialStatus: Partial<MultifactorAuthen
  * Success depends on having no pending requirements and previous success.
  * Returns unchanged status if already fulfilled.
  */
-function createCancelStatus(prevStatus: MultifactorAuthenticationStatus<boolean>): MultifactorAuthenticationStatus<boolean> {
+function createCancelStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
     return {
         ...prevStatus,
         step: {
@@ -167,11 +183,11 @@ function createCancelStatusWithNoValue<T>(prevStatus: MultifactorAuthenticationS
  * Creates a status reflecting whether multifactorial authentication is configured.
  * Only updates the configuration flag while preserving other status fields.
  */
-function createRefreshStatusStatus(isMultifactorAuthenticationConfiguredValue: boolean, overwriteStatus?: Partial<MultifactorAuthenticationStatus<boolean>>) {
-    return (prevStatus: MultifactorAuthenticationStatus<boolean>): MultifactorAuthenticationStatus<boolean> => ({
+function createRefreshStatusStatus(setupStatus: BiometricsStatus, overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
         ...prevStatus,
         ...overwriteStatus,
-        value: isMultifactorAuthenticationConfiguredValue,
+        value: setupStatus,
     });
 }
 

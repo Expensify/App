@@ -1,3 +1,4 @@
+import {resetKeys} from '@hooks/MultifactorAuthentication/helpers';
 import {requestBiometricChallenge} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import {signToken as signTokenED25519} from './ED25519';
@@ -25,6 +26,8 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         reason: 'multifactorAuthentication.reason.generic.notRequested',
     };
 
+    private publicKeys: string[] = [];
+
     constructor(
         private readonly scenario: T,
         private readonly params: MultifactorAuthenticationScenarioAdditionalParams<T>,
@@ -39,15 +42,9 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
      * Initiates the challenge process by requesting a new challenge from the API.
      * Verifies the backend is properly synced and handles the challenge response.
      */
-    public async request(accountID: number): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
-        const {httpCode, challenge, reason: apiReason} = await requestBiometricChallenge();
-        const syncedBE = httpCode !== 401;
-
-        if (!syncedBE) {
-            await PrivateKeyStore.delete(accountID);
-            await PublicKeyStore.delete(accountID);
-            return this.createErrorReturnValue('multifactorAuthentication.reason.error.keyMissingOnTheBE');
-        }
+    public async request(): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
+        const {challenge, publicKeys: authPublicKeys, reason: apiReason} = await requestBiometricChallenge();
+        this.publicKeys = authPublicKeys ?? [];
 
         const reason = apiReason.endsWith('unknownResponse') ? 'multifactorAuthentication.reason.error.badToken' : apiReason;
 
@@ -80,6 +77,13 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
 
         if (!value) {
             return this.createErrorReturnValue(reason || 'multifactorAuthentication.reason.error.keyMissing');
+        }
+
+        const {value: publicKey} = await PublicKeyStore.get(accountID);
+
+        if (!publicKey || !this.publicKeys.includes(publicKey)) {
+            resetKeys(accountID);
+            return this.createErrorReturnValue('multifactorAuthentication.reason.error.keyMissingOnTheBE');
         }
 
         this.auth = {

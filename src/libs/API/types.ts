@@ -1244,6 +1244,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REGISTER_BIOMETRICS: 'RegisterBiometrics',
     REQUEST_BIOMETRIC_CHALLENGE: 'RequestBiometricChallenge',
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
+    REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: 'RevokeMultifactorAuthenticationKeys',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1274,6 +1275,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_BIOMETRICS]: Parameters.RegisterBiometricsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE]: EmptyObject;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS]: EmptyObject;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

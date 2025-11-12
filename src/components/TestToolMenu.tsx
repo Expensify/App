@@ -45,7 +45,7 @@ function TestToolMenu() {
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    const biometricsTitle = translate('multifactorAuthentication.title', {registered: setup.isBiometryConfigured});
+    const biometricsTitle = translate('multifactorAuthentication.title', {registered: setup.isLocalPublicKeyInAuth});
 
     return (
         <>

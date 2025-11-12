@@ -94,6 +94,29 @@ router.post['/resend_validate_code'] = ({email}: Partial<WriteCommands['ResendVa
     };
 };
 
+router.post['/revoke_public_keys'] = (): WriteCommands['RevokeMultifactorAuthenticationKeys']['returns'] => {
+    const emailWithFallback = sessionData.email ?? FALLBACK_EMAIL;
+    const publicKeys = STORAGE.publicKeys[emailWithFallback];
+
+    Logger.m('Revoking all public keys for email', emailWithFallback);
+
+    if (!publicKeys || publicKeys.length === 0) {
+        return {
+            ...BAD_REQUEST,
+            message: Logger.w('There are no registered public keys for this email'),
+        };
+    }
+
+    while (publicKeys.length) {
+        Logger.m(`Revoked ${publicKeys.pop()} public key`);
+    }
+
+    return {
+        ...REQUEST_SUCCESSFUL,
+        message: `Revoked all public keys for email ${emailWithFallback}`,
+    };
+};
+
 router.post['/send_otp'] = ({phoneNumber}: Partial<WriteCommands['SendOTP']['parameters']>): WriteCommands['SendOTP']['returns'] => {
     Logger.m('Generating new validation code');
 
@@ -120,7 +143,9 @@ router.post['/send_otp'] = ({phoneNumber}: Partial<WriteCommands['SendOTP']['par
 router.get['/request_biometric_challenge'] = async (): Promise<ReadCommands['RequestBiometricChallenge']['returns']> => {
     Logger.m('Requested biometric challenge');
 
-    if (!STORAGE.publicKeys[sessionData.email ?? FALLBACK_EMAIL]) {
+    const publicKeys = STORAGE.publicKeys[sessionData.email ?? FALLBACK_EMAIL];
+
+    if (!publicKeys) {
         return {
             ...UNAUTHORIZED,
             message: Logger.w('Registration required'),
@@ -153,7 +178,7 @@ router.get['/request_biometric_challenge'] = async (): Promise<ReadCommands['Req
     Logger.m('Challenge', challenge.challenge, 'sent to the client');
 
     return {
-        response: {challenge},
+        response: {challenge, publicKeys},
         status: 200,
         message: 'Biometrics challenge generated successfully',
     };

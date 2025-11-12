@@ -36,7 +36,7 @@ function useNativeBiometrics() {
             const {chainedPrivateKeyStatus} = params;
             const challenge = new Challenge(scenario, params);
 
-            const requestStatus = await challenge.request(accountID);
+            const requestStatus = await challenge.request();
             if (!requestStatus.value) {
                 return setStatus(createAuthorizeErrorStatus(requestStatus));
             }

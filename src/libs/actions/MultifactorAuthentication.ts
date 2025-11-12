@@ -51,14 +51,22 @@ async function registerBiometrics({publicKey, validateCode}: {publicKey: string;
     return parseHttpCode(jsonCode, CONST.MULTI_FACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REGISTER_BIOMETRICS);
 }
 
+async function revokePublicKeys() {
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS, {}, {});
+
+    const {jsonCode} = response ?? {};
+    return parseHttpCode(jsonCode, CONST.MULTI_FACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS);
+}
+
 /** Ask API for the multifactorial authentication challenge. */
 async function requestBiometricChallenge() {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE, {}, {});
-    const {jsonCode, challenge} = response ?? {};
+    const {jsonCode, challenge, publicKeys} = response ?? {};
 
     return {
         ...parseHttpCode(jsonCode, CONST.MULTI_FACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REQUEST_BIOMETRIC_CHALLENGE),
         challenge,
+        publicKeys,
     };
 }
 
@@ -82,4 +90,4 @@ async function authorizeTransaction({transactionID, signedChallenge, validateCod
     return parseHttpCode(jsonCode, CONST.MULTI_FACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.AUTHORIZE_TRANSACTION);
 }
 
-export {registerBiometrics, requestBiometricChallenge, authorizeTransaction};
+export {registerBiometrics, requestBiometricChallenge, authorizeTransaction, revokePublicKeys};

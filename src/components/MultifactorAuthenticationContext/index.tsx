@@ -5,6 +5,7 @@ import {
     convertResultIntoMFAStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     MergedHooksStatus,
+    resetKeys,
     shouldAllowBiometrics,
     shouldAllowFallback,
 } from '@hooks/MultifactorAuthentication/helpers';
@@ -12,6 +13,7 @@ import type {MultifactorAuthenticationScenarioStatus, Register, UseMultifactorAu
 import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {
@@ -35,7 +37,9 @@ import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from './config';
 
 const MultifactorAuthenticationContext = createContext<UseMultifactorAuthentication>({
     info: {
-        isBiometryConfigured: false,
+        isLocalPublicKeyInAuth: false,
+        isAnyDeviceRegistered: false,
+        isBiometryRegisteredLocally: false,
         deviceSupportBiometrics: false,
         message: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.message,
         title: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
@@ -75,6 +79,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         accepted: undefined,
         validateCode: undefined,
     });
+    const {accountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const is2FAEnabled = !!account?.requiresTwoFactorAuth && false;
     const overriddenScreens = useRef<{
@@ -185,10 +190,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return {
                 fallback: shouldAllowFallback(securityLevel),
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                biometrics: shouldAllowBiometrics(securityLevel) && (NativeBiometrics.setup.isBiometryConfigured || softPromptStore.current.accepted),
+                biometrics: shouldAllowBiometrics(securityLevel) && (NativeBiometrics.setup.isLocalPublicKeyInAuth || softPromptStore.current.accepted),
             };
         },
-        [NativeBiometrics.setup.isBiometryConfigured],
+        [NativeBiometrics.setup.isLocalPublicKeyInAuth],
     );
 
     const register = useCallback(
@@ -273,8 +278,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 failure: failureNotification,
             };
 
+            if (NativeBiometrics.setup.isBiometryRegisteredLocally && !NativeBiometrics.setup.isLocalPublicKeyInAuth) {
+                await resetKeys(accountID);
+                await NativeBiometrics.setup.refresh();
+            }
+
             const shouldNavigateToSoftPrompt =
-                !NativeBiometrics.setup.isBiometryConfigured && softPromptStore.current.accepted === undefined && NativeBiometrics.setup.deviceSupportBiometrics;
+                !NativeBiometrics.setup.isLocalPublicKeyInAuth && softPromptStore.current.accepted === undefined && NativeBiometrics.setup.deviceSupportBiometrics;
 
             if (shouldNavigateToSoftPrompt) {
                 const {validateCode} = params ?? softPromptStore.current;
@@ -314,7 +324,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return authorizeFallback(scenario, params);
             }
 
-            if (!NativeBiometrics.setup.isBiometryConfigured) {
+            if (!NativeBiometrics.setup.isLocalPublicKeyInAuth) {
                 /** Multi-factor authentication is not configured, let's do that first */
                 /** Run the setup method */
 
@@ -348,7 +358,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             return result;
         },
-        [NativeBiometrics.setup, allowedMethods, authorize, authorizeFallback, register, setStatus],
+        [NativeBiometrics.setup, accountID, allowedMethods, authorize, authorizeFallback, register, setStatus],
     );
 
     const update = useCallback(
@@ -399,16 +409,19 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         );
     }, [NativeBiometrics.setup, setStatus]);
 
-    const info = useMemo(
-        () => ({
+    const info = useMemo(() => {
+        const {isLocalPublicKeyInAuth, isBiometryRegisteredLocally, isAnyDeviceRegistered, deviceSupportBiometrics} = NativeBiometrics.setup;
+
+        return {
             title: mergedStatus.title,
             message: mergedStatus.message,
-            isBiometryConfigured: NativeBiometrics.setup.isBiometryConfigured,
-            deviceSupportBiometrics: NativeBiometrics.setup.deviceSupportBiometrics,
+            deviceSupportBiometrics,
+            isLocalPublicKeyInAuth,
+            isBiometryRegisteredLocally,
+            isAnyDeviceRegistered,
             success: success.current,
-        }),
-        [NativeBiometrics.setup.deviceSupportBiometrics, NativeBiometrics.setup.isBiometryConfigured, mergedStatus.message, mergedStatus.title],
-    );
+        };
+    }, [NativeBiometrics.setup, mergedStatus.message, mergedStatus.title]);
 
     const trigger = useCallback(
         async (triggerType: MultifactorAuthenticationTrigger) => {

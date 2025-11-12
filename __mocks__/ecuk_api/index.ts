@@ -5,7 +5,6 @@ import fetch from './router';
 import {FALLBACK_EMAIL} from './utils';
 
 /* eslint-disable rulesdir/no-api-in-views */
-
 const api = async (path: string, method: 'GET' | 'POST', body?: Record<string, unknown>) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return fetch(path, {
@@ -32,6 +31,7 @@ const APIRoutes: {
         RegisterBiometrics: 'POST:/register_biometrics',
         AuthorizeTransaction: 'POST:/authorize_transaction',
         SendOTP: 'POST:/send_otp',
+        RevokeMultifactorAuthenticationKeys: 'POST:/revoke_public_keys',
     },
 };
 
@@ -54,6 +54,11 @@ type WriteCommands = {
             validateCode?: number; // validate code
             otp?: number; // 2FA / SMS OTP
         };
+        returns: APIResponse;
+    };
+    RevokeMultifactorAuthenticationKeys: {
+        route: typeof APIRoutes.Write.RevokeMultifactorAuthenticationKeys;
+        parameters: Record<string, unknown>;
         returns: APIResponse;
     };
     ResendValidateCode: {
@@ -84,6 +89,7 @@ const WRITE_COMMANDS = {
     REGISTER_BIOMETRICS: 'RegisterBiometrics',
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
+    REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: 'RevokeMultifactorAuthenticationKeys',
     SEND_OTP: 'SendOTP',
 } as const;
 
@@ -96,6 +102,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHORIZE_TRANSACTION: WRITE_COMMANDS.AUTHORIZE_TRANSACTION,
     RESEND_VALIDATE_CODE: WRITE_COMMANDS.RESEND_VALIDATE_CODE,
     REQUEST_BIOMETRIC_CHALLENGE: READ_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE,
+    REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: WRITE_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS,
 };
 
 type WriteCommandType = (typeof WRITE_COMMANDS)[keyof typeof WRITE_COMMANDS];
@@ -135,15 +142,19 @@ const API: APIType = {
     makeRequestWithSideEffects: async (route, parameters) => {
         if (isReadCommandType(route)) {
             const res = await API.read(route, parameters);
+            const {response = {}} = res;
             return {
+                ...response,
                 message: res.message,
                 jsonCode: res.status,
-                challenge: res.response?.challenge,
+                challenge: response.challenge,
             };
         }
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls,@typescript-eslint/non-nullable-type-assertion-style
         const res = await API.write(route, parameters as WriteCommands[typeof route]['parameters']);
+        const {response = {}} = res;
         return {
+            ...response,
             message: res.message,
             jsonCode: res.status,
         };
