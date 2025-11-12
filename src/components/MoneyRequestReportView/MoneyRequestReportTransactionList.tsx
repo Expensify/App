@@ -10,12 +10,14 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import openSearchReport from '@components/Search/openSearchReport';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -39,7 +41,17 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    getAmount,
+    getCategory,
+    getCreated,
+    getMerchant,
+    getTag,
+    getTransactionPendingAction,
+    isTransactionPendingDelete,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -49,7 +61,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -163,6 +174,7 @@ function MoneyRequestReportTransactionList({
     }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const personalDetailsList = usePersonalDetails();
 
@@ -177,7 +189,9 @@ function MoneyRequestReportTransactionList({
         for (const transaction of transactions) {
             const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             if (transactionViolations) {
-                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''));
+                const filteredTransactionViolations = mergeProhibitedViolations(
+                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '')),
+                );
 
                 if (filteredTransactionViolations.length > 0) {
                     filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
@@ -261,12 +275,12 @@ function MoneyRequestReportTransactionList({
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            const sortedSiblingTransactionIDs = sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
             setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+                openSearchReport(routeParams.reportID, backTo);
             });
         },
         [report, reportActions, sortedTransactions, markReportIDAsExpense],
@@ -312,6 +326,13 @@ function MoneyRequestReportTransactionList({
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
 
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
+    );
+
     const listHorizontalPadding = styles.ph5;
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
@@ -336,7 +357,7 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -392,6 +413,7 @@ function MoneyRequestReportTransactionList({
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             forwardedFSClass={transactionItemFSClass}
+                            onArrowRightPress={handleArrowRightPress}
                         />
                     );
                 })}

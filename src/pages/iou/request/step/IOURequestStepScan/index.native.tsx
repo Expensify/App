@@ -8,9 +8,10 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
+import {scheduleOnRN} from 'react-native-worklets';
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -40,7 +41,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -142,6 +143,7 @@ function IOURequestStepScan({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -226,7 +228,7 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            runOnJS(focusCamera)(point);
+            scheduleOnRN(focusCamera, point);
         });
 
     useFocusEffect(
@@ -299,7 +301,7 @@ function IOURequestStepScan({
         (
             files: ReceiptFile[],
             participant: Participant,
-            gpsPoints?: GpsPoint,
+            gpsPoint?: GpsPoint,
             policyParams?: {
                 policy: OnyxEntry<Policy>;
             },
@@ -327,7 +329,7 @@ function IOURequestStepScan({
                             receipt,
                             billable,
                             reimbursable,
-                            ...(gpsPoints ?? {}),
+                            gpsPoint,
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
@@ -341,7 +343,7 @@ function IOURequestStepScan({
                             participant,
                         },
                         ...(policyParams ?? {}),
-                        ...(gpsPoints ?? {}),
+                        gpsPoint,
                         transactionParams: {
                             amount: 0,
                             attendees: transaction?.comment?.attendees,
@@ -431,11 +433,11 @@ function IOURequestStepScan({
                         getCurrentPosition(
                             (successData) => {
                                 const policyParams = {policy};
-                                const gpsPoints = {
+                                const gpsPoint = {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 };
-                                createTransaction(files, participant, gpsPoints, policyParams, false);
+                                createTransaction(files, participant, gpsPoint, policyParams, false);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
@@ -545,9 +547,9 @@ function IOURequestStepScan({
             } else {
                 navigateBack();
             }
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source});
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, backTo],
+        [initialTransactionID, policyCategories, backTo],
     );
 
     /**
@@ -559,7 +561,9 @@ function IOURequestStepScan({
                 return;
             }
 
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, undefined, true);
+            // Set file type as 'image/png' since the test receipt is a PNG file
+            // prepareRequestPayload requires the file type to properly construct the FormData for API upload
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, 'image/png', true);
             removeDraftTransactions(true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
@@ -588,14 +592,14 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing, file.type);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -605,7 +609,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
-            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true);
+            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
         });
 
         if (shouldSkipConfirmation) {
@@ -641,6 +645,8 @@ function IOURequestStepScan({
         },
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
+
+    const submitMultiScanReceipts = useCallback(() => submitReceipts(receiptFiles), [receiptFiles, submitReceipts]);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
@@ -703,35 +709,32 @@ function IOURequestStepScan({
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
-                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
+                            ({file, filename, source}) => {
+                                // Add source property to file for prepareRequestPayload compatibility
+                                const cameraFile = {
+                                    ...file,
+                                    source,
+                                };
 
-                            readFileAsync(
-                                source,
-                                filename,
-                                (file) => {
-                                    if (isEditing) {
-                                        updateScanAndNavigate(file, source);
-                                        return;
-                                    }
+                                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
 
-                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
-                                    setReceiptFiles(newReceiptFiles);
+                                if (isEditing) {
+                                    updateScanAndNavigate(cameraFile as FileObject, source);
+                                    return;
+                                }
 
-                                    if (isMultiScanEnabled) {
-                                        setDidCapturePhoto(false);
-                                        return;
-                                    }
+                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                                setReceiptFiles(newReceiptFiles);
 
-                                    submitReceipts(newReceiptFiles);
-                                },
-                                () => {
+                                if (isMultiScanEnabled) {
                                     setDidCapturePhoto(false);
-                                    showCameraAlert();
-                                    Log.warn('Error reading photo');
-                                },
-                            );
-                        });
+                                    return;
+                                }
+
+                                submitReceipts(newReceiptFiles);
+                            },
+                        );
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
@@ -959,7 +962,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitReceipts}
+                        submit={submitMultiScanReceipts}
                     />
                 )}
 
