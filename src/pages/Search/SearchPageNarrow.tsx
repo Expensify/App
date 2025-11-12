@@ -113,6 +113,7 @@ function SearchPageNarrow({
     const scrollHandler = useAnimatedScrollHandler(
         {
             onScroll: (event) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 runOnJS(triggerScrollEvent)();
                 const {contentOffset, layoutMeasurement, contentSize} = event;
                 if (windowHeight > contentSize.height) {
@@ -122,7 +123,7 @@ function SearchPageNarrow({
                 const currentOffset = contentOffset.y;
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
-
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 runOnJS(saveScrollOffset)(route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
@@ -147,7 +148,7 @@ function SearchPageNarrow({
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
