@@ -497,11 +497,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID) {
+        if (!transactionID || isMovingTransactionFromTrackExpense) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -905,7 +905,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (!Object.keys(policy?.taxRates?.taxes ?? {}).some((key) => key === transaction.taxCode)) {
+            if (shouldShowTax && !Object.keys(policy?.taxRates?.taxes ?? {}).some((key) => key === transaction.taxCode)) {
                 setFormError('violations.taxOutOfPolicy');
                 return;
             }
