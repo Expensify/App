@@ -85,19 +85,17 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
-            // eslint-disable-next-line unicorn/prefer-set-has
-            const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
+            if (acceptedFileTypes.every((element) => !filesExtensions.has(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
         }
 
-        // eslint-disable-next-line unicorn/prefer-set-has
-        const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
+        const uploadedFilesNames = new Set(uploadedFiles.map((uploadedFile) => uploadedFile.name));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));
+        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
 
         onInputChange(newFilesToUpload);
         onUpload(newFilesToUpload);

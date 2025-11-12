@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: '無効な金額',
             acceptTerms: '続行するには、利用規約に同意する必要があります。',
-            phoneNumber: `有効な電話番号を国コードとともに入力してください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `電話番号を完全に入力してください\n(例: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは他のメンバーによって変更されています。',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えました（${length}/${limit}）`,
@@ -827,8 +827,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: '経費を提出し、上司に紹介する',
-            subtitleText: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            title: '経費を提出し、チームに紹介する',
+            subtitleText: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
     },
     videoChatButtonAndMenu: {
@@ -1130,6 +1130,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant}から${amount}`,
         addSplit: '分割を追加',
+        makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}多いです。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
@@ -4169,6 +4170,8 @@ ${date} - ${merchant}に${amount}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    '会社カードのエクスポート設定を経費レポートに変更した場合、NetSuiteベンダーと個別カードの仕訳勘定が無効になります。\n\n心配ありません。後で元に戻したい場合に備えて、以前の選択設定は保存しておきます。',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensifyは毎日自動的にNetSuiteと同期します。',
@@ -6684,9 +6687,9 @@ ${date} - ${merchant}に${amount}`,
             body: '友達にもExpensifyを使ってほしいですか？ 彼らとチャットを始めるだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: '経費を提出し、<success><strong>上司に紹介する</strong></success>。',
-            header: '経費を提出し、上司に紹介する',
-            body: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            buttonText: '経費を提出し、<success><strong>チームに紹介する</strong></success>。',
+            header: '経費を提出し、チームに紹介する',
+            body: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: '友達を紹介する',
