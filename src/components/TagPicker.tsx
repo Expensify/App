@@ -99,10 +99,9 @@ function TagPicker({
             });
         }
 
-        // eslint-disable-next-line unicorn/prefer-set-has
-        const selectedNames = selectedOptions.map((s) => s.name);
+        const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
     }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
     const availableTagsCount = useMemo(() => {
@@ -133,7 +132,7 @@ function TagPicker({
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
     return (
         <SelectionList
