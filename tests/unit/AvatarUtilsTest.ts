@@ -4,6 +4,8 @@ import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSiz
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
 import * as getImageResolution from '@src/libs/fileDownload/getImageResolution';
 import type {FileObject} from '@src/types/utils/Attachment';
+import {getApiRoot} from '@libs/ApiUtils';
+import type {Request} from '@src/types/onyx';
 
 jest.mock('@src/libs/fileDownload/FileUtils');
 jest.mock('@src/libs/fileDownload/getImageResolution');
@@ -354,13 +356,15 @@ describe('AvatarUtils', () => {
             const absoluteImageFilePath = `/${imageFileName}`;
 
             const encodedImageFileName = encodeURIComponent(imageFileName);
-            const prodImageFileUrl = `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}${imageFileName}`;
-            const encodedProdImageFileUrl = `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}${encodedImageFileName}`;
+            const absoluteEncodedImageFilePath = `/${encodedImageFileName}`;
 
-            expect(getValidatedImageSource(imageFileName)).toBe(prodImageFileUrl);
-            expect(getValidatedImageSource(encodedImageFileName)).toBe(encodedProdImageFileUrl);
+            const apiRoot = getApiRoot({shouldUseSecure: false} as Request)
+            const prodImageFileUrl = `${apiRoot}${imageFileName}`;
+            const encodedProdImageFileUrl = `${apiRoot}${encodedImageFileName}`;
 
             expect(getValidatedImageSource(absoluteImageFilePath)).toBe(prodImageFileUrl);
+            expect(getValidatedImageSource(absoluteEncodedImageFilePath)).toBe(encodedProdImageFileUrl);
+
             expect(getValidatedImageSource(prodImageFileUrl)).toBe(prodImageFileUrl);
             expect(getValidatedImageSource(encodedProdImageFileUrl)).toBe(prodImageFileUrl);
         });
