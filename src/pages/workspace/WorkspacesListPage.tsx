@@ -498,7 +498,7 @@ function WorkspacesListPage() {
         if (isValidated) {
             return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
         }
-        Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID));
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
     /**
