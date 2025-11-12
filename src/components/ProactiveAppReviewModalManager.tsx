@@ -1,0 +1,64 @@
+import React, {useState, useCallback} from 'react';
+import useOnyx from '@hooks/useOnyx';
+import * as StoreReview from '@libs/actions/StoreReview';
+import * as User from '@libs/actions/User';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import useProactiveAppReview from '@hooks/useProactiveAppReview';
+import type {ProactiveAppReviewResponse} from '@src/types/onyx/ProactiveAppReview';
+import ProactiveAppReviewModal from './ProactiveAppReviewModal';
+
+const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying Expensify. What's your favorite thing about the app? Thanks!";
+const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully satisfied with Expensify. What's your #1 frustration? Thanks!";
+
+function ProactiveAppReviewModalManager() {
+    const {shouldShowModal} = useProactiveAppReview();
+    const [isModalVisible, setIsModalVisible] = useState(shouldShowModal);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
+    const handleResponse = useCallback((response: ProactiveAppReviewResponse, message?: string) => {
+        setIsModalVisible(false);
+
+        // Call the action which will create optimistic comment (if message provided) and call API
+        User.respondToProactiveAppReview(response, message, conciergeReportID);
+
+        // Navigate to Concierge DM if we have a report ID and this wasn't a skip
+        if (conciergeReportID && response !== 'skip') {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        }
+    }, [conciergeReportID]);
+
+    const handlePositive = useCallback(() => {
+        handleResponse('positive', CONCIERGE_POSITIVE_MESSAGE);
+
+        // Trigger native app store review prompt
+        StoreReview.requestReview();
+    }, [handleResponse]);
+
+    const handleNegative = useCallback(() => {
+        handleResponse('negative', CONCIERGE_NEGATIVE_MESSAGE);
+    }, [handleResponse]);
+
+    const handleSkip = useCallback(() => {
+        handleResponse('skip');
+    }, [handleResponse]);
+
+    // Update modal visibility when shouldShowModal changes
+    React.useEffect(() => {
+        setIsModalVisible(shouldShowModal);
+    }, [shouldShowModal]);
+
+    return (
+        <ProactiveAppReviewModal
+            isVisible={isModalVisible}
+            onPositive={handlePositive}
+            onNegative={handleNegative}
+            onSkip={handleSkip}
+        />
+    );
+}
+
+ProactiveAppReviewModalManager.displayName = 'ProactiveAppReviewModalManager';
+
+export default ProactiveAppReviewModalManager;
