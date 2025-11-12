@@ -17,6 +17,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
@@ -44,7 +45,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onScrollBeginDrag,
     onEndReached,
     onEndReachedThreshold,
-    confirmButtonConfig,
+    confirmButtonOptions,
     customListHeader,
     customListHeaderContent,
     footerContent,
@@ -101,7 +102,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
-    const hasFooter = !!footerContent || confirmButtonConfig?.showButton;
+    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -125,12 +126,18 @@ function BaseSelectionList<TItem extends ListItem>({
             {disabledIndexes: [], disabledArrowKeyIndexes: [], selectedOptions: []},
         );
 
+        if (selectedOptions.length > 1 && !canSelectMultiple) {
+            Log.alert(
+                'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
+            );
+        }
+
         const totalSelectable = data.length - disabledIndexes.length;
         const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
-    }, [data, isDisabled, isItemSelected]);
+    }, [canSelectMultiple, data, isDisabled, isItemSelected]);
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -237,8 +244,8 @@ function BaseSelectionList<TItem extends ListItem>({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
-            if (confirmButtonConfig?.onConfirm) {
-                confirmButtonConfig?.onConfirm(e, focusedOption);
+            if (confirmButtonOptions?.onConfirm) {
+                confirmButtonOptions?.onConfirm(e, focusedOption);
                 return;
             }
             selectFocusedOption();
@@ -246,7 +253,7 @@ function BaseSelectionList<TItem extends ListItem>({
         {
             captureOnInputs: true,
             shouldBubble: !focusedOption,
-            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonConfig?.isDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
 
@@ -401,6 +408,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         customListHeader={customListHeader}
                         canSelectMultiple={canSelectMultiple}
                         onSelectAll={handleSelectAll}
+                        shouldShowSelectAllButton={!!onSelectAll}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
@@ -430,7 +438,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
             <Footer<TItem>
                 footerContent={footerContent}
-                confirmButtonConfig={confirmButtonConfig}
+                confirmButtonConfig={confirmButtonOptions}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>
