@@ -1,5 +1,5 @@
 import 'core-js/proposals/promise-with-resolvers';
-import React, {Suspense, useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,11 +23,33 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         });
     }, []);
 
+    const loadingIndicator = useMemo(() => <FullScreenLoadingIndicator />, []);
+
+    const handleOnLoad = useCallback(() => {
+        setFailedToLoad(false);
+    }, []);
+
+    const handleOnLoadSuccess = useCallback(() => {
+        if (!onLoadSuccess) {
+            return;
+        }
+        onLoadSuccess();
+    }, [onLoadSuccess]);
+
+    const handleOnLoadError = useCallback(() => {
+        if (onLoadError) {
+            onLoadError();
+        }
+        setFailedToLoad(true);
+    }, [onLoadError]);
+
+    const handleError = useCallback(() => null, []);
+
     const thumbnail = useMemo(
         () => (
-            <Suspense fallback={null}>
+            <Suspense fallback={loadingIndicator}>
                 <Document
-                    loading={<FullScreenLoadingIndicator />}
+                    loading={loadingIndicator}
                     file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                     options={{
                         cMapUrl: 'cmaps/',
@@ -35,22 +57,10 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     }}
                     externalLinkTarget="_blank"
                     onPassword={onPassword}
-                    onLoad={() => {
-                        setFailedToLoad(false);
-                    }}
-                    onLoadSuccess={() => {
-                        if (!onLoadSuccess) {
-                            return;
-                        }
-                        onLoadSuccess();
-                    }}
-                    onLoadError={() => {
-                        if (onLoadError) {
-                            onLoadError();
-                        }
-                        setFailedToLoad(true);
-                    }}
-                    error={() => null}
+                    onLoad={handleOnLoad}
+                    onLoadSuccess={handleOnLoadSuccess}
+                    onLoadError={handleOnLoadError}
+                    error={handleError}
                 >
                     <View pointerEvents="none">
                         <Suspense fallback={null}>
@@ -60,7 +70,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </Document>
             </Suspense>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+        [loadingIndicator, isAuthTokenRequired, previewSourceURL, onPassword, handleOnLoad, handleOnLoadSuccess, handleOnLoadError, handleError],
     );
 
     if (!ready) {
