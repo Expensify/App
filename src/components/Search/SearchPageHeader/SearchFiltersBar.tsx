@@ -672,6 +672,34 @@ function SearchFiltersBar({
         scrollRef.current?.scrollToEnd();
     }, [filters.length]);
 
+    const renderFilterItem = useCallback(
+        ({item}: {item: FilterItem}) => (
+            <DropdownButton
+                label={item.label}
+                value={item.value}
+                PopoverComponent={item.PopoverComponent}
+            />
+        ),
+        [],
+    );
+
+    const renderListFooter = useCallback(
+        () => (
+            <Button
+                link
+                small
+                shouldUseDefaultHover={false}
+                text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
+                iconFill={theme.link}
+                iconHoverFill={theme.linkHover}
+                icon={Expensicons.Filter}
+                textStyles={[styles.textMicroBold]}
+                onPress={openAdvancedFilters}
+            />
+        ),
+        [translate, hiddenSelectedFilters.length, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters],
+    );
+
     if (hasErrors) {
         return null;
     }
@@ -748,26 +776,8 @@ function SearchFiltersBar({
                     showsHorizontalScrollIndicator={false}
                     data={filters}
                     keyExtractor={(item) => item.label}
-                    renderItem={({item}) => (
-                        <DropdownButton
-                            label={item.label}
-                            value={item.value}
-                            PopoverComponent={item.PopoverComponent}
-                        />
-                    )}
-                    ListFooterComponent={() => (
-                        <Button
-                            link
-                            small
-                            shouldUseDefaultHover={false}
-                            text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
-                            iconFill={theme.link}
-                            iconHoverFill={theme.linkHover}
-                            icon={Expensicons.Filter}
-                            textStyles={[styles.textMicroBold]}
-                            onPress={openAdvancedFilters}
-                        />
-                    )}
+                    renderItem={renderFilterItem}
+                    ListFooterComponent={renderListFooter}
                     onEndReached={adjustScroll}
                 />
             )}
