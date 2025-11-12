@@ -274,26 +274,14 @@ type SearchTransaction = {
     /** The type of request */
     transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
-    /** The type of report the transaction is associated with */
-    reportType: string;
-
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction description */
-    description?: string;
-
-    /** The transaction sender ID */
-    accountID: number;
-
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
-
-    /** If the transaction has violations */
-    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;
@@ -306,9 +294,6 @@ type SearchTransaction = {
 
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
-
-    /** The main action that can be performed for the transaction */
-    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;

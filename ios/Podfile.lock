@@ -3664,7 +3664,7 @@ PODS:
     - SocketRocket
     - Turf
     - Yoga
-  - RNNitroSQLite (9.1.11):
+  - RNNitroSQLite (9.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4810,7 +4810,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 8cdadb9f25254c6a6603723c7ed02b18913b1464
   RNLocalize: 0aa716b7d0f1316ca5f8f16ed42b79b9e3093279
   rnmapbox-maps: 870cd752e1d132e05465f3074b582ce6c7e742e9
-  RNNitroSQLite: d5cf8c550c51015e1ecc93ff6e7509187c6c1c9e
+  RNNitroSQLite: ddd882f7bab0370f6045782284c34862636bc8a7
   RNPermissions: d507f1fe0ee109c8f6f882808fcf8a173645e40b
   RNReactNativeHapticFeedback: 43c09eb41d8321be2e1375cb87ae734e58f677b0
   RNReanimated: 91d075aaf0c89d51a0708cd64cd6c77f7fa42cdc
