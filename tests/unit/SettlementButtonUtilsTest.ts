@@ -33,9 +33,14 @@ describe('handleUnvalidatedUserNavigation', () => {
             expectedRouteToNavigate: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
         },
         {
-            description: 'navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT when active route is ROUTES.SEARCH_REPORT',
+            description: 'navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID) when active route is ROUTES.SEARCH_REPORT.getRoute(reportID)',
             mockActiveRoute: ROUTES.SEARCH_REPORT.getRoute({reportID: mockReportID}),
             expectedRouteToNavigate: ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(mockReportID),
+        },
+        {
+            description: 'navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID) when active route is ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})',
+            mockActiveRoute: ROUTES.SEARCH_REPORT.getRoute({reportID: mockChatReportID}),
+            expectedRouteToNavigate: ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(mockChatReportID),
         },
         {
             description: 'navigate to ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT when active route is ROUTES.SEARCH_MONEY_REQUEST_REPORT',
