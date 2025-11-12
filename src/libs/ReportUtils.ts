@@ -10534,9 +10534,7 @@ function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionC
     let previousActionDeleted = false;
     return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
-
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
-
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
@@ -12607,7 +12605,6 @@ export {
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,
-    getAllAncestorReportActionIDs,
     getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
