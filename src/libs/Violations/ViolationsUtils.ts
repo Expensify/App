@@ -468,11 +468,10 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists, companyCardPageURL?: string): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
-            email,
             isTransactionOlderThan7Days = false,
             member,
             category,
@@ -547,10 +546,10 @@ const ViolationsUtils = {
                 return translate('violations.rter', {
                     brokenBankConnection,
                     isAdmin,
-                    email,
                     isTransactionOlderThan7Days,
                     member,
                     rterType,
+                    companyCardPageURL,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
@@ -570,7 +569,7 @@ const ViolationsUtils = {
                 return translate('violations.hold');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
-                    prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
+                    prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
                 });
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');
@@ -595,6 +594,7 @@ const ViolationsUtils = {
         missingFieldError?: string,
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,
+        companyCardPageURL?: string,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
 
@@ -604,7 +604,7 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...transactionViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
                 if (!message) {
                     return;
                 }
