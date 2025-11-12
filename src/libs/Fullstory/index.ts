@@ -1,8 +1,9 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
-import * as Session from '@userActions/Session';
+// import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+// import {getChatFSClass, shouldInitializeFullstory} from './common';
+import {getChatFSClass} from './common';
 import type {FSPageLike, Fullstory} from './types';
 
 // Placeholder Browser API does not support Manual Page definition
@@ -32,7 +33,8 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !Session.isSupportAuthToken(),
+    // shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !Session.isSupportAuthToken(),
+    shouldInitialize: () => true,
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 
