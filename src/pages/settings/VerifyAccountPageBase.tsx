@@ -22,7 +22,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const contactMethod = account?.primaryLogin ?? '';
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    // sometimes primaryLogin can be empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const contactMethod = (account?.primaryLogin || session?.email) ?? '';
     const {translate, formatPhoneNumber} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');

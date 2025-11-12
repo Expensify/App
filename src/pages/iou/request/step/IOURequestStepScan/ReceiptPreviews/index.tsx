@@ -15,7 +15,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +25,7 @@ type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
     /** Submit method */
-    submit: (files: ReceiptFile[]) => void;
+    submit: () => void;
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
@@ -100,7 +99,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
             >
                 <Image
-                    source={{uri: item.source}}
+                    source={typeof item.source === 'string' ? {uri: item.source} : item.source}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}
                     loadingIconSize="small"
                     loadingIndicatorStyles={styles.bgTransparent}
@@ -116,11 +115,6 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
             }),
         };
     });
-
-    const submitReceipts = () => {
-        const transactionReceipts = (optimisticTransactionsReceipts ?? []).filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source);
-        submit(transactionReceipts);
-    };
 
     return (
         <Animated.View style={slideInStyle}>
@@ -144,7 +138,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={Expensicons.ArrowRight}
                         iconFill={theme.white}
-                        onPress={submitReceipts}
+                        onPress={submit}
                     />
                 </SubmitButtonShadow>
             </View>
