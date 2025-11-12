@@ -119,9 +119,8 @@ function MoneyRequestAmountForm({
     }, []);
 
     useEffect(() => {
-        initializeAmount(absoluteAmount);
         initializeIsNegative(amount);
-    }, [amount, absoluteAmount, initializeAmount, initializeIsNegative]);
+    }, [amount, initializeIsNegative]);
 
     useEffect(() => {
         if (!currency || typeof absoluteAmount !== 'number') {
