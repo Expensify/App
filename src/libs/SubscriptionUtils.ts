@@ -14,8 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -86,31 +84,6 @@ Onyx.connect({
 
         fundList = value;
     },
-});
-
-let retryBillingFailed: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingFailed = value;
-    },
-    initWithStoredValues: false,
-});
-
-let lastDayFreeTrial: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
-    callback: (value) => (lastDayFreeTrial = value),
-});
-
-let userBillingFundID: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_BILLING_FUND_ID,
-    callback: (value) => (userBillingFundID = value),
 });
 
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
@@ -190,12 +163,12 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
-function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): boolean {
+function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): boolean {
     // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
     // with the promo code.
     const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
 
-    return !isUserOnFreeTrial(firstDayFreeTrial) && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
+    return !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) && !hasUserFreeTrialEnded(lastDayFreeTrial) && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.
@@ -229,16 +202,22 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null, firstDayFreeTrial: string | undefined): boolean {
+function shouldShowDiscountBanner(
+    hasTeam2025Pricing: boolean,
+    subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
 
-    if (!isUserOnFreeTrial(firstDayFreeTrial)) {
+    if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         return false;
     }
 
-    if (doesUserHavePaymentCardAdded()) {
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
         return false;
     }
 
@@ -287,7 +266,7 @@ function getEarlyDiscountInfo(firstDayFreeTrial: string | undefined): DiscountIn
 /**
  * @returns Whether there is a retry billing error.
  */
-function hasRetryBillingError(): boolean {
+function hasRetryBillingError(retryBillingFailed: boolean | undefined): boolean {
     return !!retryBillingFailed;
 }
 
@@ -310,6 +289,7 @@ function getSubscriptionStatus(
     stripeCustomerId: OnyxEntry<StripeCustomerID>,
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
@@ -394,7 +374,7 @@ function getSubscriptionStatus(
     }
 
     // 11. Retry billing error
-    if (hasRetryBillingError()) {
+    if (hasRetryBillingError(retryBillingFailed)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
             isError: true,
@@ -407,21 +387,31 @@ function getSubscriptionStatus(
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError ?? false;
+function hasSubscriptionRedDotError(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>, retryBillingSuccessful: boolean | undefined, billingDisputePending: number | undefined): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending)?.isError === false;
+function hasSubscriptionGreenDotInfo(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError === false;
 }
 
 /**
  * Calculates the remaining number of days of the workspace owner's free trial before it ends.
  */
-function calculateRemainingFreeTrialDays(): number {
+function calculateRemainingFreeTrialDays(lastDayFreeTrial: string | undefined): number {
     if (!lastDayFreeTrial) {
         return 0;
     }
@@ -438,19 +428,23 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined): string | undefined {
+function getFreeTrialText(
+    translate: LocalizedTranslate,
+    policies: OnyxCollection<Policy> | null,
+    introSelected: OnyxEntry<IntroSelected>,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
-    if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.preTrial.title');
+    if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
+        return translate('subscription.billingBanner.preTrial.title');
     }
-    if (isUserOnFreeTrial(firstDayFreeTrial)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;
@@ -459,7 +453,7 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected
 /**
  * Whether the workspace's owner is on its free trial period.
  */
-function isUserOnFreeTrial(firstDayFreeTrial: string | undefined): boolean {
+function isUserOnFreeTrial(firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): boolean {
     if (!firstDayFreeTrial || !lastDayFreeTrial) {
         return false;
     }
@@ -476,7 +470,7 @@ function isUserOnFreeTrial(firstDayFreeTrial: string | undefined): boolean {
 /**
  * Whether the workspace owner's free trial period has ended.
  */
-function hasUserFreeTrialEnded(): boolean {
+function hasUserFreeTrialEnded(lastDayFreeTrial: string | undefined): boolean {
     if (!lastDayFreeTrial) {
         return false;
     }
@@ -490,7 +484,7 @@ function hasUserFreeTrialEnded(): boolean {
 /**
  * Whether the user has a payment card added to its account.
  */
-function doesUserHavePaymentCardAdded(): boolean {
+function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): boolean {
     return userBillingFundID !== undefined;
 }
 
@@ -607,7 +601,6 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit2'),
             translate('subscription.yourPlan.control.benefit3'),
             translate('subscription.yourPlan.control.benefit4'),
-            translate('subscription.yourPlan.control.benefit5'),
             translate('subscription.yourPlan.control.benefit5'),
             translate('subscription.yourPlan.control.benefit6'),
             translate('subscription.yourPlan.control.benefit7'),
