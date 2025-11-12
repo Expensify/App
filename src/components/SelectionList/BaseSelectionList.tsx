@@ -60,7 +60,6 @@ function BaseSelectionList<TItem extends ListItem>({
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
-    includeSafeAreaPaddingBottom = true,
     showListEmptyContent = true,
     showLoadingPlaceholder,
     showScrollIndicator = true,
@@ -100,10 +99,9 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
-    const paddingBottomStyle = useMemo(
-        () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
-        [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
-    );
+    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
+
+    const hasFooter = !!footerContent || confirmButtonConfig?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -362,6 +360,19 @@ function BaseSelectionList<TItem extends ListItem>({
         [data, itemsToHighlight, scrollToIndex],
     );
 
+    const updateFocusedIndex = useCallback(
+        (newFocusedIndex: number, shouldScroll = false) => {
+            if (newFocusedIndex < 0 || newFocusedIndex >= data.length) {
+                return;
+            }
+            setFocusedIndex(newFocusedIndex);
+            if (shouldScroll) {
+                scrollToIndex(newFocusedIndex);
+            }
+        },
+        [data.length, scrollToIndex, setFocusedIndex],
+    );
+
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
             return;
@@ -376,9 +387,9 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
     return (
-        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
+        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()

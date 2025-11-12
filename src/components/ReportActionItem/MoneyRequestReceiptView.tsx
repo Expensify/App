@@ -74,16 +74,16 @@ type MoneyRequestReceiptViewProps = {
     isDisplayedInWideRHP?: boolean;
 };
 
-const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
+const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
     CONST.VIOLATIONS.PROHIBITED_EXPENSE,
     CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI,
-];
+]);
 
-const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
 function MoneyRequestReceiptView({
     allReports,
@@ -167,8 +167,8 @@ function MoneyRequestReceiptView({
         const allViolations = [];
 
         for (const violation of transactionViolations ?? []) {
-            const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
-            const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
+            const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
+            const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit);
                 allViolations.push(violationMessage);
@@ -343,10 +343,13 @@ function MoneyRequestReceiptView({
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}
+                                onLoadFailure={() => setIsLoading(false)}
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && receiptAuditMessagesRow}
+                    {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.
+                        Otherwise (when fillSpace is false), we use a fixed size, so there's no need to wait for the image to load. */}
+                    {!!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}

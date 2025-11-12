@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
+        WORKSPACE_CONFIRMATION: 'Travel_WorkspaceConfirmation',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
@@ -149,6 +150,7 @@ const SCREENS = {
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
             DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
+            CARD_MISSING_DETAILS: 'Settings_Wallet_Card_MissingDetails',
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
@@ -258,6 +260,7 @@ const SCREENS = {
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
+        DOMAIN: 'Domain',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -555,6 +558,8 @@ const SCREENS = {
             SAGE_INTACCT_ACCOUNTING_METHOD: 'Policy_Accounting_Sage_Intacct_Accounting_Method',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
+            CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Quickbooks_Desktop_Auto_Sync',
+            CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
         INITIAL: 'Workspace_Initial',
@@ -791,12 +796,14 @@ const SCREENS = {
     SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',
+        SHARE_DETAILS_ATTACHMENT: 'Share_Details_Attachment',
         SUBMIT_DETAILS: 'Submit_Details',
     },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
     ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',
@@ -819,6 +826,8 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
+    WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
+    WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
