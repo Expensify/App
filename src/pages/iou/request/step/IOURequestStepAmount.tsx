@@ -296,7 +296,9 @@ function IOURequestStepAmount({
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? iouReportID;
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
+                });
             } else {
                 resetToDefaultWorkspace();
             }
