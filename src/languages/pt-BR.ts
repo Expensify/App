@@ -466,7 +466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Quantia inválida',
             acceptTerms: 'Você deve aceitar os Termos de Serviço para continuar',
-            phoneNumber: `Por favor, insira um número de telefone válido, com o código do país (ex.: ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Por favor, insira um número de telefone completo\n(ex.: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo é obrigatório',
             requestModified: 'Esta solicitação está sendo modificada por outro membro',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caracteres excedido (${length}/${limit})`,
@@ -825,8 +825,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Envie uma despesa, indique seu chefe',
-            subtitleText: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            title: 'Envie uma despesa, indique seu team',
+            subtitleText: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1128,6 +1128,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Adicionar divisão',
+        makeSplitsEven: 'Tornar as divisões iguais',
         editSplits: 'Editar divisões',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} maior que a despesa original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `O valor total é ${amount} a menos que a despesa original.`,
@@ -1595,8 +1596,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        helpTextBeforeEmail: 'Adicione mais maneiras de enviar recibos. Encaminhe-os para',
-        helpTextAfterEmail: 'ou envie uma mensagem para 47777 (apenas números dos EUA).',
+        helpText: ({email}: {email: string}) =>
+            `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
         pleaseVerify: 'Por favor, verifique este método de contato',
         getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
@@ -2037,6 +2038,8 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Vamos garantir que é você',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, insira o código mágico enviado para ${contactMethod} para visualizar os detalhes do seu cartão. Ele deve chegar dentro de um ou dois minutos.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Por favor, <a href="${missingDetailsLink}">adicione seus dados pessoais</a> e tente novamente.`,
+        unexpectedError: 'Ocorreu um erro ao tentar obter os detalhes do seu cartão Expensify. Tente novamente.',
         cardFraudAlert: {
             confirmButtonText: 'Sim, eu aceito',
             reportFraudButtonText: 'Não, não fui eu',
@@ -4189,6 +4192,8 @@ ${amount} para ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Se você mudar a configuração de exportação de cartões corporativos para relatórios de despesas, os fornecedores do NetSuite e as contas de lançamento para cartões individuais serão desabilitados.\n\nNão se preocupe, ainda vamos salvar suas seleções anteriores caso você queira voltar às configurações anteriores mais tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'A Expensify sincronizará automaticamente com o NetSuite todos os dias.',
@@ -4640,7 +4645,7 @@ ${amount} para ${merchant} - ${date}`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou os detalhes de envio. O Cartão Expensify chegará em 2-3 dias úteis.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
             bankAccountVerifiedHeader: 'Conta bancária verificada',
             verifyingBankAccount: 'Verificando conta bancária...',
@@ -5014,6 +5019,10 @@ ${amount} para ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Não é possível tornar todas as tags opcionais',
                 description: `Pelo menos uma etiqueta deve permanecer obrigatória porque as configurações do seu espaço de trabalho exigem etiquetas.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Não é possível tornar a lista de tags obrigatória',
+                description: 'Você só pode tornar uma lista de tags obrigatória se sua política tiver vários níveis de tags configurados.',
             },
             tagCount: () => ({
                 one: '1 Dia',
@@ -6727,9 +6736,9 @@ ${amount} para ${merchant} - ${date}`,
             body: 'Quer que seus amigos usem o Expensify também? Basta iniciar um chat com eles e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Enviar uma despesa, <success><strong>indique seu chefe</strong></success>.',
-            header: 'Envie uma despesa, indique seu chefe',
-            body: 'Quer que seu chefe use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
+            buttonText: 'Enviar uma despesa, <success><strong>indique seu team</strong></success>.',
+            header: 'Envie uma despesa, indique seu team',
+            body: 'Quer que seu team use o Expensify também? Basta enviar uma despesa para ele e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Indique um amigo',
@@ -6798,22 +6807,34 @@ ${amount} para ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Despesa proibida:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} álcool`;
-                case 'gambling':
-                    return `${preMessage} jogos de azar`;
-                case 'tobacco':
-                    return `${preMessage} tabaco`;
-                case 'adultEntertainment':
-                    return `${preMessage} entretenimento adulto`;
-                case 'hotelIncidentals':
-                    return `${preMessage} despesas incidentais de hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `álcool`;
+                    case 'gambling':
+                        return `jogos de azar`;
+                    case 'tobacco':
+                        return `tabaco`;
+                    case 'adultEntertainment':
+                        return `entretenimento adulto`;
+                    case 'hotelIncidentals':
+                        return `despesas incidentais de hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',

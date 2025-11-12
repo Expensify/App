@@ -171,6 +171,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -2139,6 +2143,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
+    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: undefined;
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2440,6 +2445,7 @@ type SharedScreensParamList = {
 type ShareNavigatorParamList = {
     [SCREENS.SHARE.ROOT]: undefined;
     [SCREENS.SHARE.SHARE_DETAILS]: {reportOrAccountID: string};
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: {reportOrAccountID: string};
     [SCREENS.SHARE.SUBMIT_DETAILS]: {reportOrAccountID: string};
 };
 
@@ -2520,6 +2526,12 @@ type AttachmentModalScreensParamList = {
         action: IOUAction;
         iouType: IOUType;
         readonly: string;
+    };
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
+        source?: AvatarSource;
+        fallbackSource?: AvatarSource;
+        originalFileName?: string;
+        headerTitle?: string;
     };
 };
 
@@ -2621,6 +2633,7 @@ type RestrictedActionParamList = {
 
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
 };
 
 type SplitExpenseParamList = {
