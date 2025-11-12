@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {checkIfNewFeedConnected, getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,29 +12,27 @@ import usePolicy from './usePolicy';
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
     const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const companyFeeds = getCompanyFeeds(cardFeeds, true);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
-    const [prevOAuthDetails, setPrevOAuthDetails] = useState(cardFeeds?.settings?.oAuthAccountDetails);
-    const [isNewFeedConnected, setIsNewFeedConnected] = useState(false);
+    const [prevCompanyFeeds, setPrevCompanyFeeds] = useState(0);
 
     const isLoading = !cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)) || !!defaultFeed?.isLoading;
 
     useEffect(() => {
-        const currentOAuthDetails = cardFeeds?.settings?.oAuthAccountDetails ?? {};
-        const plaidConnectedFeed = addNewCard?.data?.plaidConnectedFeed;
-
-        const {isNewFeedConnected: newFeedConnected} = checkIfNewFeedConnected(prevOAuthDetails ?? {}, currentOAuthDetails, plaidConnectedFeed);
-        setIsNewFeedConnected(!!newFeedConnected);
-        setPrevOAuthDetails(currentOAuthDetails);
-    }, [cardFeeds?.settings?.oAuthAccountDetails, addNewCard?.data?.plaidConnectedFeed, prevOAuthDetails]);
+        if (isLoading) {
+            setPrevCompanyFeeds(0);
+        }
+        const connectedFeeds = Object.entries(companyFeeds)?.length;
+        setPrevCompanyFeeds(connectedFeeds);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, [isLoading]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && Object.entries(companyFeeds)?.length >= 1 && !isNewFeedConnected && !isLoading,
+        isBlockedToAddNewFeeds: isCollect && prevCompanyFeeds >= 1 && !isLoading,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
