@@ -187,7 +187,7 @@ function getScimToken(accountID: number, domainName: string) {
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {settings: {isScimTokenLoading: null}},
         },
     ];
