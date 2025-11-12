@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -336,19 +337,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-    },
-});
-
-const draftNoteMap: OnyxCollection<string> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
-        draftNoteMap[reportID] = value;
     },
 });
 
@@ -4319,10 +4307,6 @@ function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-function getDraftPrivateNote(reportID: string): string {
-    return draftNoteMap?.[reportID] ?? '';
-}
-
 /**
  * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
@@ -6022,7 +6006,6 @@ export {
     flagComment,
     getCurrentUserAccountID,
     getCurrentUserEmail,
-    getDraftPrivateNote,
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
