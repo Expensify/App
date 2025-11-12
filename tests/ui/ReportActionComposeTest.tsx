@@ -238,7 +238,7 @@ describe('ReportActionCompose Integration Tests', () => {
             const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
             fireEvent.changeText(composer, validMessage);
             await waitForBatchedUpdatesWithAct();
-            
+
             // When the message is submitted
             act(onSubmitAction);
 

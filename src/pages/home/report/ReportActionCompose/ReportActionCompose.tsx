@@ -43,7 +43,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
-    getAncestors,
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
@@ -150,7 +149,7 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? ''}`, {
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
     const ancestors = useAncestors(transactionThreadReport ?? report);
