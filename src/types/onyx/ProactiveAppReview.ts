@@ -1,5 +1,5 @@
 /** The trigger that prompted the proactive app review request */
-type ProactiveAppReviewTrigger = 'smartscan' | 'submit' | 'approve' | 'card' | 'reimbursed';
+type ProactiveAppReviewTrigger = 'smartscan' | 'submit' | 'approve' | 'card' | 'reimbursed' | 'test';
 
 /** The user's response to the proactive app review prompt */
 type ProactiveAppReviewResponse = 'positive' | 'negative' | 'skip';
