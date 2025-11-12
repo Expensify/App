@@ -200,7 +200,6 @@ function AttachmentModal({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
 
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
@@ -298,7 +297,7 @@ function AttachmentModal({
         detachReceipt(transaction?.transactionID, policyCategories);
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.goBack();
-    }, [transaction, policyCategories]);
+    }, [transaction?.transactionID, policyCategories]);
 
     /**
      * Closes the modal.
