@@ -348,7 +348,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID]);
+    }, [shouldShowTax, defaultTaxCode, transactionID]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
@@ -498,7 +498,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
+    }, [shouldShowTax, transactionID, taxAmountInSmallestCurrencyUnits]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
