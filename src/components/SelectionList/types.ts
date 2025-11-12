@@ -176,7 +176,7 @@ type TextInputOptions = {
     /** Whether the text input should be shown as a header inside list */
     shouldBeInsideList?: boolean;
 
-    /**  */
+    /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
 
     /** Reference to the text input component */
