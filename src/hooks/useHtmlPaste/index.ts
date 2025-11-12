@@ -106,7 +106,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            const clipboardText = event.clipboardData?.getData('text/plain')?.trim();
+            const clipboardText = event.clipboardData?.getData('text/plain');
             if (!clipboardText) {
                 return;
             }
