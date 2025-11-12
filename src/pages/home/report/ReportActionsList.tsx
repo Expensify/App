@@ -406,7 +406,7 @@ function ReportActionsList({
             return;
         }
 
-        // Do not try to mark the report as read if the read has not been loaded and shared with the user
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
         if (!reportMetadata?.hasOnceLoadedReportActions) {
             return;
         }
