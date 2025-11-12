@@ -34,6 +34,7 @@ import {
     isCurrentUserMemberOfAnyPolicy,
 } from '@libs/PolicyUtils';
 import {
+    getActionableMentionWhisperMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -777,6 +778,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
         lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(lastReportAction));
+    } else if (isActionableMentionWhisper(lastReportAction)) {
+        lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(lastReportAction));
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
