@@ -1,11 +1,10 @@
-import CONFIG from '@src/CONFIG';
+import {getApiRoot} from '@libs/ApiUtils';
 import CONST from '@src/CONST';
 import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
 import * as getImageResolution from '@src/libs/fileDownload/getImageResolution';
-import type {FileObject} from '@src/types/utils/Attachment';
-import {getApiRoot} from '@libs/ApiUtils';
 import type {Request} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 jest.mock('@src/libs/fileDownload/FileUtils');
 jest.mock('@src/libs/fileDownload/getImageResolution');
@@ -345,7 +344,7 @@ describe('AvatarUtils', () => {
             expect(getValidatedImageSource(1)).toBe(1);
         });
 
-        it('should return decoded string source', () => {
+        it('should decode string source', () => {
             const encodedImageFileName = 'avatar.jpg%3Fv%3D123';
             const decodedImageFileName = decodeURIComponent(encodedImageFileName);
             expect(getValidatedImageSource(encodedImageFileName)).toBe(decodedImageFileName);
@@ -358,7 +357,7 @@ describe('AvatarUtils', () => {
             const encodedImageFileName = encodeURIComponent(imageFileName);
             const absoluteEncodedImageFilePath = `/${encodedImageFileName}`;
 
-            const apiRoot = getApiRoot({shouldUseSecure: false} as Request)
+            const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
             const prodImageFileUrl = `${apiRoot}${imageFileName}`;
             const encodedProdImageFileUrl = `${apiRoot}${encodedImageFileName}`;
 
