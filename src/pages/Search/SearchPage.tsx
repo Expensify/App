@@ -79,6 +79,7 @@ import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
@@ -108,6 +109,8 @@ function SearchPage({route}: SearchPageProps) {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -637,6 +640,14 @@ function SearchPage({route}: SearchPageProps) {
         isBetaBulkPayEnabled,
     ]);
 
+    const allSnapshotKeys = useMemo(() => {
+        if (!allSnapshots) {
+            return [];
+        }
+
+        return Object.keys(allSnapshots || {}) as OnyxKey[];
+    }, [allSnapshots]);
+
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0 || !hash) {
             return;
@@ -648,7 +659,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, allSnapshotKeys, transactions);
             clearSelectedTransactions();
         });
     };

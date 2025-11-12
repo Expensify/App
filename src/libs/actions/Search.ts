@@ -60,34 +60,6 @@ type OnyxSearchResponse = {
     };
 };
 
-let transactions: NonNullable<OnyxCollection<Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            transactions = {};
-            return;
-        }
-
-        transactions = value;
-    },
-});
-
-let allSnapshotKeys: OnyxKey[] = [];
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        allSnapshotKeys = Object.keys(val) as OnyxKey[];
-    },
-});
-
 type TransactionPreviewData = {
     hasParentReport: boolean;
     hasParentReportAction: boolean;
@@ -622,7 +594,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], allSnapshotKeys: OnyxKey[], transactions: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     const optimisticData: OnyxUpdate[] = [...loadingOptimisticData];
     const failureData: OnyxUpdate[] = [];
@@ -655,33 +627,35 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 } as unknown as OnyxUpdate);
             });
 
-            const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            if (transactions) {
+                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-            if (transaction) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                });
-
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {...transaction, pendingAction: null},
-                });
-
-                const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === 1;
-
-                if (shouldDeleteIOUReport) {
+                if (transaction) {
                     optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
-                        value: {
-                            pendingFields: {
-                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                            },
-                        },
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                        value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                     });
+
+                    failureData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                        value: {...transaction, pendingAction: null},
+                    });
+
+                    const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === 1;
+
+                    if (shouldDeleteIOUReport) {
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                            value: {
+                                pendingFields: {
+                                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                },
+                            },
+                        });
+                    }
                 }
             }
         });

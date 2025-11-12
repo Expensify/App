@@ -769,6 +769,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
+    allSnapshotKeys: OnyxKey[];
 };
 
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -820,20 +821,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allNextSteps = value ?? {};
-    },
-});
-
-let allSnapshotKeys: OnyxKey[] = [];
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        allSnapshotKeys = Object.keys(val) as OnyxKey[];
     },
 });
 
@@ -8626,7 +8613,6 @@ function cleanUpMoneyRequest(
  *
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
- * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
 function deleteMoneyRequest(
@@ -8637,7 +8623,7 @@ function deleteMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
-    isSingleTransactionView = false,
+    allSnapshotKeys: OnyxKey[],
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
 ) {
@@ -8659,7 +8645,7 @@ function deleteMoneyRequest(
         reportPreviewAction,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false, transactionIDsPendingDeletion, selectedTransactionIDs);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
@@ -8812,7 +8798,7 @@ function deleteMoneyRequest(
                         },
                     },
                 },
-            });
+            } as unknown as OnyxUpdate);
 
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -8824,7 +8810,7 @@ function deleteMoneyRequest(
                         },
                     },
                 },
-            });
+            } as unknown as OnyxUpdate);
         });
     }
 
@@ -8969,6 +8955,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
+    allSnapshotKeys,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -8987,7 +8974,7 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatIOUReport, isChatIOUReportArchived, allSnapshotKeys);
         return urlToNavigateBack;
     }
 
