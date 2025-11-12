@@ -19,6 +19,7 @@ type CreateWorkspaceParams = {
     memberData?: string;
     features?: string;
     shouldAddGuideWelcomeMessage?: boolean;
+    areDistanceRatesEnabled?: boolean;
 };
 
 export default CreateWorkspaceParams;
