@@ -640,7 +640,7 @@ const ViolationsUtils = {
 
             // Check if any violation should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
             });
         });
     },
