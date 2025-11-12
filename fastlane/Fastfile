@@ -403,7 +403,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp Adhoc build"
   lane :build_adhoc_hybrid do
-    ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.ios"
+    ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.ios"
 
     setupIOSSigningCertificate()
 
@@ -421,7 +421,7 @@ platform :ios do
 
     build_app(
       workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
-      scheme: "Expensify AdHoc",
+      scheme: "Expensify",
       output_name: "Expensify.ipa",
       export_method: "ad-hoc",
       export_options: {
