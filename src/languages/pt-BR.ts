@@ -1596,7 +1596,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        helpText: ({email}: {email: string}) => `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
+        helpText: ({email}: {email: string}) =>
+            `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
         pleaseVerify: 'Por favor, verifique este método de contato',
         getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,

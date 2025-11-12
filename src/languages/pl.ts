@@ -1597,7 +1597,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
-        helpText: ({email}: {email: string}) => `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
+        helpText: ({email}: {email: string}) =>
+            `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
         pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
         getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
