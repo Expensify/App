@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -108,6 +109,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`];
+                const isChatIOUReportArchived = isArchivedReport(reportNameValuePairs);
+                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
@@ -126,11 +130,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policy,
                     policyRecentlyUsedCategories,
                     iouReport,
+                    chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     transactionViolations,
                     isASAPSubmitBetaEnabled,
+                    isChatReportArchived: isChatIOUReportArchived,
                 });
             });
 
