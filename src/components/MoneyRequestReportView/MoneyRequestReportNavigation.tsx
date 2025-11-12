@@ -36,7 +36,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
-    if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
+    if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
         const searchData = getSections(
             type,
             currentSearchResults.data,
@@ -58,7 +58,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const shouldDisplayNavigationArrows = allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const isChatSearch = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldDisplayNavigationArrows = !isChatSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {

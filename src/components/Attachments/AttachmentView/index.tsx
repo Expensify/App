@@ -30,6 +30,7 @@ import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -98,6 +99,7 @@ function checkIsFileImage(source: string | number | ImageURISource | ImageURISou
 }
 
 function AttachmentView({
+    attachmentID,
     source,
     previewSource,
     file,
@@ -313,13 +315,14 @@ function AttachmentView({
                     </>
                 );
             }
-            imageSource = previewSource?.toString() ?? imageSource;
+            imageSource = SafeString(previewSource) || imageSource;
         }
 
         return (
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        attachmentID={attachmentID}
                         url={imageSource}
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}

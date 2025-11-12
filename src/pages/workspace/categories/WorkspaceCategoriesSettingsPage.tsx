@@ -4,8 +4,10 @@ import CategorySelectorModal from '@components/CategorySelector/CategorySelector
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import SpendCategorySelectorListItem from '@components/SelectionList/ListItem/SpendCategorySelectorListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {ListItem as SelectionListWithSectionsListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
@@ -55,38 +56,31 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         setWorkspaceRequiresCategory(policyID, value, policyTagLists, policyCategories, allTransactionViolations);
     };
 
-    const {sections} = useMemo(() => {
+    const data = useMemo(() => {
         if (!(currentPolicy && currentPolicy.mccGroup)) {
-            return {sections: [{data: []}]};
+            return [];
         }
 
-        return {
-            sections: [
-                {
-                    data: Object.entries(currentPolicy.mccGroup).map(
-                        ([mccKey, mccGroup]) =>
-                            ({
-                                categoryID: mccGroup.category,
-                                keyForList: mccKey,
-                                groupID: mccKey,
-                                tabIndex: -1,
-                                pendingAction: mccGroup?.pendingAction,
-                            }) as ListItem,
-                    ),
-                },
-            ],
-        };
+        return Object.entries(currentPolicy.mccGroup).map(
+            ([mccKey, mccGroup]): ListItem => ({
+                categoryID: mccGroup.category,
+                keyForList: mccKey,
+                groupID: mccKey,
+                tabIndex: -1,
+                pendingAction: mccGroup?.pendingAction,
+            }),
+        );
     }, [currentPolicy]);
 
     const hasEnabledCategories = hasEnabledOptions(policyCategories ?? {});
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    const setNewCategory = (selectedCategory: ListItem) => {
-        if (!selectedCategory.keyForList || !groupID) {
+    const setNewCategory = (selectedCategory: SelectionListWithSectionsListItem, currentGroupID: string) => {
+        if (!selectedCategory.keyForList) {
             return;
         }
         if (categoryID !== selectedCategory.keyForList) {
-            setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
+            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList);
         }
 
         Keyboard.dismiss();
@@ -95,6 +89,23 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             setIsSelectorModalVisible(false);
         });
     };
+
+    const onSelectItem = (item: ListItem) => {
+        if (!item.groupID || !item.categoryID) {
+            return;
+        }
+
+        setIsSelectorModalVisible(true);
+        setCategoryID(item.categoryID);
+        setGroupID(item.groupID);
+    };
+
+    const selectionListHeaderContent = (
+        <View style={[styles.mh5, styles.mt2, styles.mb1]}>
+            <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+            <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
+        </View>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -127,25 +138,13 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
-                        {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                        {!!currentPolicy && data.length > 0 && (
                             <SelectionList
                                 addBottomSafeAreaPadding
-                                headerContent={
-                                    <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-                                        <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
-                                        <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
-                                    </View>
-                                }
-                                sections={sections}
+                                customListHeaderContent={selectionListHeaderContent}
+                                data={data}
                                 ListItem={SpendCategorySelectorListItem}
-                                onSelectRow={(item) => {
-                                    if (!item.groupID || !item.categoryID) {
-                                        return;
-                                    }
-                                    setIsSelectorModalVisible(true);
-                                    setCategoryID(item.categoryID);
-                                    setGroupID(item.groupID);
-                                }}
+                                onSelectRow={onSelectItem}
                             />
                         )}
                     </View>
@@ -156,7 +155,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         isVisible={isSelectorModalVisible}
                         currentCategory={categoryID}
                         onClose={() => setIsSelectorModalVisible(false)}
-                        onCategorySelected={setNewCategory}
+                        onCategorySelected={(selectedCategory) => setNewCategory(selectedCategory, groupID)}
                         label={groupID[0].toUpperCase() + groupID.slice(1)}
                     />
                 )}

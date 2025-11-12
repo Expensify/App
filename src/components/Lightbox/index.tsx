@@ -5,21 +5,23 @@ import {useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
+import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
-const cachedImageDimensions = new Map<string, ContentSize | undefined>();
+const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
-type LightboxProps = {
+type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
@@ -42,7 +44,7 @@ type LightboxProps = {
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
+function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -85,20 +87,20 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             };
         }
 
-        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri || item.previewSource === uri);
+        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
         return {
             ...attachmentCarouselPagerContext,
             isUsedInCarousel: !!attachmentCarouselPagerContext.pagerRef,
             isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
             page: foundPage,
         };
-    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback, uri]);
+    }, [attachmentID, attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 
-    const [canvasSize, setCanvasSize] = useState<CanvasSize>();
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
     const isCanvasLoading = canvasSize === undefined;
     const updateCanvasSize = useCallback(
         ({
@@ -109,9 +111,9 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [],
     );
 
-    const [contentSize, setInternalContentSize] = useState<ContentSize | undefined>(() => cachedImageDimensions.get(uri));
+    const [contentSize, setInternalContentSize] = useState<Dimensions | undefined>(() => cachedImageDimensions.get(uri));
     const setContentSize = useCallback(
-        (newDimensions: ContentSize | undefined) => {
+        (newDimensions: Dimensions | undefined) => {
             setInternalContentSize(newDimensions);
             cachedImageDimensions.set(uri, newDimensions);
         },
