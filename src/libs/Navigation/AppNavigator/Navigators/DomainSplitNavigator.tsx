@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {workspaceOrDomainSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
@@ -18,6 +19,7 @@ const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
 function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const styles = useThemeStyles();
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -38,7 +40,7 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
 
     return (
         <FocusTrapForScreens>
-            <View style={{flex: 1}}>
+            <View style={styles.flex1}>
                 <Split.Navigator
                     persistentScreens={[SCREENS.DOMAIN.INITIAL]}
                     sidebarScreen={SCREENS.DOMAIN.INITIAL}
