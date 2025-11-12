@@ -230,9 +230,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 
-        /** The number of transactions on the report */
-        transactionCount?: number;
-
         /** The trip data for a trip room */
         tripData?: {
             /** The start date of a trip */
