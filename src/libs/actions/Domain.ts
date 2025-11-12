@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SamlMetadata} from '@src/types/onyx';
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
@@ -76,4 +77,106 @@ function resetDomainValidationError(accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {domainValidationError: null});
 }
 
-export {getDomainValidationCode, validateDomain, resetDomainValidationError};
+function openDomainInitialPage(domainName: string) {
+    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName});
+}
+
+function setSamlMetadata(accountID: number, domainName: string, settings: Partial<SamlMetadata>) {
+    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {settings, domainName});
+}
+
+function getSamlSettings(accountID: number, domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`,
+            value: {
+                isLoading: null,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_SAML_SETTINGS, {domainName}, {optimisticData, finallyData});
+}
+
+function setSamlEnabled(enabled: boolean, accountID: number, domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {
+                settings: {
+                    samlEnabled: enabled,
+                    isSamlEnabledLoading: true,
+                },
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {settings: {isSamlEnabledLoading: null}},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAML_ENABLED, {enabled, domainName}, {optimisticData, finallyData});
+}
+
+function setSamlRequired(required: boolean, accountID: number, domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {
+                settings: {
+                    samlRequired: required,
+                    isSamlRequiredLoading: true,
+                },
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {settings: {isSamlRequiredLoading: null}},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAML_REQUIRED, {required, domainName}, {optimisticData, finallyData});
+}
+
+function getScimToken(accountID: number, domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {
+                settings: {
+                    isScimTokenLoading: true,
+                },
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {settings: {isScimTokenLoading: null}},
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_SCIM_TOKEN, {domainName}, {optimisticData, finallyData});
+}
+
+export {getDomainValidationCode, validateDomain, resetDomainValidationError, openDomainInitialPage, getSamlSettings, setSamlEnabled, setSamlRequired, setSamlMetadata, getScimToken};

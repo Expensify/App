@@ -517,6 +517,9 @@ const WRITE_COMMANDS = {
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
     SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
     VALIDATE_DOMAIN: 'ValidateDomain',
+    SET_SAML_METADATA: 'SetSAMLMetadata',
+    UPDATE_SAML_ENABLED: 'UpdateSAMLEnabled',
+    UPDATE_SAML_REQUIRED: 'UpdateSAMLRequired',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1132,6 +1135,9 @@ const READ_COMMANDS = {
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
     GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
+    OPEN_DOMAIN_INITIAL_PAGE: 'OpenDomainInitialPage',
+    GET_SAML_SETTINGS: 'GetSAMLSettings',
+    GET_SCIM_TOKEN: 'GetSCIMToken',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;

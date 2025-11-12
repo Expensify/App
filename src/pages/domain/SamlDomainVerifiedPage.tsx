@@ -15,7 +15,6 @@ function SamlDomainVerifiedPage({route}: SamlDomainVerifiedPageProps) {
         <BaseDomainVerifiedPage
             accountID={accountID}
             redirectTo={ROUTES.DOMAIN_VERIFY.getRoute(accountID)}
-            navigateAfterConfirmation={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
         />
     );
 }

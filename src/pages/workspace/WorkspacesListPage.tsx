@@ -39,7 +39,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {openOldDotLink} from '@libs/actions/Link';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
@@ -494,11 +493,8 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isValidated: boolean}) => {
-        if (isValidated) {
-            return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-        }
-        Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID));
+    const navigateToDomain = useCallback((accountID: number) => {
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
     /**
@@ -585,7 +581,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isValidated: domain.validated}),
+                action: () => navigateToDomain(domain.accountID),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,

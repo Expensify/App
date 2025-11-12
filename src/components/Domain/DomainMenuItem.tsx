@@ -1,12 +1,10 @@
 import React from 'react';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -45,23 +43,21 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
-    const theme = useTheme();
 
-    const threeDotsMenuItems: PopoverMenuItem[] | undefined =
-        !isValidated && isAdmin
-            ? [
-                  {
-                      icon: Expensicons.Globe,
-                      text: translate('domain.goToDomain'),
-                      onSelected: item.action,
-                  },
-                  {
-                      icon: Expensicons.Globe,
-                      text: translate('domain.verifyDomain.title'),
-                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
-                  },
-              ]
-            : undefined;
+    const threeDotsMenuItems: PopoverMenuItem[] | undefined = isAdmin
+        ? [
+              {
+                  icon: Expensicons.Globe,
+                  text: translate('domain.goToDomain'),
+                  onSelected: item.action,
+              },
+              !isValidated && {
+                  icon: Expensicons.Globe,
+                  text: translate('domain.verifyDomain.title'),
+                  onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
+              },
+          ].filter((menuItem) => !!menuItem)
+        : undefined;
 
     return (
         <OfflineWithFeedback
@@ -82,23 +78,6 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
-                        rightIcon={
-                            isValidated ? (
-                                <Icon
-                                    src={Expensicons.NewWindow}
-                                    fill={hovered ? theme.iconHovered : theme.icon}
-                                    isButtonIcon
-                                />
-                            ) : (
-                                <Icon
-                                    src={Expensicons.ArrowRight}
-                                    fill={theme.icon}
-                                    additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                    isButtonIcon
-                                    medium
-                                />
-                            )
-                        }
                     />
                 )}
             </PressableWithoutFeedback>

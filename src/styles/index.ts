@@ -592,8 +592,13 @@ const staticStyles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+
         textItalic: {
             ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
+
+        textMono: {
+            ...FontUtils.fontFamily.platform.MONOSPACE,
         },
 
         textVersion: {
@@ -4551,10 +4556,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 30,
             width: '100%',
         },
+
         menuItemError: {
-            marginTop: 4,
+            marginTop: 8,
             marginBottom: 0,
         },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5489,6 +5496,7 @@ const staticStyles = (theme: ThemeColors) =>
         copyableTextField: {
             color: theme.textSupporting,
             flex: 1,
+            ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
         },
     }) satisfies StaticStyles;

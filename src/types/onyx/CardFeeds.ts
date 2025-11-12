@@ -145,6 +145,12 @@ type CardFeeds = {
 
         /** Account details */
         oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
+
+        /** Whether logging in with SAML is enabled for the domain */
+        samlEnabled?: boolean;
+
+        /** Whether logging in with SAML is required for the domain */
+        samlRequired?: boolean;
     };
 
     /** Whether we are loading the data via the API */

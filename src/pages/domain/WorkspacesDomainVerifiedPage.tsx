@@ -15,7 +15,6 @@ function WorkspacesDomainVerifiedPage({route}: WorkspacesDomainVerifiedPageProps
         <BaseDomainVerifiedPage
             accountID={accountID}
             redirectTo={ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID)}
-            navigateAfterConfirmation={() => Navigation.dismissModal()}
         />
     );
 }
