@@ -74,7 +74,7 @@ type TransactionPreviewProps = {
     contextAction?: OnyxEntry<ReportAction>;
 
     /** Whether the item should be highlighted */
-    shouldHighlight: boolean;
+    shouldHighlight?: boolean;
 };
 
 type TransactionPreviewContentProps = {
@@ -146,7 +146,7 @@ type TransactionPreviewContentProps = {
     isReviewDuplicateTransactionPage?: boolean;
 
     /** Whether the item should be highlighted */
-    shouldHighlight: boolean;
+    shouldHighlight?: boolean;
 };
 
 export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};
