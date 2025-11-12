@@ -53,6 +53,7 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
     /** Name of the original file - used for recognizing letter avatars */
     originalFileName?: string;
 
+    /** Desired avatar size for letter avatars */
     size?: AvatarSizeName;
 };
 
@@ -251,6 +252,8 @@ function extractLetterAvatarData(originalFileName?: string): {letter: string; ba
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarSource - The avatar source (URL or SVG component)
+ * @param args.originalFileName - The original filename of the avatar (used to identify letter avatars)
+ * @param args.size - Desired avatar size (used for letter avatars)
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
@@ -376,5 +379,6 @@ export {
     isPresetAvatar,
     isDefaultAvatar,
     isLetterAvatar,
+    extractLetterAvatarData,
 };
 export type {AvatarSource};

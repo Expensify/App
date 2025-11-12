@@ -39,6 +39,29 @@ describe('UserAvatarUtils', () => {
             expect(avatarByEmail).toBe(defaultAvatars.Avatar5);
             expect(avatarById).toBe(defaultAvatars.Avatar5);
         });
+
+        describe('letter avatar case', () => {
+            it('should return a function component for valid letter avatar filename', () => {
+                const result = UserAvatarUtils.getAvatar({
+                    avatarSource: 'https://example.com/avatar.png',
+                    originalFileName: 'letter-avatar-#FF0000-#00FF00-A.png',
+                    accountID: 123,
+                });
+
+                expect(typeof result).toBe('function');
+            });
+
+            it('should return avatarSource as fallback when extractLetterAvatarData returns undefined', () => {
+                const avatarSource = 'https://example.com/avatar.png';
+                const result = UserAvatarUtils.getAvatar({
+                    avatarSource,
+                    originalFileName: 'invalid-letter-avatar.png',
+                    accountID: 123,
+                });
+
+                expect(result).toBe(avatarSource);
+            });
+        });
     });
 
     describe('getAvatarUrl', () => {
@@ -175,6 +198,47 @@ describe('UserAvatarUtils', () => {
 
         it('should return false for empty string', () => {
             expect(UserAvatarUtils.isLetterAvatar('')).toBe(false);
+        });
+    });
+
+    describe('extractLetterAvatarData', () => {
+        describe('valid letter avatar filenames', () => {
+            it.each([
+                ['letter-avatar-#FF0000-#00FF00-A.png', '#FF0000', '#00FF00', 'A'],
+                ['letter-avatar-#123456-#ABCDEF-Z.png', '#123456', '#ABCDEF', 'Z'],
+                ['letter-avatar-#0123AB-#CDEF89-M.png', '#0123AB', '#CDEF89', 'M'],
+                ['letter-avatar-#000000-#FFFFFF-B.png', '#000000', '#FFFFFF', 'B'],
+            ])('should extract data from %s', (fileName, backgroundColor, textColor, letter) => {
+                const result = UserAvatarUtils.extractLetterAvatarData(fileName);
+                expect(result).toEqual({
+                    backgroundColor,
+                    textColor,
+                    letter,
+                });
+            });
+
+            it('should handle all uppercase letters A-Z', () => {
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+                letters.forEach((letter) => {
+                    const result = UserAvatarUtils.extractLetterAvatarData(`letter-avatar-#FF0000-#00FF00-${letter}.png`);
+                    expect(result).toEqual({
+                        backgroundColor: '#FF0000',
+                        textColor: '#00FF00',
+                        letter,
+                    });
+                });
+            });
+        });
+
+        describe('invalid letter avatar filenames', () => {
+            it.each([
+                ['undefined input', undefined],
+                ['empty string', ''],
+                ['random string', 'random-filename.png'],
+            ])('should return undefined for %s', (_description, fileName) => {
+                const result = UserAvatarUtils.extractLetterAvatarData(fileName);
+                expect(result).toBeUndefined();
+            });
         });
     });
 
