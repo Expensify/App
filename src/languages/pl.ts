@@ -1597,8 +1597,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
-        helpTextBeforeEmail: 'Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do',
-        helpTextAfterEmail: 'lub wyślij SMS na numer 47777 (tylko numery w USA).',
+        helpText: ({email}: {email: string}) =>
+            `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
         pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
         getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
@@ -6794,22 +6794,34 @@ ${amount} dla ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alkohol`;
-                case 'gambling':
-                    return `${preMessage} hazardowanie`;
-                case 'tobacco':
-                    return `${preMessage} tytoń`;
-                case 'adultEntertainment':
-                    return `${preMessage} rozrywka dla dorosłych`;
-                case 'hotelIncidentals':
-                    return `${preMessage} wydatki hotelowe`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alkohol`;
+                    case 'gambling':
+                        return `hazardowanie`;
+                    case 'tobacco':
+                        return `tytoń`;
+                    case 'adultEntertainment':
+                        return `rozrywka dla dorosłych`;
+                    case 'hotelIncidentals':
+                        return `wydatki hotelowe`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Wymagana recenzja',

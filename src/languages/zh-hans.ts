@@ -291,7 +291,6 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
@@ -1576,8 +1575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
-        helpTextBeforeEmail: '添加更多发送收据的方式。转发到',
-        helpTextAfterEmail: '或将其发送至 47777（仅限美国号码）。',
+        helpText: ({email}: {email: string}) => `添加更多发送收据的方式。转发到 <copy-text text="${email}"/> 或将其发送至 47777（仅限美国号码）。`,
         pleaseVerify: '请验证此联系方式',
         getInTouch: '每当我们需要联系您时，我们将使用此联系方式。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
@@ -6660,22 +6658,34 @@ ${merchant}的${amount} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}) => {
             const preMessage = '禁止的费用：';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} 酒精`;
-                case 'gambling':
-                    return `${preMessage} 赌博`;
-                case 'tobacco':
-                    return `${preMessage} 烟草`;
-                case 'adultEntertainment':
-                    return `${preMessage} 成人娱乐`;
-                case 'hotelIncidentals':
-                    return `${preMessage} 酒店杂费`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `酒精`;
+                    case 'gambling':
+                        return `赌博`;
+                    case 'tobacco':
+                        return `烟草`;
+                    case 'adultEntertainment':
+                        return `成人娱乐`;
+                    case 'hotelIncidentals':
+                        return `酒店杂费`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',
