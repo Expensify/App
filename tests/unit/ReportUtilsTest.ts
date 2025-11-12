@@ -9131,7 +9131,7 @@ describe('ReportUtils', () => {
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         await Onyx.clear();
     });
- describe('getDisplayNameForParticipant', () => {
+    describe('getDisplayNameForParticipant', () => {
         it('should return the display name for a participant', async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
@@ -9198,6 +9198,5 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
-
-});
+    });
 });
