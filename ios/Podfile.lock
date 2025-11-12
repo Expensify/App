@@ -3749,7 +3749,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.1.2):
+  - RNReanimated (4.1.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -3776,11 +3776,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.1.2)
+    - RNReanimated/reanimated (= 4.1.5)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated (4.1.2):
+  - RNReanimated/reanimated (4.1.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -3807,11 +3807,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.1.2)
+    - RNReanimated/reanimated/apple (= 4.1.5)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated/apple (4.1.2):
+  - RNReanimated/reanimated/apple (4.1.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -4043,7 +4043,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNWorklets (0.6.0):
+  - RNWorklets (0.6.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4070,10 +4070,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets (= 0.6.0)
+    - RNWorklets/worklets (= 0.6.1)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets (0.6.0):
+  - RNWorklets/worklets (0.6.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4100,10 +4100,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets/apple (= 0.6.0)
+    - RNWorklets/worklets/apple (= 0.6.1)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets/apple (0.6.0):
+  - RNWorklets/worklets/apple (0.6.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4807,19 +4807,19 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9339994ea5d1ff6ad2679b7d0cc3d49053111369
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 8cdadb9f25254c6a6603723c7ed02b18913b1464
+  RNLiveMarkdown: 1b3debf806b344765f9d2759e95ad699821288b1
   RNLocalize: 0aa716b7d0f1316ca5f8f16ed42b79b9e3093279
   rnmapbox-maps: 870cd752e1d132e05465f3074b582ce6c7e742e9
   RNNitroSQLite: ddd882f7bab0370f6045782284c34862636bc8a7
   RNPermissions: d507f1fe0ee109c8f6f882808fcf8a173645e40b
   RNReactNativeHapticFeedback: 43c09eb41d8321be2e1375cb87ae734e58f677b0
-  RNReanimated: 91d075aaf0c89d51a0708cd64cd6c77f7fa42cdc
+  RNReanimated: fbb37f02338edfe6e6886aa5b4584dcd894fef77
   RNScreens: 0c5341cc352632758171de6453502a6a757d0369
   RNSentry: 34bead6afbfce1bb89837b84da1dec001f890329
   RNShare: 385bf6a127cb075d4fdbe7bb85587cad88fe9afe
   RNSound: 9a85701a35e3132484515e73b694610997c7fdfb
   RNSVG: 9be2bc57df95a874e8c4b0f7dd71866139f321d2
-  RNWorklets: e752b7443b51916158d3b6ca6700294827e8a1ea
+  RNWorklets: daa0a3e7946a9c4042f3a962c87a12dc5bc0badd
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
