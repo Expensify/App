@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewProps} from './types';
 
-const PDFPreviewer = lazy(() => import(/* webpackPreload: true */ 'react-fast-pdf').then((m) => ({default: m.PDFPreviewer})));
+const PDFPreviewer = lazy(() => import(/* webpackPrefetch: true */ 'react-fast-pdf').then((m) => ({default: m.PDFPreviewer})));
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;

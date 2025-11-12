@@ -6,9 +6,9 @@ function ensurePdfJsInitialized() {
     }
 
     pdfSetupPromise = Promise.all([
-        import(/* webpackPreload: true */ 'react-pdf'),
+        import(/* webpackPrefetch: true */ 'react-pdf'),
         // eslint-disable-next-line import/extensions
-        import(/* webpackPreload: true */ 'pdfjs-dist/build/pdf.worker.min.mjs'),
+        import(/* webpackPrefetch: true */ 'pdfjs-dist/build/pdf.worker.min.mjs'),
     ]).then(([reactPdfModule, pdfWorkerSource]) => {
         const {pdfjs} = reactPdfModule;
 

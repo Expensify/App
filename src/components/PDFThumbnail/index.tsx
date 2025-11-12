@@ -8,9 +8,9 @@ import ensurePdfJsInitialized from './pdfSetup';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-const Document = React.lazy(() => import(/* webpackPreload: true */ 'react-pdf').then((m) => ({default: m.Document})));
+const Document = React.lazy(() => import(/* webpackPrefetch: true */ 'react-pdf').then((m) => ({default: m.Document})));
 
-const Thumbnail = React.lazy(() => import(/* webpackPreload: true */ 'react-pdf').then((m) => ({default: m.Thumbnail})));
+const Thumbnail = React.lazy(() => import(/* webpackPrefetch: true */ 'react-pdf').then((m) => ({default: m.Thumbnail})));
 
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
