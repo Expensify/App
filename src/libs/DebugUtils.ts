@@ -461,6 +461,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -629,6 +630,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -926,7 +928,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
-        case 'reportName':
         case 'currency':
         case 'tag':
         case 'category':
@@ -1051,7 +1052,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
