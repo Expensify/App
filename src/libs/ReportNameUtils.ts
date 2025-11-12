@@ -2,10 +2,23 @@
  * This file contains utility functions for managing and computing report names
  */
 import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -13,7 +26,7 @@ import {translateLocal} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getCardIssuedMessage,
@@ -57,15 +70,13 @@ import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
-    getGroupChatName,
-    getInvoicesChatName,
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getParentReport,
     getPolicyChangeMessage,
-    getPolicyExpenseChatName,
     getPolicyName,
     getRejectedReportMessage,
+    getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
@@ -97,6 +108,23 @@ import {
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
+
+let currentUserAccountID: number | undefined;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value;
+    },
+});
 
 function generateArchivedReportName(reportName: string): string {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -132,6 +160,107 @@ const buildReportNameFromParticipantNames = ({report, personalDetailsList: perso
             }
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
+
+/**
+ * @private
+ * This is a custom collator only for getGroupChatName function.
+ * The reason for this is that the computation of default group name should not depend on the locale.
+ * This is used to ensure that group name stays consistent across locales.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+/**
+ * Returns the report name if the report is a group chat
+ */
+function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
+    // If we have a report always try to get the name from the report.
+    if (report?.reportName) {
+        return report.reportName;
+    }
+
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
+
+    const pendingMemberAccountIDs = new Set(
+        reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
+    );
+    let participantAccountIDs =
+        participants?.map((participant) => participant.accountID) ??
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
+    const shouldAddEllipsis = participantAccountIDs.length > CONST.DISPLAY_PARTICIPANTS_LIMIT && shouldApplyLimit;
+    if (shouldApplyLimit) {
+        participantAccountIDs = participantAccountIDs.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
+    }
+    const isMultipleParticipantReport = participantAccountIDs.length > 1;
+
+    if (isMultipleParticipantReport) {
+        return participantAccountIDs
+            .map(
+                (participantAccountID, index) =>
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
+            )
+            .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
+            .filter(Boolean)
+            .join(', ')
+            .slice(0, CONST.REPORT_NAME_LIMIT)
+            .concat(shouldAddEllipsis ? '...' : '');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
+}
+
+/**
+ * Get the title for a policy expense chat
+ */
+function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}): string | undefined {
+    const ownerAccountID = report?.ownerAccountID;
+    const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
+    const login = personalDetails ? personalDetails.login : null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
+
+    if (reportOwnerDisplayName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
+    }
+
+    return report?.reportName;
+}
+
+/**
+ * Get the title for an invoice room.
+ */
+function getInvoicesChatName({
+    report,
+    receiverPolicy,
+    personalDetails,
+    policies,
+}: {
+    report: OnyxEntry<Report>;
+    receiverPolicy: OnyxEntry<Policy>;
+    personalDetails?: Partial<PersonalDetailsList>;
+    policies?: Policy[];
+}): string {
+    const invoiceReceiver = report?.invoiceReceiver;
+    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID;
+    const invoiceReceiverPolicyID = isIndividual ? undefined : invoiceReceiver?.policyID;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const receiverPolicyResolved = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
+    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdmin(receiverPolicyResolved));
+
+    if (isCurrentUserReceiver) {
+        return getPolicyName({report, policies});
+    }
+
+    if (isIndividual) {
+        return formatPhoneNumber(getDisplayNameOrDefault((personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID]));
+    }
+
+    return getPolicyName({report, policy: receiverPolicyResolved, policies});
+}
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
     const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
@@ -581,4 +710,15 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
 }
 
-export {computeReportName, getReportName};
+export {
+    computeReportName,
+    getReportName,
+    generateArchivedReportName,
+    getInvoiceReportName,
+    getMoneyRequestReportName,
+    buildReportNameFromParticipantNames,
+    getInvoicePayerName,
+    getGroupChatName,
+    getPolicyExpenseChatName,
+    getInvoicesChatName,
+};
