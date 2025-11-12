@@ -60,6 +60,7 @@ import {
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToConfirmationPage,
     navigateToParticipantPage,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
@@ -265,7 +266,7 @@ import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy
 import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import { sanitizeRecentWaypoints, setTransactionReport} from './Transaction';
+import {sanitizeRecentWaypoints, setTransactionReport} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 
@@ -14347,40 +14348,6 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function navigateToConfirmationPage(
-    iouType: IOUType,
-    transactionID: string,
-    reportID: string,
-    backToReport: string | undefined,
-    shouldNavigateToSubmit = false,
-    reportIDParam: string | undefined = undefined,
-    fromManualDistanceRequest = false,
-) {
-    switch (iouType) {
-        case CONST.IOU.TYPE.REQUEST:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
-            break;
-        case CONST.IOU.TYPE.SEND:
-            if (fromManualDistanceRequest) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-            } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-            }
-            break;
-        default:
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
-                    transactionID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    reportIDParam || reportID,
-                    backToReport,
-                ),
-            );
-    }
-}
-
 function createTransaction({
     transactions,
     iouType,
@@ -14916,7 +14883,6 @@ export {
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
-    navigateToConfirmationPage,
     createTransaction,
     handleMoneyRequestStepScanParticipants,
     handleMoneyRequestStepDistanceNavigation,
