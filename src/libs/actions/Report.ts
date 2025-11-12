@@ -1098,10 +1098,7 @@ function openReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {
-                ...transaction,
-                transactionThreadReportID: reportID,
-            },
+            value: transaction,
         });
 
         // Add violations if they exist. This is needed when opening from search results where

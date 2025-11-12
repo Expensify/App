@@ -1364,6 +1364,11 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         canUnhold,
         convertedAmount,
         convertedCurrency,
+        transactionThreadReportID,
+        isFromOneTransactionReport,
+        accountID,
+        policyID,
+        transactionType,
         // Keep all other fields (core Transaction fields)
         ...transaction
     } = item;
