@@ -8,7 +8,6 @@ import Log from '@libs/Log';
  * @param policyID - The ID of the policy to fetch rules for
  */
 function openPolicyRulesPage(policyID: string | undefined) {
-    console.log('openPolicyRulesPage', policyID);
     if (!policyID) {
         Log.warn('openPolicyRulesPage invalid params', {policyID});
         return;
