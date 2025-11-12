@@ -166,7 +166,10 @@ function MoneyRequestParticipantsSelector({
 
     const getValidOptionsConfig = useMemo(
         () => ({
-            selectedOptions: participants as Participant[],
+            selectedOptions: participants.map((participant) => ({
+                ...participant,
+                login: participant.login ?? personalDetails?.[participant.accountID ?? 0]?.login,
+            })) as OptionData[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
@@ -181,8 +184,9 @@ function MoneyRequestParticipantsSelector({
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            shouldExcludeSelectedByReportID: true,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
+        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy, personalDetails],
     );
 
     const handleSelectionChange = useCallback(
@@ -273,6 +277,7 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
+            true,
         );
 
         newSections.push(formatResults.section);
