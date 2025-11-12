@@ -51,7 +51,10 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
 
 // Get the filename from the receipt
 function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+    if (typeof receipt?.source === 'string') {
+        return receipt?.source?.split('/')?.pop();
+    }
+    return `${receipt?.filename ?? receipt?.source}`;
 }
 
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {

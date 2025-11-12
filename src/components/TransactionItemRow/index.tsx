@@ -113,6 +113,7 @@ type TransactionItemRowProps = {
     areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
+    onArrowRightPress?: () => void;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -153,6 +154,7 @@ function TransactionItemRow({
     areAllOptionalColumnsHidden = false,
     violations,
     shouldShowBottomBorder,
+    onArrowRightPress,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -554,9 +556,9 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth && (
+                    {!!isLargeScreenWidth && !!onArrowRightPress && (
                         <PressableWithFeedback
-                            onPress={() => onButtonPress()}
+                            onPress={() => onArrowRightPress?.()}
                             style={[styles.p3Half, styles.pl0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
