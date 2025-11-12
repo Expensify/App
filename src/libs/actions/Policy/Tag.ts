@@ -710,18 +710,10 @@ function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps
     };
 
     if (!policyTags) {
-        const defaultTagList: PolicyTagLists = {
-            Tag: {
-                name: 'Tag',
-                orderWeight: 0,
-                required: false,
-                tags: {},
-            },
-        };
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            value: defaultTagList,
+            value: CONST.POLICY.DEFAULT_TAG_LIST,
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
