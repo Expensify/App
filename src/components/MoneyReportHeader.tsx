@@ -298,7 +298,7 @@ function MoneyReportHeader({
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
-    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations, email ?? ''), [transactions, violations]);
+    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations, email ?? ''), [transactions, violations, email]);
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -1142,7 +1142,7 @@ function MoneyReportHeader({
                 Navigation.goBack(route.params?.backTo);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
                 });
             },
         },

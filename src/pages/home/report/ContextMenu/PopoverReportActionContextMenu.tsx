@@ -386,6 +386,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         deleteTransactions,
         currentSearchHash,
         isOriginalReportArchived,
+        email,
     ]);
 
     const hideDeleteModal = () => {

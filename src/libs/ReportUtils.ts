@@ -2675,7 +2675,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmail: string) {
+function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2696,7 +2696,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         return (
             canIOUBePaid(iouReport, chatReport, policy, transactions) ||
             canApproveIOU(iouReport, policy, transactions) ||
-            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmail)
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam)
         );
     });
 }

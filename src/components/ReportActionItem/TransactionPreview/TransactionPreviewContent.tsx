@@ -97,7 +97,7 @@ function TransactionPreviewContent({
                 isReportAPolicyExpenseChat,
                 currentUserEmail: currentUserDetails.email ?? '',
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -116,7 +116,7 @@ function TransactionPreviewContent({
                 reportActions,
                 currentUserEmail: currentUserDetails.email ?? '',
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

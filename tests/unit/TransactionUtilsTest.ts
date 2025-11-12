@@ -713,7 +713,7 @@ describe('TransactionUtils', () => {
                 },
             });
             const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-            const result = TransactionUtils.isViolationDismissed(transaction, violation);
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL);
             expect(result).toBe(true);
         });
     });
