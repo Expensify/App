@@ -17,7 +17,7 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -169,6 +169,10 @@ type SettingsNavigatorParamList = {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -2442,6 +2446,7 @@ type SharedScreensParamList = {
 type ShareNavigatorParamList = {
     [SCREENS.SHARE.ROOT]: undefined;
     [SCREENS.SHARE.SHARE_DETAILS]: {reportOrAccountID: string};
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: {reportOrAccountID: string};
     [SCREENS.SHARE.SUBMIT_DETAILS]: {reportOrAccountID: string};
 };
 
@@ -2522,6 +2527,12 @@ type AttachmentModalScreensParamList = {
         action: IOUAction;
         iouType: IOUType;
         readonly: string;
+    };
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
+        source?: AvatarSource;
+        fallbackSource?: AvatarSource;
+        originalFileName?: string;
+        headerTitle?: string;
     };
 };
 

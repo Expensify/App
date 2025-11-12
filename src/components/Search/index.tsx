@@ -72,6 +72,7 @@ import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import openSearchReport from './openSearchReport';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -118,7 +119,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.reportAction?.actorAccountID,
         },
     ];
 }
@@ -198,7 +199,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.reportAction?.actorAccountID,
         },
     };
 }
@@ -476,7 +477,7 @@ function Search({
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
-                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                        ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
                 });
             });
@@ -513,7 +514,7 @@ function Search({
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
-                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                    ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
             });
         }
@@ -710,7 +711,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            openSearchReport(reportID, backTo);
         },
         [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );

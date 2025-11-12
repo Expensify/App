@@ -101,8 +101,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
             const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-            // eslint-disable-next-line unicorn/prefer-set-has
-            const existingScreenKeys = sidebarRoutes.map(getKey);
+            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
             const focusedRoute = findFocusedRoute(state);
             const routeName = focusedRoute?.name;
@@ -117,7 +116,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
                 cleanScrollOffsets(scrollOffsetKeys, (key) => key.startsWith(SCREENS.SEARCH.ROOT) && key !== currentKey && !isSearchMoneyRequestReport);
                 return;
             }
-            cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.includes(key));
+            cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.has(key));
         },
         [cleanScrollOffsets],
     );
