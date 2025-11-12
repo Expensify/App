@@ -6817,22 +6817,34 @@ ${amount} pour ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcool`;
-                case 'gambling':
-                    return `${preMessage} jeu d'argent`;
-                case 'tobacco':
-                    return `${preMessage} tabac`;
-                case 'adultEntertainment':
-                    return `${preMessage} divertissement pour adultes`;
-                case 'hotelIncidentals':
-                    return `${preMessage} frais accessoires d'hôtel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcool`;
+                    case 'gambling':
+                        return `jeu d'argent`;
+                    case 'tobacco':
+                        return `tabac`;
+                    case 'adultEntertainment':
+                        return `divertissement pour adultes`;
+                    case 'hotelIncidentals':
+                        return `frais accessoires d'hôtel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
