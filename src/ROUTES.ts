@@ -2713,12 +2713,8 @@ const ROUTES = {
         route: 'r/:transactionID/merge',
 
         getRoute: (transactionID: string | undefined, backTo?: string, hash?: number) => {
-            if (hash) {
-                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`r/${transactionID}/merge?hash=${hash}` as const, backTo);
-            }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo);
+            return hash ? getUrlWithBackToParam(`r/${transactionID}/merge?hash=${hash}` as const, backTo) : getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo);
         },
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
@@ -2726,36 +2722,30 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (transactionID: string, backTo?: string, hash?: number) => {
-            if (hash) {
-                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`r/${transactionID}/merge/receipt?hash=${hash}` as const, backTo);
-            }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo);
+            return hash
+                ? getUrlWithBackToParam(`r/${transactionID}/merge/receipt?hash=${hash}` as const, backTo)
+                : getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo);
         },
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
         route: 'r/:transactionID/merge/details',
 
         getRoute: (transactionID: string, backTo?: string, hash?: number) => {
-            if (hash) {
-                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`r/${transactionID}/merge/details?hash=${hash}` as const, backTo);
-            }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo);
+            return hash
+                ? getUrlWithBackToParam(`r/${transactionID}/merge/details?hash=${hash}` as const, backTo)
+                : getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo);
         },
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
         route: 'r/:transactionID/merge/confirmation',
 
         getRoute: (transactionID: string, backTo?: string, hash?: number) => {
-            if (hash) {
-                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`r/${transactionID}/merge/confirmation?hash=${hash}` as const, backTo);
-            }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo);
+            return hash
+                ? getUrlWithBackToParam(`r/${transactionID}/merge/confirmation?hash=${hash}` as const, backTo)
+                : getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
