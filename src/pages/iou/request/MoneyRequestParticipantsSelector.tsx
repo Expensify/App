@@ -168,7 +168,7 @@ function MoneyRequestParticipantsSelector({
         () => ({
             selectedOptions: participants.map((participant) => ({
                 ...participant,
-                login: participant.login ?? personalDetails?.[participant.accountID ?? 0]?.login,
+                login: participant.login ?? personalDetails?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
             })) as OptionData[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,

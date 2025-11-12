@@ -11545,7 +11545,7 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
         participants = [
             {
-                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : 0,
+                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID,
                 reportID: chatReport?.reportID,
                 isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport),
                 selected: true,

@@ -356,6 +356,8 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 
 /**
  * Get the participant option for a report.
+ *
+ * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
 function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, shouldAddCurrentUserPostfix?: boolean): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
@@ -1926,6 +1928,8 @@ function getRestrictedLogins(
 
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
+ *
+ * @param shouldExcludeSelectedByReportID Whether to use the reportID to exclude it from the selected options.
  */
 function getValidOptions(
     options: OptionList,
@@ -2427,6 +2431,8 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 
 /**
  * Handles the logic for displaying selected participants from the search term
+ *
+ * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
@@ -2464,7 +2470,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms({...participant, login: participant.login ?? personalDetails[participant.accountID ?? 0]?.login})
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms({...participant, login: participant.login ?? personalDetails[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login})
             .join(' ')
             .toLowerCase()
             .includes(cleanSearchTerm);
