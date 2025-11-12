@@ -667,6 +667,7 @@ function SearchPage({route}: SearchPageProps) {
             report: newReport,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

@@ -244,6 +244,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
@@ -294,6 +295,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     localeCompare?: (a: string, b: string) => number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type MoneyRequestInformation = {
@@ -879,11 +881,11 @@ Onyx.connect({
     },
 });
 
-let currentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
+let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        currentUserPersonalDetails = value?.[userAccountID] ?? undefined;
+        deprecatedCurrentUserPersonalDetails = value?.[userAccountID] ?? undefined;
     },
 });
 
@@ -1004,6 +1006,7 @@ function initMoneyRequest({
     currentDate = '',
     lastSelectedDistanceRates,
     localeCompare,
+    currentUserPersonalDetails,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -1514,7 +1517,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
             value: {
                 ...{lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
                 hasOutstandingChildRequest: false,
-                lastActorAccountID: currentUserPersonalDetails?.accountID,
+                lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
             },
         },
         {
@@ -1778,7 +1781,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...iou.report,
                     ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
-                    lastActorAccountID: currentUserPersonalDetails?.accountID,
+                    lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
                 },
             },
             {
@@ -10954,9 +10957,9 @@ function submitReport(
 
     const currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
+    const isCurrentUserManager = currentUserAccountIDParam === expenseReport.managerID;
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
-    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
+    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
 
     // buildOptimisticNextStep is used in parallel
@@ -11721,7 +11724,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const currentUserAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     let participants: Participant[] = [];
 
@@ -12810,7 +12813,7 @@ function getSearchOnyxUpdate({
     isInvoice,
 }: GetSearchOnyxUpdateParams): OnyxData | undefined {
     const toAccountID = participant?.accountID;
-    const fromAccountID = currentUserPersonalDetails?.accountID;
+    const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
@@ -12854,9 +12857,9 @@ function getSearchOnyxUpdate({
                                     },
                                     [fromAccountID]: {
                                         accountID: fromAccountID,
-                                        avatar: currentUserPersonalDetails?.avatar,
-                                        displayName: currentUserPersonalDetails?.displayName,
-                                        login: currentUserPersonalDetails?.login,
+                                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                                        login: deprecatedCurrentUserPersonalDetails?.login,
                                     },
                                 },
                                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
@@ -14019,8 +14022,8 @@ function updateSplitTransactions({
         const requestMoneyInformation = {
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
-                payeeEmail: currentUserPersonalDetails?.login ?? '',
-                payeeAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                payeeEmail: deprecatedCurrentUserPersonalDetails?.login ?? '',
+                payeeAccountID: deprecatedCurrentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             },
             policyParams: {
                 policy,

@@ -88,6 +88,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -95,10 +96,12 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import type {InvoiceTestData} from '../data/Invoice';
 import * as InvoiceData from '../data/Invoice';
 import currencyList from '../unit/currencyList.json';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -184,6 +187,14 @@ const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIF
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
+        ...createPersonalDetails(RORY_ACCOUNT_ID),
+        login: RORY_EMAIL,
+        email: RORY_EMAIL,
+        displayName: RORY_EMAIL,
+        avatar: 'https://example.com/avatar.jpg',
+    };
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -6659,14 +6670,14 @@ describe('actions/IOU', () => {
             comment: {
                 attendees: [
                     {
-                        email: 'rory@expensifail.com',
-                        login: 'rory@expensifail.com',
+                        email: currentUserPersonalDetails.email ?? '',
+                        login: currentUserPersonalDetails.login,
                         accountID: 3,
-                        text: 'rory@expensifail.com',
+                        text: currentUserPersonalDetails.login,
                         selected: true,
                         reportID: '0',
-                        avatarUrl: '',
-                        displayName: '',
+                        avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
+                        displayName: currentUserPersonalDetails.displayName ?? '',
                     },
                 ],
             },
@@ -6700,6 +6711,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6719,6 +6731,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6738,6 +6751,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
