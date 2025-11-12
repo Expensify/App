@@ -6690,12 +6690,12 @@ ${merchant}的${amount} - ${date}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `由于银行连接中断，无法自动匹配收据，需要${email}进行修复。` : '由于需要修复的银行连接中断，无法自动匹配收据。';
+                return isAdmin ? `银行连接已中断。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已中断。请联系管理员重新连接以匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `请${member}标记为现金，或等待7天后再试一次。` : '正在等待与卡交易合并。';

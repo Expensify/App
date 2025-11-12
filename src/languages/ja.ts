@@ -6793,12 +6793,14 @@ ${date} - ${merchant}に${amount}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。` : '銀行接続が切れているため、領収書を自動照合できません。';
+                return isAdmin
+                    ? `銀行接続が切断されています。<a href="${companyCardPageURL}">再接続して領収書を照合してください</a>`
+                    : '銀行接続が切断されています。領収書を照合するには管理者に再接続を依頼してください。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member}に現金としてマークするように依頼するか、7日間待って再試行してください。` : 'カード取引とのマージを待機中。';

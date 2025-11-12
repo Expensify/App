@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
+import type {ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -7042,14 +7043,14 @@ ${amount} para ${merchant} - ${date}`,
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
+                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
+                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
