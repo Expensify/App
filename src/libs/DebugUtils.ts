@@ -965,6 +965,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'modifiedAmount':
         case 'cardID':
         case 'originalAmount':
+        case 'convertedAmount':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
