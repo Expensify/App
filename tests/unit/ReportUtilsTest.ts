@@ -93,11 +93,11 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
+    shouldDisplayViolationsRBRInLHN,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
-    shouldDisplayViolationsRBRInLHN,
     shouldShowFlagComment,
     sortIconsByName,
     sortOutstandingReportsBySelected,
@@ -2317,8 +2317,6 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
         });
-
-        
 
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
@@ -9086,14 +9084,13 @@ describe('ReportUtils', () => {
         await Onyx.clear();
 
         const adminAccountID = currentUserAccountID;
-        const employeeAccountID = 55;
         const policyID = 'policy-hold';
         const chatReportID = 'chat-hold';
         const expenseReportID = 'expense-hold';
         const transactionID = 'transaction-hold';
         const holdReportActionID = 'hold-action';
 
-        const policy: Policy = {
+        const policy1: Policy = {
             id: policyID,
             name: 'Held Expenses Workspace',
             type: CONST.POLICY.TYPE.TEAM,
@@ -9168,7 +9165,7 @@ describe('ReportUtils', () => {
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID, email: currentUserEmail});
         await Promise.all([
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
