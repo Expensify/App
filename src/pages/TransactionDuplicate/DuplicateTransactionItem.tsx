@@ -64,7 +64,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
     }
 
     const reportDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessage = typeof reportDraftMessage === 'string' ? reportDraftMessage : reportDraftMessage?.message;
+    const matchingDraftMessage = reportDraftMessage?.message;
 
     return (
         <View style={styles.pb2}>

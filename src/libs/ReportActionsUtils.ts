@@ -842,7 +842,7 @@ function isActionableWhisper(
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)]);
 
 /**
  * Checks whether an action is actionable track expense and resolved.
@@ -877,7 +877,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Filter out any unsupported reportAction types
-    if (!supportedActionTypes.includes(reportAction.actionName)) {
+    if (!supportedActionTypes.has(reportAction.actionName)) {
         return false;
     }
 
