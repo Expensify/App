@@ -343,7 +343,7 @@ function MoneyRequestConfirmationList({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '' : '');
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
 
     useEffect(() => {
         if (!transactionID || isMovingTransactionFromTrackExpense) {
@@ -490,6 +490,7 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
+    // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
         (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
