@@ -495,7 +495,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 )}
             </Hoverable>
         ),
-        [styles, StyleUtils, shouldUseNarrowLayout, translate, getItemStyle],
+        [styles, translate, getItemStyle],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */

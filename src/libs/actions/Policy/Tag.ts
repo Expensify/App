@@ -208,7 +208,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
             acc[key] = {
@@ -317,7 +317,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
             if (tagListIndexes.includes(policyData.tags[key].orderWeight)) {
@@ -402,7 +402,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
 }
 
 function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(0);
 
     if (!policyTag) {
@@ -565,7 +565,7 @@ function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPol
 }
 
 function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const tagList = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!tagList) {
         return;
@@ -687,7 +687,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
 }
 
 function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyOptimisticData = {
         areTagsEnabled: enabled,
         pendingFields: {
@@ -942,7 +942,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 }
 
 function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
         errors: {requiresTag: null},
@@ -1024,7 +1024,7 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         [policyTag.name]: {
             required: requiresTag,
