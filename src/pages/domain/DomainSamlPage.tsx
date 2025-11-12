@@ -81,7 +81,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                     <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
                                 </View>
                             )}
-                            ctaText={domain?.validated ? translate('domain.verifyDomain.title') : undefined}
+                            ctaText={translate('domain.verifyDomain.title')}
                             ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                             onCtaPress={() => {
                                 Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(accountID));
