@@ -16,6 +16,8 @@ type UseConditionalCreateEmptyReportConfirmationParams = {
     onCreateReport: () => void;
     /** Optional callback executed when the confirmation modal is cancelled */
     onCancel?: () => void;
+    /** Whether the confirmation modal should be bypassed even if an empty report exists */
+    shouldBypassConfirmation?: boolean;
 };
 
 type UseConditionalCreateEmptyReportConfirmationResult = {
@@ -36,6 +38,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
     policyName,
     onCreateReport,
     onCancel,
+    shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
@@ -54,13 +57,13 @@ export default function useConditionalCreateEmptyReportConfirmation({
     });
 
     const handleCreateReport = useCallback(() => {
-        if (hasEmptyReport) {
+        if (hasEmptyReport && !shouldBypassConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
         onCreateReport();
-    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation]);
+    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation, shouldBypassConfirmation]);
 
     return {
         handleCreateReport,

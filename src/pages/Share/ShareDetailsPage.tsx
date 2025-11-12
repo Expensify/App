@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import reportsSelector from '@selectors/Attributes';
-import React, {useEffect, useMemo, useState} from 'react';
-import {SafeAreaView, View} from 'react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -28,6 +27,7 @@ import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,11 +41,9 @@ import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
-function ShareDetailsPage({
-    route: {
-        params: {reportOrAccountID},
-    },
-}: ShareDetailsPageProps) {
+function ShareDetailsPage({route}: ShareDetailsPageProps) {
+    const {reportOrAccountID} = route.params;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
@@ -66,6 +64,17 @@ function ShareDetailsPage({
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
     const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
+
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
+    const showAttachmentModalScreen = useCallback(() => {
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
+            source: fileSource,
+            headerTitle: validateFileName,
+            originalFileName: validateFileName,
+            fallbackSource: FallbackAvatar,
+        });
+        Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
+    }, [reportAttachmentsContext, fileSource, validateFileName]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -203,25 +212,14 @@ function ShareDetailsPage({
                                 <View style={[styles.pt6, styles.pb2]}>
                                     <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
                                 </View>
-                                <SafeAreaView>
-                                    <AttachmentModal
-                                        headerTitle={validateFileName}
-                                        source={fileSource}
-                                        originalFileName={validateFileName}
-                                        fallbackSource={FallbackAvatar}
-                                    >
-                                        {({show}) => (
-                                            <AttachmentPreview
-                                                source={fileSource ?? ''}
-                                                aspectRatio={currentAttachment?.aspectRatio}
-                                                onPress={show}
-                                                onLoadError={() => {
-                                                    showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                                }}
-                                            />
-                                        )}
-                                    </AttachmentModal>
-                                </SafeAreaView>
+                                <AttachmentPreview
+                                    source={fileSource ?? ''}
+                                    aspectRatio={currentAttachment?.aspectRatio}
+                                    onPress={showAttachmentModalScreen}
+                                    onLoadError={() => {
+                                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                    }}
+                                />
                             </>
                         )}
                     </PressableWithoutFeedback>

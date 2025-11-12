@@ -107,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item, preferredSkinTone);
+                        onEmojiSelected(emoji, item);
                     })}
                     emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}
@@ -125,7 +125,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                 />
             </View>
             <BaseEmojiPickerMenu

@@ -20,11 +20,13 @@ function UserInfoAndActionButtonRow({
     handleActionButtonPress,
     shouldShowUserInfo,
     containerStyles,
+    isInMobileSelectionMode,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
+    isInMobileSelectionMode: boolean;
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -39,6 +41,7 @@ function UserInfoAndActionButtonRow({
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
     }, [snapshot, transactionItem.reportID]);
 
@@ -80,6 +83,7 @@ function UserInfoAndActionButtonRow({
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                     extraSmall={!isLargeScreenWidth}
+                    shouldDisablePointerEvents={isInMobileSelectionMode}
                 />
             </View>
         </View>
