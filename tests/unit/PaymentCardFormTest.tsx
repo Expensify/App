@@ -67,8 +67,8 @@ describe('Subscription/AddPaymentCard', () => {
 
     describe('AddPaymentCardPage Expiration Date Formatting', () => {
         const runFormatTest = async (input: string, formattedAs: string) => {
-            // eslint-disable-next-line testing-library/prefer-screen-queries
             const {findByTestId} = renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+            // eslint-disable-next-line testing-library/prefer-screen-queries
             const expirationDateField = await findByTestId('addPaymentCardPage.expiration');
             fireEvent.changeText(expirationDateField, input);
             expect(expirationDateField.props.value).toBe(formattedAs);
