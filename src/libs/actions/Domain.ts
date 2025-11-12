@@ -116,6 +116,14 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
             value: {
                 settings: {
                     samlEnabled: enabled,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                settings: {
                     isSamlEnabledLoading: true,
                 },
             },
@@ -124,7 +132,7 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {settings: {isSamlEnabledLoading: null}},
         },
     ];
@@ -140,6 +148,14 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
             value: {
                 settings: {
                     samlRequired: required,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                settings: {
                     isSamlRequiredLoading: true,
                 },
             },
@@ -148,7 +164,7 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {settings: {isSamlRequiredLoading: null}},
         },
     ];
@@ -160,7 +176,7 @@ function getScimToken(accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {
                 settings: {
                     isScimTokenLoading: true,
