@@ -7218,12 +7218,12 @@ function buildOptimisticTransactionAction(
     transactionThreadReportID: string | undefined,
     originalReportID: string,
 ): ReportAction {
-    const reportName = allReports?.[originalReportID]?.reportName ?? '';
+    const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName ?? '';
     const url = getReportURLForCurrentContext(originalReportID);
-    const [actionText, messageHtml] =
-        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
-            ? [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
-            : ['moved this expense from your personal space', 'moved this expense from your personal space'];
+    const [actionText, messageHtml] = isFromPersonalSpace
+        ? ['moved this expense from your personal space', 'moved this expense from your personal space']
+        : [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,

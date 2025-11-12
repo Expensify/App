@@ -884,10 +884,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     if (isMovedTransactionAction(reportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
         const toReportID = movedTransactionOriginalMessage?.toReportID;
-        const fromReportID = movedTransactionOriginalMessage?.toReportID;
+        const fromReportID = movedTransactionOriginalMessage?.fromReportID;
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-        return !!fromReport || !!toReport;
+        const fromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        return fromReport || !!toReport;
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
