@@ -1362,7 +1362,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         canDelete,
         canHold,
         canUnhold,
-        reportType,
         convertedAmount,
         convertedCurrency,
         // Keep all other fields (core Transaction fields)
