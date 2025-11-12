@@ -2523,18 +2523,21 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
 }
 
 function getWorkspaceTaxUpdateMessage(action: ReportAction): string {
-    const {taxName, oldValue, newValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX>) ?? {};
+    const {taxName, oldValue, newValue, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX && taxName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.addTax', {taxName});
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX && taxName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.deleteTax', {taxName});
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
-        return translateLocal('workspaceActions.updateTax', {taxName, oldValue, newValue});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateTax', {taxName, oldValue, newValue, updatedField});
     }
 
     return getReportActionText(action);

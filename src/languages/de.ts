@@ -6150,7 +6150,28 @@ ${amount} für ${merchant} - ${date}`,
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" hinzugefügt`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" entfernt`,
-        updateTax: ({oldValue, taxName}: UpdatedPolicyTaxParams) => `${oldValue ? `hat die Steuer "${taxName}" deaktiviert` : `hat die Steuer "${taxName}" aktiviert`}`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `hat die Steuer "${oldValue}" in "${newValue}" umbenannt`;
+                }
+                case 'code': {
+                    return `hat den Steuercode für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'rate': {
+                    return `hat den Steuersatz für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `hat die Steuer "${taxName}" deaktiviert` : `hat die Steuer "${taxName}" aktiviert`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

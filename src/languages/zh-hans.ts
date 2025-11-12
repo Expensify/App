@@ -6010,7 +6010,28 @@ ${merchant}的${amount} - ${date}`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
-        updateTax: ({oldValue, taxName}: UpdatedPolicyTaxParams) => `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `将税项 "${oldValue}" 重命名为 "${newValue}"`;
+                }
+                case 'code': {
+                    return `将税项 "${taxName}" 的代码从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'rate': {
+                    return `将税项 "${taxName}" 的税率从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

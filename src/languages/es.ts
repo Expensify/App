@@ -5786,7 +5786,28 @@ ${amount} para ${merchant} - ${date}`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
-        updateTax: ({oldValue, taxName}) => `${oldValue ? 'deshabilitó' : 'habilitó'} el impuesto "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `cambió el nombre del impuesto de "${oldValue}" a "${newValue}"`;
+                }
+                case 'code': {
+                    return `cambió el código del impuesto "${taxName}" de "${oldValue}" a "${newValue}"`;
+                }
+                case 'rate': {
+                    return `cambió la tasa del impuesto "${taxName}" de "${oldValue}" a "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'deshabilitó' : 'habilitó'} el impuesto "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
