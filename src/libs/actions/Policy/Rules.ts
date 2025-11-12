@@ -3,6 +3,10 @@ import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRules
 import {READ_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
+/**
+ * Fetches policy rules data when the rules page is opened.
+ * @param policyID - The ID of the policy to fetch rules for
+ */
 function openPolicyRulesPage(policyID: string | undefined) {
     console.log('openPolicyRulesPage', policyID);
     if (!policyID) {
