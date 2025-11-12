@@ -217,19 +217,19 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
         // Add current field to the visited lists
         visitedFields.add(currentFieldName);
 
-        // Extract all formula values from the current field
+        // Extract all formula parts from the current field
         const currentFormulaParts = extract(currentFieldValue);
 
-        for (const part of currentFormulaParts) {
-            const partDefinition = parsePart(part);
+        for (const currentFormulaPartDefinitions of currentFormulaParts) {
+            const part = parsePart(currentFormulaPartDefinitions);
 
             // Only check field references (skip report, user, or freetext)
-            if (partDefinition.type !== FORMULA_PART_TYPES.FIELD) {
+            if (part.type !== FORMULA_PART_TYPES.FIELD) {
                 continue;
             }
 
             // Get the referenced field name (first element in fieldPath)
-            const referencedFieldName = partDefinition.fieldPath.at(0)?.trim();
+            const referencedFieldName = part.fieldPath.at(0)?.trim();
             if (!referencedFieldName) {
                 continue;
             }
