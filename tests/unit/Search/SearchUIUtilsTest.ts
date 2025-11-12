@@ -1100,12 +1100,7 @@ const transactionReportGroupListItems = [
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-<<<<<<< HEAD
-                reportType: 'expense',
                 shouldShowMerchant: false,
-=======
-                shouldShowMerchant: true,
->>>>>>> main
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
