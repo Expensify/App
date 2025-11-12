@@ -10,6 +10,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {startSpan} from '@libs/Telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,6 +194,19 @@ function navigate(route: Route, options?: LinkToOptions) {
             pendingNavigationCall = {route, options};
         }
         return;
+    }
+
+    // Start a Sentry span for report navigation
+    if (route.startsWith(`${ROUTES.REPORT}/`)) {
+        // Extract reportID from route (e.g., "r/123456" -> "123456")
+        const reportIDMatch = route.match(/^r\/(\w+)/);
+        if (reportIDMatch?.[1]) {
+            const reportID = reportIDMatch[1];
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: reportID,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
+        }
     }
 
     linkTo(navigationRef.current, route, options);
