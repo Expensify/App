@@ -117,6 +117,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             errors={item.errors}
             errorRowStyles={styles.ph6}
             canDismissError={item.canDismissError}
+            shouldShowErrorMessages={false}
         >
             <MenuItem
                 onPress={handleRowPress}
