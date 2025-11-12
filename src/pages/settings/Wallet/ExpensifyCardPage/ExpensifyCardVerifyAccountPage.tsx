@@ -58,6 +58,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                     ...prevState,
                     [cardID]: error,
                 }));
+                navigateBack();
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));

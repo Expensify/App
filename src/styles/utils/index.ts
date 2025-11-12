@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -752,8 +752,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIPhonesWithNotches = [812, 896, 844, 926];
-    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = new Set([812, 896, 844, 926]);
+    return heightsIPhonesWithNotches.has(windowHeight) || heightsIPhonesWithNotches.has(windowWidth);
 }
 
 /**
