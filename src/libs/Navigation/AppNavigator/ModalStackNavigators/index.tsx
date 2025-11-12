@@ -94,7 +94,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused} = useContext(WideRHPContext);
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused, superWideRHPRouteKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
         const isFocused = useIsFocused();
@@ -144,7 +144,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !isWideRhpFocused && !isFocused ? (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionLeftValue={modalStackOverlaySuperWideRHPWidth}
+                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : receiptPaneRHPWidth}
                     />
                 ) : null}
                 {!isSmallScreenWidth && shouldRenderThirdOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
