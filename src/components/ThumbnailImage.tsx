@@ -9,6 +9,7 @@ import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {Dimensions} from '@src/types/utils/Layout';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
@@ -80,11 +81,6 @@ type ThumbnailImageProps = {
     shouldUseFullHeight?: boolean;
 };
 
-type UpdateImageSizeParams = {
-    width: number;
-    height: number;
-};
-
 function ThumbnailImage({
     previewSourceURL,
     altText,
@@ -124,7 +120,7 @@ function ThumbnailImage({
      * @param Params - width and height of the original image.
      */
     const updateImageSize = useCallback(
-        ({width, height}: UpdateImageSizeParams) => {
+        ({width, height}: Dimensions) => {
             if (
                 !shouldDynamicallyResize ||
                 // If the provided dimensions are good avoid caching them and updating state.

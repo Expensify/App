@@ -50,6 +50,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
@@ -83,6 +84,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -239,10 +241,12 @@ function useAdvancedSearchFilters() {
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
-    const nonPersonalPolicyCategoryIds = Object.values(policies)
-        .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
-        .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
-    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.includes(policyCategoryId)).length;
+    const nonPersonalPolicyCategoryIds = new Set(
+        Object.values(policies)
+            .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
+            .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`),
+    );
+    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.has(policyCategoryId)).length;
 
     const areCategoriesEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
     const areTagsEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED);
@@ -258,6 +262,9 @@ function useAdvancedSearchFilters() {
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
     const shouldDisplayGroupByFilter = !!groupBy;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
+    const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
+        return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
+    });
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -293,6 +300,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !shouldDisplayAttendeeFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !shouldDisplayReportFieldFilter) {
                             return;
                         }
                         return key;

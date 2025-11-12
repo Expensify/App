@@ -10,9 +10,11 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
@@ -156,7 +158,7 @@ type MoneyRequestConfirmationListFooterProps = {
     receiptFilename: string;
 
     /** The path of the receipt */
-    receiptPath: string;
+    receiptPath: string | number;
 
     /** The report action ID */
     reportActionID: string | undefined;
@@ -217,6 +219,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Function to set the show more fields */
     setShowMoreFields: (showMoreFields: boolean) => void;
+
+    /** Flag indicating if the description is required */
+    isDescriptionRequired: boolean;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -272,6 +277,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     showMoreFields,
     setShowMoreFields,
+    isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
@@ -284,9 +290,14 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const isScan = isScanRequest(transaction);
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -297,7 +308,10 @@ function MoneyRequestConfirmationListFooter({
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const shouldShowTags = useMemo(
+        () => (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists),
+        [isCreatingTrackExpense, isPolicyExpenseChat, isUnreported, policyTagLists],
+    );
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
@@ -321,7 +335,6 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -372,7 +385,9 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
+    const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
+
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
@@ -384,6 +399,8 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
     const contextMenuContextValue = useMemo(
         () => ({
@@ -487,6 +504,7 @@ function MoneyRequestConfirmationListFooter({
                                 disabled={didConfirm}
                                 interactive={!isReadOnly}
                                 numberOfLinesTitle={2}
+                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                             />
                         </MentionReportContext.Provider>
                     </ShowContextMenuContext.Provider>
@@ -594,7 +612,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.category')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={iouCategory}
+                    title={decodedCategoryName}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
                     onPress={() => {
@@ -602,7 +620,26 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        if (shouldNavigateToUpgradePath) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    backTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                }),
+                            );
+                        } else if (!policy && shouldSelectPolicy) {
+                            Navigation.navigate(
+                                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                ),
+                            );
+                        } else {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -665,6 +702,8 @@ function MoneyRequestConfirmationListFooter({
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                         }}
                         style={[styles.moneyRequestMenuItem]}
+                        brickRoadIndicator={shouldDisplayTagError && !!getTagForDisplay(transaction, index) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={shouldDisplayTagError && !!getTagForDisplay(transaction, index) ? translate(formError) : ''}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         rightLabel={isTagRequired ? translate('common.required') : ''}
@@ -1038,7 +1077,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!shouldShowMap && (
+            {(!shouldShowMap || isManualDistanceRequest) && (
                 <View style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, styles.flex1]}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent

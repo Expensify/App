@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,6 +30,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
+import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
@@ -39,6 +41,7 @@ import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} fro
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -134,7 +137,7 @@ type MoneyRequestConfirmationListProps = {
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: string | number;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -277,7 +280,9 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const policy = policyReal ?? policyDraft;
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -325,8 +330,12 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
+    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
+
     // A flag for showing the categories field
-    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = isTrackExpense
+        ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
+        : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
@@ -402,6 +411,11 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
+
+    const isDescriptionRequired = useMemo(
+        () => isCategoryDescriptionRequired(policyCategories, iouCategory, policy?.areRulesEnabled),
+        [iouCategory, policyCategories, policy?.areRulesEnabled],
+    );
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -880,8 +894,14 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            const transactionTag = getTag(transaction);
+            if (transactionTag.length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 setFormError('iou.error.invalidTagLength');
+                return;
+            }
+
+            if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
+                setFormError('violations.tagOutOfPolicy');
                 return;
             }
 
@@ -925,6 +945,10 @@ function MoneyRequestConfirmationList({
             }
         },
         [
+            routeError,
+            transactionID,
+            iouType,
+            policy,
             selectedParticipants,
             isEditingSplitBill,
             isMerchantRequired,
@@ -932,23 +956,19 @@ function MoneyRequestConfirmationList({
             shouldDisplayFieldError,
             transaction,
             iouCategory.length,
-            formError,
-            iouType,
+            policyTags,
+            isPerDiemRequest,
+            reportID,
             setFormError,
-            onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            isPerDiemRequest,
             isDistanceRequestWithPendingRoute,
             iouAmount,
+            formError,
             onConfirm,
-            transactionID,
-            reportID,
-            policy,
-            routeError,
             isDelegateAccessRestricted,
+            onSendMoney,
             showDelegateNoAccessModal,
-            setDidConfirmSplit,
         ],
     );
 
@@ -1133,6 +1153,7 @@ function MoneyRequestConfirmationList({
             isReceiptEditable={isReceiptEditable}
             showMoreFields={showMoreFields}
             setShowMoreFields={setShowMoreFields}
+            isDescriptionRequired={isDescriptionRequired}
         />
     );
 
