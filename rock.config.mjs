@@ -2,9 +2,6 @@ import {platformAndroid} from '@rock-js/platform-android';
 import {platformIOS} from '@rock-js/platform-ios';
 import {pluginMetro} from '@rock-js/plugin-metro';
 import {providerGitHub} from '@rock-js/provider-github';
-import dotenv from 'dotenv';
-
-const env = dotenv.config();
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
@@ -21,6 +18,6 @@ export default {
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
     },
     fingerprint: {
-        env: Object.keys(env.parsed).filter((key) => key !== 'GITHUB_TOKEN'),
+        env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK'],
     },
 };
