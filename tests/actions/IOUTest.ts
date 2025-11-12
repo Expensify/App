@@ -2910,7 +2910,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: iouAction,
             });
 
@@ -3012,7 +3011,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: undefined,
             });
 
@@ -3127,7 +3125,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport,
                 firstIOU: undefined,
             });
 
@@ -7931,7 +7928,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -8073,7 +8069,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -8229,7 +8224,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                 });
                 await waitForBatchedUpdates();
