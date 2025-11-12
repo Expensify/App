@@ -37,6 +37,7 @@ import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
+import overflowMoneyRequestView from './utils/overflowMoneyRequestView';
 import overflowXHidden from './utils/overflowXHidden';
 import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
@@ -5487,6 +5488,12 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             flex: 1,
             ...wordBreak.breakWord,
+        },
+        moneyRequestView: {
+            position: 'relative',
+            paddingTop: 16,
+            marginTop: -16,
+            ...overflowMoneyRequestView,
         },
     }) satisfies StaticStyles;
 

@@ -34,7 +34,6 @@ import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
-import overflowMoneyRequestView from './overflowMoneyRequestView';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
@@ -1767,13 +1766,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getTextOverflowStyle: (overflow: string): TextStyle => ({
         textOverflow: overflow,
-    }),
-
-    getMoneyRequestViewStyles: (): ViewStyle => ({
-        position: 'relative',
-        paddingTop: 16,
-        marginTop: -16,
-        ...overflowMoneyRequestView,
     }),
 
     /**

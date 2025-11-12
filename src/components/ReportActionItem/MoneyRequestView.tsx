@@ -628,7 +628,7 @@ function MoneyRequestView({
     }
 
     return (
-        <View style={[StyleUtils.getMoneyRequestViewStyles()]}>
+        <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
