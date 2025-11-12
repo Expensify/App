@@ -179,8 +179,11 @@ type TextInputOptions = {
     /** Whether the text input should be shown as a header inside list */
     shouldBeInsideList?: boolean;
 
+    /**  */
+    disableAutoFocus?: boolean;
+
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null> | ((ref: BaseTextInputRef | null) => void);
+    ref?: RefObject<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {

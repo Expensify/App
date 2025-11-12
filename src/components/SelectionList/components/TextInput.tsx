@@ -1,4 +1,5 @@
-import React, {useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -7,11 +8,12 @@ import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
 type TextInputProps = {
     /** Reference to the BaseTextInput component */
-    ref?: React.Ref<BaseTextInputRef> | null;
+    ref?: React.RefObject<BaseTextInputRef | null> | null;
 
     /** Configuration options for the text input including label, placeholder, validation, etc. */
     options?: TextInputOptions;
@@ -63,17 +65,46 @@ function TextInput({
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {label, value, onChangeText, errorText, headerMessage, hint, placeholder, maxLength, inputMode} = options ?? {};
+    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
 
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
+
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-                setFocusedIndex(0);
+            setFocusedIndex(0);
         },
         [onChangeText, setFocusedIndex],
+    );
+
+    const focusTextInput = useCallback(() => {
+        if (!ref) {
+            return;
+        }
+
+        ref.current?.focus();
+    }, [ref]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldShowTextInput || disableAutoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+                focusTimeoutRef.current = null;
+            };
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
     );
 
     if (!shouldShowTextInput) {
@@ -83,7 +114,7 @@ function TextInput({
         <>
             <View style={[styles.ph5, styles.pb3]}>
                 <BaseTextInput
-                    ref={ref}
+                    ref={mergedRef}
                     onKeyPress={onKeyPress}
                     onFocus={() => onFocusChange?.(true)}
                     onBlur={() => onFocusChange?.(false)}

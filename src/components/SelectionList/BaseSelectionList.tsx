@@ -251,29 +251,12 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonConfig?.isDisabled,
         },
     );
-
     const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
         }
     }, []);
-
-    const handleTextInputRef = (element: BaseTextInputRef | null) => {
-        innerTextInputRef.current = element;
-
-        const textInputRef = textInputOptions?.ref;
-        if (!textInputRef) {
-            return;
-        }
-
-        if (typeof textInputRef === 'function') {
-            textInputRef(element);
-        } else {
-            // eslint-disable-next-line react-compiler/react-compiler
-            textInputRef.current = element;
-        }
-    };
 
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
@@ -282,10 +265,10 @@ function BaseSelectionList<TItem extends ListItem>({
 
         return (
             <TextInput
+                ref={innerTextInputRef}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
-                ref={handleTextInputRef}
                 options={textInputOptions}
                 onSubmit={selectFocusedOption}
                 dataLength={data.length}
