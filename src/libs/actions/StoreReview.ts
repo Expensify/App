@@ -1,4 +1,6 @@
-import {isAvailableAsync, requestReview as requestNativeReview} from 'expo-store-review';
+import {isAvailableAsync, requestReview as requestNativeReview, hasAction as hasStoreReviewAction} from 'expo-store-review';
+import {Linking} from 'react-native';
+import getStoreReviewURL from './storeReviewURL';
 
 /**
  * Request the native in-app review prompt (iOS/Android)
@@ -11,6 +13,19 @@ import {isAvailableAsync, requestReview as requestNativeReview} from 'expo-store
  */
 async function requestReview(): Promise<void> {
     try {
+        // Determine if any review action is possible on this build/device/config
+        const getHasAction = async (): Promise<boolean> => {
+            const candidate: unknown = hasStoreReviewAction;
+            if (typeof candidate === 'function') {
+                return (candidate as () => Promise<boolean>)();
+            }
+            return false;
+        };
+
+        if (!(await getHasAction())) {
+            return;
+        }
+
         // Check if available before requesting (returns false on web, TestFlight, Android <5.0)
         const getAvailability = async (): Promise<boolean> => {
             const candidate: unknown = isAvailableAsync;
@@ -30,6 +45,20 @@ async function requestReview(): Promise<void> {
             };
 
             await performRequestReview();
+            return;
+        }
+
+        // Fallback: open the store URL if available (useful for iOS TestFlight or older Android)
+        const getURL = (): string | null => {
+            const candidate: unknown = getStoreReviewURL;
+            if (typeof candidate === 'function') {
+                return (candidate as () => string | null)();
+            }
+            return null;
+        };
+        const url = getURL();
+        if (typeof url === 'string' && url.length > 0) {
+            await Linking.openURL(url);
         }
     } catch (error) {
         // Module not installed yet or platform doesn't support it
