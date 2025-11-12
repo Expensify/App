@@ -38,6 +38,10 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
             check: (activeRoute: string) => activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(chatReportID)),
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})),
+            navigate: () => Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
+        },
     ];
 
     if (reportID === undefined) {
