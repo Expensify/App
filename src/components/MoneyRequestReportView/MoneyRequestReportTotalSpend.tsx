@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -48,9 +48,7 @@ function MoneyRequestReportTotalSpend({
     const isFocused = useIsFocused();
     const shouldShowComments = hasComments || isLoadingReportActions;
 
-    const commentContainerStyle = useMemo(() => {
-        return [styles.ph5, styles.justifyContentBetween, styles.mb2];
-    }, [styles.ph5, styles.justifyContentBetween, styles.mb2]);
+    const commentContainerStyle = [styles.ph5, styles.justifyContentBetween, styles.mb2];
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd, shouldShowComments && commentContainerStyle]}>
