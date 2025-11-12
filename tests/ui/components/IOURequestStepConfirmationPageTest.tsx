@@ -337,7 +337,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
-        it('should update tax amount when waypoints change in distance request (Issue #72380)', async () => {
+        it('should update tax amount when waypoints change in distance request', async () => {
             const policy = createPolicyWithTaxAndDistance();
             const initialWaypoints = createWaypoints('New York', 'Boston');
             await act(async () => {
@@ -470,7 +470,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(updatedTaxAmount).toBeGreaterThan(0);
         });
 
-        it('should recalculate tax amount with foreign tax rate when currency changes (Issue #73411)', async () => {
+        it('should recalculate tax amount with foreign tax rate when currency changes', async () => {
             const policy = createPolicyWithTaxAndDistance();
 
             await act(async () => {
@@ -572,7 +572,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(transaction?.taxAmount).toBe(909);
         });
 
-        it('should not zero out tax when re-selecting distance rate without reclaimable configured (Issue #73413)', async () => {
+        it('should not zero out tax when re-selecting distance rate without reclaimable configured', async () => {
             const policy = createPolicyWithTaxAndDistance();
             const waypoints = createWaypoints('New York', 'Boston');
 
