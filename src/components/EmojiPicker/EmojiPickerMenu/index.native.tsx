@@ -125,7 +125,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
-                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             <BaseEmojiPickerMenu

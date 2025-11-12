@@ -34,6 +34,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
@@ -139,9 +140,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID);
+        detachReceipt(transaction?.transactionID, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID]);
+    }, [navigation, transaction?.transactionID, policyCategories]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
