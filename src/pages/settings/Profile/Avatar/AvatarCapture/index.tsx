@@ -1,5 +1,6 @@
 import React, {forwardRef, useImperativeHandle, useRef} from 'react';
 import type {View as RNView} from 'react-native';
+import variables from '@styles/variables';
 import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
 
 /**
@@ -33,25 +34,20 @@ function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: Reac
                         return;
                     }
 
-                    // Get dimensions and background color
-                    const bbox = coloredAvatarElement.getBoundingClientRect();
-                    const width = bbox.width;
-                    const height = bbox.height;
+                    // Get background color and set fixed dimensions
+                    const width = variables.avatarSizeXXLarge;
+                    const height = variables.avatarSizeXXLarge;
                     const backgroundColor = globalThis.getComputedStyle(coloredAvatarElement).backgroundColor;
 
-                    // Create canvas with 2x resolution for better quality
                     const canvas = document.createElement('canvas');
-                    const scale = 2;
-                    canvas.width = width * scale;
-                    canvas.height = height * scale;
+                    canvas.width = width;
+                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
 
                     if (!ctx) {
                         reject(new Error('Could not get canvas context'));
                         return;
                     }
-
-                    ctx.scale(scale, scale);
 
                     // Draw circular background
                     ctx.fillStyle = backgroundColor;

@@ -26,7 +26,7 @@ function ColoredLetterAvatar({component, backgroundColor, fillColor, size = CONS
     const avatarSize = StyleUtils.getAvatarSize(size);
     return (
         <View
-            style={{width: avatarSize, height: avatarSize, backgroundColor}}
+            style={{width: avatarSize, height: avatarSize, backgroundColor, borderRadius: '100%'}}
             dataSet={{id: 'colored-avatar'}}
         >
             <ImageSVG

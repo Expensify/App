@@ -35,7 +35,7 @@ export default {
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
-    avatarSizeXXLarge: 360,
+    avatarSizeXXLarge: 720,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
