@@ -2659,6 +2659,11 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Leden uitnodigen',
             subtitle: 'Beheer en deel je uitgaven met een accountant of start een reisgroep met vrienden.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Het aanmaken van werkruimtes is voorbehouden aan beheerders. Sluit je aan bij een van de onderstaande werkruimtes of neem contact op met je beheerder voor meer informatie.',
+            skipForNow: 'Voor nu overslaan',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Toon me dit niet meer',

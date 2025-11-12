@@ -2646,6 +2646,10 @@ ${amount} für ${merchant} - ${date}`,
             title: 'Mitglieder einladen',
             subtitle: 'Verwalten und teilen Sie Ihre Ausgaben mit einem Buchhalter oder gründen Sie eine Reisegruppe mit Freunden.',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'Die Erstellung von Workspaces ist auf Admins beschränkt. Tritt einem der unten aufgeführten Workspaces bei oder wende dich für weitere Informationen an deinen Admin.',
+            skipForNow: 'Vorerst überspringen',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',

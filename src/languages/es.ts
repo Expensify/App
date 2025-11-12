@@ -2289,6 +2289,11 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Invita a miembros',
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La creación de espacios de trabajo está restringida a los administradores. Únete a uno de los espacios a continuación o contacta a tu administrador para más información.',
+            skipForNow: 'Omitir por ahora',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',

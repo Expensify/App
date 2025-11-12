@@ -2655,6 +2655,11 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Convidar membros',
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'A criação de espaços de trabalho está restrita aos administradores. Entre em um dos espaços de trabalho abaixo ou contate seu administrador para obter mais informações.',
+            skipForNow: 'Pular por enquanto',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não me mostre isso novamente',

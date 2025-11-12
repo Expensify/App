@@ -2643,6 +2643,10 @@ const translations = {
             title: 'Invite members',
             subtitle: 'Add your team or invite your accountant. The more, the merrier!',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'Workspace creation is restricted to admins. Join one of the workspaces below or contact your admin for more information.',
+            skipForNow: 'Skip for now',
+        },
     },
     featureTraining: {
         doNotShowAgain: "Don't show me this again",

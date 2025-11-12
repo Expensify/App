@@ -2649,6 +2649,10 @@ ${date} - ${merchant}に${amount}`,
             title: 'メンバーを招待する',
             subtitle: '経費を会計士と管理・共有したり、友達と旅行グループを始めたりしましょう。',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'ワークスペースの作成は管理者のみに制限されています。以下のいずれかのワークスペースに参加するか、詳細は管理者にお問い合わせください。',
+            skipForNow: '今はスキップ',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'これを再び表示しないでください',

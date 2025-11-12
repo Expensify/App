@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -15,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import hasWorkspaceCreationRestriction from '@libs/hasWorkspaceCreationRestriction';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -56,6 +58,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const isDomainRestriction = hasWorkspaceCreationRestriction(currentUserPersonalDetails.login, myDomainSecurityGroups, securityGroups);
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -148,8 +155,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={60}
+                shouldShowBackButton={!isDomainRestriction}
+                progressBarPercentage={isDomainRestriction ? 100 : 60}
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
@@ -163,16 +170,34 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
-                        <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
+                        <Text style={[styles.textSupporting, styles.mt3]}>
+                            {translate(isDomainRestriction ? 'onboarding.domainWorkspaceRestriction.subtitle' : 'onboarding.listOfWorkspaces')}
+                        </Text>
                     </View>
                 }
                 footerContent={
                     <Button
                         success={false}
                         large
-                        text={translate('common.skip')}
+                        text={translate(isDomainRestriction ? 'onboarding.domainWorkspaceRestriction.skipForNow' : 'common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
-                        onPress={skipJoiningWorkspaces}
+                        onPress={() => {
+                            if (isDomainRestriction) {
+                                completeOnboarding({
+                                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                                    firstName: onboardingPersonalDetails?.firstName ?? '',
+                                    lastName: onboardingPersonalDetails?.lastName ?? '',
+                                });
+
+                                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                });
+
+                                return;
+                            }
+                            skipJoiningWorkspaces();
+                        }}
                         style={[styles.mt5]}
                     />
                 }
