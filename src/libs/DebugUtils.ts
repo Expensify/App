@@ -1083,6 +1083,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );

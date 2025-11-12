@@ -2855,7 +2855,6 @@ describe('SearchUIUtils', () => {
                 canDelete,
                 canHold,
                 canUnhold,
-                reportType,
                 convertedAmount,
                 convertedCurrency,
                 ...expectedTransaction
