@@ -165,6 +165,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   companySize: onboardingCompanySize,
                   userReportedIntegration: newUserReportedIntegration,
                   featuresMap,
+                  onboardingPurposeSelected,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -184,6 +185,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
             shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
+            onboardingPurposeSelected,
         });
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting

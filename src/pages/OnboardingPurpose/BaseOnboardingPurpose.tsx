@@ -100,6 +100,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         lastName: personalDetailsForm.lastName,
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
+                        onboardingPurposeSelected: choice,
                     });
 
                     // eslint-disable-next-line @typescript-eslint/no-deprecated

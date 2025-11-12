@@ -999,6 +999,7 @@ function openReport(
     avatar?: File | CustomRNImageManipulatorResult,
     transactionID?: string,
     isNewThread = false,
+    onboardingPurposeSelected?: OnboardingPurpose,
 ) {
     if (!reportID) {
         return;
@@ -1160,6 +1161,7 @@ function openReport(
                 introSelected,
                 engagementChoice: choice,
                 onboardingMessage,
+                onboardingPurposeSelected,
             });
 
             if (onboardingData) {
@@ -4231,6 +4233,7 @@ function completeOnboarding({
     selectedInterestedFeatures = [],
     shouldSkipTestDriveModal,
     isInvitedAccountant,
+    onboardingPurposeSelected,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4245,6 +4248,7 @@ function completeOnboarding({
     selectedInterestedFeatures?: string[];
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
 }) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4257,6 +4261,7 @@ function completeOnboarding({
         companySize,
         selectedInterestedFeatures,
         isInvitedAccountant,
+        onboardingPurposeSelected,
     });
     if (!onboardingData) {
         return;

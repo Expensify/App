@@ -86,6 +86,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
             shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            onboardingPurposeSelected,
         });
 
         setOnboardingAdminsChatReportID();

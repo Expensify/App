@@ -181,6 +181,7 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2032,6 +2033,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         lastUsedPaymentMethod,
         adminParticipant,
         hasOutstandingChildRequest = true,
+        onboardingPurposeSelected,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2420,6 +2422,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
             onboardingMessage: onboardingMessages[engagementChoice],
             adminsChatReportID,
             onboardingPolicyID: policyID,
+            onboardingPurposeSelected,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
