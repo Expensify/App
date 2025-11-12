@@ -551,28 +551,17 @@ function isMergeActionFromReportView(transactions: Transaction[], reports: Repor
         return false;
     }
 
-    // If one of the reports is not in an editable state by the current user prevent merging
-    if (
-        reports.find((report) => {
-            const policy = policies.find((p) => p?.id === report?.policyID);
-            if (!policy || !report) {
-                return false;
-            }
-            return !isMoneyRequestReportEligibleForMerge(report, policy.role === CONST.POLICY.ROLE.ADMIN);
-        })
-    ) {
-        return false;
-    }
+    // All reports must be in an editable state by the current user to allow merging
+    const allReportsEligible = reports.every((report) => {
+        // Transaction could be unreported
+        if (!report) {
+            return true;
+        }
+        const policy = policies.find((p) => p?.id === report?.policyID);
+        return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
+    });
 
-    if (transactions.length === 1) {
-        return true;
-    }
-
-    if (!areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1))) {
-        return false;
-    }
-
-    return true;
+    return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1)));
 }
 
 function isRemoveHoldAction(
