@@ -153,22 +153,22 @@ const taskColumnNamesToSortingProperty = {
 
 const expenseStatusActionMapping = {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport: SearchReport) =>
-        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: SearchReport) =>
+        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: SearchReport) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport: SearchReport) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: SearchReport) => !expenseReport,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -610,8 +610,9 @@ function getTransactionItemCommonFormattedProperties(
     to: SearchPersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    report: OnyxTypes.Report | undefined,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
-    const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
     const formattedFrom = formatPhoneNumber(fromName);
@@ -760,9 +761,8 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
 }
 
 function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
-    const reportType = (transactionItem as TransactionListItemType)?.reportType;
-    const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
-    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+    // it won't matter if pass true or false as second argument to getTaxAmount here because isAmountTooLong function uses Math.abs on the returned value of getTaxAmount
+    const taxAmount = getTaxAmount(transactionItem, false);
     return isAmountTooLong(taxAmount);
 }
 
@@ -970,7 +970,7 @@ function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
  */
 function getToFieldValueForTransaction(
     transactionItem: OnyxTypes.Transaction,
-    report: OnyxTypes.Report,
+    report: OnyxTypes.Report | undefined,
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     reportAction: OnyxTypes.ReportAction | undefined,
 ): OnyxTypes.PersonalDetails {
@@ -1031,7 +1031,8 @@ function getTransactionsSections(
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
 
         let shouldShow = true;
         if (queryJSON && !transactionItem.isActionLoading) {
@@ -1057,10 +1058,17 @@ function getTransactionsSections(
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
-            const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
+            const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -1520,17 +1528,25 @@ function getReportSections(
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
+            const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
-            const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
-            const from = data.personalDetailsList?.[transactionItem.accountID];
+            const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
 
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
             const transaction = {
@@ -2436,16 +2452,19 @@ function getColumnsToShow(
             return;
         }
 
-        // Handle From&To columns that are only shown in the Reports page
-        // if From or To differ from current user in any transaction, show the columns
-        const accountID = (transaction as SearchTransaction).accountID;
-        if (accountID !== currentAccountID) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
-        }
-
+        // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
+
+            // Handle From&To columns that are only shown in the Reports page
+            // if From or To differ from current user in any transaction, show the columns
+            const accountID = reportAction?.actorAccountID;
+            if (accountID && accountID !== currentAccountID) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
+            }
+
             const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
             if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);

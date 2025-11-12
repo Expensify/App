@@ -55,7 +55,6 @@ const mockTransaction: TransactionListItemType = {
     modifiedMerchant: 'The Home Depot',
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
-    reportType: 'expense',
     tag: '',
     transactionID: '1',
     transactionThreadReportID: '2925191332104975',

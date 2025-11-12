@@ -2172,7 +2172,26 @@ function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Arr
  * Whether the provided report is a closed expense report with no expenses
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID, transactions);
+    if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
+        return false;
+    }
+
+    // If the report has a total amount, it definitely has expenses
+    if (report.total && report.total !== 0) {
+        return false;
+    }
+
+    if (report.transactionCount) {
+        return false;
+    }
+
+    // If the report has non-reimbursable total, it has expenses even if total is 0
+    // (reimbursable and non-reimbursable totals can cancel each other out)
+    if (report.nonReimbursableTotal && report.nonReimbursableTotal !== 0) {
+        return false;
+    }
+
+    return !hasExpenses(report.reportID, transactions);
 }
 
 /**
@@ -2595,14 +2614,18 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
  * Returns false if:
  * - if current user is not the submitter of an expense report
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false, isMovingTransaction = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport) || (isExpenseReport(moneyRequestReport) && !isCurrentUserSubmitter(moneyRequestReport))) {
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
+    if (
+        isInstantSubmitEnabled(policy) &&
+        isSubmitAndClose(policy) &&
+        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) || (!isMovingTransaction && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
+    ) {
         return false;
     }
 
