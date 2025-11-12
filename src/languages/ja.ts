@@ -327,7 +327,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'カウント',
         cancel: 'キャンセル',
@@ -442,6 +442,9 @@ const translations = {
         zipPostCode: '郵便番号',
         whatThis: 'これは何ですか？',
         iAcceptThe: '承諾します',
+        acceptTermsAndPrivacy: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 利用規約</a> および <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>`,
+        acceptTermsAndConditions: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">利用規約</a>`,
+        acceptTermsOfService: `承諾します <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 利用規約</a>`,
         remove: '削除',
         admin: '管理者',
         owner: 'オーナー',
@@ -449,7 +452,7 @@ const translations = {
         send: '送信',
         na: 'N/A',
         noResultsFound: '結果が見つかりませんでした',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `「${searchString}」に一致する結果は見つかりませんでした。`,
+        noResultsFoundMatching: (searchString: string) => `「${searchString}」に一致する結果は見つかりませんでした。`,
         recentDestinations: '最近の目的地',
         timePrefix: 'それは',
         conjunctionFor: 'のために',
@@ -463,7 +466,7 @@ const translations = {
         error: {
             invalidAmount: '無効な金額',
             acceptTerms: '続行するには、利用規約に同意する必要があります。',
-            phoneNumber: `有効な電話番号を国コードとともに入力してください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `電話番号を完全に入力してください\n(例: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは他のメンバーによって変更されています。',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えました（${length}/${limit}）`,
@@ -642,6 +645,18 @@ const translations = {
         help: '助けて',
         expenseReport: '経費報告書',
         expenseReports: '経費報告書',
+        leaveWorkspace: 'ワークスペースから退出',
+        leaveWorkspaceConfirmation: 'このワークスペースを退出すると、このワークスペースに経費を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を閲覧できなくなります。',
+        leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、承認ワークフローでは、ワークスペースのオーナーである${workspaceOwner}があなたの代わりになります。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、あなたは優先エクスポート担当者として、ワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを退出すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
+        leaveWorkspaceReimburser:
+            'あなたは精算担当者であるため、このワークスペースを退出できません。Workspaces > 支払いを行うまたは追跡する で新しい精算担当者を設定してから、もう一度お試しください。',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
@@ -812,8 +827,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: '経費を提出し、上司に紹介する',
-            subtitleText: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            title: '経費を提出し、チームに紹介する',
+            subtitleText: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
     },
     videoChatButtonAndMenu: {
@@ -917,17 +932,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>に関することなら何でもどうぞ。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> ボタンを使用してください。`,
+            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、+ ボタンを使用してください。`,
         beginningOfChatHistory: 'このチャットは',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>ボタンをクリックしてください。`,
+            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。+ボタンをクリックしてください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！セットアップを始めましょう。',
         chatWithAccountManager: 'こちらでアカウントマネージャーとチャットしてください',
         sayHello: 'こんにちは！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName}へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンを使用して経費を${additionalText}します。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` + ボタンを使用して経費を${additionalText}します。`,
         askConcierge: '質問をして、24時間365日リアルタイムサポートを受けましょう。',
         conciergeSupport: '24時間年中無休サポート',
         create: '作成する',
@@ -1054,10 +1069,6 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
-        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
-        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
-        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         alternativeMethodsTitle: '領収書を追加する別の方法:',
@@ -1119,6 +1130,7 @@ const translations = {
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant}から${amount}`,
         addSplit: '分割を追加',
+        makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}多いです。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
@@ -1260,7 +1272,6 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
-        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1305,6 +1316,8 @@ const translations = {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName}を${newValueToDisplay}（以前は${oldValueToDisplay}）に`,
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
+        basedOnAI: '過去のアクティビティに基づく',
+        basedOnMCC: 'ワークスペースルールに基づく',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -1329,11 +1342,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'この経費を保留する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留を解除する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'この領収書の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
-            receiptFailureMessage: '領収書のアップロード中にエラーが発生しました。どうぞ',
+            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。<a href="download">領収書を保存</a>し、<a href="retry">もう一度お試しください</a> 後で。</rbr>`,
             receiptFailureMessageShort: '領収書のアップロード中にエラーが発生しました。',
-            tryAgainMessage: 'もう一度試してください。',
-            saveFileMessage: '領収書を保存',
-            uploadLaterMessage: '後でアップロードする。',
             genericDeleteFailureMessage: 'この経費を削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: 'トランザクションにフィールドが欠けています',
@@ -1353,7 +1363,10 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
-        holdExpense: '経費を保留',
+        holdExpense: () => ({
+            one: '経費を保留',
+            other: '経費を保留',
+        }),
         unholdExpense: '経費の保留を解除',
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費を未保留にする',
@@ -1364,7 +1377,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
-        explainHold: 'この経費を保留している理由を説明してください。',
+        explainHold: () => ({
+            one: 'この経費を保留にしている理由を説明してください。',
+            other: 'これらの経費を保留にしている理由を説明してください。',
+        }),
         retracted: '撤回されました',
         retract: '取り消す',
         reopened: '再開されました',
@@ -2018,6 +2034,8 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
+        unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです。',
             reportFraudButtonText: 'いいえ、それは私ではありませんでした。',
@@ -2095,7 +2113,6 @@ ${date} - ${merchant}に${amount}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -2222,10 +2239,9 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中',
+        generatingPDF: 'PDFを生成中...',
         waitForPDF: 'PDFを生成するまでお待ちください',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
-        generatedPDF: 'あなたのレポートPDFが生成されました！',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -2562,15 +2578,15 @@ ${date} - ${merchant}に${amount}`,
             splitExpenseTask: {
                 title: '経費を分割する',
                 description:
-                    '*経費を分割する* には、1人または複数の人と共有します。\n' +
+                    '1人以上の相手と*経費を分割*します。' +
                     '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *チャットを開始*を選択します。\n' +
-                    '3. メールアドレスまたは電話番号を入力します。\n' +
-                    '4. チャット内の灰色の*+*ボタンをクリック > *経費を分割*。\n' +
-                    '5. *手動* 、*スキャン* 、または*距離*を選択して経費を作成します。\n' +
+                    `${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。` +
+                    '2.「*Start chat*」を選択します。' +
+                    '3. メールアドレスまたは電話番号を入力します..' +
+                    '4. チャットでグレーの*+*ボタンをクリック > *経費を分割*。' +
+                    '5. *Manual*、*Scan*、または*Distance* を選択して経費を作成します。' +
                     '\n' +
-                    '必要ならば詳細を追加するか、単に送信します。払い戻しをありましょう！',
+                    '必要なら詳細を追加しても、そのまま送信しても構いません。さあ、精算してもらいましょう！',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペース設定](${workspaceSettingsLink})を確認する`,
@@ -2604,10 +2620,8 @@ ${date} - ${merchant}に${amount}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
-                hasIntroSelected
-                    ? '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。'
-                    : '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。チームの領収書や経費を管理するために、すでにワークスペースを作成しました。30日間の無料トライアルを最大限利用するために、下記の残りの手順に従ってください。',
+            onboardingManageTeamMessage:
+                '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。',
             onboardingTrackWorkspaceMessage:
                 '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
@@ -4156,6 +4170,8 @@ ${date} - ${merchant}に${amount}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    '会社カードのエクスポート設定を経費レポートに変更した場合、NetSuiteベンダーと個別カードの仕訳勘定が無効になります。\n\n心配ありません。後で元に戻したい場合に備えて、以前の選択設定は保存しておきます。',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensifyは毎日自動的にNetSuiteと同期します。',
@@ -4530,9 +4546,7 @@ ${date} - ${merchant}に${amount}`,
             cardholder: 'カードホルダー',
             card: 'カード',
             cardName: 'カード名',
-            brokenConnectionErrorFirstPart: `カードフィードの接続が切れています。どうか`,
-            brokenConnectionErrorLink: '銀行にログインする',
-            brokenConnectionErrorSecondPart: 'それで、再び接続を確立できます。',
+            brokenConnectionError: '<rbr>カードフィードの接続が切れています。どうか <a href="#">銀行にログイン</a> すると、再び接続を確立できます。</rbr>',
             assignedCard: ({assignee, link}: AssignedCardParams) => `${assignee}に${link}を割り当てました！インポートされた取引はこのチャットに表示されます。`,
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
@@ -4583,6 +4597,7 @@ ${date} - ${merchant}に${amount}`,
                 monthly: '毎月',
             },
             cardDetails: 'カードの詳細',
+            cardPending: ({name}: {name: string}) => `${name}のアカウントが確認され次第、カードが発行されます。現在は保留中です。`,
             virtual: 'バーチャル',
             physical: '物理的',
             deactivate: 'カードを無効化する',
@@ -4601,7 +4616,7 @@ ${date} - ${merchant}に${amount}`,
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',
             verifyingBankAccount: '銀行口座を確認しています...',
@@ -4766,9 +4781,7 @@ ${date} - ${merchant}に${amount}`,
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
-                downgradeSubTitleFirstPart: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ`,
-                downgradeSubTitleMiddlePart: `カードフィードを1つだけ保持`,
-                downgradeSubTitleLastPart: '続行する。',
+                downgradeSubTitle: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ <a href="#">カードフィードを1つだけ保持</a> 続行する。`,
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `${connection}にアカウントを追加し、再度接続を同期してください。`,
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
@@ -4864,7 +4877,7 @@ ${date} - ${merchant}に${amount}`,
             textType: 'テキスト',
             dateType: '日付',
             dropdownType: 'リスト',
-            formulaType: 'Formula',
+            formulaType: '数式',
             textAlternateText: '自由入力フィールドを追加してください。',
             dateAlternateText: '日付選択用のカレンダーを追加します。',
             dropdownAlternateText: '選択肢のリストを追加してください。',
@@ -4894,6 +4907,7 @@ ${date} - ${merchant}に${amount}`,
             existingReportFieldNameError: 'この名前のレポートフィールドは既に存在します',
             reportFieldNameRequiredError: 'レポートフィールド名を入力してください',
             reportFieldTypeRequiredError: 'レポートフィールドのタイプを選択してください',
+            circularReferenceError: 'このフィールドは自身を参照できません。更新してください。',
             reportFieldInitialValueRequiredError: 'レポートフィールドの初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
@@ -4976,6 +4990,10 @@ ${date} - ${merchant}に${amount}`,
             cannotMakeAllTagsOptional: {
                 title: 'すべてのタグをオプションにすることはできません',
                 description: `ワークスペースの設定でタグが必要なため、少なくとも1つのタグを必須にする必要があります。`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'タグリストを必須にすることはできません',
+                description: 'ポリシーに複数のタグレベルが設定されている場合のみ、タグリストを必須にできます。',
             },
             tagCount: () => ({
                 one: '1日',
@@ -5086,6 +5104,18 @@ ${date} - ${merchant}に${amount}`,
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリーログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー総数: ${count}`,
             importMembers: 'メンバーをインポート',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `このワークスペースから${approver}を削除すると、承認ワークフローではワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} には承認すべき未処理の経費レポートがあります。ワークスペースから削除する前に、承認するよう依頼するか、そのレポートの管理を引き継いでください。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `このワークスペースから${memberName}を削除できません。ワークフロー > 支払いの作成または追跡で新しい支払担当者を設定してから、もう一度お試しください。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、優先エクスポーターをワークスペースのオーナーである${workspaceOwner}に置き換えます。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `このワークスペースから${memberName}を削除すると、技術連絡先をワークスペースのオーナーである${workspaceOwner}に変更します。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} には対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',
@@ -5437,8 +5467,8 @@ ${date} - ${merchant}に${amount}`,
             enableRate: 'レートを有効にする',
             status: 'ステータス',
             unit: '単位',
-            taxFeatureNotEnabledMessage: 'この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して',
-            changePromptMessage: 'その変更を行うために。',
+            taxFeatureNotEnabledMessage:
+                '<muted-text>この機能を使用するには、ワークスペースで税金を有効にする必要があります。こちらに移動して <a href="#">さらに多くの機能</a> に行ってその変更を行ってください。</muted-text>',
             deleteDistanceRate: '距離料金を削除',
             areYouSureDelete: () => ({
                 one: 'このレートを削除してもよろしいですか？',
@@ -5634,6 +5664,12 @@ ${date} - ${merchant}に${amount}`,
                 description: '独自の料金を作成および管理し、マイルまたはキロメートルで追跡し、距離経費のデフォルトカテゴリを設定します。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>距離料金は、Collectプランで利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額。` : `アクティブメンバー1人あたり月額。`}</muted-text>`,
+            },
+            auditor: {
+                title: '監査人',
+                description: '監査人はすべてのレポートに対して読み取り専用アクセスが可能で、完全な可視性とコンプライアンス監視を提供します。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>監査人は Control プランでのみ利用可能で、料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごとに月額です。` : `アクティブメンバー1人あたり月額です。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
@@ -6132,7 +6168,7 @@ ${date} - ${merchant}に${amount}`,
         searchResults: {
             emptyResults: {
                 title: '表示するものがありません',
-                subtitle: `検索条件を調整するか、緑色の${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}ボタンで何かを作成してみてください。`,
+                subtitle: `検索条件を調整するか、+ボタンで何かを作成してみてください。`,
             },
             emptyExpenseResults: {
                 title: 'まだ経費が作成されていません。',
@@ -6196,7 +6232,6 @@ ${date} - ${merchant}に${amount}`,
             delete: '削除',
             hold: '保留',
             unhold: '保留を解除',
-            reject: '却下',
             noOptionsAvailable: '選択した経費グループには利用可能なオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -6382,6 +6417,10 @@ ${date} - ${merchant}に${amount}`,
         newReport: {
             createReport: 'レポートを作成',
             chooseWorkspace: 'このレポートのワークスペースを選択してください。',
+            emptyReportConfirmationTitle: '空のレポートがすでにあります',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成しますか？ 空のレポートには次からアクセスできます`,
+            emptyReportConfirmationPromptLink: 'レポート',
+            genericWorkspaceName: 'このワークスペース',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -6648,9 +6687,9 @@ ${date} - ${merchant}に${amount}`,
             body: '友達にもExpensifyを使ってほしいですか？ 彼らとチャットを始めるだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: '経費を提出し、<success><strong>上司に紹介する</strong></success>。',
-            header: '経費を提出し、上司に紹介する',
-            body: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            buttonText: '経費を提出し、<success><strong>チームに紹介する</strong></success>。',
+            header: '経費を提出し、チームに紹介する',
+            body: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: '友達を紹介する',
@@ -7082,6 +7121,8 @@ ${date} - ${merchant}に${amount}`,
     roomChangeLog: {
         updateRoomDescription: '部屋の説明を次のように設定します：',
         clearRoomDescription: '部屋の説明をクリアしました',
+        changedRoomAvatar: 'ルームのアバターを変更しました',
+        removedRoomAvatar: 'ルームのアバターを削除しました',
     },
     delegate: {
         switchAccount: 'アカウントを切り替える:',
@@ -7298,14 +7339,35 @@ ${date} - ${merchant}に${amount}`,
         upload: 'アップロード',
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
-        chooseCustomAvatar: 'またはカスタムアバターを選択',
+        choosePresetAvatar: 'またはカスタムアバターを選択',
     },
     openAppFailureModal: {
         title: '問題が発生しました...',
         subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
         refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
+    domain: {
+        notVerified: '未確認',
+        retry: '再試行',
+        verifyDomain: {
+            title: 'ドメインを確認',
+            beforeProceeding: ({domainName}: {domainName: string}) => `続行する前に、DNS設定を更新して<strong>${domainName}</strong>の所有者であることを確認してください。`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `DNSプロバイダーにアクセスし、<strong>${domainName}</strong> のDNS設定を開いてください。`,
+            addTXTRecord: '次のTXTレコードを追加してください:',
+            saveChanges: '変更を保存して、ここに戻り、ドメインを確認してください。',
+            youMayNeedToConsult: `検証を完了するには、組織のIT部門に相談する必要がある場合があります。<a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">詳細はこちら</a>。`,
+            warning: '確認が完了すると、貴社のドメインのすべてのExpensifyメンバーに、アカウントが貴社のドメインで管理される旨のメールが送信されます。',
+            codeFetchError: '認証コードを取得できませんでした',
+            genericError: 'ドメインを確認できませんでした。もう一度お試しください。問題が解決しない場合は Concierge にご連絡ください。',
+        },
+        domainVerified: {
+            title: 'ドメイン確認済み',
+            header: 'やった！あなたのドメインが確認されました',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

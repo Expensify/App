@@ -10,12 +10,14 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import openSearchReport from '@components/Search/openSearchReport';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -49,7 +51,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -163,6 +164,7 @@ function MoneyRequestReportTransactionList({
     }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const personalDetailsList = usePersonalDetails();
 
@@ -266,7 +268,7 @@ function MoneyRequestReportTransactionList({
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+                openSearchReport(routeParams.reportID, backTo);
             });
         },
         [report, reportActions, sortedTransactions, markReportIDAsExpense],
@@ -312,6 +314,13 @@ function MoneyRequestReportTransactionList({
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
 
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
+    );
+
     const listHorizontalPadding = styles.ph5;
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
@@ -336,7 +345,7 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -392,6 +401,7 @@ function MoneyRequestReportTransactionList({
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             forwardedFSClass={transactionItemFSClass}
+                            onArrowRightPress={handleArrowRightPress}
                         />
                     );
                 })}
