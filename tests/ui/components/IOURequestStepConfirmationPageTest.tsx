@@ -572,8 +572,27 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(transaction?.taxAmount).toBe(909);
         });
 
-        it('should maintain consistent tax values across multiple selections (Issue #73413)', async () => {
+        it('should not zero out tax when re-selecting distance rate without reclaimable configured (Issue #73413)', async () => {
             const policy = createPolicyWithTaxAndDistance();
+            const waypoints = createWaypoints('New York', 'Boston');
+
+            // Add a second rate WITHOUT taxClaimablePercentage (simulating no reclaimable amount entered)
+            if (policy.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE]) {
+                policy.customUnits[CONST.CUSTOM_UNITS.NAME_DISTANCE].rates = {
+                    ...policy.customUnits[CONST.CUSTOM_UNITS.NAME_DISTANCE].rates,
+                    altTaxRate2: {
+                        name: 'Rate Without Reclaimable',
+                        customUnitRateID: 'altTaxRate2',
+                        enabled: true,
+                        currency: 'USD',
+                        rate: 100,
+                        attributes: {
+                            taxRateExternalID: 'taxRate2',
+                            // Note: taxClaimablePercentage intentionally omitted to test the bug
+                        },
+                    },
+                };
+            }
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -585,13 +604,29 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     transactionID: TRANSACTION_ID,
                     reportID: REPORT_ID,
-                    amount: 10000,
+                    amount: 5000,
                     currency: 'USD',
-                    merchant: 'Test Merchant',
+                    comment: {
+                        waypoints,
+                        customUnit: {
+                            customUnitRateID: 'altTaxRate2',
+                        },
+                    },
+                    routes: {
+                        route0: {
+                            distance: 100000,
+                            geometry: {
+                                coordinates: [
+                                    [-74.006, 40.7128],
+                                    [-73.9851, 40.7589],
+                                ],
+                            },
+                        },
+                    },
+                    merchant: 'Distance',
                     created: '2025-01-15',
                     taxCode: 'taxRate2',
-                    taxAmount: 909,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
                 });
             });
@@ -621,27 +656,15 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Read tax values first time
-            const firstReadTransaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            // Read tax amount - should NOT be zero even though taxClaimablePercentage is not configured
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
-            const firstTaxCode = firstReadTransaction?.taxCode;
-            const firstTaxAmount = firstReadTransaction?.taxAmount;
+            // With the fix, taxClaimablePercentage defaults to 1 (100%), so tax should calculate correctly
+            expect(transaction?.taxAmount).toBeDefined();
+            expect(transaction?.taxAmount).toBeGreaterThan(0);
 
-            expect(firstTaxCode).toBe('taxRate2');
-            expect(firstTaxAmount).toBe(909);
-
-            // Simulate navigating away and back (common user flow)
-            await waitForBatchedUpdatesWithAct();
-
-            // Read tax values second time
-            const secondReadTransaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
-
-            const secondTaxCode = secondReadTransaction?.taxCode;
-            const secondTaxAmount = secondReadTransaction?.taxAmount;
-
-            // Values should be consistent
-            expect(secondTaxCode).toBe(firstTaxCode);
-            expect(secondTaxAmount).toBe(firstTaxAmount);
+            // Tax code should be taxRate2 (from the distance rate configuration)
+            expect(transaction?.taxCode).toBe('taxRate2');
         });
 
         it('should handle edge case: tax calculation with changing distance rates', async () => {
