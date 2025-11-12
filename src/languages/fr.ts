@@ -1601,7 +1601,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Recherchez pour voir les options',
     },
     contacts: {
-        contactMethod: 'Méthode de contact',
         contactMethods: 'Méthodes de contact',
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',

@@ -1593,7 +1593,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Wyszukaj, aby zobaczyć opcje',
     },
     contacts: {
-        contactMethod: 'Metoda kontaktu',
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',

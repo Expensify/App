@@ -1572,7 +1572,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: '搜索以查看选项',
     },
     contacts: {
-        contactMethod: '联系方式',
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
