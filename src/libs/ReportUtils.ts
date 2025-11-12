@@ -2675,7 +2675,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string) {
+function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmail: string) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2694,7 +2694,9 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) ||
+            canApproveIOU(iouReport, policy, transactions) ||
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmail)
         );
     });
 }
@@ -8859,7 +8861,7 @@ function hasViolations(
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmail ?? '', shouldShowInReview));
 }
 
 /**
@@ -8872,7 +8874,7 @@ function hasWarningTypeViolations(
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmail ?? '', shouldShowInReview));
 }
 
 /**
@@ -8905,7 +8907,7 @@ function hasNoticeTypeViolations(
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmail ?? '', shouldShowInReview));
 }
 
 /**

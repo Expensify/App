@@ -752,7 +752,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(true);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -772,7 +772,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -797,7 +797,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL)).toBe(false);
     });
 });
 

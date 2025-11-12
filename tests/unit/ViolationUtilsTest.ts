@@ -625,7 +625,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -643,7 +643,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });

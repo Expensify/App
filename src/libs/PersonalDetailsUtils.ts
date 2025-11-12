@@ -117,7 +117,7 @@ function getPersonalDetailsByIDs({
     personalDetailsParam = allPersonalDetails,
 }: {
     accountIDs: number[];
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
     shouldChangeUserDisplayName?: boolean;
     personalDetailsParam?: Partial<PersonalDetailsList>;
 }): PersonalDetails[] {

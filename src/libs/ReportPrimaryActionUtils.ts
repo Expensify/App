@@ -245,8 +245,8 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     return isHolder;
 }
 
-function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[]) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
+function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], currentUserEmail: string) {
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail));
 
     if (!hasDuplicates) {
         return false;
@@ -275,7 +275,7 @@ function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTran
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -347,7 +347,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
-    if (isReviewDuplicatesAction(report, reportTransactions)) {
+    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
@@ -415,7 +415,7 @@ function getTransactionThreadPrimaryAction(
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
+    if (isReviewDuplicatesAction(parentReport, [reportTransaction], currentUserLogin)) {
         return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
