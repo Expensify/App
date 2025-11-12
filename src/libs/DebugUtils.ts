@@ -1033,6 +1033,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    convertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     category: CONST.RED_BRICK_ROAD_PENDING_ACTION,
