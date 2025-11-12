@@ -354,11 +354,13 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
+    isTrackExpense,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
+    isTrackExpense?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
@@ -369,7 +371,7 @@ function getRate({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) && (!isTrackExpense || !customMileageRate) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
