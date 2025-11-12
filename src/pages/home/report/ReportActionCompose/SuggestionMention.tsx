@@ -429,9 +429,19 @@ function SuggestionMention({
         [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
+    const debouncedCalculateMentionSuggestion = useDebounce(
+        useCallback(
+            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+                calculateMentionSuggestion(newValue, selectionStart, selectionEnd);
+            },
+            [calculateMentionSuggestion],
+        ),
+        100,
+    );
+
     useEffect(() => {
-        calculateMentionSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateMentionSuggestion]);
+        debouncedCalculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection, debouncedCalculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
