@@ -2,15 +2,11 @@ import 'core-js/proposals/promise-with-resolvers';
 import React, {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {Document, ensurePdfJsInitialized, Thumbnail} from '@components/PDF';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import ensurePdfJsInitialized from './pdfSetup';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
-
-const Document = React.lazy(() => import(/* webpackPrefetch: true */ 'react-pdf').then((m) => ({default: m.Document})));
-
-const Thumbnail = React.lazy(() => import(/* webpackPrefetch: true */ 'react-pdf').then((m) => ({default: m.Thumbnail})));
 
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();

@@ -1,9 +1,10 @@
 import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
-import React, {lazy, memo, Suspense, useCallback, useEffect, useState} from 'react';
+import React, {memo, Suspense, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {PDFPreviewer} from '@components/PDF';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,8 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewProps} from './types';
-
-const PDFPreviewer = lazy(() => import(/* webpackPrefetch: true */ 'react-fast-pdf').then((m) => ({default: m.PDFPreviewer})));
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
