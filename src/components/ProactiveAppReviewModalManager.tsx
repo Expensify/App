@@ -1,6 +1,6 @@
 import React, {useState, useCallback} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import * as StoreReview from '@libs/actions/StoreReview';
+import requestStoreReview from '@libs/actions/StoreReview';
 import * as User from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +33,7 @@ function ProactiveAppReviewModalManager() {
         handleResponse('positive', CONCIERGE_POSITIVE_MESSAGE);
 
         // Trigger native app store review prompt
-        StoreReview.requestReview();
+        requestStoreReview();
     }, [handleResponse]);
 
     const handleNegative = useCallback(() => {
