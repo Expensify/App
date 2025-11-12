@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -97,6 +97,7 @@ import {
     shouldExcludeAncestorReportAction,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    shouldDisplayViolationsRBRInLHN,
     shouldShowFlagComment,
     sortIconsByName,
     sortOutstandingReportsBySelected,
@@ -119,6 +120,7 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
+    TransactionViolation,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -2315,6 +2317,8 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
         });
+
+        
 
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
@@ -9075,6 +9079,122 @@ describe('ReportUtils', () => {
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+        await Onyx.clear();
+    });
+
+    it('should surface a GBR for admin with held expenses requiring approval or payment and avoid showing an RBR', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = currentUserAccountID;
+        const employeeAccountID = 55;
+        const policyID = 'policy-hold';
+        const chatReportID = 'chat-hold';
+        const expenseReportID = 'expense-hold';
+        const transactionID = 'transaction-hold';
+        const holdReportActionID = 'hold-action';
+
+        const policy: Policy = {
+            id: policyID,
+            name: 'Held Expenses Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            outputCurrency: CONST.CURRENCY.USD,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [currentUserEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+            owner: currentUserEmail,
+            isPolicyExpenseChatEnabled: true,
+        };
+
+        const chatReport: Report = {
+            ...createPolicyExpenseChat(500, false),
+            reportID: chatReportID,
+            ownerAccountID: employeeAccountID,
+            policyID,
+            iouReportID: expenseReportID,
+            hasOutstandingChildRequest: true,
+            participants: buildParticipantsFromAccountIDs([adminAccountID, employeeAccountID]),
+        };
+
+        const expenseReport: Report = {
+            ...createExpenseReport(600),
+            reportID: expenseReportID,
+            chatReportID,
+            ownerAccountID: employeeAccountID,
+            managerID: adminAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            currency: CONST.CURRENCY.USD,
+            total: 12345,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const baseTransaction = createRandomTransaction(700);
+        const transaction: Transaction = {
+            ...baseTransaction,
+            transactionID,
+            reportID: expenseReportID,
+            amount: 12345,
+            currency: CONST.CURRENCY.USD,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            reimbursable: true,
+            comment: {
+                ...(baseTransaction.comment ?? {}),
+                hold: holdReportActionID,
+            },
+        };
+
+        const reportPreviewAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: 'report-preview-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            childReportID: expenseReportID,
+        };
+
+        const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as OnyxKey;
+        const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+            [transactionViolationsKey]: [
+                {
+                    name: CONST.VIOLATIONS.HOLD,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ],
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+        ]);
+        await waitForBatchedUpdates();
+
+        const shouldShowRBR = shouldDisplayViolationsRBRInLHN(chatReport, transactionViolationsCollection);
+        expect(shouldShowRBR).toBe(false);
+
+        const reason = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: shouldShowRBR,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: undefined,
+        });
+
+        expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
         await Onyx.clear();
     });
 
