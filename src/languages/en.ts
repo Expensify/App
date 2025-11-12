@@ -1593,7 +1593,7 @@ const translations = {
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpText: 'Add more ways to send receipts. Forward them to <copy-text text="receipts@expensify.com"/> or text them to 47777 (US numbers only).',
+        helpText: ({email}: {email: string}) => `Add more ways to send receipts. Forward them to <copy-text text="${email}"/> or text them to 47777 (US numbers only).`,
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,

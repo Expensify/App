@@ -1604,8 +1604,8 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Méthodes de contact',
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',
-        helpText:
-            'Ajoutez plus de moyens pour envoyer des reçus. Transférez-les à <copy-text text="receipts@expensify.com"/> ou envoyez-les par SMS au 47777 (numéros américains uniquement).',
+        helpText: ({email}: {email: string}) =>
+            `Ajoutez plus de moyens pour envoyer des reçus. Transférez-les à <copy-text text="${email}"/> ou envoyez-les par SMS au 47777 (numéros américains uniquement).`,
         pleaseVerify: 'Veuillez vérifier cette méthode de contact',
         getInTouch: 'Chaque fois que nous devons vous contacter, nous utiliserons cette méthode de contact.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod}. Il devrait arriver dans une minute ou deux.`,

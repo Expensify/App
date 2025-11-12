@@ -1598,7 +1598,7 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
-        helpText: 'Aggiungi più modi per inviare le ricevute. Inoltrale a <copy-text text="receipts@expensify.com"/> o inviarli al 47777 (solo numeri USA).',
+        helpText: ({email}: {email: string}) => `Aggiungi più modi per inviare le ricevute. Inoltrale a <copy-text text="${email}"/> o inviarli al 47777 (solo numeri USA).`,
         pleaseVerify: 'Si prega di verificare questo metodo di contatto',
         getInTouch: 'Ogni volta che avremo bisogno di contattarti, useremo questo metodo di contatto.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
