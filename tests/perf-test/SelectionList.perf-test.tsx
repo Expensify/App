@@ -7,7 +7,6 @@ import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
-import type Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 
 type SelectionListWrapperProps = {
@@ -52,6 +51,7 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
     useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),
+    useNavigation: jest.fn(),
 }));
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
@@ -72,14 +72,6 @@ jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigation: jest.fn(),
-    };
-});
 
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
