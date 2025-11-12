@@ -2337,6 +2337,128 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
         });
+
+        it('returns true and surfaces GBR when expense report is awaiting approval by approver-only user', async () => {
+            // Given an expense report that is submitted and awaiting approval by the current user (approver-only)
+            // The current user must be a participant to have access to the report
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // When we evaluate if the report requires attention from the current user
+            const requiresAttention = requiresAttentionFromCurrentUser(report);
+
+            // Then it should return true because the user is the approver and the report needs approval
+            expect(requiresAttention).toBe(true);
+
+            // And the reason for the report to be in the option list should be HAS_GBR
+            const reason = reasonForReportToBeInOptionList({
+                report,
+                chatReport: report,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+            });
+
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        });
+
+        it('returns false and does not surface GBR when expense report awaiting approval is for a different approver', async () => {
+            // Given an expense report that is submitted but awaiting approval by a different user (not current user)
+            const differentApproverAccountID = 999999;
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, differentApproverAccountID]),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: differentApproverAccountID,
+                hasParentAccess: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // When we evaluate if the report requires attention from the current user
+            const requiresAttention = requiresAttentionFromCurrentUser(report);
+
+            // Then it should return false because the current user is not the approver
+            expect(requiresAttention).toBe(false);
+
+            // And the reason for the report to be in the option list should not be HAS_GBR
+            const reason = reasonForReportToBeInOptionList({
+                report,
+                chatReport: report,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+            });
+
+            expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        });
+
+        it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
+            // Given a policy with reimbursement enabled
+            const policyID = '1';
+            // And an expense report that is already approved
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                policyID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                id: policyID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // When we evaluate if the report requires attention from the current user
+            const requiresAttention = requiresAttentionFromCurrentUser(report);
+
+            // Then it should return false because the report is already approved and reimbursement is enabled
+            expect(requiresAttention).toBe(false);
+
+            // And the reason for the report to be in the option list should not be HAS_GBR
+            const reason = reasonForReportToBeInOptionList({
+                report,
+                chatReport: report,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+            });
+
+            expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
