@@ -9,7 +9,7 @@ import Log from '@libs/Log';
  */
 function openPolicyRulesPage(policyID: string | undefined) {
     if (!policyID) {
-        Log.warn('openPolicyRulesPage invalid params', {policyID});
+        Log.warn('Invalid params for openPolicyRulesPage', {policyID});
         return;
     }
     const params: OpenPolicyRulesPageParams = {policyID};
