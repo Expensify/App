@@ -2769,7 +2769,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
-                autoReporting: policy.autoReporting
+                autoReporting: policy.autoReporting,
             },
         },
         {
