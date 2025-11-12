@@ -24,6 +24,7 @@ import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +35,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
@@ -73,6 +75,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
@@ -94,8 +97,6 @@ function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isFocused = useIsFocused();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -124,9 +125,19 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
-
+    const {accountID} = useCurrentUserPersonalDetails();
+    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
+    const searchKey = useMemo(
+        () => Object.values(suggestedSearches).find((searchTypeMenuItem) => searchTypeMenuItem.similarSearchHash === queryJSON?.similarSearchHash)?.key,
+        [suggestedSearches, queryJSON?.similarSearchHash],
+    );
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, queryJSON?.similarSearchHash, true);
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const isDataMissing = currentSearchResults === undefined || currentSearchResults === null;
+    const shouldRenderContent = isFocused;
+    const shouldShowLoadingState = !isFocused;
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
@@ -154,6 +165,8 @@ function SearchPage({route}: SearchPageProps) {
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
     });
+    const {status, hash} = queryJSON ?? {};
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -169,9 +182,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    const {status, hash} = queryJSON ?? {};
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
@@ -818,6 +828,15 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    useEffect(() => {
+        if (!queryJSON || !isDataMissing || !isFocused) {
+            return;
+        }
+        handleSearchAction({queryJSON, searchKey, offset: 0, shouldCalculateTotals});
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused]);
+
     const footerData = useMemo(() => {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
@@ -840,12 +859,6 @@ function SearchPage({route}: SearchPageProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const isDataMissing = currentSearchResults === undefined || currentSearchResults === null;
-
-    const shouldRenderContent = !isDataMissing;
-
-    const shouldShowLoadingState = !isFocused;
-
     return (
         <FullPageNotFoundView
             shouldForceFullScreen
@@ -857,7 +870,7 @@ function SearchPage({route}: SearchPageProps) {
                 <View style={styles.searchSplitContainer}>
                     <ScreenWrapper
                         testID={Search.displayName}
-                        shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                        shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicator}
                         offlineIndicatorStyle={offlineIndicatorStyle}
                     >
                         {!!queryJSON && (
@@ -889,102 +902,78 @@ function SearchPage({route}: SearchPageProps) {
                     </ScreenWrapper>
                 </View>
             )}
-
             {shouldRenderContent && (
                 <Animated.View style={[styles.flex1]}>
                     {shouldUseNarrowLayout ? (
-                        <>
-                            <DragAndDropProvider>
-                                {PDFValidationComponent}
-                                <SearchPageNarrow
-                                    queryJSON={queryJSON}
-                                    metadata={metadata}
-                                    headerButtonsOptions={headerButtonsOptions}
-                                    searchResults={searchResults}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    footerData={footerData}
-                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                                    confirmPayment={onBulkPaySelected}
-                                    latestBankItems={latestBankItems}
-                                />
-                                <DragAndDropConsumer onDrop={initScanRequest}>
-                                    <DropZoneUI
-                                        icon={Expensicons.SmartScan}
-                                        dropTitle={translate('dropzone.scanReceipts')}
-                                        dropStyles={styles.receiptDropOverlay(true)}
-                                        dropTextStyles={styles.receiptDropText}
-                                        dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                                        dashedBorderStyles={[
-                                            styles.dropzoneArea,
-                                            styles.easeInOpacityTransition,
-                                            styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
-                                        ]}
-                                    />
-                                </DragAndDropConsumer>
-                                {ErrorModal}
-                            </DragAndDropProvider>
-                            {!!isMobileSelectionModeEnabled && (
-                                <SearchModalsWrapper
-                                    isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                                    handleDeleteExpenses={handleDeleteExpenses}
-                                    setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                                    selectedTransactionsKeys={selectedTransactionsKeys}
-                                    setIsOfflineModalVisible={setIsOfflineModalVisible}
-                                    isOfflineModalVisible={isOfflineModalVisible}
-                                    setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                                    isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                                    isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                                    setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                                    clearSelectedTransactions={clearSelectedTransactions}
-                                    isDEWModalVisible={isDEWModalVisible}
-                                    setIsDEWModalVisible={setIsDEWModalVisible}
-                                />
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <SearchPageWide
+                        <DragAndDropProvider>
+                            {PDFValidationComponent}
+                            <SearchPageNarrow
                                 queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                metadata={metadata}
                                 headerButtonsOptions={headerButtonsOptions}
+                                searchResults={searchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 footerData={footerData}
-                                selectedPolicyIDs={selectedPolicyIDs}
-                                selectedTransactionReportIDs={selectedTransactionReportIDs}
-                                selectedReportIDs={selectedReportIDs}
+                                currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                confirmPayment={onBulkPaySelected}
                                 latestBankItems={latestBankItems}
-                                onBulkPaySelected={onBulkPaySelected}
-                                handleSearchAction={handleSearchAction}
-                                onSortPressedCallback={onSortPressedCallback}
-                                scrollHandler={scrollHandler}
-                                initScanRequest={initScanRequest}
-                                PDFValidationComponent={PDFValidationComponent}
-                                ErrorModal={ErrorModal}
-                                shouldShowOfflineIndicator={shouldShowOfflineIndicator}
-                                offlineIndicatorStyle={offlineIndicatorStyle}
-                                shouldShowFooter={shouldShowFooter}
                             />
-                            <SearchModalsWrapper
-                                isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                                handleDeleteExpenses={handleDeleteExpenses}
-                                setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                                selectedTransactionsKeys={selectedTransactionsKeys}
-                                setIsOfflineModalVisible={setIsOfflineModalVisible}
-                                isOfflineModalVisible={isOfflineModalVisible}
-                                setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                                isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                                isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                                setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                                clearSelectedTransactions={clearSelectedTransactions}
-                                isDEWModalVisible={isDEWModalVisible}
-                                setIsDEWModalVisible={setIsDEWModalVisible}
-                                isDownloadExportModalVisible={isDownloadExportModalVisible}
-                                createExportAll={createExportAll}
-                                setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
-                            />
-                        </>
+                            <DragAndDropConsumer onDrop={initScanRequest}>
+                                <DropZoneUI
+                                    icon={Expensicons.SmartScan}
+                                    dropTitle={translate('dropzone.scanReceipts')}
+                                    dropStyles={styles.receiptDropOverlay(true)}
+                                    dropTextStyles={styles.receiptDropText}
+                                    dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
+                                />
+                            </DragAndDropConsumer>
+                            {ErrorModal}
+                        </DragAndDropProvider>
+                    ) : (
+                        <SearchPageWide
+                            queryJSON={queryJSON}
+                            searchResults={searchResults}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            headerButtonsOptions={headerButtonsOptions}
+                            footerData={footerData}
+                            selectedPolicyIDs={selectedPolicyIDs}
+                            selectedTransactionReportIDs={selectedTransactionReportIDs}
+                            selectedReportIDs={selectedReportIDs}
+                            latestBankItems={latestBankItems}
+                            onBulkPaySelected={onBulkPaySelected}
+                            handleSearchAction={handleSearchAction}
+                            onSortPressedCallback={onSortPressedCallback}
+                            scrollHandler={scrollHandler}
+                            initScanRequest={initScanRequest}
+                            PDFValidationComponent={PDFValidationComponent}
+                            ErrorModal={ErrorModal}
+                            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+                            offlineIndicatorStyle={offlineIndicatorStyle}
+                            shouldShowFooter={shouldShowFooter}
+                        />
+                    )}
+                    {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
+                        <SearchModalsWrapper
+                            isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
+                            handleDeleteExpenses={handleDeleteExpenses}
+                            setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
+                            selectedTransactionsKeys={selectedTransactionsKeys}
+                            setIsOfflineModalVisible={setIsOfflineModalVisible}
+                            isOfflineModalVisible={isOfflineModalVisible}
+                            setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
+                            isDownloadErrorModalVisible={isDownloadErrorModalVisible}
+                            isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
+                            setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
+                            clearSelectedTransactions={clearSelectedTransactions}
+                            isDEWModalVisible={isDEWModalVisible}
+                            setIsDEWModalVisible={setIsDEWModalVisible}
+                            isDownloadExportModalVisible={isDownloadExportModalVisible}
+                            createExportAll={createExportAll}
+                            setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
+                        />
                     )}
                 </Animated.View>
             )}

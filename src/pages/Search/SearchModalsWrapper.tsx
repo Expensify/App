@@ -45,7 +45,7 @@ function SearchModalsWrapper({
     setIsDownloadExportModalVisible,
 }: SearchModalsWrapperProps) {
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const isPossibleToShowDownloadExportModal = !shouldUseNarrowLayout && !!isDownloadExportModalVisible && !!createExportAll && !!setIsDownloadExportModalVisible;
     return (
@@ -65,7 +65,7 @@ function SearchModalsWrapper({
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
+                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isOfflineModalVisible}
@@ -74,7 +74,7 @@ function SearchModalsWrapper({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
+                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
