@@ -3651,6 +3651,7 @@ describe('actions/IOU', () => {
                         expect(report?.pendingFields).toEqual({
                             preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         });
                         resolve();
                     },
@@ -5129,7 +5130,17 @@ describe('actions/IOU', () => {
                             reportToArchive.push(chatReport);
                         }
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
+                        deleteWorkspace({
+                            policyID: policy.id,
+                            activePolicyID: undefined,
+                            policyName: policy.name,
+                            lastAccessedWorkspacePolicyID: undefined,
+                            policyCardFeeds: undefined,
+                            reportsToArchive: reportToArchive,
+                            transactionViolations: undefined,
+                            reimbursementAccountError: undefined,
+                            lastUsedPaymentMethods: undefined,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
