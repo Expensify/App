@@ -119,8 +119,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if (goToNextStep && policy?.employeeList?.[Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '']) {
-            goToNextStep();
+        if (goToNextStep) {
+            setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
 
