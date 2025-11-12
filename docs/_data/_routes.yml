@@ -104,6 +104,11 @@ platforms:
         icon: /assets/images/chat-bubble.svg
         description: Use Expensify's chat feature to split bills, chat with employees, and manage payments.
 
+      - href: concierge-ai
+        title: Concierge AI
+        icon: /assets/images/simple-illustration__concierge-bot.svg
+        description: Learn about Concierge AI and what it can do.
+
       - href: workspaces
         title: Workspaces
         icon: /assets/images/shield.svg

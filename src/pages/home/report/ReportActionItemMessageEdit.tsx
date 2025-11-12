@@ -15,6 +15,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+import useAncestors from '@hooks/useAncestors';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -43,7 +44,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,6 +152,7 @@ function ReportActionItemMessageEdit({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
+    const ancestors = useAncestors(originalReport);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -297,7 +299,7 @@ function ReportActionItemMessageEdit({
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (!debouncedValidateCommentMaxLength.flush()) {
             return;
         }
 
@@ -309,9 +311,9 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
 
     /**
      * @param emoji
@@ -551,6 +553,7 @@ function ReportActionItemMessageEdit({
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
+                            testID="composer"
                         />
                     </View>
 
@@ -613,3 +616,4 @@ function ReportActionItemMessageEdit({
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
+export type {ReportActionItemMessageEditProps};
