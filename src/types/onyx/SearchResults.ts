@@ -12,7 +12,7 @@ import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
-import type ReportActionName from './ReportActionName';
+import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
 
@@ -157,42 +157,6 @@ type SearchReport = {
 
     /** Pending action for the report */
     pendingAction?: OnyxCommon.PendingAction;
-};
-
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
-    accountID: number;
-
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
-
-    /** The report action created date */
-    created: string;
-
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
-
-        /** The text content of the fragment. */
-        text: string;
-
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-
-    /** The name of the report */
-    reportName: string;
 };
 
 /** Model of transaction search result */
@@ -430,7 +394,7 @@ type SearchResults = {
     /** Search results data */
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
@@ -457,7 +421,6 @@ export type {
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
-    SearchReportAction,
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,

@@ -33,7 +33,6 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchReport,
-    SearchReportAction,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -314,7 +313,7 @@ type TransactionListItemType = ListItem &
     };
 
 type ReportActionListItemType = ListItem &
-    SearchReportAction & {
+    ReportAction & {
         /** The personal details of the user posting comment */
         from: PersonalDetails;
 
@@ -326,6 +325,9 @@ type ReportActionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** The name of the report */
+        reportName: string;
     };
 
 type TaskListItemType = ListItem &
