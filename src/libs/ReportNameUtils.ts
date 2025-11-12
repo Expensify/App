@@ -479,7 +479,7 @@ function computeReportName(
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
     transactions?: OnyxCollection<Transaction>,
-    reportNameValuePairsList?: OnyxCollection<ReportNameValuePairs>,
+    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
 ): string {
@@ -487,7 +487,7 @@ function computeReportName(
         return '';
     }
 
-    const reportNameValuePairs = reportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
