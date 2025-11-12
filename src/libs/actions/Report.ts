@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -78,7 +79,7 @@ import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import NetworkConnection from '@libs/NetworkConnection';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -185,7 +186,7 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
-    ReportNextStep,
+    ReportNextStepDeprecated,
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
@@ -336,19 +337,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-    },
-});
-
-const draftNoteMap: OnyxCollection<string> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
-        draftNoteMap[reportID] = value;
     },
 });
 
@@ -2456,7 +2444,19 @@ function updateReportField(
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    const optimisticNextStep = buildNextStepNew({
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const optimisticNextStepDeprecated = buildNextStepNew({
+        report,
+        predictedNextStatus,
+        shouldFixViolations,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
+    const optimisticNextStep = buildOptimisticNextStep({
         report,
         predictedNextStatus,
         shouldFixViolations,
@@ -2475,15 +2475,17 @@ function updateReportField(
                 fieldList: {
                     [fieldKey]: reportField,
                 },
+                nextStep: optimisticNextStep,
                 pendingFields: {
                     [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStep,
+            value: optimisticNextStepDeprecated,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2524,8 +2526,10 @@ function updateReportField(
                 fieldList: {
                     [fieldKey]: previousReportField,
                 },
+                nextStep: report.nextStep ?? null,
                 pendingFields: {
                     [fieldKey]: null,
+                    nextStep: null,
                 },
                 errorFields: {
                     [fieldKey]: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
@@ -2560,6 +2564,7 @@ function updateReportField(
             value: {
                 pendingFields: {
                     [fieldKey]: null,
+                    nextStep: null,
                 },
                 errorFields: {
                     [fieldKey]: null,
@@ -2778,6 +2783,19 @@ function buildNewReportOptimisticData(
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
 
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: optimisticReportData,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email ?? '',
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
+    if (optimisticNextStep) {
+        optimisticReportData.nextStep = optimisticNextStep;
+    }
+
     const optimisticCreateAction = {
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
         accountEmail: login,
@@ -2823,7 +2841,9 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    const optimisticNextStep = buildNextStepNew({
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const optimisticNextStepDeprecated = buildNextStepNew({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -2872,7 +2892,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStep,
+            value: optimisticNextStepDeprecated,
         },
     ];
 
@@ -4319,10 +4339,6 @@ function clearPrivateNotesError(reportID: string, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-function getDraftPrivateNote(reportID: string): string {
-    return draftNoteMap?.[reportID] ?? '';
-}
-
 /**
  * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
@@ -5542,7 +5558,7 @@ function buildOptimisticChangePolicyData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     isReportLastVisibleArchived: boolean | undefined,
-    reportNextStep?: ReportNextStep,
+    reportNextStep?: ReportNextStepDeprecated,
     optimisticPolicyExpenseChatReport?: Report,
 ) {
     const optimisticData: OnyxUpdate[] = [];
@@ -5584,18 +5600,51 @@ function buildOptimisticChangePolicyData(
     }
 
     if (newStatusNum) {
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: {...report, policyID: policy.id},
+            predictedNextStatus: newStatusNum,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations: hasViolationsParam,
+            isASAPSubmitBetaEnabled,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: {...report, policyID: policy.id},
+            predictedNextStatus: newStatusNum,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations: hasViolationsParam,
+            isASAPSubmitBetaEnabled,
+        });
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStepNew({
-                report: {...report, policyID: policy.id},
-                predictedNextStatus: newStatusNum,
-                policy,
-                currentUserAccountIDParam: accountID,
-                currentUserEmailParam: email,
-                hasViolations: hasViolationsParam,
-                isASAPSubmitBetaEnabled,
-            }),
+            value: optimisticNextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -5603,6 +5652,16 @@ function buildOptimisticChangePolicyData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                nextStep: report.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
     }
 
@@ -5820,7 +5879,7 @@ function changeReportPolicy(
     hasViolationsParam: boolean,
     isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
-    reportNextStep?: ReportNextStep,
+    reportNextStep?: ReportNextStepDeprecated,
     isReportLastVisibleArchived = false,
 ) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
@@ -6022,7 +6081,6 @@ export {
     flagComment,
     getCurrentUserAccountID,
     getCurrentUserEmail,
-    getDraftPrivateNote,
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,

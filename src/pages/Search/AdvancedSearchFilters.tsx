@@ -483,7 +483,7 @@ function getFilterDisplayTitle(
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
-    const statusOptions = getStatusOptions(type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
+    const statusOptions = getStatusOptions(translate, type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
     if (!filterValue?.length) {
