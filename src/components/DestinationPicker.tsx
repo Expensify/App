@@ -66,10 +66,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         return [destinationOptions, header, showInput];
     }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
-    const selectedOptionKey = useMemo(
-        () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
-        [sections, selectedDestination],
-    );
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList, [sections, selectedDestination]);
 
     return (
         <SelectionList

@@ -174,6 +174,13 @@ function MapView({
     }, [navigation]);
 
     useEffect(() => {
+        if (!isOffline) {
+            return;
+        }
+        setIsIdle(false);
+    }, [isOffline]);
+
+    useEffect(() => {
         setAccessToken(accessToken).then((token) => {
             if (!token) {
                 return;
