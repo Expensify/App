@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
+import cacheDebugUtils from '@libs/CacheDebugUtils';
 import {isProduction as isProductionLib} from '@libs/Environment/Environment';
+import cachePreloader from '@libs/PreloadCache';
 import {setSupportAuthToken} from '@userActions/Session';
 import type {OnyxKey} from '@src/ONYXKEYS';
 
@@ -42,5 +44,65 @@ export default function addUtilsToWindow() {
         };
 
         window.setSupportToken = setSupportAuthToken;
+
+        // 🧠 CACHE DEBUGGING UTILITIES
+        window.cacheDebug = cacheDebugUtils;
+        window.cachePreloader = cachePreloader;
+
+        // Add convenient shortcuts
+        window.preloadAll = () => {
+            console.log('🚀 Starting Onyx data preloading into memory cache...');
+            return cachePreloader.preloadAllData({
+                collections: true,
+                singleKeys: true,
+                loadExisting: true, // Also discover and load any other existing data
+                onProgress: (progress) => {
+                    const completed = progress.filter((p) => p.status === 'completed').length;
+                    const total = progress.length;
+                    console.log(`📊 Cache Preload Progress: ${completed}/${total} in windows`);
+                },
+            });
+        };
+
+        window.memoryReport = () => {
+            const report = cacheDebugUtils.generatePerformanceReport();
+            console.log(report);
+            return report;
+        };
+
+        window.stressTest = (duration = 30000) => {
+            console.log(`🔥 Starting ${duration / 1000}s stress test...`);
+            return cacheDebugUtils.performanceStressTest(duration);
+        };
+
+        // Log available utilities
+        console.log(`
+🛠️  CACHE DEBUG UTILITIES LOADED
+=================================
+
+Available commands:
+• window.preloadAll() - Load ALL existing Onyx data into memory cache
+• window.memoryReport() - Generate performance report  
+• window.stressTest(30000) - Run 30s stress test
+• window.cacheDebug.startMemoryTracking() - Start memory monitoring
+• window.cacheDebug.runPreloadTest() - Comprehensive preload test
+• window.cachePreloader.getPreloadSummary() - Get current preload stats
+• window.cachePreloader.loadAllExistingData() - Discover and load all existing data
+
+Real Onyx Cache Preloading:
+• Loads actual existing data from Onyx storage
+• Caches everything in memory for instant access
+• Uses Onyx.multiSet for efficient batch operations
+• Discovers all stored keys automatically
+• Measures real memory usage and performance impact
+
+Memory monitoring:
+• window.cacheDebug.getCurrentMemoryStats() - Current memory usage
+• window.cacheDebug.analyzeCacheContents() - Analyze cache contents
+
+Onyx utilities:  
+• window.Onyx.get('key') - Get Onyx key value
+• window.Onyx.log('key') - Log Onyx key to console
+        `);
     });
 }

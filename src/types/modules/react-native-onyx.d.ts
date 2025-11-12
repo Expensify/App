@@ -18,5 +18,12 @@ declare global {
             get: (key: CollectionKeyBase) => Promise<unknown>;
             log: (key: CollectionKeyBase) => void;
         };
+        // Cache debugging utilities
+        cacheDebug: typeof import('@libs/CacheDebugUtils').default;
+        cachePreloader: typeof import('@libs/PreloadCache').default;
+        preloadAll: () => Promise<any>;
+        memoryReport: () => string;
+        stressTest: (duration?: number) => Promise<any>;
+        setSupportToken: (token: string) => void;
     }
 }
