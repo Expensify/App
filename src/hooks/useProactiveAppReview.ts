@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
-import type ProactiveAppReview from '@src/types/onyx/ProactiveAppReview';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ProactiveAppReview from '@src/types/onyx/ProactiveAppReview';
 import useOnyx from './useOnyx';
 
 const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
@@ -56,4 +56,3 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
 }
 
 export default useProactiveAppReview;
-

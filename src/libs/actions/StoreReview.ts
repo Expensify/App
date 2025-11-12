@@ -1,4 +1,4 @@
-import {isAvailableAsync, requestReview as requestNativeReview, hasAction as hasStoreReviewAction} from 'expo-store-review';
+import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as requestNativeReview} from 'expo-store-review';
 import {Linking} from 'react-native';
 import getStoreReviewURL from './storeReviewURL';
 

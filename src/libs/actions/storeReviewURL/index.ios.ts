@@ -9,5 +9,3 @@ export default function getStoreReviewURL(): string | null {
     const appId = match?.[1];
     return appId ? `itms-apps://itunes.apple.com/app/id${appId}?action=write-review` : iosStoreLink;
 }
-
-

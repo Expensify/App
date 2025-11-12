@@ -4,10 +4,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
+import * as Illustrations from './Icon/Illustrations';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
-import * as Illustrations from './Icon/Illustrations';
 
 type ProactiveAppReviewModalProps = {
     /** Whether modal is visible */
@@ -47,12 +47,8 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Title and prompt */}
                 <View>
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>
-                        Enjoying New Expensify?
-                    </Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-                        {'Let us know so we can help make your\nexpensing experience even better.'}
-                    </Text>
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>Enjoying New Expensify?</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>{'Let us know so we can help make your\nexpensing experience even better.'}</Text>
                 </View>
 
                 {/* Buttons */}
@@ -78,4 +74,3 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 ProactiveAppReviewModal.displayName = 'ProactiveAppReviewModal';
 
 export default ProactiveAppReviewModal;
-

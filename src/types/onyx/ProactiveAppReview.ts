@@ -21,4 +21,3 @@ type ProactiveAppReview = {
 
 export default ProactiveAppReview;
 export type {ProactiveAppReviewTrigger, ProactiveAppReviewResponse};
-

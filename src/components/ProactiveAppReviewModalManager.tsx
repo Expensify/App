@@ -1,11 +1,11 @@
-import React, {useState, useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
 import * as User from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import type {ProactiveAppReviewResponse} from '@src/types/onyx/ProactiveAppReview';
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
@@ -17,17 +17,20 @@ function ProactiveAppReviewModalManager() {
     const [isModalVisible, setIsModalVisible] = useState(shouldShowModal);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const handleResponse = useCallback((response: ProactiveAppReviewResponse, message?: string) => {
-        setIsModalVisible(false);
+    const handleResponse = useCallback(
+        (response: ProactiveAppReviewResponse, message?: string) => {
+            setIsModalVisible(false);
 
-        // Call the action which will create optimistic comment (if message provided) and call API
-        User.respondToProactiveAppReview(response, message, conciergeReportID);
+            // Call the action which will create optimistic comment (if message provided) and call API
+            User.respondToProactiveAppReview(response, message, conciergeReportID);
 
-        // Navigate to Concierge DM if we have a report ID and this wasn't a skip
-        if (conciergeReportID && response !== 'skip') {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-        }
-    }, [conciergeReportID]);
+            // Navigate to Concierge DM if we have a report ID and this wasn't a skip
+            if (conciergeReportID && response !== 'skip') {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+            }
+        },
+        [conciergeReportID],
+    );
 
     const handlePositive = useCallback(() => {
         handleResponse('positive', CONCIERGE_POSITIVE_MESSAGE);

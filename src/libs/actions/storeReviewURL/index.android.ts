@@ -9,5 +9,3 @@ export default function getStoreReviewURL(): string | null {
     const packageName = match?.[1];
     return packageName ? `market://details?id=${packageName}` : androidStoreLink;
 }
-
-
