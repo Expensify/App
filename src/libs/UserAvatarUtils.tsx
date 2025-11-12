@@ -6,7 +6,13 @@ import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getAvatarLocal as avatarCatalogGetAvatarLocal, getAvatarURL as avatarCatalogGetAvatarURL, DEFAULT_AVATAR_PREFIX, PRESET_AVATAR_CATALOG} from './Avatars/PresetAvatarCatalog';
+import {
+    getAvatarLocal as avatarCatalogGetAvatarLocal,
+    getAvatarURL as avatarCatalogGetAvatarURL,
+    getLetterAvatar as avatarCatalogGetLetterAvatar,
+    DEFAULT_AVATAR_PREFIX,
+    PRESET_AVATAR_CATALOG,
+} from './Avatars/PresetAvatarCatalog';
 import type {DefaultAvatarIDs, PresetAvatarID} from './Avatars/PresetAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -264,7 +270,7 @@ function getAvatar({
             if (!letterAvatarData) {
                 return null;
             }
-            const avatarComponent = getLetterAvatar(letterAvatarData.letter);
+            const avatarComponent = avatarCatalogGetLetterAvatar(letterAvatarData.letter);
             if (!avatarComponent) {
                 return null;
             }
