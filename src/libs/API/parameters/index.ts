@@ -377,6 +377,7 @@ export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';

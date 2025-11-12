@@ -19,7 +19,6 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -93,10 +92,6 @@ function IOURequestStepDistanceMap({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -375,10 +370,6 @@ function IOURequestStepDistanceMap({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    transactionViolations,
-                    isASAPSubmitBetaEnabled,
                 });
                 return;
             }
@@ -445,8 +436,6 @@ function IOURequestStepDistanceMap({
         reportID,
         lastSelectedDistanceRates,
         localeCompare,
-        transactionViolations,
-        isASAPSubmitBetaEnabled,
     ]);
 
     const getError = () => {
@@ -522,9 +511,6 @@ function IOURequestStepDistanceMap({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;
@@ -549,9 +535,6 @@ function IOURequestStepDistanceMap({
         transaction?.routes,
         report?.reportID,
         policy,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.login,
-        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(
