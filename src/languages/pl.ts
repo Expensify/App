@@ -1395,6 +1395,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystkie',
         confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
+        confirmPay: 'Potwierdź kwotę płatności',
+        confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz zapłacić?',
+            other: 'Te wydatki są wstrzymane. Czy mimo to chcesz zapłacić?',
+        }),
+        payOnly: 'Płać tylko',
         approveOnly: 'Zatwierdź tylko',
         holdEducationalTitle: 'To żądanie jest w toku',
         holdEducationalText: 'trzymaj',

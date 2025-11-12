@@ -1394,6 +1394,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Revisar duplicatas',
         keepAll: 'Manter tudo',
         confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
+        confirmPay: 'Confirmar valor do pagamento',
+        confirmPayAmount: 'Pague o que não está em espera, ou pague o relatório inteiro.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Esta despesa está em espera. Você quer pagar mesmo assim?',
+            other: 'Essas despesas estão em espera. Você quer pagar mesmo assim?',
+        }),
+        payOnly: 'Pagar apenas',
         approveOnly: 'Aprovar apenas',
         holdEducationalTitle: 'Esta solicitação está em andamento',
         holdEducationalText: 'aguarde',

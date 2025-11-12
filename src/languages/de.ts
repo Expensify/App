@@ -1401,6 +1401,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Duplikate überprüfen',
         keepAll: 'Alles behalten',
         confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmPay: 'Zahlungsbetrag bestätigen',
+        confirmPayAmount: 'Bezahlen Sie, was nicht zurückgehalten wird, oder bezahlen Sie den gesamten Bericht.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Diese Ausgabe ist zurückgestellt. Möchten Sie trotzdem bezahlen?',
+            other: 'Diese Ausgaben sind zurückgestellt. Möchten Sie trotzdem bezahlen?',
+        }),
+        payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Diese Anfrage ist an',
         holdEducationalText: 'halten',

@@ -36,6 +36,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -138,6 +139,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
+import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
@@ -274,6 +276,8 @@ function MoneyReportHeader({
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -417,11 +421,19 @@ function MoneyReportHeader({
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
-            if (!type || !chatReport || isAnyTransactionOnHold) {
+            if (!type || !chatReport) {
                 return;
             }
+            setPaymentType(type);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
+            } else if (isAnyTransactionOnHold) {
+                if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                } else {
+                    setIsHoldMenuVisible(true);
+                }
             } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
@@ -1438,6 +1450,19 @@ function MoneyReportHeader({
             )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
+            {isHoldMenuVisible && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    fullAmount={fullAmount}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={moneyRequestReport}
+                    startAnimation={startAnimation}
+                    transactionCount={transactionIDs?.length ?? 0}
+                />
+            )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}

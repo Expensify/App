@@ -1397,6 +1397,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Duplicaten beoordelen',
         keepAll: 'Alles behouden',
         confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmPay: 'Bevestig betalingsbedrag',
+        confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het hele rapport.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Deze uitgave is in de wacht gezet. Wil je toch betalen?',
+            other: 'Deze uitgaven zijn in de wacht gezet. Wil je toch betalen?',
+        }),
+        payOnly: 'Alleen betalen',
         approveOnly: 'Alleen goedkeuren',
         holdEducationalTitle: 'Dit verzoek is ingediend op',
         holdEducationalText: 'vasthouden',

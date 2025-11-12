@@ -1379,6 +1379,13 @@ const translations = {
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
+        confirmPay: 'Confirm payment amount',
+        confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
+        confirmPayAllHoldAmount: () => ({
+            one: 'This expense is on hold. Do you want to pay anyway?',
+            other: 'These expenses are on hold. Do you want to pay anyway?',
+        }),
+        payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This request is on',
         holdEducationalText: 'hold',

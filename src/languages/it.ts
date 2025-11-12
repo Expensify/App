@@ -1397,6 +1397,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Rivedi duplicati',
         keepAll: 'Tieni tutto',
         confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
+        confirmPay: "Conferma l'importo del pagamento",
+        confirmPayAmount: "Paga ciò che non è in sospeso o paga l'intero rapporto.",
+        confirmPayAllHoldAmount: () => ({
+            one: 'Questa spesa è in sospeso. Vuoi pagare comunque?',
+            other: 'Queste spese sono in sospeso. Vuoi pagare comunque?',
+        }),
+        payOnly: 'Paga solo',
         approveOnly: 'Approva solo',
         holdEducationalTitle: 'Questa richiesta è attiva',
         holdEducationalText: 'tieni',

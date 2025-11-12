@@ -1056,6 +1056,13 @@ const translations: TranslationDeepObject<typeof en> = {
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Quieres aprobar sólo los gastos que cumplen con los requisitos o aprobar todo el informe?',
+        confirmPay: 'Confirmar importe de pago',
+        confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Este gasto está retenido. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están retenidos. ¿Quieres pagarlos de todos modos?',
+        }),
+        payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
         unhold: 'Desbloquear',
