@@ -271,6 +271,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6007,6 +6008,9 @@ ${merchant}的${amount} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
+        updateTax: ({oldValue, taxName}: UpdatedPolicyTaxParams) => `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
