@@ -3,7 +3,6 @@ import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -110,12 +109,9 @@ function MoneyRequestReportPreview({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    const prevTransactionIDs = usePrevious(transactions.map((transaction) => transaction.transactionID));
     const newTransactionIDs = useMemo(() => {
-        return transactions
-            .filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !prevTransactionIDs.includes(transaction.transactionID))
-            .map((transaction) => transaction.transactionID);
-    }, [prevTransactionIDs, transactions]);
+        return transactions.filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).map((transaction) => transaction.transactionID);
+    }, [transactions]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
