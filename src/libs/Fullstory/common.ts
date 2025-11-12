@@ -8,6 +8,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {GetChatFSClass, ShouldInitialize} from './types';
 
+// This data is only used for Fullstory to determine if a chat-related element should be
+// masked or not, so it's acceptable to use `Onyx.connectWithoutView` and avoid many UI elements
+// having to subscribe to this whole collection.
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
