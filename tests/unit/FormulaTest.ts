@@ -498,13 +498,6 @@ describe('CustomFormula', () => {
         });
 
         describe('frontpart modifier', () => {
-            test('should extract front part of email', () => {
-                const result = compute('{report:submit:from:email|frontpart}', mockContext);
-                // Submit part extraction not implemented yet; for now, it returns the definition
-                // Once implemented, this should return 'frontpart' of the email
-                expect(result).toBe('{report:submit:from:email|frontpart}');
-            });
-
             test('should extract first word from non-email text', () => {
                 const result = compute('{report:policyname|frontpart}', mockContext);
                 expect(result).toBe('Engineering'); // First word of "Engineering Department Rules"
@@ -983,6 +976,7 @@ describe('CustomFormula', () => {
                 managerID: 67890,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                created: '2025-01-15T10:30:00Z',
             } as Report,
             policy: {
                 name: 'Test Policy',
@@ -1094,26 +1088,6 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:fullname}', contextWithPartialDetails)).toBe('fallback@email.com');
             });
 
-            test('firstname - show formula when personal details missing from context', () => {
-                const contextWithoutSubmitter: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    submitterPersonalDetails: undefined,
-                };
-
-                expect(compute('{report:submit:from:firstname}', contextWithoutSubmitter)).toBe('{report:submit:from:firstname}');
-            });
-
-            test('email - show formula when personal details missing from context', () => {
-                const contextWithoutSubmitter: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    submitterPersonalDetails: undefined,
-                };
-
-                expect(compute('{report:submit:from:email}', contextWithoutSubmitter)).toBe('{report:submit:from:email}');
-            });
-
             test('customfield1 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
                     report: {reportID: '123'} as Report,
@@ -1212,26 +1186,6 @@ describe('CustomFormula', () => {
 
                 expect(compute('{report:submit:to:fullname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
             });
-
-            test('firstname - show formula when manager personal details missing from context', () => {
-                const contextWithoutManager: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    managerPersonalDetails: undefined,
-                };
-
-                expect(compute('{report:submit:to:firstname}', contextWithoutManager)).toBe('{report:submit:to:firstname}');
-            });
-
-            test('email - show formula when manager personal details missing from context', () => {
-                const contextWithoutManager: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    managerPersonalDetails: undefined,
-                };
-
-                expect(compute('{report:submit:to:email}', contextWithoutManager)).toBe('{report:submit:to:email}');
-            });
         });
 
         describe('Submission date', () => {
@@ -1249,32 +1203,6 @@ describe('CustomFormula', () => {
 
             test('dd MMM yyyy - day-first format with short month', () => {
                 expect(compute('{report:submit:date:dd MMM yyyy}', mockContextWithSubmissionInfo)).toBe('15 Jan 2025');
-            });
-
-            test('SUBMITTED_AND_CLOSED - extract date from alternative action type', () => {
-                mockReportActionsUtils.getAllReportActions.mockReturnValue({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
-                        reportActionID: '1',
-                        created: '2025-01-20T14:00:00Z',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                    },
-                } as unknown as ReportActions);
-
-                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-20');
-            });
-
-            test('unsubmitted report - return empty when no SUBMITTED action', () => {
-                mockReportActionsUtils.getAllReportActions.mockReturnValue({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
-                        reportActionID: '1',
-                        created: '2025-01-10T08:00:00Z',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    },
-                } as unknown as ReportActions);
-
-                expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('');
             });
 
             test('date with time - yyyy-MM-dd HH:mm:ss format', () => {

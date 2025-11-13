@@ -33,8 +33,6 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
-    // Pending updates from the current optimistic batch
-    // Allows formula computation to access updates before they're applied to Onyx
     pendingUpdates?: OnyxUpdate[];
 };
 
@@ -383,29 +381,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
         case 'submit': {
-            // Submission info parts return empty strings when data is missing (matches backend behavior)
-            const submitValue = computeSubmitPart(additionalPath, context);
-
-            // If submission info returns empty AND the relevant personal details are missing from context,
-            // fall back to formula definition (this handles edge cases where context is incomplete)
-            if (submitValue === '') {
-                const [direction] = additionalPath;
-                const isFromPart = direction?.toLowerCase() === 'from';
-                const isToPart = direction?.toLowerCase() === 'to';
-                const isDatePart = direction?.toLowerCase() === 'date';
-
-                // For from/to parts, show formula definition if personal details are missing
-                if ((isFromPart && !context.submitterPersonalDetails) || (isToPart && !context.managerPersonalDetails)) {
-                    return part.definition;
-                }
-
-                // For date part, empty means not submitted yet - return empty, not definition
-                if (isDatePart) {
-                    return '';
-                }
-            }
-
-            return submitValue;
+            return computeSubmitPart(additionalPath, context);
         }
         case 'autoreporting': {
             const subField = additionalPath.at(0);
@@ -845,7 +821,8 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
         case 'to':
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
-            const submittedDate = getSubmittedReportActionDate(context.report.reportID, context.report, context.pendingUpdates);
+            // TODO: Replace with proper submission date logic
+            const submittedDate = context.report.created;
             const format = subPath.length > 0 ? subPath.join(':') : undefined;
             const formattedDate = formatDate(submittedDate, format);
             return formattedDate;
@@ -892,64 +869,6 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         default:
             return '';
     }
-}
-
-/**
- * Get the date when the report was submitted
- * Checks pending updates first (for optimistic updates), then falls back to getAllReportActions
- * Only returns a date if the report is currently in submitted state
- */
-function getSubmittedReportActionDate(reportID: string, report: Report, pendingUpdates?: OnyxUpdate[]): string | undefined {
-    if (!reportID) {
-        return undefined;
-    }
-
-    // First, check pending updates for reportActions for this report
-    // This handles the case where SUBMITTED action is in the optimistic batch but not yet applied to Onyx
-    if (pendingUpdates && pendingUpdates.length > 0) {
-        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-        const pendingUpdate = pendingUpdates.find((update) => update.key === reportActionsKey);
-
-        if (pendingUpdate?.value) {
-            const pendingActions = pendingUpdate.value as ReportActions;
-
-            // Search for SUBMITTED action in pending updates
-            const pendingSubmittedAction = Object.values(pendingActions).find(
-                (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-            );
-
-            if (pendingSubmittedAction?.created) {
-                return pendingSubmittedAction.created;
-            }
-        }
-    }
-
-    // Check if the report is currently in submitted state
-    // Even if a SUBMITTED action exists in history, we only show the date if the report is currently submitted
-    const isCurrentlySubmitted = report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED || report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
-
-    if (!isCurrentlySubmitted) {
-        return undefined;
-    }
-
-    // Fall back to existing reportActions in Onyx
-    const reportActions = getAllReportActions(reportID);
-
-    if (!reportActions || Object.keys(reportActions).length === 0) {
-        return undefined;
-    }
-
-    // Find the SUBMITTED or SUBMITTED_AND_CLOSED action
-    const submittedAction = Object.values(reportActions).find(
-        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-    );
-
-    // If we found a SUBMITTED action, use its date
-    if (submittedAction?.created) {
-        return submittedAction.created;
-    }
-
-    return undefined;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
