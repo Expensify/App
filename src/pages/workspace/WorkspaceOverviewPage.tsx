@@ -378,7 +378,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
 
     const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
-        <View style={[!shouldUseNarrowLayout && styles.flexRow, !shouldUseNarrowLayout && styles.gap2]}>
             <ButtonWithDropdownMenu
                 ref={dropdownMenuRef}
                 success={false}
@@ -387,10 +386,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 customText={translate('common.more')}
                 options={options}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow1}
+                wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
             />
-        </View>
     );
+
+    const handleInvitePress = useCallback(() => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        clearInviteDraft(route.params.policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+    }, [isAccountLocked, showLockedAccountModal, route.params.policyID]);
 
     const getHeaderButtons = () => {
         const secondaryActions: Array<DropdownOption<string>> = [];
@@ -408,16 +415,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             }
             return null;
         }
-
-        // Prepare Invite button handler
-        const handleInvitePress = () => {
-            if (isAccountLocked) {
-                showLockedAccountModal();
-                return;
-            }
-            clearInviteDraft(route.params.policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-        };
 
         secondaryActions.push({
             value: 'share',
@@ -468,16 +465,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    ref={dropdownMenuRef}
-                    success={false}
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-                />
+            {renderDropdownMenu(secondaryActions)}
             </View>
         );
     };
