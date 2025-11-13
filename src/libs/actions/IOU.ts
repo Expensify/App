@@ -526,6 +526,10 @@ type MoneyRequestInformationParams = {
     isSplitExpense?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
+type MoneyRequestOptimisticParams = {
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
     isASAPSubmitBetaEnabled?: boolean;
@@ -568,6 +572,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
     hasViolations?: boolean;
+    isASAPSubmitBetaEnabled: boolean;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {

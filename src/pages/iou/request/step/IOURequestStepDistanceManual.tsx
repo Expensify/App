@@ -67,6 +67,7 @@ function IOURequestStepDistanceManual({
 }: IOURequestStepDistanceManualProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
 
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const textInput = useRef<BaseTextInputRef | null>(null);
