@@ -36,7 +36,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress} = useContext(WideRHPContext);
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress, isWideRHPClosing} =
+        useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
@@ -86,7 +87,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             isExecutingRef.current = false;
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
-
+    console.log('isWideRHPFocused', {isWideRHPClosing, isWideRhpFocused});
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
@@ -301,7 +302,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 </Animated.View>
                 {/* The second overlay is here to cover the wide rhp screen underneath */}
                 {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
-                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRhpFocused && (
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRhpFocused && !isWideRHPClosing && (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionRightValue={variables.sideBarWidth}

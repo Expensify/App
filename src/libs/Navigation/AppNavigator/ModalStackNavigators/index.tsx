@@ -94,7 +94,8 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused, superWideRHPRouteKeys} = useContext(WideRHPContext);
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused, superWideRHPRouteKeys, isWideRHPClosing} =
+            useContext(WideRHPContext);
         const route = useRoute();
 
         const isFocused = useIsFocused();
@@ -128,7 +129,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused && !shouldRenderThirdOverlay ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused && !isWideRHPClosing && !shouldRenderThirdOverlay ? (
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}

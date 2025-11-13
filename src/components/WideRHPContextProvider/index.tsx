@@ -123,7 +123,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [shouldRenderThirdOverlay, setShouldRenderThirdOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
-
+    const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
     const focusedRouteKey = useRootNavigationState((state) => findFocusedRoute(state))?.key;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
@@ -252,7 +252,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const newKey = route.key;
-
         // If the key is in the array, don't add it.
         // Ensure mutual exclusivity: remove key from other array if present
         setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
@@ -442,6 +441,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRhpFocused,
+            isWideRHPClosing,
+            setIsWideRHPClosing,
         }),
         [
             wideRHPRouteKeys,
@@ -455,6 +456,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRhpFocused,
+            isWideRHPClosing,
+            setIsWideRHPClosing,
         ],
     );
 
@@ -472,7 +475,7 @@ function useShowWideRHPVersion(condition: boolean) {
     const navigation = useNavigation();
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
+    const {showWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense, setIsWideRHPClosing} = useContext(WideRHPContext);
 
     /**
      * Effect that sets up cleanup when the screen is about to be removed.
@@ -480,12 +483,14 @@ function useShowWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
+            setIsWideRHPClosing(true);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 cleanWideRHPRouteKey(route);
+                setIsWideRHPClosing(false);
             });
         });
-    }, [cleanWideRHPRouteKey, navigation, route]);
+    }, [cleanWideRHPRouteKey, navigation, route, setIsWideRHPClosing]);
 
     /**
      * Effect that determines whether to show wide RHP based on condition or optimistic state.
