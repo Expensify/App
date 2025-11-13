@@ -8,6 +8,7 @@ import type {ListItem, SelectionListProps} from './types';
 
 function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
@@ -64,7 +65,6 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
         Keyboard.dismiss();
     };
 
-    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
     useEffect(() => {
         if (canUseTouchScreen()) {
             return;

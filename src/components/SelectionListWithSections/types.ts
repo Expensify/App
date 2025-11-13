@@ -117,6 +117,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
 
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
 } & TRightHandSideComponent<TItem>;
 

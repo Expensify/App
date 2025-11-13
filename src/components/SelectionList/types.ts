@@ -143,6 +143,10 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type TextInputOptions = {
