@@ -1880,7 +1880,7 @@ function handlePreexistingReport(report: Report) {
                     // Replacing the existing report's participants to avoid duplicates
                     participants: existingReport?.participants ?? report.participants,
                 });
-            } else if (existingReport?.type === report.type) {
+            } else {
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
@@ -1897,7 +1897,7 @@ function handlePreexistingReport(report: Report) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                if (!isOneTransactionReport(existingReport)) {
+                if (parentReportActionID && !isOneTransactionReport(existingReport)) {
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
