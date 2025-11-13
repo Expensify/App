@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
@@ -29,6 +30,7 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CardFeeds} from '@src/types/onyx';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -47,6 +49,181 @@ const samlFeatures: FeatureListItem[] = [
     },
 ];
 
+const domainSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => ({
+    isSamlEnabled: domainSettings?.settings.samlEnabled,
+    isSamlRequired: domainSettings?.settings.samlRequired,
+});
+
+function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}: {accountID: number; domainName: string; isSamlEnabled: boolean; isSamlRequired: boolean}) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <Section
+            title={translate('domain.samlLogin.title')}
+            renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
+            isCentralPane
+            titleStyles={styles.accountSettingsSectionTitle}
+            childrenStyles={[styles.gap6, styles.pt6]}
+        >
+            <View style={styles.sectionMenuItemTopDescription}>
+                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                    <View style={styles.flex4}>
+                        <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <Switch
+                            accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
+                            isOn={isSamlEnabled}
+                            onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
+                        />
+                    </View>
+                </View>
+
+                <Text style={styles.formHelp}>{translate('domain.samlLogin.allowMembers')}</Text>
+            </View>
+
+            {isSamlEnabled && (
+                <View style={styles.sectionMenuItemTopDescription}>
+                    <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                        <View style={styles.flex4}>
+                            <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                        </View>
+                        <View style={[styles.flex1, styles.alignItemsEnd]}>
+                            <Switch
+                                accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
+                                isOn={isSamlRequired}
+                                onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
+                            />
+                        </View>
+                    </View>
+
+                    <Text style={styles.formHelp}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                </View>
+            )}
+        </Section>
+    );
+}
+
+function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: number; domainName: string}) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: false});
+
+    return (
+        <Section
+            title={translate('domain.samlConfigurationDetails.title')}
+            subtitle={translate('domain.samlConfigurationDetails.subtitle')}
+            subtitleMuted
+            isCentralPane
+            titleStyles={styles.accountSettingsSectionTitle}
+            childrenStyles={styles.pt3}
+        >
+            <TextPicker
+                value={samlMetadata?.metaIdentity}
+                inputID="identityProviderMetadata"
+                description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+                numberOfLinesTitle={2}
+                titleStyle={[styles.fontSizeLabel, styles.textMono]}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
+                numberOfLines={4}
+                multiline
+                onValueCommitted={(value) => {
+                    setSamlMetadata(accountID, domainName ?? '', {metaIdentity: value});
+                }}
+                errorText={getLatestErrorMessage({errors: domain?.samlMetadataError})}
+                maxLength={Infinity}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <CopyableTextField
+                        textStyle={styles.fontSizeLabel}
+                        value={samlMetadata?.entityID}
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.entityID')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <CopyableTextField
+                        textStyle={styles.fontSizeLabel}
+                        value={samlMetadata?.nameFormat}
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.nameIDFormat')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <CopyableTextField
+                        textStyle={[styles.fontSizeLabel, styles.mb2]}
+                        value={samlMetadata?.urlLogin}
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.loginUrl')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+                hintText={translate('domain.samlConfigurationDetails.acsUrl')}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <CopyableTextField
+                        textStyle={[styles.fontSizeLabel, styles.mb2]}
+                        value={samlMetadata?.urlLogout}
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.logoutUrl')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+                hintText={translate('domain.samlConfigurationDetails.sloUrl')}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <CopyableTextField
+                        textStyle={styles.fontSizeLabel}
+                        value={samlMetadata?.metaService}
+                        shouldDisplayShowMoreButton
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.serviceProviderMetaData')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
+
+            <MenuItemWithTopDescription
+                titleComponent={
+                    <Button
+                        text={translate('domain.samlConfigurationDetails.revealToken')}
+                        style={styles.wFitContent}
+                        onPress={() => {
+                            getScimToken(accountID, domainName ?? '');
+                        }}
+                    />
+                }
+                description={translate('domain.samlConfigurationDetails.oktaScimToken')}
+                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
+        </Section>
+    );
+}
+
 function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -55,13 +232,16 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {canBeMissing: false});
-    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: false});
+
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+        canBeMissing: false,
+        selector: domainSamlSettingsSelector,
+    });
+    const isSamlEnabled = !!domainSettings?.isSamlEnabled;
+    const isSamlRequired = !!domainSettings?.isSamlRequired;
 
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const doesDomainExist = !!domain;
-    const isSamlEnabled = !!domainSettings?.settings?.samlEnabled;
-    const isSamlRequired = !!domainSettings?.settings?.samlRequired;
 
     useEffect(() => {
         if (!domainName) {
@@ -96,158 +276,18 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                         {domain?.validated ? (
                             <>
-                                <Section
-                                    title={translate('domain.samlLogin.title')}
-                                    renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
-                                    isCentralPane
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                    childrenStyles={[styles.gap6, styles.pt6]}
-                                >
-                                    <View style={styles.sectionMenuItemTopDescription}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                                            <View style={styles.flex4}>
-                                                <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
-                                            </View>
-                                            <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                                <Switch
-                                                    accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
-                                                    isOn={isSamlEnabled}
-                                                    onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
-                                                />
-                                            </View>
-                                        </View>
-
-                                        <Text style={styles.formHelp}>{translate('domain.samlLogin.allowMembers')}</Text>
-                                    </View>
-
-                                    {isSamlEnabled && (
-                                        <View style={styles.sectionMenuItemTopDescription}>
-                                            <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                                                <View style={styles.flex4}>
-                                                    <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
-                                                </View>
-                                                <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                                    <Switch
-                                                        accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
-                                                        isOn={domainSettings?.settings?.samlRequired ?? false}
-                                                        onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
-                                                    />
-                                                </View>
-                                            </View>
-
-                                            <Text style={styles.formHelp}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
-                                        </View>
-                                    )}
-                                </Section>
+                                <SamlLoginSection
+                                    accountID={accountID}
+                                    domainName={domainName ?? ''}
+                                    isSamlEnabled={isSamlEnabled}
+                                    isSamlRequired={isSamlRequired}
+                                />
 
                                 {isSamlEnabled && (
-                                    <Section
-                                        title={translate('domain.samlConfigurationDetails.title')}
-                                        subtitle={translate('domain.samlConfigurationDetails.subtitle')}
-                                        subtitleMuted
-                                        isCentralPane
-                                        titleStyles={styles.accountSettingsSectionTitle}
-                                        childrenStyles={styles.pt3}
-                                    >
-                                        <TextPicker
-                                            value={samlMetadata?.metaIdentity}
-                                            inputID="identityProviderMetadata"
-                                            description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            numberOfLinesTitle={2}
-                                            titleStyle={[styles.fontSizeLabel, styles.textMono]}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
-                                            numberOfLines={4}
-                                            multiline
-                                            onValueCommitted={(value) => {
-                                                setSamlMetadata(accountID, domainName ?? '', {metaIdentity: value});
-                                            }}
-                                            errorText={getLatestErrorMessage({errors: domain.samlMetadataError})}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <CopyableTextField
-                                                    textStyle={styles.fontSizeLabel}
-                                                    value={samlMetadata?.entityID}
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.entityID')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            interactive={false}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <CopyableTextField
-                                                    textStyle={styles.fontSizeLabel}
-                                                    value={samlMetadata?.nameFormat}
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.nameIDFormat')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            interactive={false}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <CopyableTextField
-                                                    textStyle={[styles.fontSizeLabel, styles.mb2]}
-                                                    value={samlMetadata?.urlLogin}
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.loginUrl')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            interactive={false}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            hintText={translate('domain.samlConfigurationDetails.acsUrl')}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <CopyableTextField
-                                                    textStyle={[styles.fontSizeLabel, styles.mb2]}
-                                                    value={samlMetadata?.urlLogout}
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.logoutUrl')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            interactive={false}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            hintText={translate('domain.samlConfigurationDetails.sloUrl')}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <CopyableTextField
-                                                    textStyle={styles.fontSizeLabel}
-                                                    value={samlMetadata?.metaService}
-                                                    shouldDisplayShowMoreButton
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.serviceProviderMetaData')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            interactive={false}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        />
-
-                                        <MenuItemWithTopDescription
-                                            titleComponent={
-                                                <Button
-                                                    text={translate('domain.samlConfigurationDetails.revealToken')}
-                                                    style={styles.wFitContent}
-                                                    onPress={() => {
-                                                        getScimToken(accountID, domainName ?? '');
-                                                    }}
-                                                />
-                                            }
-                                            description={translate('domain.samlConfigurationDetails.oktaScimToken')}
-                                            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        />
-                                    </Section>
+                                    <SamlConfigurationDetailsSection
+                                        accountID={accountID}
+                                        domainName={domainName ?? ''}
+                                    />
                                 )}
                             </>
                         ) : (
