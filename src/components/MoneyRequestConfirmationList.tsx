@@ -344,11 +344,11 @@ function MoneyRequestConfirmationList({
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        if (!shouldShowTax || !transactionID) {
+        if (!shouldShowTax || !transactionID || isReadOnly) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [shouldShowTax, defaultTaxCode, transactionID]);
+    }, [shouldShowTax, defaultTaxCode, transactionID, isReadOnly]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
@@ -494,11 +494,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!shouldShowTax || !transactionID) {
+        if (!shouldShowTax || !transactionID || isReadOnly) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [shouldShowTax, transactionID, taxAmountInSmallestCurrencyUnits]);
+    }, [shouldShowTax, transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
