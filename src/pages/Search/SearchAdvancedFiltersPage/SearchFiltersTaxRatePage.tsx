@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
@@ -13,14 +12,14 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
 function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const allTaxRates = getAllTaxRates();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
     Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
         searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
@@ -31,16 +30,13 @@ function SearchFiltersTaxRatePage() {
         });
     });
     const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm]);
-    const policiesSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => (allPolicies ? Object.values(allPolicies).filter((policy) => policy && policyIDs.includes(policy.id)) : undefined),
-        [policyIDs],
-    );
-
-    const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`, {
-        selector: policiesSelector,
-        canBeMissing: true,
-    });
-    const selectedPoliciesTaxRates = policies?.map((policy) => policy?.taxRates?.taxes).filter((taxRates) => !!taxRates);
+    const selectedPolicies = useMemo(() => {
+        if (policyIDs.length === 0) {
+            return [];
+        }
+        return policyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).filter((policy) => !!policy);
+    }, [policyIDs, policies]);
+    const selectedPoliciesTaxRates = selectedPolicies.map((policy) => policy.taxRates?.taxes).filter((taxRates) => !!taxRates);
 
     const taxItems = useMemo(() => {
         if (!selectedPoliciesTaxRates || selectedPoliciesTaxRates?.length === 0) {
