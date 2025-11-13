@@ -196,7 +196,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid || isAllFeedsResultLoading) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}

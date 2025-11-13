@@ -73,7 +73,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
 
-    if (isAddCardFeedLoading || isBlockedToAddNewFeeds || isAllFeedsResultLoading) {
+    if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         return <FullScreenLoadingIndicator />;
     }
 

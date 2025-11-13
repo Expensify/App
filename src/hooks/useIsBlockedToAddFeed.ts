@@ -9,6 +9,17 @@ import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
+/**
+ * Hook to determine if a workspace on the Collect plan should be blocked from adding additional company card feeds.
+ *
+ * Collect plan workspaces are limited to one company card feed. This hook checks if the workspace already has
+ * a feed and returns whether users should be blocked from adding more feeds.
+ *
+ * @param policyID - The ID of the workspace/policy to check
+ * @returns An object containing:
+ *   - isBlockedToAddNewFeeds: true if the workspace should be blocked from adding new feeds (Collect plan with 1+ existing feeds)
+ *   - isAllFeedsResultLoading: true if feed data is still being loaded
+ */
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
     const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
@@ -18,21 +29,21 @@ function useIsBlockedToAddFeed(policyID?: string) {
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
-    const [prevCompanyFeeds, setPrevCompanyFeeds] = useState(0);
+    const [prevCompanyFeedsLength, setPrevCompanyFeedsLength] = useState(0);
 
     const isLoading = !cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)) || !!defaultFeed?.isLoading;
 
     useEffect(() => {
         if (isLoading) {
-            setPrevCompanyFeeds(0);
+            return;
         }
         const connectedFeeds = Object.entries(companyFeeds)?.length;
-        setPrevCompanyFeeds(connectedFeeds);
+        setPrevCompanyFeedsLength(connectedFeeds);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoading]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeeds >= 1,
+        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
