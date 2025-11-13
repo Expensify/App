@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 
 type TextInputProps = {
     /** Reference to the BaseTextInput component */
-    ref?: React.RefObject<BaseTextInputRef | null>;
+    ref?: React.RefObject<BaseTextInputRef | null> | null;
 
     /** Configuration options for the text input including label, placeholder, validation, etc. */
     options?: TextInputOptions;
@@ -90,7 +90,9 @@ function TextInput({
             if (!shouldShowTextInput || disableAutoFocus) {
                 return;
             }
+
             focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
