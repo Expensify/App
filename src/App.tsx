@@ -79,9 +79,9 @@ function App() {
                     <HybridAppHandler />
 
                     <GestureHandlerRootView style={fill}>
-                        {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden.
+                        {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden. TESTSTS
                             This is necessary for iOS HybridApp's SignInPage to appear correctly without the bootsplash.
-                            See: https://github.com/Expensify/App/pull/65178#issuecomment-3139026551
+                            See: https://github.com/Expensify/App/pull/65178#issuecomment-3139026551 
                         */}
                         <SafeAreaProvider
                             initialMetrics={{
