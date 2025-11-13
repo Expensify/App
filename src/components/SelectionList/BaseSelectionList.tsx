@@ -256,6 +256,13 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, []);
 
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef) {
+            return;
+        }
+        innerTextInputRef.current?.focus();
+    }, [innerTextInputRef]);
+
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
             return null;
@@ -264,6 +271,7 @@ function BaseSelectionList<TItem extends ListItem>({
         return (
             <TextInput
                 ref={innerTextInputRef}
+                focusTextInput={focusTextInput}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
