@@ -18,6 +18,11 @@ type ReportNameUpdate = {
     isPending?: boolean;
 };
 
+type ProcessedUpdates = {
+    updates: OnyxUpdate[];
+    reportsWithPendingFields?: Set<string>;
+};
+
 /**
  * Get the title field from report name value pairs
  */
@@ -299,12 +304,14 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
  * Update optimistic report names based on incoming updates
  * This is the main middleware function that processes optimistic data
  */
-function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: UpdateContext): OnyxUpdate[] {
+function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: UpdateContext): ProcessedUpdates {
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
     if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
-        return updates;
+        return {
+            updates,
+        };
     }
 
     Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
@@ -331,6 +338,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     }
 
     const additionalUpdates: OnyxUpdate[] = [];
+    const reportsWithPendingFields = new Set<string>();
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);
@@ -345,6 +353,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
                 if (reportNameUpdate) {
                     additionalUpdates.push(createReportNameUpdate(reportID, reportNameUpdate));
+                    if (reportNameUpdate.isPending) {
+                        reportsWithPendingFields.add(reportID);
+                    }
                 }
                 break;
             }
@@ -357,6 +368,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
                     if (reportNameUpdate) {
                         additionalUpdates.push(createReportNameUpdate(report.reportID, reportNameUpdate));
+                        if (reportNameUpdate.isPending) {
+                            reportsWithPendingFields.add(report.reportID);
+                        }
                     }
                 }
                 break;
@@ -376,6 +390,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
                     if (reportNameUpdate) {
                         additionalUpdates.push(createReportNameUpdate(report.reportID, reportNameUpdate));
+                        if (reportNameUpdate.isPending) {
+                            reportsWithPendingFields.add(report.reportID);
+                        }
                     }
                 }
                 break;
@@ -388,10 +405,38 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
     Log.info('[OptimisticReportNames] Processing completed', false, {
         additionalUpdatesCount: additionalUpdates.length,
+        reportsWithPendingFieldsCount: reportsWithPendingFields.size,
     });
 
-    return updates.concat(additionalUpdates);
+    return {
+        updates: updates.concat(additionalUpdates),
+        reportsWithPendingFields,
+    };
 }
 
-export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};
+/**
+ * Process success or failure data to clear pending fields for reports
+ * that had pending fields set in optimistic data
+ */
+function clearPendingFieldsForReports(updates: OnyxUpdate[] | undefined, reportsWithPendingFields: Set<string>): OnyxUpdate[] | undefined {
+    if (!updates || reportsWithPendingFields.size === 0) {
+        return updates;
+    }
+
+    // Create updates to clear pending fields for all reports that had them set
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const clearPendingUpdates: OnyxUpdate[] = Array.from(reportsWithPendingFields).map((reportID) => ({
+        key: getReportKey(reportID),
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            pendingFields: {
+                reportName: null,
+            },
+        },
+    }));
+
+    return updates.concat(clearPendingUpdates);
+}
+
+export {clearPendingFieldsForReports, computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};
 export type {UpdateContext};

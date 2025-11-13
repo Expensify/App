@@ -85,7 +85,11 @@ function prepareRequest<TCommand extends ApiCommand>(
         shouldApplyOptimisticData = conflictAction.type !== 'noAction';
     }
 
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
+    const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
+
+    let processedSuccessData = successData;
+    let processedFailureData = failureData;
+
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
 
@@ -96,8 +100,14 @@ function prepareRequest<TCommand extends ApiCommand>(
         } else {
             try {
                 const context = getUpdateContext();
-                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
+                const {updates: processedOptimisticData, reportsWithPendingFields} = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
                 Onyx.update(processedOptimisticData);
+
+                // Process success and failure data to clear pending fields
+                if (reportsWithPendingFields) {
+                    processedSuccessData = OptimisticReportNames.clearPendingFieldsForReports(successData, reportsWithPendingFields);
+                    processedFailureData = OptimisticReportNames.clearPendingFieldsForReports(failureData, reportsWithPendingFields);
+                }
             } catch (error) {
                 Log.hmmm('[API] Failed to process optimistic report names', {error});
                 // Fallback to original optimistic data if processing fails
@@ -130,6 +140,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         initiatedOffline: isOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
+        successData: processedSuccessData,
+        failureData: processedFailureData,
         ...conflictResolver,
     };
 
