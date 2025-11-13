@@ -161,8 +161,8 @@ describe('OptimisticReportNames', () => {
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-            expect(result).toHaveLength(2); // Original + name update
-            expect(result.at(1)).toEqual({
+            expect(result.updates).toHaveLength(2); // Original + name update
+            expect(result.updates.at(1)).toEqual({
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {reportName: 'Expense Report - $150.00'},
@@ -180,8 +180,8 @@ describe('OptimisticReportNames', () => {
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-            expect(result).toHaveLength(2); // Original + name update
-            expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
+            expect(result.updates).toHaveLength(2); // Original + name update
+            expect(result.updates.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
         });
 
         test('should handle policy updates affecting multiple reports', () => {
@@ -228,29 +228,29 @@ describe('OptimisticReportNames', () => {
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
 
-            expect(result).toHaveLength(4);
+            expect(result.updates).toHaveLength(4);
 
             // Assert the original policy update
-            expect(result.at(0)).toEqual({
+            expect(result.updates.at(0)).toEqual({
                 key: 'policy_policy1',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {name: 'Updated Policy Name'},
             });
 
             // Assert individual report name updates
-            expect(result.at(1)).toEqual({
+            expect(result.updates.at(1)).toEqual({
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {reportName: 'Policy: Updated Policy Name'},
             });
 
-            expect(result.at(2)).toEqual({
+            expect(result.updates.at(2)).toEqual({
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {reportName: 'Policy: Updated Policy Name'},
             });
 
-            expect(result.at(3)).toEqual({
+            expect(result.updates.at(3)).toEqual({
                 key: 'report_789',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {reportName: 'Policy: Updated Policy Name'},
@@ -268,7 +268,7 @@ describe('OptimisticReportNames', () => {
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-            expect(result).toEqual(updates); // Unchanged
+            expect(result.updates).toEqual(updates); // Unchanged
         });
     });
 
@@ -316,9 +316,9 @@ describe('OptimisticReportNames', () => {
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should include original update + new report name update
-            expect(result).toHaveLength(2);
-            expect(result.at(0)).toEqual(update); // Original transaction update
-            expect(result.at(1)?.key).toBe('report_123'); // New report update
+            expect(result.updates).toHaveLength(2);
+            expect(result.updates.at(0)).toEqual(update); // Original transaction update
+            expect(result.updates.at(1)?.key).toBe('report_123'); // New report update
         });
 
         test('getReportByTransactionID should find report from transaction', () => {
@@ -397,8 +397,8 @@ describe('OptimisticReportNames', () => {
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
             // Should still find the report through context lookup and generate update
-            expect(result).toHaveLength(2);
-            expect(result.at(1)?.key).toBe('report_123');
+            expect(result.updates).toHaveLength(2);
+            expect(result.updates.at(1)?.key).toBe('report_123');
         });
 
         test('should use optimistic transaction data in formula computation', () => {
@@ -455,10 +455,10 @@ describe('OptimisticReportNames', () => {
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
 
-            expect(result).toHaveLength(2);
+            expect(result.updates).toHaveLength(2);
 
             // The key test: verify exact report name with optimistic date
-            const reportUpdate = result.at(1);
+            const reportUpdate = result.updates.at(1);
             expect(reportUpdate).toEqual({
                 key: 'report_123',
                 onyxMethod: Onyx.METHOD.MERGE,
