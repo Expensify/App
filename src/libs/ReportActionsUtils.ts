@@ -3299,9 +3299,9 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
 }
 
 function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): boolean {
-    const whisperedTo = getOriginalMessage(action)?.whisperedTo;
+    const mentionedUsers = getOriginalMessage(action)?.inviteeAccountIDs;
     const systemAccountIDs = new Set(Object.values(CONST.ACCOUNT_ID));
-    return whisperedTo?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
+    return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
 }
 
 export {
