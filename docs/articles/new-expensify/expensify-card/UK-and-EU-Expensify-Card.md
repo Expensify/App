@@ -94,7 +94,7 @@ That’s it! Employees can now spend using their Expensify Cards in **GBP or EUR
 
 ## What exchange rate is used for foreign currency purchases?
 
-We use the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html) to determine exchange rates for purchases made in currencies other than GBP or EUR.
+We use the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html) to determine exchange rates for purchases made in currencies other than GBP or EUR. Please ensure that you edit the bank fee to **0%** when using the calculator, as the Expensify Card does not incur any foreign exchange fees.
 
 ## Need help?
 
