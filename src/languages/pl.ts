@@ -1599,7 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
         primary: 'Podstawowy',
         secondary: 'Dodatkowy',
         helpText: ({email}: {email: string}) =>
-            `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.\n\nDodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
+            `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.<br/><br/>Dodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
         pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         setAsDefault: 'Ustaw jako domyślne',

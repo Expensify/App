@@ -1598,7 +1598,7 @@ const translations: TranslationDeepObject<typeof en> = {
         primary: 'Principal',
         secondary: 'Secundário',
         helpText: ({email}: {email: string}) =>
-            `Adicione mais formas de fazer login e enviar recibos para o Expensify.\n\nAdicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por mensagem de texto para 47777 (somente números dos EUA).`,
+            `Adicione mais formas de fazer login e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por mensagem de texto para 47777 (somente números dos EUA).`,
         pleaseVerify: 'Por favor, verifique este método de contato',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
         setAsDefault: 'Definir como padrão',
