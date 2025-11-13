@@ -79,6 +79,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import {buildNextStepNew} from '@libs/NextStepUtils';
+import Permissions from '@libs/Permissions';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -107,6 +109,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -120,6 +123,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNextStep,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -233,6 +237,32 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (actions) => {
         allReportActions = actions;
+    },
+});
+
+let allNextSteps: OnyxCollection<ReportNextStep> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allNextSteps = value ?? {};
+    },
+});
+
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionViolations = value ?? {};
+    },
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => {
+        allBetas = value;
     },
 });
 
@@ -760,6 +790,50 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         approver,
         approvalMode,
     };
+    const updatedPolicy = {
+        ...(policy ?? {}),
+        ...value,
+    } as OnyxEntry<Policy>;
+
+    const nextStepOptimisticData: OnyxUpdate[] = [];
+    const nextStepFailureData: OnyxUpdate[] = [];
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const transactionViolations = allTransactionViolations ?? {};
+    const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
+        (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+    );
+
+    affectedReports.forEach((report) => {
+        const reportID = report?.reportID;
+
+        if (!reportID) {
+            return;
+        }
+
+        const currentNextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`] ?? null;
+        const hasViolations = ReportUtils.hasViolations(reportID, transactionViolations);
+        const optimisticNextStep = buildNextStepNew({
+            report,
+            policy: updatedPolicy,
+            currentUserAccountIDParam: sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: sessionEmail ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        nextStepOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: optimisticNextStep,
+        });
+
+        nextStepFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: currentNextStep,
+        });
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -771,6 +845,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepOptimisticData.length > 0) {
+        optimisticData.push(...nextStepOptimisticData);
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -785,6 +862,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepFailureData.length > 0) {
+        failureData.push(...nextStepFailureData);
+    }
 
     const successData: OnyxUpdate[] = [
         {

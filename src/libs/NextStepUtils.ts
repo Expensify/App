@@ -568,6 +568,18 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
+    const waitingForParticipant = shouldShowFixMessage
+        ? {
+              text: `${ownerDisplayName}`,
+              type: 'strong',
+              clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+          }
+        : {
+              text: `${policyOwnerDisplayName}`,
+              type: 'strong',
+              clickToCopyText: policy?.ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+          };
+
     const nextStepPayExpense = {
         type,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -580,8 +592,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
                       text: 'an admin',
                   }
                 : {
-                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
-                      type: 'strong',
+                      ...waitingForParticipant,
                   },
             {
                 text: ' to ',
