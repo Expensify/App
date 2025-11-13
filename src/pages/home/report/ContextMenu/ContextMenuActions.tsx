@@ -928,11 +928,15 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
-// eslint-disable-next-line unicorn/prefer-set-has
-const restrictedReadOnlyActions: TranslationPaths[] = ['reportActionContextMenu.replyInThread', 'reportActionContextMenu.editAction', 'reportActionContextMenu.joinThread', 'common.delete'];
+const restrictedReadOnlyActions = new Set<TranslationPaths>([
+    'reportActionContextMenu.replyInThread',
+    'reportActionContextMenu.editAction',
+    'reportActionContextMenu.joinThread',
+    'common.delete',
+]);
 
 const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
-    (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey),
+    (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.has(action.textTranslateKey),
 );
 
 export {RestrictedReadOnlyContextMenuActions};

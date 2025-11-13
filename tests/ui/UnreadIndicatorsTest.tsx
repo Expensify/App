@@ -711,6 +711,7 @@ describe('Unread Indicators', () => {
                 currency: fakeTransaction.currency,
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
+            isASAPSubmitBetaEnabled: true,
         });
         await waitForBatchedUpdates();
 
