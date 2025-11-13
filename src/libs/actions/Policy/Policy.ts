@@ -1,7 +1,8 @@
+/* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
@@ -209,23 +210,6 @@ Onyx.connect({
             return;
         }
         if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
             delete allPolicies[key];
             return;
         }
@@ -274,10 +258,10 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
-let activePolicyID: OnyxEntry<string>;
+let deprecatedActivePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
+    callback: (value) => (deprecatedActivePolicyID = value),
 });
 
 let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
@@ -330,11 +314,10 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+function getInvoicePrimaryWorkspace(activePolicy: OnyxEntry<Policy>, activeAdminWorkspaces: Policy[]): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicy?.id)) {
+        return activePolicy;
     }
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 }
 
@@ -367,22 +350,28 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     return true;
 }
 
+type DeleteWorkspaceActionParams = {
+    policyID: string;
+    activePolicyID: string | undefined;
+    policyName: string;
+    lastAccessedWorkspacePolicyID: string | undefined;
+    policyCardFeeds: CardFeeds | undefined;
+    reportsToArchive: Report[];
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined;
+    reimbursementAccountError: Errors | undefined;
+    lastUsedPaymentMethods?: LastPaymentMethod;
+};
+
 /**
  * Delete the workspace
  */
-function deleteWorkspace(
-    policyID: string,
-    policyName: string,
-    lastAccessedWorkspacePolicyID: string | undefined,
-    policyCardFeeds: CardFeeds | undefined,
-    reportsToArchive: Report[],
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    reimbursementAccountError: Errors | undefined,
-    lastUsedPaymentMethods?: LastPaymentMethod,
-) {
+function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     if (!allPolicies) {
         return;
     }
+
+    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods} =
+        params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -591,9 +580,9 @@ function deleteWorkspace(
         }
     });
 
-    const params: DeleteWorkspaceParams = {policyID};
+    const apiParams: DeleteWorkspaceParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
@@ -2074,7 +2063,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive = !activePolicyID || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !deprecatedActivePolicyID || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${deprecatedActivePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2352,7 +2341,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID,
+            value: deprecatedActivePolicyID,
         });
     }
 
@@ -2571,6 +2560,17 @@ function createDraftWorkspace(
                 disabledFields: {defaultBillable: true, reimbursable: false},
                 requiresCategory: true,
                 defaultReimbursable: true,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN,
+                        pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        type: CONST.POLICY.DEFAULT_FIELD_LIST_TYPE,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        name: CONST.POLICY.DEFAULT_FIELD_LIST_NAME,
+                        fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                        deletable: true,
+                    },
+                },
             },
         },
         {
