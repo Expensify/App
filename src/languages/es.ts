@@ -7630,6 +7630,16 @@ ${amount} para ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>El dominio <strong>${domainName}</strong> se ha verificado correctamente y ahora puedes configurar SAML y otras funciones de seguridad.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Inicio de sesión único SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> es una función de seguridad que te da más control sobre cómo los miembros con correos <strong>${domainName}</strong> inician sesión en Expensify. Para habilitarla, deberás verificarte como administrador autorizado de la empresa.</muted-text>`,
+            fasterAndEasierLogin: 'Inicio de sesión más rápido y sencillo',
+            moreSecurityAndControl: 'Más seguridad y control',
+            onePasswordForAnything: 'Una sola contraseña para todo',
+        },
+        goToDomain: 'Ir al dominio',
     },
 };
 

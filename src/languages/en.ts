@@ -7496,6 +7496,16 @@ const translations = {
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML Single Sign-On (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is a security feature that gives you more control over how members with <strong>${domainName}</strong> emails log into Expensify. To enable it, you'll need to verify yourself as an authorized company admin.</muted-text>`,
+            fasterAndEasierLogin: 'Faster and easier login',
+            moreSecurityAndControl: 'More security and control',
+            onePasswordForAnything: 'One password for everything',
+        },
+        goToDomain: 'Go to domain',
     },
 };
 

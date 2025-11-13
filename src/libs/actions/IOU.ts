@@ -509,6 +509,7 @@ type MoneyRequestInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     newReportTotal?: number;
+    newNonReimbursableTotal?: number;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -3392,6 +3393,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         moneyRequestReportID = '',
         retryParams,
         newReportTotal,
+        newNonReimbursableTotal,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -3484,7 +3486,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
 
                 if (!reimbursable) {
-                    iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
+                    if (newNonReimbursableTotal !== undefined) {
+                        iouReport.nonReimbursableTotal = newNonReimbursableTotal;
+                    } else {
+                        iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
+                    }
                 }
             }
             if (typeof iouReport.unheldTotal === 'number') {
@@ -14080,6 +14086,7 @@ function updateSplitTransactions({
             existingTransaction,
             existingTransactionID,
             newReportTotal: calculatedNewReportTotal,
+            newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
             isASAPSubmitBetaEnabled,

@@ -7535,6 +7535,16 @@ ${amount} para ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>O domínio <strong>${domainName}</strong> foi verificado com sucesso e agora você pode configurar SAML e outros recursos de segurança.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Logon único SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> é um recurso de segurança que oferece mais controle sobre como os membros com e-mails do domínio <strong>${domainName}</strong> fazem login no Expensify. Para ativá-lo, você precisará confirmar sua identidade como um administrador autorizado da empresa.</muted-text>`,
+            fasterAndEasierLogin: 'Login mais rápido e fácil',
+            moreSecurityAndControl: 'Mais segurança e controle',
+            onePasswordForAnything: 'Uma senha para tudo',
+        },
+        goToDomain: 'Ir para o domínio',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
