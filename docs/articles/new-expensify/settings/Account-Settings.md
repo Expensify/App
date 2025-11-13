@@ -52,7 +52,7 @@ To upload or update your photo:
 To choose an avatar instead of a photo:
 1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
-3. Scroll down to the section **Or choose a custom avatar**.
+3. Scroll down to **Or choose a custom avatar**.
 4. Select an avatar or letter in your desired colored palette.
 5. Click **Save**.
 
