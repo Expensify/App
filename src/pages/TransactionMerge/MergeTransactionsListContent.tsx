@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
-    getTransactionThreadReportID,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -36,23 +36,22 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
+    hash?: number;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: MergeTransactionsListContentProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
-    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const currentUserLogin = session?.email;
+    const {targetTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -60,8 +59,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report: targetTransactionReport, currentUserLogin});
+    }, [transactions, isOffline, mergeTransaction, policy, currentUserLogin, targetTransaction, targetTransactionReport]);
 
     const sections = useMemo(() => {
         return [
@@ -94,10 +93,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const headerContent = useMemo(
         () => (
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
+                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(targetTransactionReport)})} />
             </View>
         ),
-        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+        [targetTransactionReport, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
     );
 
     const subTitleContent = useMemo(() => {

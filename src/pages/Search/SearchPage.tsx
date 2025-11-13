@@ -35,6 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -61,6 +62,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
 import {
     generateReportID,
     getPolicyExpenseChat,
@@ -289,6 +291,7 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -296,6 +299,14 @@ function SearchPage({route}: SearchPageProps) {
         },
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
+
+    const [isSorting, setIsSorting] = useState(false);
+    let searchResults: SearchResults | undefined;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -519,6 +530,26 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
+            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
+            const transactionPolicies = [
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
+            ];
+            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
+
+            if (isMergeActionFromReportView(transactions, reports, transactionPolicies)) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: Expensicons.ArrowCollapse,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions),
+                });
+            }
+        }
+
         const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
@@ -624,6 +655,7 @@ function SearchPage({route}: SearchPageProps) {
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
+        searchResults?.data,
         queryJSON,
         clearSelectedTransactions,
         lastPaymentMethods,
@@ -749,15 +781,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-
-    const [isSorting, setIsSorting] = useState(false);
-
-    let searchResults;
-    if (currentSearchResults?.data) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
-    }
 
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
