@@ -147,6 +147,10 @@ function isSubmitAction(
         return false;
     }
 
+    if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
+        return false;
+    }
+
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
