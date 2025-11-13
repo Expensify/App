@@ -595,6 +595,12 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function rejectMoneyRequestOnSearch(hash: number, reportID: string, comment: string){
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment}, {optimisticData, finallyData});
+}
+
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
     const transactionIDs = Object.keys(selectedTransactions);
 
