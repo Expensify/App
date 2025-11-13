@@ -14,11 +14,10 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -131,6 +130,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {environmentURL} = useEnvironment();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -248,6 +248,7 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
@@ -279,7 +280,7 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable =
         (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
@@ -292,9 +293,6 @@ function MoneyRequestView({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
-    const {isBetaEnabled} = usePermissions();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
     const hasViolations = useCallback(
@@ -336,19 +334,9 @@ function MoneyRequestView({
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(
-                transaction.transactionID,
-                report?.reportID,
-                newBillable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-            );
+            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, isASAPSubmitBetaEnabled],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     const saveReimbursable = useCallback(
@@ -357,19 +345,9 @@ function MoneyRequestView({
             if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestReimbursable(
-                transaction.transactionID,
-                report?.reportID,
-                newReimbursable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-            );
+            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
         },
-        [transaction, report, policy, policyTagList, policyCategories, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, isASAPSubmitBetaEnabled],
+        [transaction, report, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {
@@ -440,7 +418,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit)).join('. ')}.`;
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
             }
 
             return '';
@@ -462,6 +440,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
+            companyCardPageURL,
         ],
     );
 
@@ -923,6 +902,7 @@ function MoneyRequestView({
                                     textStyle={[styles.ph0]}
                                     isLast
                                     canEdit={canEdit}
+                                    companyCardPageURL={companyCardPageURL}
                                 />
                             )}
                         </View>

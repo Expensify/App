@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -327,7 +328,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'カウント',
         cancel: 'キャンセル',
@@ -452,7 +453,7 @@ const translations = {
         send: '送信',
         na: 'N/A',
         noResultsFound: '結果が見つかりませんでした',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `「${searchString}」に一致する結果は見つかりませんでした。`,
+        noResultsFoundMatching: (searchString: string) => `「${searchString}」に一致する結果は見つかりませんでした。`,
         recentDestinations: '最近の目的地',
         timePrefix: 'それは',
         conjunctionFor: 'のために',
@@ -466,7 +467,7 @@ const translations = {
         error: {
             invalidAmount: '無効な金額',
             acceptTerms: '続行するには、利用規約に同意する必要があります。',
-            phoneNumber: `有効な電話番号を国コードとともに入力してください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            phoneNumber: `電話番号を完全に入力してください\n(例: ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは他のメンバーによって変更されています。',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えました（${length}/${limit}）`,
@@ -827,8 +828,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: '経費を提出し、上司に紹介する',
-            subtitleText: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            title: '経費を提出し、チームに紹介する',
+            subtitleText: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
     },
     videoChatButtonAndMenu: {
@@ -1069,10 +1070,6 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
-        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
-        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
-        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         alternativeMethodsTitle: '領収書を追加する別の方法:',
@@ -1134,6 +1131,7 @@ const translations = {
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant}から${amount}`,
         addSplit: '分割を追加',
+        makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}多いです。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
@@ -1275,7 +1273,6 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
-        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1346,11 +1343,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'この経費を保留する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留を解除する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'この領収書の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
-            receiptFailureMessage: '領収書のアップロード中にエラーが発生しました。どうぞ',
+            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。<a href="download">領収書を保存</a>し、<a href="retry">もう一度お試しください</a> 後で。</rbr>`,
             receiptFailureMessageShort: '領収書のアップロード中にエラーが発生しました。',
-            tryAgainMessage: 'もう一度試してください。',
-            saveFileMessage: '領収書を保存',
-            uploadLaterMessage: '後でアップロードする。',
             genericDeleteFailureMessage: 'この経費を削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: 'トランザクションにフィールドが欠けています',
@@ -1370,7 +1364,10 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
-        holdExpense: '経費を保留',
+        holdExpense: () => ({
+            one: '経費を保留',
+            other: '経費を保留',
+        }),
         unholdExpense: '経費の保留を解除',
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費を未保留にする',
@@ -1381,7 +1378,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
-        explainHold: 'この経費を保留している理由を説明してください。',
+        explainHold: () => ({
+            one: 'この経費を保留にしている理由を説明してください。',
+            other: 'これらの経費を保留にしている理由を説明してください。',
+        }),
         retracted: '撤回されました',
         retract: '取り消す',
         reopened: '再開されました',
@@ -1411,11 +1411,10 @@ const translations = {
         }),
         payOnly: '支払いのみ',
         approveOnly: '承認のみ',
-        holdEducationalTitle: 'このリクエストはオン',
-        holdEducationalText: '保留',
-        whatIsHoldExplain: '保留は、承認や支払いの前に詳細を確認するために、経費を「一時停止」するようなものです。',
-        holdIsLeftBehind: '保留された経費は承認または支払い時に別のレポートに移動します。',
-        unholdWhenReady: '承認者は、承認または支払いの準備が整ったときに経費を解除できます。',
+        holdEducationalTitle: 'この経費は保留にしますか？',
+        whatIsHoldExplain: '保留とは、経費の提出準備が整うまで「一時停止」する機能です。',
+        holdIsLeftBehind: '保留中の経費は、レポート全体を提出しても除外されます。',
+        unholdWhenReady: '提出準備が整ったら、経費の保留を解除してください。',
         changePolicyEducational: {
             title: 'このレポートを移動しました！',
             description: 'レポートを新しいワークスペースに移動する際に変更される傾向があるこれらの項目を再確認してください。',
@@ -1596,12 +1595,11 @@ const translations = {
         placeholderText: 'オプションを表示するために検索',
     },
     contacts: {
-        contactMethod: '連絡方法',
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpTextBeforeEmail: '領収書を送信する方法を追加してください。それらを転送する先は',
-        helpTextAfterEmail: 'または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
+        helpText: ({email}: {email: string}) =>
+            `領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="${email}"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。`,
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
@@ -2035,6 +2033,8 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
+        unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです。',
             reportFraudButtonText: 'いいえ、それは私ではありませんでした。',
@@ -2112,7 +2112,6 @@ ${date} - ${merchant}に${amount}`,
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -2578,15 +2577,15 @@ ${date} - ${merchant}に${amount}`,
             splitExpenseTask: {
                 title: '経費を分割する',
                 description:
-                    '*経費を分割する* には、1人または複数の人と共有します。\n' +
+                    '1人以上の相手と*経費を分割*します。' +
                     '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *チャットを開始*を選択します。\n' +
-                    '3. メールアドレスまたは電話番号を入力します。\n' +
-                    '4. チャット内の灰色の*+*ボタンをクリック > *経費を分割*。\n' +
-                    '5. *手動* 、*スキャン* 、または*距離*を選択して経費を作成します。\n' +
+                    `${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。` +
+                    '2.「*Start chat*」を選択します。' +
+                    '3. メールアドレスまたは電話番号を入力します..' +
+                    '4. チャットでグレーの*+*ボタンをクリック > *経費を分割*。' +
+                    '5. *Manual*、*Scan*、または*Distance* を選択して経費を作成します。' +
                     '\n' +
-                    '必要ならば詳細を追加するか、単に送信します。払い戻しをありましょう！',
+                    '必要なら詳細を追加しても、そのまま送信しても構いません。さあ、精算してもらいましょう！',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペース設定](${workspaceSettingsLink})を確認する`,
@@ -4170,6 +4169,8 @@ ${date} - ${merchant}に${amount}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    '会社カードのエクスポート設定を経費レポートに変更した場合、NetSuiteベンダーと個別カードの仕訳勘定が無効になります。\n\n心配ありません。後で元に戻したい場合に備えて、以前の選択設定は保存しておきます。',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensifyは毎日自動的にNetSuiteと同期します。',
@@ -4614,7 +4615,7 @@ ${date} - ${merchant}に${amount}`,
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',
             verifyingBankAccount: '銀行口座を確認しています...',
@@ -4780,7 +4781,6 @@ ${date} - ${merchant}に${amount}`,
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
                 downgradeSubTitle: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ <a href="#">カードフィードを1つだけ保持</a> 続行する。`,
-
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `${connection}にアカウントを追加し、再度接続を同期してください。`,
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
@@ -4989,6 +4989,10 @@ ${date} - ${merchant}に${amount}`,
             cannotMakeAllTagsOptional: {
                 title: 'すべてのタグをオプションにすることはできません',
                 description: `ワークスペースの設定でタグが必要なため、少なくとも1つのタグを必須にする必要があります。`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'タグリストを必須にすることはできません',
+                description: 'ポリシーに複数のタグレベルが設定されている場合のみ、タグリストを必須にできます。',
             },
             tagCount: () => ({
                 one: '1日',
@@ -6682,9 +6686,9 @@ ${date} - ${merchant}に${amount}`,
             body: '友達にもExpensifyを使ってほしいですか？ 彼らとチャットを始めるだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: '経費を提出し、<success><strong>上司に紹介する</strong></success>。',
-            header: '経費を提出し、上司に紹介する',
-            body: 'あなたの上司にもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
+            buttonText: '経費を提出し、<success><strong>チームに紹介する</strong></success>。',
+            header: '経費を提出し、チームに紹介する',
+            body: 'あなたのチームにもExpensifyを使ってもらいたいですか？経費を提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: '友達を紹介する',
@@ -6753,31 +6757,48 @@ ${date} - ${merchant}に${amount}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} アルコール`;
-                case 'gambling':
-                    return `${preMessage} ギャンブル`;
-                case 'tobacco':
-                    return `${preMessage} タバコ`;
-                case 'adultEntertainment':
-                    return `${preMessage} アダルトエンターテインメント`;
-                case 'hotelIncidentals':
-                    return `${preMessage} ホテル雑費`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `アルコール`;
+                    case 'gambling':
+                        return `ギャンブル`;
+                    case 'tobacco':
+                        return `タバコ`;
+                    case 'adultEntertainment':
+                        return `アダルトエンターテインメント`;
+                    case 'hotelIncidentals':
+                        return `ホテル雑費`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。` : '銀行接続が切れているため、領収書を自動照合できません。';
+                return isAdmin
+                    ? `銀行接続が切断されています。<a href="${companyCardPageURL}">再接続して領収書を照合してください</a>`
+                    : '銀行接続が切断されています。領収書を照合するには管理者に再接続を依頼してください。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member}に現金としてマークするように依頼するか、7日間待って再試行してください。` : 'カード取引とのマージを待機中。';
@@ -7334,12 +7355,115 @@ ${date} - ${merchant}に${amount}`,
         upload: 'アップロード',
         uploadPhoto: '写真をアップロード',
         selectAvatar: 'アバターを選択',
-        chooseCustomAvatar: 'またはカスタムアバターを選択',
+        choosePresetAvatar: 'またはカスタムアバターを選択',
     },
     openAppFailureModal: {
         title: '問題が発生しました...',
         subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
         refreshAndTryAgain: '再読み込みして、もう一度お試しください',
+    },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が経費を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が経費を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を追加するのを待っています。`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の操作は必要ありません！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が銀行口座を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が銀行口座を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が銀行口座を追加するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} に` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなたの</strong>経費が自動で提出されるのを待っています${formattedETA}。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が問題を修正するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が問題を修正するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が問題を修正するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `経費は<strong>あなた</strong>の承認待ちです。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `経費は<strong>${actor}</strong>の承認待ちです。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を承認するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が経費を支払うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が経費を支払うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を支払うのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `ビジネス用銀行口座の設定を<strong>あなた</strong>が完了するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>がビジネス用銀行口座のセットアップを完了するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がビジネス用銀行口座の設定を完了するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}までに` : ` ${eta}`;
+                }
+                return `支払いの完了を待っています${formattedETA}。`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'まもなく',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: '今日の後で',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: '日曜日に',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: '毎月の1日と16日',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: '月の最終営業日に',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: '月の最終日に',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: '旅行の終わりに',
+        },
     },
     domain: {
         notVerified: '未確認',
@@ -7365,4 +7489,4 @@ ${date} - ${merchant}に${amount}`,
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

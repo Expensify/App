@@ -38,12 +38,15 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
-    bulkDeleteReports,
+    deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
+    getLastPolicyBankAccountID,
     getLastPolicyPaymentMethod,
+    getPayMoneyOnSearchInvoiceParams,
     getPayOption,
     getReportType,
+    getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
@@ -58,7 +61,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isBusinessInvoiceRoom,
+    isExpenseReport as isExpenseReportUtil,
+    isInvoiceReport,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -129,12 +140,16 @@ function SearchPage({route}: SearchPageProps) {
         ],
         [selectedTransactions],
     );
+    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
+    const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         activeAdminPolicies,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
+        currency: selectedBulkCurrency,
+        formattedAmount: totalFormattedAmount,
     });
 
     useEffect(() => {
@@ -178,7 +193,7 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType) => {
+        (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
             if (!hash) {
                 return;
             }
@@ -240,18 +255,36 @@ function SearchPage({route}: SearchPageProps) {
                     }
                 }
             }
-
+            const paymentAdditionalData = (additionalData as Partial<PaymentData>) ?? {};
             const paymentData = (
                 selectedReports.length
-                    ? selectedReports.map((report) => ({
-                          reportID: report.reportID,
-                          amount: report.total,
-                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
-                      }))
+                    ? selectedReports.map((report) => {
+                          return {
+                              reportID: report.reportID,
+                              amount: report.total,
+                              paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                              ...(isInvoiceReport(report.reportID)
+                                  ? getPayMoneyOnSearchInvoiceParams(
+                                        report.policyID,
+                                        paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
+                                        paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
+                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                    )
+                                  : {}),
+                          };
+                      })
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
                           amount: transaction.amount,
                           paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                          ...(isInvoiceReport(transaction.reportID)
+                              ? getPayMoneyOnSearchInvoiceParams(
+                                    transaction.policyID,
+                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
+                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
+                                    CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                )
+                              : {}),
                       }))
             ) as PaymentData[];
 
@@ -354,9 +387,11 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
+        const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) => selectedReportIDs.includes(selectedTransactions[id].reportID));
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
+            areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
@@ -402,6 +437,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowSubmitOption =
             !isOffline &&
+            areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
@@ -589,16 +625,16 @@ function SearchPage({route}: SearchPageProps) {
         isOffline,
         selectedReports,
         queryJSON,
-        integrationsExportTemplates,
-        csvExportLayouts,
         clearSelectedTransactions,
-        beginExportWithTemplate,
-        policies,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        beginExportWithTemplate,
+        integrationsExportTemplates,
+        csvExportLayouts,
+        policies,
         bulkPayButtonOptions,
         onBulkPaySelected,
         selectedPolicyIDs,
@@ -618,7 +654,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            bulkDeleteReports(hash, selectedTransactions);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
@@ -631,6 +667,7 @@ function SearchPage({route}: SearchPageProps) {
             report: newReport,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

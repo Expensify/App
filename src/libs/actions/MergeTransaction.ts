@@ -154,9 +154,6 @@ function getOnyxTargetTransactionData(
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
     policyCategories: OnyxEntry<PolicyCategories>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
 ) {
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -191,13 +188,20 @@ function getOnyxTargetTransactionData(
             policyCategories,
             violations,
             shouldBuildOptimisticModifiedExpenseReportAction,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
         });
     }
 
-    return data.onyxData;
+    const onyxData = data.onyxData;
+
+    onyxData.optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            receipt: mergeTransaction.receipt ?? null,
+        },
+    });
+
+    return onyxData;
 }
 
 type MergeTransactionRequestParams = {
@@ -208,25 +212,11 @@ type MergeTransactionRequestParams = {
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
-function mergeTransactionRequest({
-    mergeTransactionID,
-    mergeTransaction,
-    targetTransaction,
-    sourceTransaction,
-    policy,
-    policyTags,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-}: MergeTransactionRequestParams) {
+function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories}: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
     const finalAmount = -mergeTransaction.amount;
@@ -252,16 +242,7 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
 
-    const onyxTargetTransactionData = getOnyxTargetTransactionData(
-        targetTransaction,
-        mergeTransaction,
-        policy,
-        policyTags,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-    );
+    const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories);
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const optimisticSourceTransactionData: OnyxUpdate = {
@@ -286,6 +267,7 @@ function mergeTransactionRequest({
               ]
             : [];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
         transactionsOfSourceReport.length === 1
             ? [
@@ -352,6 +334,7 @@ function mergeTransactionRequest({
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
@@ -365,6 +348,8 @@ function mergeTransactionRequest({
         };
     });
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticSourceTransactionData,
@@ -374,6 +359,8 @@ function mergeTransactionRequest({
         ...optimisticSourceReportActionData,
     ];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.failureData ?? []),
         failureSourceTransactionData,
@@ -381,7 +368,10 @@ function mergeTransactionRequest({
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
+
+    const successData: OnyxUpdate[] = [];
+    successData.push(...successSourceReportActionData);
+    successData.push(...(onyxTargetTransactionData.successData ?? []));
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
