@@ -1,9 +1,10 @@
 import {describe, expect} from '@jest/globals';
-import {render} from '@testing-library/react-native';
+import {cleanup, render} from '@testing-library/react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
+import navigationRef from '@src/libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -19,6 +20,24 @@ const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof 
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
 describe('Navigation', () => {
+    afterEach(() => {
+        // Ensure mounted components are unmounted
+        cleanup();
+
+        // Clear timers and restore real timers (in case fake timers are used anywhere)
+        jest.clearAllTimers();
+        jest.useRealTimers();
+
+        // Reset any mocks used by this file
+        jest.restoreAllMocks();
+        jest.resetModules();
+
+        // Clear the navigation ref so listeners/hooks attached to it don't keep the worker alive.
+        // This is intentionally type-unsafe to forcibly drop the ref between tests.
+        if (navigationRef.current) {
+            navigationRef.current = null;
+        }
+    });
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
         mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
