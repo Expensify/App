@@ -1060,7 +1060,18 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {}, {});
+            Policy.deleteWorkspace({
+                policyID: fakePolicy.id,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: {},
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1139,22 +1150,24 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(
+            Policy.deleteWorkspace({
                 policyID,
-                'test',
-                undefined,
-                undefined,
-                [expenseChatReport],
-                {
+                activePolicyID: undefined,
+                policyName: 'test',
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [expenseChatReport],
+                transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactionViolations_3: [
                         {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
                         {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
                     ],
                 },
-                undefined,
-                {},
-            );
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1179,7 +1192,18 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: teamPolicy.id,
+                activePolicyID: teamPolicy.id,
+                policyName: teamPolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1203,7 +1227,18 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1229,7 +1264,18 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
