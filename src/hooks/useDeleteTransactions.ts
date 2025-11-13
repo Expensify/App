@@ -165,7 +165,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet, isBetaEnabled],
+        [
+            reportActions,
+            allTransactions,
+            allReports,
+            report,
+            allReportNameValuePairs,
+            allPolicyRecentlyUsedCategories,
+            policyCategories,
+            policy,
+            archivedReportsIdSet,
+            isBetaEnabled,
+            currentUserPersonalDetails,
+        ],
     );
 
     return {
