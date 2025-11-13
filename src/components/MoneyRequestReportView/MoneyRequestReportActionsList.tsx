@@ -634,8 +634,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd();
-    }, []);
+        markOpenReportEnd(reportID);
+    }, [reportID]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
