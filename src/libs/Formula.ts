@@ -1,8 +1,10 @@
 import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -32,6 +34,9 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
+    // Pending updates from the current optimistic batch
+    // Allows formula computation to access updates before they're applied to Onyx
+    pendingUpdates?: OnyxUpdate[];
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -262,6 +267,13 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
 }
 
 /**
+ * Check if a formula part is a submission info part (report:submit:*)
+ */
+function isSubmissionInfoPart(part: FormulaPart): boolean {
+    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath[0]?.toLowerCase() === 'submit';
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -281,6 +293,11 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
+                // Apply fallback to formula definition for empty values, except for submission info
+                // Submission info explicitly returns empty strings when data is missing (matches backend)
+                if (value === '' && !isSubmissionInfoPart(part)) {
+                    value = part.definition;
+                }
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
@@ -318,9 +335,9 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 
     switch (subField.toLowerCase()) {
         case 'start':
-            return formatDate(startDate?.toISOString(), format) || part.definition;
+            return formatDate(startDate?.toISOString(), format);
         case 'end':
-            return formatDate(endDate?.toISOString(), format) || part.definition;
+            return formatDate(endDate?.toISOString(), format);
         default:
             return part.definition;
     }
@@ -348,43 +365,47 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'expensescount':
             return String(getExpensesCount(report, allTransactions));
         case 'type':
-            return formatType(report.type) || part.definition;
+            return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format) || part.definition;
+            return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format) || part.definition;
+            return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency) || part.definition;
+            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'reimbursable':
             return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
-            return report.currency || part.definition;
+            return report.currency ?? '';
         case 'policyname':
         case 'workspacename':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty strings should fall back to formula definition
-            return policy?.name || part.definition;
+            return policy?.name ?? '';
         case 'created':
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
-            return formatDate(getOldestReportActionDate(report.reportID), format) || part.definition;
+            return formatDate(getOldestReportActionDate(report.reportID), format);
         case 'submit': {
             // Submission info parts return empty strings when data is missing (matches backend behavior)
             const submitValue = computeSubmitPart(additionalPath, context);
+
             // If submission info returns empty AND the relevant personal details are missing from context,
             // fall back to formula definition (this handles edge cases where context is incomplete)
-            const [direction] = additionalPath;
-            const isFromPart = direction?.toLowerCase() === 'from';
-            const isToPart = direction?.toLowerCase() === 'to';
-
             if (submitValue === '') {
-                if (isFromPart && !context.submitterPersonalDetails) {
+                const [direction] = additionalPath;
+                const isFromPart = direction?.toLowerCase() === 'from';
+                const isToPart = direction?.toLowerCase() === 'to';
+                const isDatePart = direction?.toLowerCase() === 'date';
+
+                // For from/to parts, show formula definition if personal details are missing
+                if ((isFromPart && !context.submitterPersonalDetails) || (isToPart && !context.managerPersonalDetails)) {
                     return part.definition;
                 }
-                if (isToPart && !context.managerPersonalDetails) {
-                    return part.definition;
+
+                // For date part, empty means not submitted yet - return empty, not definition
+                if (isDatePart) {
+                    return '';
                 }
             }
+
             return submitValue;
         }
         case 'autoreporting': {
@@ -825,10 +846,11 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
         case 'to':
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
-            // For submission date, we need to get the date from the submitted report action
-            const submittedDate = getSubmittedReportActionDate(context.report.reportID);
+            // For submission date, we need to get the date from the submitted report action or report state
+            const submittedDate = getSubmittedReportActionDate(context.report.reportID, context.report, context.pendingUpdates);
             const format = subPath.length > 0 ? subPath.join(':') : undefined;
-            return formatDate(submittedDate, format);
+            const formattedDate = formatDate(submittedDate, format);
+            return formattedDate;
         }
         default:
             return '';
@@ -879,14 +901,46 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 }
 
 /**
- * Get the date when the report was submitted by finding the SUBMITTED report action
+ * Get the date when the report was submitted
+ * Checks pending updates first (for optimistic updates), then falls back to getAllReportActions
+ * Only returns a date if the report is currently in submitted state
  */
-function getSubmittedReportActionDate(reportID: string): string | undefined {
+function getSubmittedReportActionDate(reportID: string, report: Report, pendingUpdates?: OnyxUpdate[]): string | undefined {
     if (!reportID) {
         return undefined;
     }
 
+    // First, check pending updates for reportActions for this report
+    // This handles the case where SUBMITTED action is in the optimistic batch but not yet applied to Onyx
+    if (pendingUpdates && pendingUpdates.length > 0) {
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const pendingUpdate = pendingUpdates.find((update) => update.key === reportActionsKey);
+
+        if (pendingUpdate?.value) {
+            const pendingActions = pendingUpdate.value as ReportActions;
+
+            // Search for SUBMITTED action in pending updates
+            const pendingSubmittedAction = Object.values(pendingActions).find(
+                (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            );
+
+            if (pendingSubmittedAction?.created) {
+                return pendingSubmittedAction.created;
+            }
+        }
+    }
+
+    // Check if the report is currently in submitted state
+    // Even if a SUBMITTED action exists in history, we only show the date if the report is currently submitted
+    const isCurrentlySubmitted = report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED || report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+
+    if (!isCurrentlySubmitted) {
+        return undefined;
+    }
+
+    // Fall back to existing reportActions in Onyx
     const reportActions = getAllReportActions(reportID);
+
     if (!reportActions || Object.keys(reportActions).length === 0) {
         return undefined;
     }
@@ -896,7 +950,12 @@ function getSubmittedReportActionDate(reportID: string): string | undefined {
         (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
     );
 
-    return submittedAction?.created;
+    // If we found a SUBMITTED action, use its date
+    if (submittedAction?.created) {
+        return submittedAction.created;
+    }
+
+    return undefined;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};

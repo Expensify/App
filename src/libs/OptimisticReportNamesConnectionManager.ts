@@ -1,7 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaConfiguration, Policy, Report, Transaction} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
@@ -13,6 +13,8 @@ type UpdateContext = {
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
     allTransactions: Record<string, Transaction>;
     allPersonalDetails: PersonalDetailsList;
+    // Pending updates from the current optimistic batch - allows formula computation to see updates before they're applied to Onyx
+    pendingUpdates?: OnyxUpdate[];
 };
 
 let betas: OnyxEntry<Beta[]>;
@@ -130,8 +132,10 @@ function initialize(): Promise<void> {
 /**
  * Get the current update context synchronously
  * Must be called after initialize() has completed
+ *
+ * @param pendingUpdates - Optional pending updates from the current optimistic batch
  */
-function getUpdateContext(): UpdateContext {
+function getUpdateContext(pendingUpdates?: OnyxUpdate[]): UpdateContext {
     if (!isInitialized) {
         throw new Error('OptimisticReportNamesConnectionManager not initialized. Call initialize() first.');
     }
@@ -144,6 +148,7 @@ function getUpdateContext(): UpdateContext {
         allReportNameValuePairs: allReportNameValuePairs ?? {},
         allTransactions: allTransactions ?? {},
         allPersonalDetails: allPersonalDetails ?? {},
+        pendingUpdates,
     };
 }
 export {initialize, getUpdateContext};

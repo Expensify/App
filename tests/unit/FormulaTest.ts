@@ -981,6 +981,8 @@ describe('CustomFormula', () => {
                 type: 'expense',
                 ownerAccountID: 12345,
                 managerID: 67890,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             } as Report,
             policy: {
                 name: 'Test Policy',

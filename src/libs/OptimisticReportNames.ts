@@ -293,6 +293,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         submitterPersonalDetails,
         managerPersonalDetails,
         allTransactions: context.allTransactions,
+        pendingUpdates: context.pendingUpdates,
     };
 
     const newName = compute(formula, formulaContext);
