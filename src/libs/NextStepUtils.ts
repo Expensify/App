@@ -1,13 +1,16 @@
-import {format, setDate} from 'date-fns';
+import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportNextStep';
+import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
+import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -72,6 +75,215 @@ Onyx.connect({
     },
 });
 
+function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']): string {
+    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID});
+
+    let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    if (nextStep.actorAccountID === currentUserAccountID) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
+    } else if (nextStep.actorAccountID === -1) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN;
+    } else {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
+    }
+
+    let eta: string | undefined;
+    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
+    if (nextStep.eta?.etaKey) {
+        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.dateTime) {
+        eta = DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime);
+        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
+    }
+
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
+}
+
+function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
+        params;
+
+    if (!isExpenseReport(report)) {
+        return null;
+    }
+
+    const {ownerAccountID = -1} = report ?? {};
+    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
+    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
+    const isReportContainingTransactions =
+        report &&
+        ((report.total !== 0 && report.total !== undefined) ||
+            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
+            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const reimburserAccountID = getReimburserAccountID(policy);
+    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+    const nextStepFixOrPayExpense: ReportNextStep = {
+        messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        actorAccountID: shouldShowFixMessage ? ownerAccountID : (policy?.ownerAccountID ?? -1),
+    };
+
+    const nextStepNoActionRequired: ReportNextStep = {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+    };
+
+    let nextStep: ReportNextStep | null;
+
+    switch (predictedNextStatus) {
+        // Generates an optimistic nextStep once a report has been opened
+        case CONST.REPORT.STATUS_NUM.OPEN:
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            if (isReopen) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+
+            // Self review
+            nextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: ownerAccountID,
+            };
+
+            // Scheduled submit enabled
+            if (policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+
+                switch (autoReportingFrequency) {
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SHORTLY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
+                        if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
+                        } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
+                        } else if (policy?.autoReportingOffset !== undefined) {
+                            let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
+                            if (isPast(etaDateTime)) {
+                                etaDateTime = addMonths(etaDateTime, 1);
+                            }
+
+                            nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                        }
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP};
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+
+            // Manual submission
+            if (report?.total !== 0 && !policy?.harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            break;
+
+        // Generates an optimistic nextStep once a report has been submitted
+        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
+            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+                nextStep = nextStepFixOrPayExpense;
+                break;
+            }
+
+            // We want to show pending approval next step for cases where the policy has approvals enabled
+            const policyApprovalMode = getApprovalWorkflow(policy);
+            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: approverAccountID,
+                };
+            } else {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: isPayer({accountID: currentUserAccountIDParam, email: currentUserEmailParam}, report) ? currentUserAccountIDParam : -1,
+                };
+            }
+            break;
+        }
+
+        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        case CONST.REPORT.STATUS_NUM.CLOSED:
+            nextStep = nextStepNoActionRequired;
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
+            nextStep = nextStepNoActionRequired;
+            break;
+
+        // Generates an optimistic nextStep once a report has been approved
+        case CONST.REPORT.STATUS_NUM.APPROVED:
+            if (
+                isInvoiceReport(report) ||
+                !isPayer(
+                    {
+                        accountID: currentUserAccountIDParam,
+                        email: currentUserEmailParam,
+                    },
+                    report,
+                )
+            ) {
+                nextStep = nextStepNoActionRequired;
+                break;
+            }
+
+            // Self review
+            nextStep = {
+                messageKey: hasValidAccount ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: reimburserAccountID,
+            };
+            break;
+
+        // Clear nextStep
+        default:
+            nextStep = null;
+    }
+
+    return nextStep;
+}
+
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
     messages?.forEach((part, index) => {
@@ -103,6 +315,9 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
+/**
+ * @private
+ */
 function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
@@ -110,7 +325,7 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
-    const optimisticNextStep: ReportNextStep = {
+    const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
@@ -138,7 +353,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 }
 
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
-    const optimisticNextStep: ReportNextStep = {
+    const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
@@ -171,7 +386,7 @@ function buildNextStep(
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
-): ReportNextStep | null {
+): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -204,8 +419,8 @@ function buildNextStep(
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
+    const type: ReportNextStepDeprecated['type'] = 'neutral';
+    let optimisticNextStep: ReportNextStepDeprecated | null;
 
     const nextStepPayExpense = {
         type,
@@ -532,8 +747,9 @@ function buildNextStep(
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
+ * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
-function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
     const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
         params;
 
@@ -565,8 +781,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
+    const type: ReportNextStepDeprecated['type'] = 'neutral';
+    let optimisticNextStep: ReportNextStepDeprecated | null;
 
     const nextStepPayExpense = {
         type,
@@ -891,11 +1107,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null
 }
 
 export {
+    buildNextStepMessage,
+    buildOptimisticNextStep,
     parseMessage,
     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };

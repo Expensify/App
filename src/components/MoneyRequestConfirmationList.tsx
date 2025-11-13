@@ -346,11 +346,11 @@ function MoneyRequestConfirmationList({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
 
     useEffect(() => {
-        if (!transactionID || isMovingTransactionFromTrackExpense) {
+        if (!transactionID || isMovingTransactionFromTrackExpense || isReadOnly) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, transactionID]);
+    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
@@ -497,11 +497,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isMovingTransactionFromTrackExpense) {
+        if (!transactionID || isMovingTransactionFromTrackExpense || isReadOnly) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense, isReadOnly]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
