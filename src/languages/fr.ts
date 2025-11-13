@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -327,7 +328,7 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
-const translations = {
+const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Compter',
         cancel: 'Annuler',
@@ -339,7 +340,7 @@ const translations = {
         notNow: 'Pas maintenant',
         noThanks: 'Non merci',
         learnMore: 'En savoir plus',
-        buttonConfirm: 'Compris',
+        buttonConfirm: "J'ai compris",
         name: 'Nom',
         attachment: 'Pièce jointe',
         attachments: 'Pièces jointes',
@@ -452,7 +453,7 @@ const translations = {
         send: 'Envoyer',
         na: 'N/A',
         noResultsFound: 'Aucun résultat trouvé',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `Aucun résultat trouvé correspondant à "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `Aucun résultat trouvé correspondant à "${searchString}"`,
         recentDestinations: 'Destinations récentes',
         timePrefix: "C'est",
         conjunctionFor: 'pour',
@@ -466,7 +467,7 @@ const translations = {
         error: {
             invalidAmount: 'Montant invalide',
             acceptTerms: "Vous devez accepter les Conditions d'utilisation pour continuer.",
-            phoneNumber: `Veuillez entrer un numéro de téléphone valide, avec l'indicatif du pays (par exemple, ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Veuillez entrer un numéro de téléphone complet\n(par exemple, ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Ce champ est requis',
             requestModified: 'Cette demande est en cours de modification par un autre membre',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caractères dépassé (${length}/${limit})`,
@@ -829,8 +830,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Soumettre une dépense, référer votre patron',
-            subtitleText: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            title: 'Soumettre une dépense, référer votre équipe',
+            subtitleText: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1071,10 +1072,6 @@ const translations = {
     receipt: {
         upload: 'Télécharger le reçu',
         uploadMultiple: 'Télécharger des reçus',
-        dragReceiptBeforeEmail: 'Faites glisser un reçu sur cette page, transférez un reçu à',
-        dragReceiptsBeforeEmail: 'Faites glisser les reçus sur cette page, transférez les reçus à',
-        dragReceiptAfterEmail: 'ou choisissez un fichier à télécharger ci-dessous.',
-        dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
@@ -1351,11 +1348,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             genericUnholdExpenseFailureMessage: 'Erreur inattendue lors de la suppression de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             receiptDeleteFailureError: 'Erreur inattendue lors de la suppression de ce reçu. Veuillez réessayer plus tard.',
-            receiptFailureMessage: "Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez",
+            receiptFailureMessage: `<rbr>Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez <a href="download">enregistrer le reçu</a> et <a href="retry">réessayer</a> plus tard.</rbr>`,
             receiptFailureMessageShort: "Une erreur s'est produite lors du téléchargement de votre reçu.",
-            tryAgainMessage: 'réessayer',
-            saveFileMessage: 'enregistrer le reçu',
-            uploadLaterMessage: 'à télécharger plus tard.',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
             genericSmartscanFailureMessage: 'La transaction comporte des champs manquants',
@@ -1376,7 +1370,10 @@ const translations = {
         enableWallet: 'Activer le portefeuille',
         hold: 'Attente',
         unhold: 'Supprimer la suspension',
-        holdExpense: 'Mettre la dépense en attente',
+        holdExpense: () => ({
+            one: 'Mettre la dépense en attente',
+            other: 'Mettre les dépenses en attente',
+        }),
         unholdExpense: 'Débloquer la dépense',
         heldExpense: 'retenu cette dépense',
         unheldExpense: 'débloqué cette dépense',
@@ -1387,7 +1384,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
         newReport: 'Nouveau rapport',
-        explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
+        explainHold: () => ({
+            one: 'Expliquez pourquoi vous mettez cette dépense en attente.',
+            other: 'Expliquez pourquoi vous mettez ces dépenses en attente.',
+        }),
         retracted: 'retraité',
         retract: 'Retirer',
         reopened: 'rouvert',
@@ -1417,11 +1417,10 @@ const translations = {
         }),
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver seulement',
-        holdEducationalTitle: 'Cette demande est activée',
-        holdEducationalText: 'tenir',
-        whatIsHoldExplain: 'La mise en attente, c\'est comme appuyer sur "pause" pour une dépense afin de demander plus de détails avant l\'approbation ou le paiement.',
-        holdIsLeftBehind: 'Les dépenses en attente sont déplacées vers un autre rapport après approbation ou paiement.',
-        unholdWhenReady: "Les approbateurs peuvent débloquer les dépenses lorsqu'elles sont prêtes pour approbation ou paiement.",
+        holdEducationalTitle: 'Dois-tu mettre cette dépense en attente ?',
+        whatIsHoldExplain: 'Mettre en attente, c\'est comme appuyer sur "pause" pour une dépense jusqu\'à ce que tu sois prêt à la soumettre.',
+        holdIsLeftBehind: 'Les dépenses mises en attente sont laissées de côté même si tu soumets un rapport complet.',
+        unholdWhenReady: 'Retire les dépenses en attente lorsque tu es prêt à les soumettre.',
         changePolicyEducational: {
             title: 'Vous avez déplacé ce rapport !',
             description: 'Vérifiez ces éléments, qui ont tendance à changer lors du déplacement des rapports vers un nouvel espace de travail.',
@@ -1606,8 +1605,8 @@ const translations = {
         contactMethods: 'Méthodes de contact',
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',
-        helpTextBeforeEmail: 'Ajoutez plus de moyens pour envoyer des reçus. Transférez-les à',
-        helpTextAfterEmail: 'ou envoyez-les par SMS au 47777 (numéros américains uniquement).',
+        helpText: ({email}: {email: string}) =>
+            `Ajoutez plus de moyens pour envoyer des reçus. Transférez-les à <copy-text text="${email}"/> ou envoyez-les par SMS au 47777 (numéros américains uniquement).`,
         pleaseVerify: 'Veuillez vérifier cette méthode de contact',
         getInTouch: 'Chaque fois que nous devons vous contacter, nous utiliserons cette méthode de contact.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod}. Il devrait arriver dans une minute ou deux.`,
@@ -2050,6 +2049,8 @@ const translations = {
         validateCardTitle: "Assurons-nous que c'est bien vous",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Veuillez <a href="${missingDetailsLink}">ajouter vos informations personnelles</a>, puis réessayez.`,
+        unexpectedError: 'Une erreur s’est produite lors de la récupération des informations de votre carte Expensify. Veuillez réessayer.',
         cardFraudAlert: {
             confirmButtonText: 'Oui, je le fais',
             reportFraudButtonText: "Non, ce n'était pas moi.",
@@ -2074,8 +2075,6 @@ ${amount} pour ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
-        delaySubmissionTitle: 'Retarder les soumissions',
-        delaySubmissionDescription: 'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel des dépenses.',
         submissionFrequency: 'Fréquence de soumission',
         submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
         disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
@@ -4195,6 +4194,8 @@ ${amount} pour ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Si vous changez le paramètre d’exportation des cartes d’entreprise vers les rapports de frais, les fournisseurs NetSuite et les comptes de publication pour les cartes individuelles seront désactivés.\n\nNe vous inquiétez pas, nous sauvegarderons toujours vos sélections précédentes au cas où vous voudriez revenir en arrière plus tard.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se synchronisera automatiquement avec NetSuite tous les jours.',
@@ -4647,9 +4648,9 @@ ${amount} pour ${merchant} - ${date}`,
             addShippingDetails: "Ajouter les détails d'expédition",
             issuedCard: ({assignee}: AssigneeParams) => `a émis une carte Expensify à ${assignee} ! La carte arrivera dans 2-3 jours ouvrables.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d’expédition auront été confirmés.`,
+                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d'expédition auront été confirmés.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `a émis une ${link} virtuelle à ${assignee} ! La carte peut être utilisée immédiatement.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les détails d'expédition. La carte Expensify arrivera dans 2-3 jours ouvrables.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les informations d’expédition. La carte Expensify arrivera dans 2 à 3 jours ouvrés.`,
             verifyingHeader: 'Vérification en cours',
             bankAccountVerifiedHeader: 'Compte bancaire vérifié',
             verifyingBankAccount: 'Vérification du compte bancaire...',
@@ -4945,6 +4946,7 @@ ${amount} pour ${merchant} - ${date}`,
             existingReportFieldNameError: 'Un champ de rapport avec ce nom existe déjà',
             reportFieldNameRequiredError: 'Veuillez entrer un nom de champ de rapport',
             reportFieldTypeRequiredError: 'Veuillez choisir un type de champ de rapport',
+            circularReferenceError: 'Ce champ ne peut pas faire référence à lui-même. Veuillez le mettre à jour.',
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ du rapport',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du champ du rapport. Veuillez réessayer.",
         },
@@ -5027,6 +5029,10 @@ ${amount} pour ${merchant} - ${date}`,
             cannotMakeAllTagsOptional: {
                 title: 'Impossible de rendre toutes les balises facultatives',
                 description: `Au moins une étiquette doit rester obligatoire car les paramètres de votre espace de travail exigent des étiquettes.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Impossible de rendre la liste des balises obligatoire',
+                description: 'Vous ne pouvez rendre une liste de balises obligatoire que si votre stratégie comporte plusieurs niveaux de balises configurés.',
             },
             tagCount: () => ({
                 one: '1 jour',
@@ -5506,8 +5512,7 @@ ${amount} pour ${merchant} - ${date}`,
             enableRate: 'Activer le tarif',
             status: 'Statut',
             unit: 'Unité',
-            taxFeatureNotEnabledMessage: "Les taxes doivent être activées sur l'espace de travail pour utiliser cette fonctionnalité. Rendez-vous sur",
-            changePromptMessage: 'pour effectuer ce changement.',
+            taxFeatureNotEnabledMessage: `<muted-text>Les taxes doivent être activées sur l'espace de travail pour utiliser cette fonctionnalité. Rendez-vous sur <a href="#">Plus de fonctionnalités</a> pour effectuer ce changement.</muted-text>`,
             deleteDistanceRate: 'Supprimer le tarif de distance',
             areYouSureDelete: () => ({
                 one: 'Êtes-vous sûr de vouloir supprimer ce tarif ?',
@@ -6741,9 +6746,9 @@ ${amount} pour ${merchant} - ${date}`,
             body: 'Vous voulez que vos amis utilisent aussi Expensify ? Commencez simplement une discussion avec eux et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre patron</strong></success>.',
-            header: 'Soumettre une dépense, référer votre patron',
-            body: 'Vous voulez que votre patron utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
+            buttonText: 'Soumettre une dépense, <success><strong>référez-vous à votre équipe</strong></success>.',
+            header: 'Soumettre une dépense, référer votre équipe',
+            body: 'Vous voulez que votre équipe utilise Expensify aussi ? Soumettez-lui simplement une dépense et nous nous occuperons du reste.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Parrainez un ami',
@@ -6812,33 +6817,45 @@ ${amount} pour ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcool`;
-                case 'gambling':
-                    return `${preMessage} jeu d'argent`;
-                case 'tobacco':
-                    return `${preMessage} tabac`;
-                case 'adultEntertainment':
-                    return `${preMessage} divertissement pour adultes`;
-                case 'hotelIncidentals':
-                    return `${preMessage} frais accessoires d'hôtel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcool`;
+                    case 'gambling':
+                        return `jeu d'argent`;
+                    case 'tobacco':
+                        return `tabac`;
+                    case 'adultEntertainment':
+                        return `divertissement pour adultes`;
+                    case 'hotelIncidentals':
+                        return `frais accessoires d'hôtel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour associer le reçu</a>`
+                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour associer le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
@@ -6874,7 +6891,6 @@ ${amount} pour ${merchant} - ${date}`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,
-        reportContainsExpensesWithViolations: 'Le rapport contient des dépenses avec des violations.',
     },
     violationDismissal: {
         rter: {
@@ -7403,14 +7419,139 @@ ${amount} pour ${merchant} - ${date}`,
         upload: 'Télécharger',
         uploadPhoto: 'Télécharger une photo',
         selectAvatar: 'Sélectionner un avatar',
-        chooseCustomAvatar: 'Ou choisissez un avatar personnalisé',
+        choosePresetAvatar: 'Ou choisissez un avatar personnalisé',
     },
     openAppFailureModal: {
         title: "Quelque chose s'est mal passé...",
         subtitle: `Nous n'avons pas pu charger toutes vos données. Nous avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
         refreshAndTryAgain: 'Actualisez puis réessayez',
     },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> ajoutiez des dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> ajoute des dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur ajoute des dépenses.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> ajoutiez un compte bancaire.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> ajoute un compte bancaire.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur ajoute un compte bancaire.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `le ${eta}` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que les dépenses de <strong>${actor}</strong> soient automatiquement soumises${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’envoi automatique des dépenses d’un administrateur${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> corrigiez le(s) problème(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> corrige le(s) problème(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente d’un administrateur pour résoudre le(s) problème(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> approuviez les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’approbation des dépenses par un administrateur.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> payiez les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> paie les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu’un administrateur paie les dépenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> terminiez la configuration d’un compte bancaire professionnel.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> termine la configuration d'un compte bancaire professionnel.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu’un administrateur termine la configuration d’un compte bancaire professionnel.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `avant ${eta}` : ` ${eta}`;
+                }
+                return `En attente de finalisation du paiement${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'bientôt',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: "plus tard aujourd'hui",
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'dimanche',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'les 1er et 16 de chaque mois',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'le dernier jour ouvrable du mois',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'le dernier jour du mois',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'à la fin de votre voyage',
+        },
+    },
+    domain: {
+        notVerified: 'Non vérifié',
+        retry: 'Réessayer',
+        verifyDomain: {
+            title: 'Vérifier le domaine',
+            beforeProceeding: ({domainName}: {domainName: string}) =>
+                `Avant de poursuivre, vérifiez que vous êtes propriétaire de <strong>${domainName}</strong> en mettant à jour ses paramètres DNS.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Accédez à votre fournisseur DNS et ouvrez les paramètres DNS pour <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Ajoutez l’enregistrement TXT suivant :',
+            saveChanges: 'Enregistrez les modifications et revenez ici pour vérifier votre domaine.',
+            youMayNeedToConsult: `Il se peut que vous deviez consulter le service informatique de votre organisation pour terminer la vérification. <a href="${CONST.DOMAIN_VERIFICATION_HELP_URL}">En savoir plus</a>.`,
+            warning: 'Après vérification, tous les membres Expensify de votre domaine recevront un e-mail indiquant que leur compte sera géré au sein de votre domaine.',
+            codeFetchError: 'Impossible de récupérer le code de vérification',
+            genericError: "Nous n'avons pas pu vérifier votre domaine. Veuillez réessayer et contacter Concierge si le problème persiste.",
+        },
+        domainVerified: {
+            title: 'Domaine vérifié',
+            header: 'Wouhou ! Votre domaine a été vérifié',
+            description: ({domainName}: {domainName: string}) =>
+                `<muted-text><centered-text>Le domaine <strong>${domainName}</strong> a été vérifié avec succès et vous pouvez maintenant configurer SAML et d'autres fonctionnalités de sécurité.</centered-text></muted-text>`,
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
-export default translations satisfies TranslationDeepObject<typeof en>;
+export default translations;

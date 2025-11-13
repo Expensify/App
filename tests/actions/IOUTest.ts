@@ -88,6 +88,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -95,10 +96,12 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import type {InvoiceTestData} from '../data/Invoice';
 import * as InvoiceData from '../data/Invoice';
 import currencyList from '../unit/currencyList.json';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -184,6 +187,14 @@ const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIF
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
+        ...createPersonalDetails(RORY_ACCOUNT_ID),
+        login: RORY_EMAIL,
+        email: RORY_EMAIL,
+        displayName: RORY_EMAIL,
+        avatar: 'https://example.com/avatar.jpg',
+    };
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -456,6 +467,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: fakeTransaction?.linkedTrackedExpenseReportID,
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -548,6 +560,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -625,6 +638,7 @@ describe('actions/IOU', () => {
                     merchant: transaction.merchant,
                     billable: false,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -671,6 +685,7 @@ describe('actions/IOU', () => {
                 accountantParams: {
                     accountant,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -743,6 +758,7 @@ describe('actions/IOU', () => {
                     merchant: transaction.merchant,
                     billable: false,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -789,6 +805,7 @@ describe('actions/IOU', () => {
                 accountantParams: {
                     accountant,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -851,6 +868,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1098,6 +1116,7 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1318,6 +1337,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1472,6 +1492,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             return (
                 waitForBatchedUpdates()
@@ -1861,6 +1882,7 @@ describe('actions/IOU', () => {
                     comment,
                     billable: false,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
 
             mockFetch?.resume?.();
@@ -1920,6 +1942,7 @@ describe('actions/IOU', () => {
                 accountantParams: {
                     accountant,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -1957,6 +1980,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1978,6 +2002,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2016,6 +2041,7 @@ describe('actions/IOU', () => {
                     reimbursable: true,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2049,6 +2075,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2081,6 +2108,7 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2098,6 +2126,7 @@ describe('actions/IOU', () => {
                     comment: '',
                     validWaypoints: {},
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2237,10 +2266,12 @@ describe('actions/IOU', () => {
                 (item) => item[julesChatCreatedAction.reportActionID].reportID,
             );
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
                 ...reportCollectionDataSet,
             })
                 .then(() =>
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
                         ...carlosActionsCollectionDataSet,
                         ...julesCreatedActionsCollectionDataSet,
@@ -2268,6 +2299,7 @@ describe('actions/IOU', () => {
                             created: '',
                             tag: '',
                             existingSplitChatReportID: '',
+                            isASAPSubmitBetaEnabled: false,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -2594,6 +2626,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: workspaceReportID,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2641,6 +2674,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2655,6 +2689,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2708,6 +2743,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: workspaceReportID,
                 ...draftTransaction,
                 comment: '',
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2751,6 +2787,7 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 existingSplitChatReportID: reportID,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -2815,7 +2852,7 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, RORY_EMAIL);
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, RORY_EMAIL);
 
             await waitForBatchedUpdates();
 
@@ -2910,6 +2947,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 firstIOU: iouAction,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3012,6 +3050,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 firstIOU: undefined,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3127,6 +3166,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport,
                 firstIOU: undefined,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -3171,6 +3211,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -3409,6 +3450,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3542,6 +3584,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3649,6 +3692,7 @@ describe('actions/IOU', () => {
                         expect(report?.pendingFields).toEqual({
                             preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         });
                         resolve();
                     },
@@ -3767,6 +3811,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3867,6 +3912,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -4088,6 +4134,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -4612,6 +4659,7 @@ describe('actions/IOU', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
 
@@ -4671,6 +4719,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
@@ -4906,6 +4955,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5022,6 +5072,7 @@ describe('actions/IOU', () => {
                                 reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5127,7 +5178,17 @@ describe('actions/IOU', () => {
                             reportToArchive.push(chatReport);
                         }
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
+                        deleteWorkspace({
+                            policyID: policy.id,
+                            activePolicyID: undefined,
+                            policyName: policy.name,
+                            lastAccessedWorkspacePolicyID: undefined,
+                            policyCardFeeds: undefined,
+                            reportsToArchive: reportToArchive,
+                            transactionViolations: undefined,
+                            reimbursementAccountError: undefined,
+                            lastUsedPaymentMethods: undefined,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5203,6 +5264,7 @@ describe('actions/IOU', () => {
                                 reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6143,6 +6205,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: '1',
                 },
                 shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -6189,6 +6252,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: '1',
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
@@ -6249,7 +6313,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
-        it('should return false if we have only scan failure transactions', async () => {
+        it('should return false if we have only scanning transactions', async () => {
             const policyID = '2';
             const reportID = '1';
             const fakePolicy: Policy = {
@@ -6272,7 +6336,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -6284,9 +6348,9 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
-                merchant: 'test merchant',
+                merchant: '',
                 modifiedMerchant: undefined,
             };
 
@@ -6305,7 +6369,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
-        it('should return false if all transactions are pending card or scan failure transaction', async () => {
+        it('should return false if all transactions are pending card or scanning transaction', async () => {
             const policyID = '2';
             const reportID = '1';
             const fakePolicy: Policy = {
@@ -6334,9 +6398,9 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
-                merchant: 'test merchant',
+                merchant: '',
                 modifiedMerchant: undefined,
             };
 
@@ -6352,7 +6416,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
-        it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
+        it('should return true if at least one transaction is not pending card or scanning transaction', async () => {
             const policyID = '2';
             const reportID = '1';
             const fakePolicy: Policy = {
@@ -6380,7 +6444,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -6389,6 +6453,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(2),
                 reportID,
                 amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
@@ -6605,14 +6670,14 @@ describe('actions/IOU', () => {
             comment: {
                 attendees: [
                     {
-                        email: 'rory@expensifail.com',
-                        login: 'rory@expensifail.com',
+                        email: currentUserPersonalDetails.email ?? '',
+                        login: currentUserPersonalDetails.login,
                         accountID: 3,
-                        text: 'rory@expensifail.com',
+                        text: currentUserPersonalDetails.login,
                         selected: true,
                         reportID: '0',
-                        avatarUrl: '',
-                        displayName: '',
+                        avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
+                        displayName: currentUserPersonalDetails.displayName ?? '',
                     },
                 ],
             },
@@ -6646,6 +6711,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6665,6 +6731,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6684,6 +6751,7 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
+                        currentUserPersonalDetails,
                     });
                 })
                 .then(async () => {
@@ -6868,6 +6936,7 @@ describe('actions/IOU', () => {
                         comment,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -6953,6 +7022,7 @@ describe('actions/IOU', () => {
                         comment,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -7433,6 +7503,67 @@ describe('actions/IOU', () => {
             expect(amounts).toEqual([33366, 33366, 33368]);
             expect(amounts.reduce((a, b) => a + b, 0)).toBe(100100);
         });
+
+        it('preserves negative sign and evenly distributes with remainder on last for 3-way split', async () => {
+            const originalTransactionID = 'orig-neg-3';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-3',
+                amount: -100, // in cents = -$1.00
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'n1', amount: 0, description: 'N1', created: DateUtils.getDBTime()},
+                        {transactionID: 'n2', amount: 0, description: 'N2', created: DateUtils.getDBTime()},
+                        {transactionID: 'n3', amount: 0, description: 'N3', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-3',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-33, -33, -34]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-100);
+        });
+
+        it('preserves negative sign for 2-way odd-cent split -> [-$0.51, -$0.50]', async () => {
+            const originalTransactionID = 'orig-neg-2';
+            const draftTransaction: Transaction = {
+                transactionID: 'draft-neg-2',
+                amount: -101, // in cents = -$1.01
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Negative amount test 2-way',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {transactionID: 'nA', amount: 0, description: 'NA', created: DateUtils.getDBTime()},
+                        {transactionID: 'nB', amount: 0, description: 'NB', created: DateUtils.getDBTime()},
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                created: DateUtils.getDBTime(),
+                reportID: 'rep-neg-2',
+            };
+
+            evenlyDistributeSplitExpenseAmounts(draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
+            expect(amounts).toEqual([-50, -51]);
+            expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
+        });
     });
 
     describe('updateSplitExpenseAmountField', () => {
@@ -7612,7 +7743,11 @@ describe('actions/IOU', () => {
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 policyID,
+                currency: CONST.CURRENCY.USD,
             });
+
+            await waitForBatchedUpdates();
+
             createNewReport(creatorPersonalDetails, true, false, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
@@ -7638,6 +7773,7 @@ describe('actions/IOU', () => {
                     merchant: 'merchant',
                     billable: false,
                 },
+                isASAPSubmitBetaEnabled: false,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -7772,6 +7908,7 @@ describe('actions/IOU', () => {
                         comment: '*hey* `hey`',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -7865,6 +8002,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -7914,6 +8052,7 @@ describe('actions/IOU', () => {
                         comment: '*hey* `hey`',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8007,6 +8146,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8061,6 +8201,7 @@ describe('actions/IOU', () => {
                         comment: 'Test expense',
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8163,6 +8304,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     chatReport,
                     firstIOU: undefined,
+                    isASAPSubmitBetaEnabled: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -8205,7 +8347,7 @@ describe('actions/IOU', () => {
                 amount: 27,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -8214,6 +8356,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(2),
                 reportID,
                 amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
@@ -8916,6 +9059,7 @@ describe('actions/IOU', () => {
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify the result structure and key values
@@ -9042,6 +9186,7 @@ describe('actions/IOU', () => {
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify the result uses existing chat report
@@ -9122,6 +9267,7 @@ describe('actions/IOU', () => {
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
             });
 
             // Then: Verify policy expense chat handling

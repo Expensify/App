@@ -103,8 +103,9 @@ function SubmitDetailsPage({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: GpsPoint) => {
+    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
             return;
         }
@@ -134,13 +135,14 @@ function SubmitDetailsPage({
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     isLinkedTrackedExpenseReportArchived,
                 },
+                isASAPSubmitBetaEnabled,
             });
         } else {
             requestMoney({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories},
-                gpsPoints,
+                gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,
@@ -162,6 +164,7 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
+                isASAPSubmitBetaEnabled,
             });
         }
     };

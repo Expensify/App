@@ -16,7 +16,7 @@ import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -200,6 +200,8 @@ function AttachmentModal({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
@@ -292,10 +294,10 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        detachReceipt(transaction?.transactionID);
+        detachReceipt(transaction?.transactionID, policyCategories);
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.goBack();
-    }, [transaction]);
+    }, [transaction?.transactionID, policyCategories]);
 
     /**
      * Closes the modal.

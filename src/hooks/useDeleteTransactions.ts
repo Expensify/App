@@ -11,6 +11,7 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolations} f
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -32,6 +33,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
+    const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -92,9 +94,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             );
 
             Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
-                const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID);
+                const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
                 const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
-                    (transaction) => !splitIDs.includes(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
+                    (transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
                 );
 
                 if (childTransactions.length === 0) {
@@ -128,6 +130,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     isChatReportArchived: isChatIOUReportArchived,
                     currentUserPersonalDetails,
                 });
@@ -162,7 +165,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet],
+        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet, isBetaEnabled],
     );
 
     return {
