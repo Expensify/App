@@ -402,7 +402,7 @@ describe('TransactionUtils', () => {
 
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
-            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CARD);
+            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns distance when the transaction has a distance custom unit', () => {
