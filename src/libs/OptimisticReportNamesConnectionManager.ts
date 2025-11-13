@@ -13,7 +13,6 @@ type UpdateContext = {
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
     allTransactions: Record<string, Transaction>;
     allPersonalDetails: PersonalDetailsList;
-    // Pending updates from the current optimistic batch - allows formula computation to see updates before they're applied to Onyx
     pendingUpdates?: OnyxUpdate[];
 };
 

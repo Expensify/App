@@ -276,12 +276,8 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
-    // Get personal details for submitter and manager
-    // Convert number IDs to strings for allPersonalDetails lookup (which is indexed by strings)
     const submitterAccountID = updatedReport.ownerAccountID ? String(updatedReport.ownerAccountID) : undefined;
     const managerAccountID = updatedReport.managerID ? String(updatedReport.managerID) : undefined;
-
-    // Note: allPersonalDetails[accountID] can be null, but FormulaContext expects undefined, so we use ?? undefined
     const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;
     const managerPersonalDetails = managerAccountID ? (allPersonalDetails[managerAccountID] ?? undefined) : undefined;
 
@@ -299,7 +295,8 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const newName = compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
-    if (newName && newName !== targetReport.reportName) {
+    // Note: We explicitly allow empty strings (e.g., when submission info returns empty after retract)
+    if (newName !== targetReport.reportName) {
         Log.info('[OptimisticReportNames] Report name computed', false, {
             updateType,
             isNewReport: !report,
@@ -400,8 +397,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             }
 
             case 'personalDetails': {
-                // When personal details change, find all reports where this user is submitter or manager
-                // The personal details update contains all personal details, so we need to check each changed account
                 const personalDetailsUpdate = update.value as Record<string, unknown>;
                 if (personalDetailsUpdate && typeof personalDetailsUpdate === 'object') {
                     Object.keys(personalDetailsUpdate).forEach((accountIDStr) => {

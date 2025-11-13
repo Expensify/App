@@ -845,7 +845,6 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
         case 'to':
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
-            // For submission date, we need to get the date from the submitted report action or report state
             const submittedDate = getSubmittedReportActionDate(context.report.reportID, context.report, context.pendingUpdates);
             const format = subPath.length > 0 ? subPath.join(':') : undefined;
             const formattedDate = formatDate(submittedDate, format);
@@ -868,15 +867,12 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            // Using || instead of ?? to handle empty strings - should fallback to email when firstName is ''
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.firstName || personalDetails.login || '';
         case 'lastname':
-            // Using || instead of ?? to handle empty strings - should fallback to email when lastName is ''
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.lastName || personalDetails.login || '';
         case 'fullname':
-            // Using || instead of ?? to handle empty strings - should fallback to email when displayName is ''
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.displayName || personalDetails.login || '';
         case 'email':
@@ -891,7 +887,6 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
                 return '';
             }
             const fieldKey = field.toLowerCase() === 'customfield1' ? 'employeeUserID' : 'employeePayrollID';
-            // Note: employeeUserID and employeePayrollID are custom text fields (not database IDs), so returning empty string is valid
             return policy.employeeList[email]?.[fieldKey] ?? '';
         }
         default:
