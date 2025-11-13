@@ -114,7 +114,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 50 existing report updates', async () => {
@@ -126,7 +126,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 100 mixed updates', async () => {
@@ -197,7 +197,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
         test('[OptimisticReportNames] worst case: many irrelevant updates', async () => {
@@ -259,7 +259,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, contextWithoutFormulas));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithoutFormulas));
         });
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
@@ -285,7 +285,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, contextWithMissingData));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithMissingData));
         });
     });
 });

@@ -100,7 +100,7 @@ function prepareRequest<TCommand extends ApiCommand>(
         } else {
             try {
                 const context = getUpdateContext();
-                const processedData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, successData, failureData, context);
+                const processedData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context, successData, failureData);
 
                 Onyx.update(processedData.optimisticData);
                 processedSuccessData = processedData.successData;

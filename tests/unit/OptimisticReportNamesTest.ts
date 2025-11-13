@@ -160,7 +160,7 @@ describe('OptimisticReportNames', () => {
             ];
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            const result = updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext);
+            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result.optimisticData).toHaveLength(2); // Original + name update
             expect(result.optimisticData.at(1)).toEqual({
                 key: 'report_456',
@@ -179,7 +179,7 @@ describe('OptimisticReportNames', () => {
             ];
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            const result = updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext);
+            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result.optimisticData).toHaveLength(2); // Original + name update
             expect(result.optimisticData.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
         });
@@ -226,7 +226,7 @@ describe('OptimisticReportNames', () => {
             ];
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            const result = updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, contextWithMultipleReports);
+            const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
 
             expect(result.optimisticData).toHaveLength(4);
 

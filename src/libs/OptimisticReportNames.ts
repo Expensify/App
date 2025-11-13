@@ -305,12 +305,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
  * Update optimistic report names based on incoming updates
  * This is the main middleware function that processes optimistic data
  */
-function updateOptimisticReportNamesFromUpdates(
-    optimisticData: OnyxUpdate[],
-    successData: OnyxUpdate[] | undefined,
-    failureData: OnyxUpdate[] | undefined,
-    context: UpdateContext,
-): ProcessedUpdates {
+function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], context: UpdateContext, successData?: OnyxUpdate[], failureData?: OnyxUpdate[]): ProcessedUpdates {
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
