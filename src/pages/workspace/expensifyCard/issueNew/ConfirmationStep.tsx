@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import AccountUtils from '@libs/AccountUtils';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -46,6 +47,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateError = getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
@@ -70,9 +72,45 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         setIsValidateCodeActionModalVisible(false);
     }, [isSuccessful]);
 
+    // If there's a validateCode error after using extended access, show the modal so the user can see the error
+    useEffect(() => {
+        const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
+        const hasValidateCodeError = validateCodeAction?.errorFields?.[validateCodeErrorField];
+        
+        if (hasValidateCodeError && !isValidateCodeActionModalVisible) {
+            setIsValidateCodeActionModalVisible(true);
+        }
+    }, [validateCodeAction?.errorFields, data?.cardType, isValidateCodeActionModalVisible]);
+
+    // If the card was issued successfully using extended access (without showing the modal), handle the redirect
+    useEffect(() => {
+        if (!isSuccessful || isValidateCodeActionModalVisible) {
+            return;
+        }
+        
+        // Call redirect directly since onModalHide won't be triggered when modal was never shown
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+        
+        clearIssueNewCardFlow(policyID);
+    }, [isSuccessful, isValidateCodeActionModalVisible, backTo, policyID]);
+
     const submit = (validateCode: string) => {
         // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
         issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
+    };
+
+    const handleIssueCard = () => {
+        // If the user has extended access and is trying to issue a virtual card, issue the card directly without requiring validateCode
+        const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+        if (isVirtualCard && AccountUtils.hasValidateCodeExtendedAccess(account)) {
+            submit('');
+        } else {
+            setIsValidateCodeActionModalVisible(true);
+        }
     };
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
@@ -158,7 +196,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                         isDisabled={isOffline || shouldDisableSubmitButton}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={() => setIsValidateCodeActionModalVisible(true)}
+                        onSubmit={handleIssueCard}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
