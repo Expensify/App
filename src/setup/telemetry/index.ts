@@ -2,6 +2,7 @@ import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
+import processBeforeSendTransactions from '@libs/Telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
 
@@ -22,6 +23,7 @@ export default function (): void {
         integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
+        beforeSendTransaction: processBeforeSendTransactions,
     });
 }
 
