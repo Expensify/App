@@ -25,16 +25,14 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchPersonalDetails,
     SearchReport,
-    SearchReportAction,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -254,10 +252,10 @@ type TransactionListItemType = ListItem &
         reportAction: ReportAction | undefined;
 
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -315,9 +313,9 @@ type TransactionListItemType = ListItem &
     };
 
 type ReportActionListItemType = ListItem &
-    SearchReportAction & {
+    ReportAction & {
         /** The personal details of the user posting comment */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -327,15 +325,18 @@ type ReportActionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** The name of the report */
+        reportName: string;
     };
 
 type TaskListItemType = ListItem &
     SearchTask & {
         /** The personal details of the user who is assigned to the task */
-        assignee: SearchPersonalDetails;
+        assignee: PersonalDetails;
 
         /** The personal details of the user who created the task */
-        createdBy: SearchPersonalDetails;
+        createdBy: PersonalDetails;
 
         /** final and formatted "assignee" value used for displaying and sorting */
         formattedAssignee: string;
@@ -362,6 +363,8 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type ExpenseReportListItemType = TransactionReportGroupListItemType;
+
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
@@ -376,10 +379,25 @@ type TransactionGroupListItemType = ListItem & {
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
+
+        /** Final and formatted "status" value used for displaying and sorting */
+        formattedStatus?: string;
+
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+
+        /** Final and formatted "to" value used for displaying and sorting */
+        formattedTo?: string;
+
+        /**
+         * Whether we should show the report year.
+         * This is true if at least one report in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -388,9 +406,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
@@ -544,6 +562,14 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -1012,7 +1038,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
 export type {
     BaseListItemProps,
@@ -1039,6 +1065,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    ExpenseReportListItemType,
+    ExpenseReportListItemProps,
     TaskListItemType,
     TaskListItemProps,
     TransactionListItemProps,
