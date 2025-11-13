@@ -80,9 +80,9 @@ function SplitListItem<TItem extends ListItem>({
         inputRef.current.focus();
     }, [splitItem.isSelected, splitItem.isEditable, didScreenTransitionEnd]);
 
-    const inputCallbackRef = useCallback((ref: BaseTextInputRef | null) => {
+    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
-    }, []);
+    }
 
     return (
         <BaseListItem
