@@ -159,8 +159,6 @@ function IOURequestStepScan({
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),

@@ -329,7 +329,6 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
- * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
 function buildNextStep(params: BuildNextStepParams): ReportNextStepDeprecated | null {
     const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =

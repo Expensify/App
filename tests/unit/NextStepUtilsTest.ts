@@ -3,8 +3,8 @@ import {buildNextStep, buildOptimisticNextStepForStrictPolicyRuleViolations} fro
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

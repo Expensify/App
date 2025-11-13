@@ -5596,7 +5596,7 @@ function buildOptimisticChangePolicyData(
     if (newStatusNum) {
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticNextStepDeprecated = buildNextStepNew({
+        const optimisticNextStepDeprecated = buildNextStep({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
             policy,
