@@ -35,9 +35,6 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
-/** Type for merge transaction values that can be null to clear existing values in Onyx */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
-
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
     currency: 'iou.currency',
@@ -328,7 +325,6 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
-        reportName: mergeTransaction.reportName,
     };
 }
 
@@ -379,11 +375,7 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return translate('common.none');
-        }
-
-        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -437,26 +429,6 @@ function buildMergeFieldsData(
     });
 }
 
-/**
- * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field, reportID
- */
-function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
-    const updatedValues: MergeTransactionUpdateValues = {
-        [field]: fieldValue,
-    };
-
-    if (field === 'amount') {
-        updatedValues.currency = getCurrency(transaction);
-    }
-
-    if (field === 'reportID') {
-        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
-    }
-
-    return updatedValues;
-}
-
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -473,9 +445,8 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
-    getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     MERGE_FIELDS,
 };
 
-export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
+export type {MergeFieldKey, MergeFieldData};
