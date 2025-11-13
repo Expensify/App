@@ -254,7 +254,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         lastPaymentMethod,
         isOffline,
         activePolicyID,
-        bankAccountList
+        bankAccountList,
     ]);
 
     const handleLeaveWorkspace = useCallback(() => {

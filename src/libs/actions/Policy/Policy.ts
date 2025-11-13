@@ -372,8 +372,18 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         return;
     }
 
-    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods, bankAccountList} =
-        params;
+    const {
+        policyID,
+        activePolicyID,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        policyCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastUsedPaymentMethods,
+        bankAccountList,
+    } = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -382,14 +392,12 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const workspaceAccountID = policy?.workspaceAccountID;
 
     // Filter out bank accounts associated with the policy being deleted
-    const filteredBankAccountList = bankAccountList
-        ? Object.entries(bankAccountList).reduce<BankAccountList>((acc, [key, bankAccount]) => {
-              if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
-                  acc[key] = bankAccount;
-              }
-              return acc;
-          }, {})
-        : bankAccountList;
+    const filteredBankAccountList = Object.entries(bankAccountList ?? {}).reduce<BankAccountList>((acc, [key, bankAccount]) => {
+        if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
+            acc[key] = bankAccount;
+        }
+        return acc;
+    }, {});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -456,7 +464,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                      value: bankAccountList,
+                      value: bankAccountList ?? {},
                   },
               ]
             : []),
@@ -4928,6 +4936,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
 }
+
 /**
  * Call the API to set the receipt required amount for the given policy
  * @param policyID - id of the policy to set the receipt required amount
