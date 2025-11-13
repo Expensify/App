@@ -298,7 +298,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportActions: unfilteredReportActions,
         linkedAction,
         sortedAllReportActions,
-        oldestUnreadReportActionID,
         hasNewerActions,
         hasOlderActions,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToUnreadReportAction: true});
@@ -962,7 +961,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         <ReportActionsView
                                             report={report}
                                             reportActions={reportActions}
-                                            // oldestUnreadReportActionID={oldestUnreadReportActionID}
                                             isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                             hasNewerActions={hasNewerActions}
                                             hasOlderActions={hasOlderActions}

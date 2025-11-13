@@ -89,9 +89,6 @@ type ReportActionsListProps = {
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The oldest unread report action ID */
-    oldestUnreadReportActionID?: string;
-
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
@@ -161,7 +158,6 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     hasNewerActions,
-    oldestUnreadReportActionID,
     onLayout,
     isComposerFullSize,
     listID,
@@ -412,8 +408,8 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const initialScrollKey = useMemo(() => {
-        return linkedReportActionID ?? oldestUnreadReportActionID ?? unreadMarkerReportActionID;
-    }, [linkedReportActionID, oldestUnreadReportActionID, unreadMarkerReportActionID]);
+        return linkedReportActionID ?? unreadMarkerReportActionID;
+    }, [linkedReportActionID, unreadMarkerReportActionID]);
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     const handleListInitiallyLoaded = useCallback(() => {
