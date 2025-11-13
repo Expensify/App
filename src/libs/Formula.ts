@@ -544,25 +544,25 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
-        if (displayCurrency?.trim().toLowerCase() === 'nosymbol') {
-            return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
-        }
+        const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
+        if (trimmedDisplayCurrency) {
+            if (trimmedDisplayCurrency?.toLowerCase() === 'nosymbol') {
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+            }
 
-        // Check if format is a valid currency code (e.g., USD, EUR, eur)
-        const currencyCode = displayCurrency?.trim().toUpperCase();
-        if (currencyCode) {
-            if (!isValidCurrencyCode(currencyCode)) {
+            // Check if format is a valid currency code (e.g., USD, EUR, eur)
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
                 return '';
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
-            if (absoluteAmount !== 0 && currency !== currencyCode) {
+            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
                 return null;
             }
 
-            return convertToDisplayString(absoluteAmount, currencyCode);
+            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
         }
 
         if (currency && isValidCurrencyCode(currency)) {
