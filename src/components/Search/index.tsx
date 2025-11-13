@@ -95,7 +95,7 @@ const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
-    transaction: OnyxEntry<Transaction>,
+    itemTransaction: OnyxEntry<Transaction>,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     return [
@@ -106,7 +106,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canSplit: isSplitAction(item.report, [transaction], item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(item).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -175,7 +175,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
 
 function prepareTransactionsList(
     item: TransactionListItemType,
-    transaction: OnyxEntry<Transaction>,
+    itemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
@@ -193,7 +193,7 @@ function prepareTransactionsList(
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canSplit: isSplitAction(item.report, [transaction], item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(item).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,

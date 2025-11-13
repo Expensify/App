@@ -8,7 +8,7 @@ import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -20,7 +20,6 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +67,8 @@ function useSelectedTransactionsActions({
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+
+    const selectedTransactionsKeys = Object.keys(selectedTransactionsMeta ?? {});
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -286,8 +287,9 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(selectedTransactionsList.at(0));
-        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, selectedTransactionsList, policy);
+        const areSplittable = selectedTransactionsKeys.every((id) => selectedTransactionsMeta[id].canSplit);
+        const areAlreadySplit = selectedTransactionsKeys.every((id) => selectedTransactionsMeta[id].hasBeenSplit);
+        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
 
         if (canSplitTransaction) {
             options.push({
@@ -347,6 +349,7 @@ function useSelectedTransactionsActions({
         translate,
         isReportArchived,
         hasTransactionsFromMultipleOwners,
+        selectedTransactionsKeys,
         policy,
         reportActions,
         clearSelectedTransactions,
@@ -360,6 +363,7 @@ function useSelectedTransactionsActions({
         outstandingReportsByPolicyID,
         iouType,
         lastVisitedPath,
+        selectedTransactionsMeta,
         allTransactions,
         allReports,
         session?.accountID,
