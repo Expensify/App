@@ -926,7 +926,7 @@ function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
-            const actions = Object.values(data[key]) as OnyxTypes.ReportAction[];
+            const actions = Object.values(data[key]);
             for (const action of actions) {
                 if (action.childReportID) {
                     parentReportActionsByReportID.set(action.childReportID, action);
