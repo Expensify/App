@@ -140,7 +140,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
-            ratesCount > 0
+            ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
                       translation: translate('workspace.common.distanceRates'),
                       value: 'distanceRates',
@@ -155,7 +155,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany
+            policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
