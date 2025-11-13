@@ -1,6 +1,5 @@
 import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as requestNativeReview} from 'expo-store-review';
-import {Linking} from 'react-native';
-import getStoreReviewURL from './storeReviewURL';
+import Log from '@libs/Log';
 
 /**
  * Request the native in-app review prompt (iOS/Android)
@@ -22,7 +21,9 @@ async function requestReview(): Promise<void> {
             return false;
         };
 
-        if (!(await getHasAction())) {
+        const hasAction = await getHasAction();
+        if (!hasAction) {
+            Log.info('[StoreReview] No review action found', false, {hasAction});
             return;
         }
 
@@ -37,6 +38,7 @@ async function requestReview(): Promise<void> {
 
         const available = await getAvailability();
         if (available) {
+            Log.info('[StoreReview] Requesting review', false, {available});
             const performRequestReview = async (): Promise<void> => {
                 const candidate: unknown = requestNativeReview;
                 if (typeof candidate === 'function') {
@@ -48,22 +50,14 @@ async function requestReview(): Promise<void> {
             return;
         }
 
-        // Fallback: open the store URL if available (useful for iOS TestFlight or older Android)
-        const getURL = (): string | null => {
-            const candidate: unknown = getStoreReviewURL;
-            if (typeof candidate === 'function') {
-                return (candidate as () => string | null)();
-            }
-            return null;
-        };
-        const url = getURL();
-        if (typeof url === 'string' && url.length > 0) {
-            await Linking.openURL(url);
-        }
+        Log.info('[StoreReview] Review not available');
     } catch (error) {
         // Module not installed yet or platform doesn't support it
         // Silently fail - the custom modal already collected feedback
+        Log.hmmm('[StoreReview] Error requesting review', {error});
     }
 }
 
 export default requestReview;
+
+
