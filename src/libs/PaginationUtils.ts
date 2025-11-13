@@ -25,6 +25,12 @@ type ItemWithIndex = {
     index: number;
 };
 
+type ContinuousPageChainResult<TResource> = {
+    data: TResource[];
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+};
+
 /**
  * Finds the id and index in sortedItems of the first item in the given page that's present in sortedItems.
  */
@@ -168,10 +174,21 @@ function getContinuousChain<TResource>(
     pages: Pages,
     getID: (item: TResource) => string,
     id?: string,
-): {data: TResource[]; hasNextPage: boolean; hasPreviousPage: boolean} {
+    idPredicate?: (item: TResource) => boolean,
+): ContinuousPageChainResult<TResource> {
+    const getResourceById = (item: TResource) => getID(item) === id;
+
     if (pages.length === 0) {
-        const dataItem = sortedItems.find((item) => getID(item) === id);
-        return {data: id && !dataItem ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false};
+        let data: TResource[] = sortedItems;
+        if (id) {
+            const foundDataItems = sortedItems.filter(getResourceById);
+
+            if (foundDataItems) {
+                data = foundDataItems;
+            }
+        }
+
+        return {data, hasNextPage: false, hasPreviousPage: false};
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
@@ -184,9 +201,14 @@ function getContinuousChain<TResource>(
         lastIndex: 0,
     };
 
+    let index = -1;
     if (id) {
-        const index = sortedItems.findIndex((item) => getID(item) === id);
+        index = sortedItems.findIndex(getResourceById);
+    } else if (idPredicate) {
+        index = sortedItems.findIndex(idPredicate);
+    }
 
+    if (index !== -1 || !idPredicate) {
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
         if (index === -1) {
             return {data: [], hasNextPage: false, hasPreviousPage: false};
