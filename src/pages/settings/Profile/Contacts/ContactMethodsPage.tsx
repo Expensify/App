@@ -8,10 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -70,16 +69,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text>
-                        {translate('contacts.helpTextBeforeEmail')}
-                        <TextLink
-                            href={`mailto:${CONST.EMAIL.RECEIPTS}`}
-                            style={[styles.link]}
-                        >
-                            {CONST.EMAIL.RECEIPTS}
-                        </TextLink>
-                        <Text> {translate('contacts.helpTextAfterEmail')}</Text>
-                    </Text>
+                    <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
                 </View>
                 {options.map(
                     (option) =>

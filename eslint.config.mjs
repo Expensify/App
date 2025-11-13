@@ -557,6 +557,14 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['src/**/*'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        rules: {
+            'max-lines': ['error', 4000],
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
