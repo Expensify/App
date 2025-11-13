@@ -767,10 +767,12 @@ function ComposerWithSuggestions({
         const endOfSuggestionSelection = suggestionSelection.end;
         setSelection(suggestionSelection);
 
-        if (typeof endOfSuggestionSelection === 'undefined') {
+        if (endOfSuggestionSelection === undefined) {
             return;
         }
 
+        // Ensure that selection is set imperatively after all state changes are effective.
+        // Note: this implementation is only available on non-web RN
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
