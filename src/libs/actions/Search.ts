@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -42,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -595,13 +595,13 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function rejectMoneyRequestOnSearch(hash: number, reportID: string, comment: string){
+function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment}, {optimisticData, finallyData});
 }
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
+function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport: Record<string, string[]> = {};
@@ -613,12 +613,22 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         transactionsByReport[reportID].push(transactionID);
     });
 
-    Object.entries(transactionsByReport).forEach(([reportID, reportTransactionIDs]) => {
-        // Share a single destination ID across all rejections from the same source report
-        const sharedRejectedToReportID = generateReportID();
-        reportTransactionIDs.forEach((transactionID) => {
-            rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
-        });
+    Object.entries(transactionsByReport).forEach(([reportID, selectedTransactionIDs]) => {
+        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
+        const areAllExpensesSelected = allTransactionIDs.every((transactionID) => selectedTransactionIDs.includes(transactionID));
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+        if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
+            rejectMoneyRequestInBulk(hash, reportID, comment);
+        } else {
+            // Share a single destination ID across all rejections from the same source report
+            const sharedRejectedToReportID = generateReportID();
+            selectedTransactionIDs.forEach((transactionID) => {
+                rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
+            });
+        }
     });
 
     playSound(SOUNDS.SUCCESS);

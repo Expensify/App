@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
@@ -13,14 +14,15 @@ import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 function SearchRejectReasonPage() {
     const {translate} = useLocalize();
     const context = useSearchContext();
-
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment);
+            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports);
             context.clearSelectedTransactions();
             Navigation.goBack();
         },
-        [context],
+        [context, allPolicies, allReports],
     );
 
     const validate = useCallback(
