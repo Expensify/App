@@ -214,7 +214,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 />
             );
         }
-        if (!isPlaid && !isBlockedToAddNewFeeds && !isAllFeedsResultLoading) {
+        if (!isPlaid && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds) {
             return (
                 <BlockingView
                     icon={PendingBank}
