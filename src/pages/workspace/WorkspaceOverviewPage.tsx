@@ -378,16 +378,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
 
     const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
-            <ButtonWithDropdownMenu
-                ref={dropdownMenuRef}
-                success={false}
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                options={options}
-                isSplitButton={false}
-                wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-            />
+        <ButtonWithDropdownMenu
+            ref={dropdownMenuRef}
+            success={false}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('common.more')}
+            options={options}
+            isSplitButton={false}
+            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+        />
     );
 
     const handleInvitePress = useCallback(() => {
@@ -465,7 +465,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     />
                 )}
-            {renderDropdownMenu(secondaryActions)}
+                {renderDropdownMenu(secondaryActions)}
             </View>
         );
     };
