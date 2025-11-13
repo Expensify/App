@@ -725,7 +725,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     parentReportActionID={report?.parentReportActionID}
                     pressableStyles={[styles.mt1, styles.mw100]}
                     textStyles={[styles.textAlignCenter]}
-                    subtitleNumberOfLines={0}
+                    subtitleNumberOfLines={2}
                 />
             )}
         </View>
@@ -774,7 +774,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
             textStyles={[styles.textAlignCenter]}
-            subtitleNumberOfLines={0}
+            subtitleNumberOfLines={2}
         />
     );
 
