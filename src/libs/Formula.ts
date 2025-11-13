@@ -7,6 +7,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
+import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
@@ -569,7 +570,8 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         }
 
         return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
-    } catch {
+    } catch (error) {
+        Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
         return '';
     }
 }
