@@ -305,7 +305,7 @@ function AttachmentPickerWithMenuItems({
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
     }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);

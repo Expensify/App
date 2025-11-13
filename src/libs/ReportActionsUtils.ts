@@ -32,7 +32,7 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -842,7 +842,7 @@ function isActionableWhisper(
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)]);
 
 /**
  * Checks whether an action is actionable track expense and resolved.
@@ -877,7 +877,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Filter out any unsupported reportAction types
-    if (!supportedActionTypes.includes(reportAction.actionName)) {
+    if (!supportedActionTypes.has(reportAction.actionName)) {
         return false;
     }
 
@@ -1084,14 +1084,7 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    // The free trial message can be duplicated due to this change https://github.com/Expensify/App/pull/68630 without the backend change
-    // So we need to filter out the duplicate free trial message
-    const freeTrialMessages = actions.filter((action) => {
-        const html = getReportActionHtml(action);
-        return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
-    });
-    const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
-    return actions.filter(isVisiblePreviewOrMoneyRequest).filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
+    return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
 /**
@@ -3122,13 +3115,7 @@ function isCardIssuedAction(
 }
 
 function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    const missingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        isEmptyObject(privatePersonalDetails?.addresses) ||
-        privatePersonalDetails.addresses.length === 0;
+    const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
 }
