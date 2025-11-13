@@ -114,7 +114,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 50 existing report updates', async () => {
@@ -126,7 +126,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 100 mixed updates', async () => {
@@ -153,7 +153,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, undefined, undefined, mockContext));
         });
     });
 
@@ -167,7 +167,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
             // This should trigger name computation for all reports using policy1
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], undefined, undefined, mockContext));
         });
 
         test('[OptimisticReportNames] multiple policy updates', async () => {
@@ -178,7 +178,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, undefined, undefined, mockContext));
         });
     });
 
@@ -197,7 +197,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, mockContext));
         });
 
         test('[OptimisticReportNames] worst case: many irrelevant updates', async () => {
@@ -209,7 +209,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, undefined, undefined, mockContext));
         });
     });
 
@@ -259,7 +259,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithoutFormulas));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, contextWithoutFormulas));
         });
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
@@ -285,7 +285,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithMissingData));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, undefined, undefined, contextWithMissingData));
         });
     });
 });
