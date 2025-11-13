@@ -1,4 +1,4 @@
-# Lazy Icons and Illustrations
+# Import static assets
 
 This document explains how to work with lazy-loaded icons and illustrations in the Expensify App. The lazy loading system helps reduce initial bundle size by deferring the loading of icon and illustration assets until they're needed.
 
@@ -22,7 +22,6 @@ Both systems follow similar patterns but are handled separately to optimize bund
 2. **Chunk Files** (`chunks/illustrations.chunk.ts`, `chunks/expensify-icons.chunk.ts`)
    - Contain all SVG imports for their respective asset types
    - Provide lookup functions (`getIllustration`, `getExpensifyIcon`)
-
 
 3. **React Hooks** (`useLazyAsset.ts`)
    - Provide convenient React hooks for component usage
@@ -96,7 +95,7 @@ function EmptyState() {
 }
 ```
 
-**Note**: The multi-asset hooks (Pattern 1) are generally preferred as they're more efficient when loading multiple assets.
+**Note**: The multi-asset hooks (Pattern 1 and 2) are generally preferred as they're more efficient when loading multiple assets.
 
 ## Available Asset Names
 
@@ -173,19 +172,6 @@ Check `src/components/Icon/chunks/expensify-icons.chunk.ts` for the complete lis
        // ... existing icons
        MyNewIcon,
    };
-   ```
-
-3. **Add to the switch statement** in `getExpensifyIcon()` (optional, but recommended):
-   ```ts
-   function getExpensifyIcon(iconName: string): unknown {
-       switch (iconName) {
-           // ... existing cases
-           case 'MyNewIcon':
-               return MyNewIcon;
-           default:
-               return (ExpensifyIcons as Record<string, unknown>)[iconName];
-       }
-   }
    ```
 
 ## Migration Guide
