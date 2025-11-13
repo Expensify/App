@@ -13932,7 +13932,7 @@ function updateSplitTransactions({
     policyRecentlyUsedCategories,
     iouReport,
     firstIOU,
-    isChatReportArchived,
+    isASAPSubmitBetaEnabled,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);

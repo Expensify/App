@@ -186,7 +186,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCategories,
             iouReport,
             firstIOU: iouActions.at(0),
-            isChatReportArchived: isChatIOUReportArchived,
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
         });
     }, [
         splitExpenses,
