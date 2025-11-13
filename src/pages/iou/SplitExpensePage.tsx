@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -99,6 +100,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
@@ -189,6 +191,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             isChatReportArchived: isChatIOUReportArchived,
+            currentUserPersonalDetails,
         });
     }, [
         splitExpenses,
@@ -213,6 +216,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         chatReport,
         iouActions,
         isChatIOUReportArchived,
+        currentUserPersonalDetails,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
