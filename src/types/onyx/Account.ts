@@ -231,6 +231,9 @@ type Account = {
         /** API errors when locking an account */
         errors: OnyxCommon.Errors;
     };
+
+    /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
+    validateCodeExtendedAccessExpires?: number;
 };
 
 export default Account;
