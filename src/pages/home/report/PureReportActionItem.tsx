@@ -907,7 +907,7 @@ function PureReportActionItem({
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
         const hasMentionedPolicyMembers =
             getOriginalMessage(action)
-                ?.whisperedTo?.map((accountID, index) => getLoginByAccountID(accountID))
+                ?.whisperedTo?.map(getLoginByAccountID)
                 ?.every((login) => isPolicyUser(policy, login)) ?? false;
 
         if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
