@@ -8,6 +8,7 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -78,7 +79,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -121,6 +122,13 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
+    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const dismissModalAndUpdateUseReject = () => {
+        setIsRejectEducationalModalVisible(false);
+        dismissRejectUseExplanation();
+        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+    };
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -530,7 +538,11 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                    if (dismissedRejectUseExplanation) {
+                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                    } else {
+                        setIsRejectEducationalModalVisible(true);
+                    }
                 },
             });
         }
@@ -1153,6 +1165,12 @@ function SearchPage({route}: SearchPageProps) {
                     confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
                     shouldShowCancelButton={false}
                 />
+                {!!isRejectEducationalModalVisible && (
+                    <HoldOrRejectEducationalModal
+                        onClose={dismissModalAndUpdateUseReject}
+                        onConfirm={dismissModalAndUpdateUseReject}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
