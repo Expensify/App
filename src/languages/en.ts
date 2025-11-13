@@ -1393,11 +1393,10 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This request is on',
-        holdEducationalText: 'hold',
-        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
-        unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
+        holdEducationalTitle: 'Should you hold this expense?',
+        whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to submit them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -1703,7 +1702,6 @@ const translations = {
         placeholderText: 'Search to see options',
     },
     contacts: {
-        contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',

@@ -1415,11 +1415,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
-        holdEducationalTitle: 'Diese Anfrage ist aktiv',
-        holdEducationalText: 'Anhalten',
-        whatIsHoldExplain: 'Hold ist, als würde man bei einer Ausgabe auf „Pause“ drücken, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
-        holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden nach Genehmigung oder Zahlung in einen anderen Bericht verschoben.',
-        unholdWhenReady: 'Genehmigende können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',
+        holdEducationalTitle: 'Sollten Sie diese Ausgabe zurückhalten?',
+        whatIsHoldExplain: 'Zurückhalten bedeutet, dass Sie eine Ausgabe sozusagen „pausieren”, bis Sie bereit sind, sie einzureichen.',
+        holdIsLeftBehind: 'Zurückgehaltene Ausgaben bleiben auch dann zurück, wenn Sie einen gesamten Bericht einreichen.',
+        unholdWhenReady: 'Heben Sie die Zurückhaltung von Ausgaben auf, wenn Sie bereit sind, sie einzureichen.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfen Sie diese Punkte, die sich beim Verschieben von Berichten in einen neuen Arbeitsbereich ändern können.',
@@ -1600,7 +1599,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Suchen, um Optionen zu sehen',
     },
     contacts: {
-        contactMethod: 'Kontaktmethode',
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',

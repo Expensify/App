@@ -1389,11 +1389,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: '仅支付',
         approveOnly: '仅批准',
-        holdEducationalTitle: '该请求已开启',
-        holdEducationalText: '搁置',
-        whatIsHoldExplain: 'Hold 就像对一笔费用按下“暂停”，以便在批准或付款之前请求更多详细信息。',
-        holdIsLeftBehind: '暂挂的费用在获批或付款后将移至另一份报告。',
-        unholdWhenReady: '当准备好进行审批或付款时，审批人可以解除费用的搁置。',
+        holdEducationalTitle: '是否应暂存此项费用？',
+        whatIsHoldExplain: '暂存功能如同对费用按下“暂停键”，待您准备提交时再处理。',
+        holdIsLeftBehind: '即使提交整份报销单，暂存的费用仍会保留。',
+        unholdWhenReady: '准备提交时，请取消暂存状态。',
         changePolicyEducational: {
             title: '您已移动此报告！',
             description: '请仔细检查这些项目，因为在将报告移动到新工作区时，它们往往会发生变化。',
@@ -1572,7 +1571,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: '搜索以查看选项',
     },
     contacts: {
-        contactMethod: '联系方式',
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',

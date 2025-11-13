@@ -1417,11 +1417,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver seulement',
-        holdEducationalTitle: 'Cette demande est activée',
-        holdEducationalText: 'Mettre en attente',
-        whatIsHoldExplain: 'La mise en attente, c’est comme appuyer sur « pause » sur une dépense pour demander plus de détails avant l’approbation ou le paiement.',
-        holdIsLeftBehind: 'Les dépenses en attente sont déplacées vers un autre rapport lors de l’approbation ou du paiement.',
-        unholdWhenReady: 'Les approbateurs peuvent lever la mise en attente des dépenses lorsqu’elles sont prêtes pour approbation ou paiement.',
+        holdEducationalTitle: 'Dois-tu mettre cette dépense en attente ?',
+        whatIsHoldExplain: 'Mettre en attente, c\'est comme appuyer sur "pause" pour une dépense jusqu\'à ce que tu sois prêt à la soumettre.',
+        holdIsLeftBehind: 'Les dépenses mises en attente sont laissées de côté même si tu soumets un rapport complet.',
+        unholdWhenReady: 'Retire les dépenses en attente lorsque tu es prêt à les soumettre.',
         changePolicyEducational: {
             title: 'Vous avez déplacé ce rapport !',
             description: 'Vérifiez ces éléments, qui ont tendance à changer lors du déplacement des rapports vers un nouvel espace de travail.',
@@ -1602,7 +1601,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Recherchez pour voir les options',
     },
     contacts: {
-        contactMethod: 'Méthode de contact',
         contactMethods: 'Méthodes de contact',
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',

@@ -1411,11 +1411,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Alleen betalen',
         approveOnly: 'Alleen goedkeuren',
-        holdEducationalTitle: 'Dit verzoek is ingeschakeld',
-        holdEducationalText: 'reservering',
-        whatIsHoldExplain: "Hold is alsof je een uitgave op 'pauze' zet om meer details te vragen voordat deze wordt goedgekeurd of betaald.",
-        holdIsLeftBehind: 'Uitgaven in de wacht worden naar een ander rapport verplaatst na goedkeuring of betaling.',
-        unholdWhenReady: 'Goedkeurders kunnen onkosten vrijgeven wanneer ze klaar zijn voor goedkeuring of betaling.',
+        holdEducationalTitle: 'Moet u deze uitgave vasthouden?',
+        whatIsHoldExplain: 'Vasthouden is als op ‘pauze’ drukken voor een uitgave totdat u klaar bent om deze in te dienen.',
+        holdIsLeftBehind: 'Vastgehouden uitgaven blijven achter, zelfs als u een volledig rapport indient.',
+        unholdWhenReady: 'Haal uitgaven uit de wachtstand wanneer u klaar bent om ze in te dienen.',
         changePolicyEducational: {
             title: 'Je hebt dit rapport verplaatst!',
             description: 'Controleer deze items dubbel, aangezien ze de neiging hebben te veranderen bij het verplaatsen van rapporten naar een nieuwe werkruimte.',
@@ -1596,7 +1595,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Zoek om opties te zien',
     },
     contacts: {
-        contactMethod: 'Contactmethode',
         contactMethods: 'Contactmethoden',
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',

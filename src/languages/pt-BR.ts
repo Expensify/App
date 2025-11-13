@@ -1408,11 +1408,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Pagar apenas',
         approveOnly: 'Aprovar apenas',
-        holdEducationalTitle: 'Esta solicitação está ativa',
-        holdEducationalText: 'reter',
-        whatIsHoldExplain: 'Hold é como apertar “pausa” em uma despesa para solicitar mais detalhes antes da aprovação ou do pagamento.',
-        holdIsLeftBehind: 'Despesas retidas são movidas para outro relatório após aprovação ou pagamento.',
-        unholdWhenReady: 'Os aprovadores podem liberar despesas quando elas estiverem prontas para aprovação ou pagamento.',
+        holdEducationalTitle: 'Você deve reter essa despesa?',
+        whatIsHoldExplain: 'Reter é como clicar em “pausar” em uma despesa até que você esteja pronto para enviá-la.',
+        holdIsLeftBehind: 'As despesas retidas são deixadas para trás mesmo que você envie um relatório completo.',
+        unholdWhenReady: 'Liberte as despesas quando estiver pronto para enviá-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Verifique novamente esses itens, que tendem a mudar ao mover relatórios para um novo espaço de trabalho.',
@@ -1593,7 +1592,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Pesquisar para ver opções',
     },
     contacts: {
-        contactMethod: 'Método de contato',
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',

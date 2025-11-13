@@ -1409,11 +1409,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Płać tylko',
         approveOnly: 'Zatwierdź tylko',
-        holdEducationalTitle: 'To żądanie jest aktywne',
-        holdEducationalText: 'wstrzymanie',
-        whatIsHoldExplain: 'Hold jest jak naciśnięcie „pauzy” na wydatku, aby poprosić o więcej szczegółów przed zatwierdzeniem lub płatnością.',
-        holdIsLeftBehind: 'Wstrzymane wydatki są przenoszone do innego raportu po zatwierdzeniu lub opłaceniu.',
-        unholdWhenReady: 'Osoby zatwierdzające mogą zdjąć wstrzymanie wydatków, gdy są one gotowe do zatwierdzenia lub płatności.',
+        holdEducationalTitle: 'Czy należy wstrzymać tę wydatek?',
+        whatIsHoldExplain: 'Wstrzymanie wydatku jest jak naciśnięcie przycisku „pauza” do momentu, aż będziesz gotowy do jego przesłania.',
+        holdIsLeftBehind: 'Wstrzymane wydatki pozostają wstrzymane nawet po przesłaniu całego raportu.',
+        unholdWhenReady: 'Odblokuj wydatki, gdy będziesz gotowy do ich przesłania.',
         changePolicyEducational: {
             title: 'Przeniosłeś ten raport!',
             description: 'Sprawdź te elementy, które mają tendencję do zmiany podczas przenoszenia raportów do nowego obszaru roboczego.',
@@ -1594,7 +1593,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Wyszukaj, aby zobaczyć opcje',
     },
     contacts: {
-        contactMethod: 'Metoda kontaktu',
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',

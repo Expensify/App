@@ -1411,11 +1411,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: '支払いのみ',
         approveOnly: '承認のみ',
-        holdEducationalTitle: 'This request is on',
-        holdEducationalText: '保留',
-        whatIsHoldExplain: '「Hold」は、承認や支払いの前に詳細を確認するために、その経費に「一時停止」をかけるようなものです。',
-        holdIsLeftBehind: '保留中の経費は、承認または支払い時に別のレポートに移動します。',
-        unholdWhenReady: '承認者は、承認または支払いの準備ができたら、経費の保留を解除できます。',
+        holdEducationalTitle: 'この経費は保留にしますか？',
+        whatIsHoldExplain: '保留とは、経費の提出準備が整うまで「一時停止」する機能です。',
+        holdIsLeftBehind: '保留中の経費は、レポート全体を提出しても除外されます。',
+        unholdWhenReady: '提出準備が整ったら、経費の保留を解除してください。',
         changePolicyEducational: {
             title: 'このレポートを移動しました！',
             description: 'レポートを新しいワークスペースに移動する際に変更される傾向があるこれらの項目を再確認してください。',
@@ -1596,7 +1595,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'オプションを表示するために検索',
     },
     contacts: {
-        contactMethod: '連絡方法',
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',

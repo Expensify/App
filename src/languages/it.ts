@@ -1411,11 +1411,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Paga solo',
         approveOnly: 'Approva solo',
-        holdEducationalTitle: 'Questa richiesta è attiva',
-        holdEducationalText: 'in sospeso',
-        whatIsHoldExplain: 'Mettere in sospeso è come premere "pausa" su una spesa per chiedere ulteriori dettagli prima dell’approvazione o del pagamento.',
-        holdIsLeftBehind: 'Le spese in sospeso vengono spostate in un altro report al momento dell’approvazione o del pagamento.',
-        unholdWhenReady: 'Gli approvatori possono sbloccare le spese quando sono pronte per l’approvazione o per il pagamento.',
+        holdEducationalTitle: 'Devi sospendere questa spesa?',
+        whatIsHoldExplain: 'Sospendere significa mettere in "pausa" una spesa fino a quando non sei pronto per inviarla.',
+        holdIsLeftBehind: "Le spese sospese rimangono in sospeso anche se invii l'intero rapporto.",
+        unholdWhenReady: 'Rimuovi la sospensione dalle spese quando sei pronto per inviarle.',
         changePolicyEducational: {
             title: 'Hai spostato questo report!',
             description: 'Ricontrolla questi elementi, che tendono a cambiare quando si spostano i report in un nuovo spazio di lavoro.',
@@ -1596,7 +1595,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Cerca per vedere le opzioni',
     },
     contacts: {
-        contactMethod: 'Metodo di contatto',
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
