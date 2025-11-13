@@ -29,7 +29,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
-import {getDisplayNameOrDefault, isMissingPrivatePersonalDetails} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, arePersonalDetailsMissing} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -719,7 +719,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         !card.nameValuePairs?.isVirtual &&
-        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || isMissingPrivatePersonalDetails(privatePersonalDetails))
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails))
     );
 }
 
