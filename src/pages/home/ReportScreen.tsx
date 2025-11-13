@@ -280,6 +280,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                nextStep: reportOnyx.nextStep,
             },
         [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
