@@ -180,7 +180,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isBlockedToAddNewFeeds && !isAllFeedsResultLoading && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds && (
                     <WebView
                         ref={webViewRef}
                         source={{
