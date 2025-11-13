@@ -55,6 +55,7 @@ type CreateTaskAndNavigateParams = {
     policyID?: string;
     isCreatedUsingMarkdown?: boolean;
     quickAction?: OnyxEntry<OnyxTypes.QuickAction>;
+    ancestors?: ReportUtils.Ancestor[];
 };
 
 let allReportActions: OnyxCollection<ReportActions>;
@@ -118,6 +119,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
         isCreatedUsingMarkdown = false,
         quickAction = {},
+        ancestors = [],
     } = params;
     if (!parentReportID) {
         return;
@@ -282,13 +284,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     });
 
     // If needed, update optimistic data for parent report action of the parent report.
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReport, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    optimisticParentReportData.forEach((parentReportData) => {
-        if (isEmptyObject(parentReportData)) {
-            return;
-        }
-        optimisticData.push(parentReportData);
-    });
+    optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
@@ -418,6 +414,31 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
             },
         },
     ];
+
+    const parentReportAction = getParentReportAction(taskReport);
+    if (parentReportAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            },
+        });
+    }
 
     if (parentReport?.hasOutstandingChildTask) {
         const hasOutstandingChildTask = getOutstandingChildTask(taskReport);

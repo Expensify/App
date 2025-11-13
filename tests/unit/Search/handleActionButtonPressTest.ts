@@ -63,6 +63,7 @@ const mockReportItemWithHold = {
         phoneNumber: '',
         validated: false,
     },
+    shouldShowYear: false,
     transactions: [
         {
             report: {
@@ -197,7 +198,6 @@ const mockReportItemWithHold = {
             parentTransactionID: '',
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
-            reportType: 'expense',
             tag: '',
             transactionID: '5345995386715609966',
             transactionThreadReportID: '740282333335072',
@@ -287,21 +287,14 @@ describe('handleActionButtonPress', () => {
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
         // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(0);
-    });
-
-    test('Should run goToItem callback when user is in mobile selection mode', () => {
-        const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
-        expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

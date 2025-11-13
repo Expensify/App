@@ -136,6 +136,27 @@ function SearchFiltersBar({
         return [options, value];
     }, [allPolicies, email, unsafeType]);
 
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (isExpenseReportType) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactions, isExpenseReportType, selectedTransactionsKeys.length]);
+
     const [groupByOptions, groupBy] = useMemo(() => {
         const options = getGroupByOptions();
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
@@ -156,12 +177,12 @@ function SearchFiltersBar({
     }, [flatFilters, allFeeds, allCards]);
 
     const [statusOptions, status] = useMemo(() => {
-        const options = type ? getStatusOptions(type.value) : [];
+        const options = type ? getStatusOptions(translate, type.value) : [];
         const value = [
             Array.isArray(unsafeStatus) ? options.filter((option) => unsafeStatus.includes(option.value)) : (options.find((option) => option.value === unsafeStatus) ?? []),
         ].flat();
         return [options, value];
-    }, [unsafeStatus, type]);
+    }, [translate, unsafeStatus, type]);
 
     const [hasOptions, has] = useMemo(() => {
         const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
@@ -618,16 +639,17 @@ function SearchFiltersBar({
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
-        // eslint-disable-next-line unicorn/prefer-set-has
-        const exposedFiltersKeys = filters.flatMap((filter) => {
-            const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
-            if (dateFilterKey) {
-                return dateFilterKey;
-            }
-            return filter.filterKey;
-        });
+        const exposedFiltersKeys = new Set(
+            filters.flatMap((filter) => {
+                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+                if (dateFilterKey) {
+                    return dateFilterKey;
+                }
+                return filter.filterKey;
+            }),
+        );
 
-        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
+        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.has(key as SearchAdvancedFiltersKey));
         const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
 
         return hiddenFilters.filter((key) => {
@@ -661,9 +683,7 @@ function SearchFiltersBar({
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>

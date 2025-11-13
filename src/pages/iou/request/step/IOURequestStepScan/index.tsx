@@ -157,6 +157,8 @@ function IOURequestStepScan({
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
@@ -392,6 +394,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -416,11 +419,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -620,7 +624,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,

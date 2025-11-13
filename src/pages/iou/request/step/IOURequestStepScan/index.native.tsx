@@ -198,6 +198,8 @@ function IOURequestStepScan({
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
@@ -332,6 +334,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -355,11 +358,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
+        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -598,7 +602,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -706,30 +710,32 @@ function IOURequestStepScan({
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({file, filename, source}) => {
-                            // Add source property to file for prepareRequestPayload compatibility
-                            const cameraFile = {
-                                ...file,
-                                source,
-                            };
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
+                            ({file, filename, source}) => {
+                                // Add source property to file for prepareRequestPayload compatibility
+                                const cameraFile = {
+                                    ...file,
+                                    source,
+                                };
 
-                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+                                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
 
-                            if (isEditing) {
-                                updateScanAndNavigate(cameraFile as FileObject, source);
-                                return;
-                            }
+                                if (isEditing) {
+                                    updateScanAndNavigate(cameraFile as FileObject, source);
+                                    return;
+                                }
 
-                            const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                            setReceiptFiles(newReceiptFiles);
+                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                                setReceiptFiles(newReceiptFiles);
 
-                            if (isMultiScanEnabled) {
-                                setDidCapturePhoto(false);
-                                return;
-                            }
+                                if (isMultiScanEnabled) {
+                                    setDidCapturePhoto(false);
+                                    return;
+                                }
 
-                            submitReceipts(newReceiptFiles);
-                        });
+                                submitReceipts(newReceiptFiles);
+                            },
+                        );
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
