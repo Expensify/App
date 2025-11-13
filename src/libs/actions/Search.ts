@@ -598,12 +598,10 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
     const currentMetadata = currentSearchResults?.search;
 
     // Calculate total amount of transactions being deleted
-    // Note: convertedAmount is stored as negative for expenses, so we add them to reduce the total
-    let deletedTotal = 0;
-    transactionIDList.forEach((transactionID) => {
+    const deletedTotal = transactionIDList.reduce((sum, transactionID) => {
         const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        deletedTotal -= (transaction?.convertedAmount ?? 0);
-    });
+        return sum - (transaction?.convertedAmount ?? 0);
+    }, 0);
 
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
