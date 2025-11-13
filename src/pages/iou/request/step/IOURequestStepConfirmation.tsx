@@ -274,6 +274,8 @@ function IOURequestStepConfirmation({
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
@@ -611,6 +613,7 @@ function IOURequestStepConfirmation({
             backToReport,
             viewTourTaskReport,
             viewTourTaskParentReport,
+            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
             transactionViolations,
             isASAPSubmitBetaEnabled,
@@ -728,6 +731,7 @@ function IOURequestStepConfirmation({
                         accountant: item.accountant,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    isASAPSubmitBetaEnabled,
                 });
             });
         },
@@ -747,6 +751,7 @@ function IOURequestStepConfirmation({
             isDraftPolicy,
             isManualDistanceRequest,
             archivedReportsIdSet,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
@@ -905,6 +910,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 return;
@@ -931,6 +937,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 return;
@@ -1068,6 +1075,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             existingInvoiceReport,
             isUnreported,
+            isASAPSubmitBetaEnabled,
         ],
     );
 

@@ -40,6 +40,7 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
+    buildOptimisticNextStep: jest.fn(),
 }));
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';

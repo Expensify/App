@@ -83,6 +83,7 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -150,6 +151,8 @@ function IOURequestStepDistance({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -347,6 +350,7 @@ function IOURequestStepDistance({
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -425,7 +429,6 @@ function IOURequestStepDistance({
         report,
         reportNameValuePairs,
         iouType,
-        personalPolicy?.autoReporting,
         defaultExpensePolicy,
         setDistanceRequestData,
         shouldSkipConfirmation,
@@ -437,9 +440,12 @@ function IOURequestStepDistance({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
+        isASAPSubmitBetaEnabled,
         customUnitRateID,
         navigateToConfirmationPage,
+        personalPolicy?.autoReporting,
         reportID,
         lastSelectedDistanceRates,
         transactionViolations,

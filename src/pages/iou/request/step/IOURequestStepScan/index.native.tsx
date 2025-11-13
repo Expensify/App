@@ -201,6 +201,8 @@ function IOURequestStepScan({
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
@@ -335,6 +337,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -615,7 +618,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -661,6 +664,8 @@ function IOURequestStepScan({
         },
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
+
+    const submitMultiScanReceipts = useCallback(() => submitReceipts(receiptFiles), [receiptFiles, submitReceipts]);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
@@ -976,7 +981,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitReceipts}
+                        submit={submitMultiScanReceipts}
                     />
                 )}
 

@@ -250,6 +250,7 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }

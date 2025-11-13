@@ -15,6 +15,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -131,6 +132,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {environmentURL} = useEnvironment();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -248,6 +250,7 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
@@ -440,7 +443,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit)).join('. ')}.`;
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
             }
 
             return '';
@@ -462,6 +465,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
+            companyCardPageURL,
         ],
     );
 
@@ -923,6 +927,7 @@ function MoneyRequestView({
                                     textStyle={[styles.ph0]}
                                     isLast
                                     canEdit={canEdit}
+                                    companyCardPageURL={companyCardPageURL}
                                 />
                             )}
                         </View>

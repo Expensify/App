@@ -7,7 +7,6 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -61,6 +60,7 @@ import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVPara
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
@@ -79,7 +79,7 @@ import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import NetworkConnection from '@libs/NetworkConnection';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -186,13 +186,13 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
-    ReportNextStep,
+    ReportNextStepDeprecated,
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1007,6 +1007,7 @@ function openReport(
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
                 hasLoadingNewerReportActionsError: false,
+                hasOnceLoadedReportActions: false,
             },
         },
     ];
@@ -2444,7 +2445,17 @@ function updateReportField(
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    const optimisticNextStep = buildNextStep({
+    const optimisticNextStepDeprecated = buildNextStep({
+        report,
+        predictedNextStatus,
+        shouldFixViolations,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
+    const optimisticNextStep = buildOptimisticNextStep({
         report,
         predictedNextStatus,
         shouldFixViolations,
@@ -2463,15 +2474,17 @@ function updateReportField(
                 fieldList: {
                     [fieldKey]: reportField,
                 },
+                nextStep: optimisticNextStep,
                 pendingFields: {
                     [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStep,
+            value: optimisticNextStepDeprecated,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2512,8 +2525,10 @@ function updateReportField(
                 fieldList: {
                     [fieldKey]: previousReportField,
                 },
+                nextStep: report.nextStep ?? null,
                 pendingFields: {
                     [fieldKey]: null,
+                    nextStep: null,
                 },
                 errorFields: {
                     [fieldKey]: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
@@ -2548,6 +2563,7 @@ function updateReportField(
             value: {
                 pendingFields: {
                     [fieldKey]: null,
+                    nextStep: null,
                 },
                 errorFields: {
                     [fieldKey]: null,
@@ -2766,6 +2782,19 @@ function buildNewReportOptimisticData(
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
 
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: optimisticReportData,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email ?? '',
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
+    if (optimisticNextStep) {
+        optimisticReportData.nextStep = optimisticNextStep;
+    }
+
     const optimisticCreateAction = {
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
         accountEmail: login,
@@ -2811,7 +2840,7 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    const optimisticNextStep = buildNextStep({
+    const optimisticNextStepDeprecated = buildNextStep({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -2860,7 +2889,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStep,
+            value: optimisticNextStepDeprecated,
         },
     ];
 
@@ -4761,10 +4790,7 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserEmail ?? '',
     )}`;
-    // The shouldOpenExternalLink parameter must always be set to
-    // true to avoid CORS errors for as long as we use the OD URL.
-    // See https://github.com/Expensify/App/issues/61937
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', true).then(() => setDownload(fileName, false));
+    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
@@ -5526,7 +5552,7 @@ function buildOptimisticChangePolicyData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     isReportLastVisibleArchived: boolean | undefined,
-    reportNextStep?: ReportNextStep,
+    reportNextStep?: ReportNextStepDeprecated,
     optimisticPolicyExpenseChatReport?: Report,
 ) {
     const optimisticData: OnyxUpdate[] = [];
@@ -5568,18 +5594,51 @@ function buildOptimisticChangePolicyData(
     }
 
     if (newStatusNum) {
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: {...report, policyID: policy.id},
+            predictedNextStatus: newStatusNum,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations: hasViolationsParam,
+            isASAPSubmitBetaEnabled,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: {...report, policyID: policy.id},
+            predictedNextStatus: newStatusNum,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations: hasViolationsParam,
+            isASAPSubmitBetaEnabled,
+        });
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStep({
-                report: {...report, policyID: policy.id},
-                predictedNextStatus: newStatusNum,
-                policy,
-                currentUserAccountIDParam: accountID,
-                currentUserEmailParam: email,
-                hasViolations: hasViolationsParam,
-                isASAPSubmitBetaEnabled,
-            }),
+            value: optimisticNextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -5587,6 +5646,16 @@ function buildOptimisticChangePolicyData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                nextStep: report.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
         });
     }
 
@@ -5804,7 +5873,7 @@ function changeReportPolicy(
     hasViolationsParam: boolean,
     isChangePolicyTrainingModalDismissed: boolean,
     isASAPSubmitBetaEnabled: boolean,
-    reportNextStep?: ReportNextStep,
+    reportNextStep?: ReportNextStepDeprecated,
     isReportLastVisibleArchived = false,
 ) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
