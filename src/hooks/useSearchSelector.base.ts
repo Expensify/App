@@ -58,12 +58,6 @@ type UseSearchSelectorConfig = {
 
     /** Additional contact options to merge (used by platform-specific implementations) */
     contactOptions?: Array<SearchOption<PersonalDetails>>;
-
-    /** Whether to restrict the options with preferred policy */
-    isRestrictedToPreferredPolicy?: boolean;
-
-    /** The ID of the preferred policy */
-    preferredPolicyID?: string;
 };
 
 type ContactState = {
@@ -142,8 +136,6 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
-    isRestrictedToPreferredPolicy,
-    preferredPolicyID,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -215,8 +207,6 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
-                    isRestrictedToPreferredPolicy,
-                    preferredPolicyID,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -274,8 +264,6 @@ function useSearchSelectorBase({
         includeRecentReports,
         maxRecentReportsToShow,
         getValidOptionsConfig,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
         selectedOptions,
     ]);
 
