@@ -6,9 +6,10 @@ import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
+import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
+import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -30,6 +31,7 @@ type FormulaContext = {
     transaction?: Transaction;
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
+    allTransactions?: Record<string, Transaction>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -328,7 +330,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
-    const {report, policy} = context;
+    const {report, policy, allTransactions} = context;
     const [field, ...additionalPath] = part.fieldPath;
     // Reconstruct format string by joining additional path elements with ':'
     // This handles format strings with colons like 'HH:mm:ss'
@@ -339,6 +341,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     }
 
     switch (field.toLowerCase()) {
+        case 'id':
+            return getBase62ReportID(Number(report.reportID));
+        case 'status':
+            return formatStatus(report.statusNum);
+        case 'expensescount':
+            return String(getExpensesCount(report, allTransactions));
         case 'type':
             return formatType(report.type) || part.definition;
         case 'startdate':
@@ -388,6 +396,35 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         default:
             return part.definition;
     }
+}
+
+/**
+ * Get the number of expenses in a report
+ * @param report - The report to get expenses for
+ * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
+ */
+function getExpensesCount(report: Report, allTransactions?: Record<string, Transaction>): number {
+    if (!report.reportID) {
+        return 0;
+    }
+
+    if (allTransactions) {
+        const transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === report.reportID);
+        return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
+    }
+
+    return report.transactionCount ?? 0;
+}
+
+/**
+ * Format a report status number to human-readable string
+ */
+function formatStatus(statusNum: number | undefined): string {
+    if (statusNum === undefined) {
+        return '';
+    }
+
+    return getHumanReadableStatus(statusNum);
 }
 
 /**
