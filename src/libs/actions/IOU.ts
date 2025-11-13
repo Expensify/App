@@ -12275,7 +12275,6 @@ function checkIfScanFileCanBeRead(
     onSuccess: (file: File) => void,
     onFailure: () => void,
 ) {
-    console.log(receiptFilename, receiptPath);
     if (!receiptFilename || !receiptPath) {
         onFailure();
         return Promise.resolve();
