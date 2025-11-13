@@ -35,9 +35,6 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
-/** Type for merge transaction values that can be null to clear existing values in Onyx */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
-
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
     merchant: 'common.merchant',
@@ -337,7 +334,6 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
         routes: mergeTransaction.routes,
-        reportName: mergeTransaction.reportName,
     };
 }
 
@@ -388,11 +384,7 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return translate('common.none');
-        }
-
-        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -471,10 +463,6 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
         updatedValues.routes = transaction?.routes ?? null;
     }
 
-    if (field === 'reportID') {
-        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
-    }
-
     return updatedValues;
 }
 
@@ -502,10 +490,9 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
-    getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     MERGE_FIELDS,
     getRateFromMerchant,
 };
 
-export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
+export type {MergeFieldKey, MergeFieldData};

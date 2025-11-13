@@ -65,9 +65,6 @@ type MergeTransaction = {
     /** The iou request type of the transaction */
     iouRequestType?: IOURequestType;
 
-    /** The report name of the transaction */
-    reportName: string;
-
     /** The attendees of the transaction */
     attendees?: Attendee[];
 };
