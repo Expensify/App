@@ -144,6 +144,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -445,7 +446,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
-        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No results found matching "${searchString}"`,
+        noResultsFoundMatching: (searchString: string) => `No results found matching "${searchString}"`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -459,7 +460,7 @@ const translations = {
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Please enter a complete phone number\n(e.g. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required',
             requestModified: 'This request is being modified by another member',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Character limit exceeded (${length}/${limit})`,
@@ -816,8 +817,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Submit an expense, refer your boss',
-            subtitleText: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            title: 'Submit an expense, refer your team',
+            subtitleText: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
     },
     videoChatButtonAndMenu: {
@@ -1117,6 +1118,7 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
@@ -1323,11 +1325,8 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
-            receiptFailureMessage: 'There was an error uploading your receipt. Please ',
+            receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
-            tryAgainMessage: 'try again ',
-            saveFileMessage: ' save the receipt',
-            uploadLaterMessage: ' to upload later.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
@@ -1347,7 +1346,10 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         unhold: 'Remove hold',
-        holdExpense: 'Hold expense',
+        holdExpense: () => ({
+            one: 'Hold expense',
+            other: 'Hold expenses',
+        }),
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
@@ -1358,7 +1360,10 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         newReport: 'New report',
-        explainHold: "Explain why you're holding this expense.",
+        explainHold: () => ({
+            one: "Explain why you're holding this expense.",
+            other: "Explain why you're holding these expenses.",
+        }),
         retracted: 'retracted',
         retract: 'Retract',
         reopened: 'reopened',
@@ -1388,11 +1393,10 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This request is on',
-        holdEducationalText: 'hold',
-        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
-        unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
+        holdEducationalTitle: 'Should you hold this expense?',
+        whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to submit them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -1543,10 +1547,122 @@ const translations = {
         upload: 'Upload',
         uploadPhoto: 'Upload photo',
         selectAvatar: 'Select avatar',
-        chooseCustomAvatar: 'Or choose a custom avatar',
+        choosePresetAvatar: 'Or choose a custom avatar',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
+    },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to add expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to add expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to add expenses.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `No further action required!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to add a bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to add a bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to add a bank account.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on ${eta}` : ` ${eta}`;
+                }
+
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to fix the issue(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to approve expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to approve expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to pay expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to pay expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to finish setting up a business bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to finish setting up a business bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to finish setting up a business bank account.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
+                }
+
+                return `Waiting for payment to complete${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'later today',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'on Sunday',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'on the last business day of the month',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'on the last day of the month',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'at the end of your trip',
+        },
     },
     profilePage: {
         profile: 'Profile',
@@ -1590,8 +1706,7 @@ const translations = {
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpTextBeforeEmail: 'Add more ways to send receipts. Forward them to ',
-        helpTextAfterEmail: ' or text them to 47777 (US numbers only).',
+        helpText: ({email}: {email: string}) => `Add more ways to send receipts. Forward them to <copy-text text="${email}"/> or text them to 47777 (US numbers only).`,
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
@@ -2029,6 +2144,8 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Please <a href="${missingDetailsLink}">add your personal details</a>, then try again.`,
+        unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
             reportFraudButtonText: "No, it wasn't me",
@@ -4171,6 +4288,8 @@ const translations = {
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    "If you switch the company card export setting to expense reports, NetSuite vendors and posting accounts for individual cards will be disabled.\n\nDon't worry, we’ll still save your previous selections in case you want to switch back later.",
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
@@ -4989,6 +5108,10 @@ const translations = {
             cannotMakeAllTagsOptional: {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
+            },
+            cannotMakeTagListRequired: {
+                title: 'Cannot make tag list required',
+                description: 'You can only make a tag list required if your policy has multiple tag levels configured.',
             },
             tagCount: () => ({
                 one: '1 Tag',
@@ -6693,9 +6816,9 @@ const translations = {
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Submit an expense, <success><strong>refer your boss</strong></success>.',
-            header: 'Submit an expense, refer your boss',
-            body: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
+            header: 'Submit an expense, refer your team',
+            body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Refer a friend',
@@ -6764,31 +6887,45 @@ const translations = {
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcohol`;
-                case 'gambling':
-                    return `${preMessage} gambling`;
-                case 'tobacco':
-                    return `${preMessage} tobacco`;
-                case 'adultEntertainment':
-                    return `${preMessage} adult entertainment`;
-                case 'hotelIncidentals':
-                    return `${preMessage} hotel incidentals`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcohol`;
+                    case 'gambling':
+                        return `gambling`;
+                    case 'tobacco':
+                        return `tobacco`;
+                    case 'adultEntertainment':
+                        return `adult entertainment`;
+                    case 'hotelIncidentals':
+                        return `hotel incidentals`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix` : "Can't auto-match receipt due to broken bank connection";
+                return isAdmin
+                    ? `Bank connection broken. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection broken. Ask an admin to reconnect to match receipt.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';
