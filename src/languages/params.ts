@@ -85,6 +85,12 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type LearnMoreRouteParams = {
+    learnMoreMethodsRoute: string;
+    formattedPrice: string;
+    hasTeam2025Pricing: boolean;
+};
+
 type BeginningOfArchivedRoomParams = {
     reportName: string;
     reportDetailsLink: string;
@@ -183,6 +189,8 @@ type WorkspaceRouteParams = {
 
 type RequestAmountParams = {amount: string};
 
+type ReportFieldParams = {name: string; value: string};
+
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
 type SplitAmountParams = {amount: string};
@@ -214,8 +222,6 @@ type CreateExpensesParams = {expensesNumber: number};
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
-type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -320,15 +326,15 @@ type ViolationsCustomRulesParams = {message: string};
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
-    email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+    companyCardPageURL?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
@@ -593,8 +599,6 @@ type LastSyncAccountingParams = {relativeDate: string};
 
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
-type ReconciliationWorksParams = {lastFourPAN: string};
-
 type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
@@ -604,11 +608,6 @@ type VacationDelegateParams = {nameOrEmail: string};
 type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
 
 type RoleNamesParams = {role: string};
-
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
 
 type SpreadSheetColumnParams = {
     name: string;
@@ -934,6 +933,11 @@ type ErrorODIntegrationParams = {
     oldDotPolicyConnectionsURL: string;
 };
 
+type SettlementAccountReconciliationParams = {
+    settlementAccountUrl: string;
+    lastFourPAN: string;
+};
+
 type DisconnectYourBankAccountParams = {
     bankName: string;
 };
@@ -942,7 +946,24 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type NextStepParams = {
+    actor: string;
+    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+};
+
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
+    SettlementAccountReconciliationParams,
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
@@ -971,7 +992,6 @@ export type {
     DelegateRoleParams,
     DelegatorParams,
     VacationDelegateParams,
-    ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
     RequiredFieldParams,
@@ -1017,7 +1037,6 @@ export type {
     LowerUpperParams,
     LogSizeAndDateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomParams,
@@ -1043,6 +1062,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
+    LearnMoreRouteParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1158,7 +1178,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
@@ -1253,4 +1272,7 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    NextStepParams,
+    ReportFieldParams,
+    FocusModeUpdateParams,
 };

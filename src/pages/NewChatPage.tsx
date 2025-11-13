@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
-const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 
 type SelectedOption = ListItem &
     Omit<OptionData, 'reportID'> & {
@@ -62,7 +62,7 @@ function useOptions() {
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -71,7 +71,7 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
             {
@@ -79,13 +79,15 @@ function useOptions() {
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
             },
+            countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
@@ -103,9 +105,10 @@ function useOptions() {
             options.personalDetails.length + options.recentReports.length !== 0,
             !!options.userToInvite,
             debouncedSearchTerm.trim(),
+            countryCode,
             selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
-    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
+    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions, countryCode]);
 
     useFocusEffect(
         useCallback(() => {
@@ -286,7 +289,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             }
             if (selectedOptions.length && option) {
                 // Prevent excluded emails from being added to groups
-                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                if (option?.login && excludedGroupEmails.has(option.login)) {
                     return;
                 }
                 toggleOption(option);
@@ -313,7 +316,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
                 return null;
             }
 

@@ -18,7 +18,7 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isPerDiemRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -51,12 +51,17 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
 
 function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
     // Do not allow merging two card transactions
-    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
+    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
     }
 
     // Do not allow merging two $0 transactions
     if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
         return false;
     }
 
@@ -186,7 +191,17 @@ function getOnyxTargetTransactionData(
         });
     }
 
-    return data.onyxData;
+    const onyxData = data.onyxData;
+
+    onyxData.optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            receipt: mergeTransaction.receipt ?? null,
+        },
+    });
+
+    return onyxData;
 }
 
 type MergeTransactionRequestParams = {
@@ -252,6 +267,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               ]
             : [];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
         transactionsOfSourceReport.length === 1
             ? [
@@ -318,6 +334,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
@@ -331,6 +348,8 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         };
     });
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticSourceTransactionData,
@@ -340,6 +359,8 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...optimisticSourceReportActionData,
     ];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.failureData ?? []),
         failureSourceTransactionData,
@@ -347,7 +368,10 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
+
+    const successData: OnyxUpdate[] = [];
+    successData.push(...successSourceReportActionData);
+    successData.push(...(onyxTargetTransactionData.successData ?? []));
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }

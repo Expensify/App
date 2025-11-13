@@ -35,12 +35,12 @@ import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
-const SET_UP_2FA_ROUTES: Route[] = [
+const SET_UP_2FA_ROUTES = new Set<Route>([
     ROUTES.REQUIRE_TWO_FACTOR_AUTH,
     ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
     ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
     ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-];
+]);
 
 let account: OnyxEntry<Account>;
 // We have used `connectWithoutView` here because it is not connected to any UI
@@ -90,7 +90,7 @@ type CanNavigateParams = {
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
     // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
     const targetRoute = params.route ?? params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.includes(targetRoute)) {
+    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.has(targetRoute)) {
         Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
         return false;
     }
@@ -550,7 +550,7 @@ const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
         // Let React Navigation finish modal transition
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fireModalDismissed();
         });
@@ -577,7 +577,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             return;
         }
         dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });
@@ -661,6 +661,12 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function isValidateLoginFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -716,6 +722,7 @@ export default {
     clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
+    isValidateLoginFlow,
 };
 
 export {navigationRef};

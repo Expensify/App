@@ -11,7 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
-const MODAL_ROUTES_TO_DISMISS: string[] = [
+const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
@@ -19,7 +19,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
     NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
-    SCREENS.ATTACHMENTS,
+    SCREENS.REPORT_ATTACHMENTS,
     SCREENS.REPORT_ADD_ATTACHMENT,
     SCREENS.TRANSACTION_RECEIPT,
     SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
@@ -27,7 +27,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
-];
+]);
 
 const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
 
@@ -148,7 +148,7 @@ function handleDismissModalAction(
     const lastRoute = state.routes.at(-1);
     const newAction = StackActions.pop();
 
-    if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
+    if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.has(lastRoute?.name)) {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         return null;
     }

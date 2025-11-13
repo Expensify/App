@@ -74,10 +74,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
     const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
+    const [isRequiresMultiLevelTagsModalVisible, setIsRequiresMultiLevelTagsModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -131,7 +133,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightElement: hasDependentTags ? (
-                    <ListItemRightCaretWithLabel shouldShowCaret />
+                    <ListItemRightCaretWithLabel />
                 ) : (
                     <Switch
                         isOn={tag.enabled}
@@ -215,7 +217,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
         });
@@ -240,7 +242,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-        const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
 
         if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTags.length > 0) {
             options.push({
@@ -316,7 +317,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+        setPolicyTagsRequired({policyID, requiresTag: false, tagListIndex: route.params.orderWeight, policyTags});
     }
 
     const navigateToEditTag = () => {
@@ -371,24 +372,28 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
+                                if (!isMultiLevelTags) {
+                                    setIsRequiresMultiLevelTagsModalVisible(true);
+                                    return;
+                                }
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
                                     setIsCannotMakeAllTagsOptionalModalVisible(true);
                                     return;
                                 }
 
-                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                                setPolicyTagsRequired({policyID, requiresTag: on, tagListIndex: route.params.orderWeight, policyTags});
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: route.params.orderWeight, errorField: 'required', policyTags})}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
-                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
+                            showLockIcon={!isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
                     </View>
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
-                    onClose={() => clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
+                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: currentPolicyTag.orderWeight, policyTags})}
                     pendingAction={currentPolicyTag.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
@@ -445,6 +450,15 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     onCancel={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
                     title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
                     prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    isVisible={isRequiresMultiLevelTagsModalVisible}
+                    onConfirm={() => setIsRequiresMultiLevelTagsModalVisible(false)}
+                    onCancel={() => setIsRequiresMultiLevelTagsModalVisible(false)}
+                    title={translate('workspace.tags.cannotMakeTagListRequired.title')}
+                    prompt={translate('workspace.tags.cannotMakeTagListRequired.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />

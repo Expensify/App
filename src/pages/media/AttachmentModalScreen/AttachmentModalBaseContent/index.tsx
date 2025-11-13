@@ -21,11 +21,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import {AttachmentStateContext} from './AttachmentStateContextProvider';
@@ -59,6 +59,7 @@ function AttachmentModalBaseContent({
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
+    transaction: transactionProp,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -82,11 +83,12 @@ function AttachmentModalBaseContent({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>();
+    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
     const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
     const fileToDisplay = useMemo(() => {
         if (isMultipleFiles) {
@@ -106,10 +108,6 @@ function AttachmentModalBaseContent({
     }, []);
 
     useEffect(() => {
-        if (!filesProp) {
-            return;
-        }
-
         setFile(filesProp ?? fallbackFile);
     }, [filesProp, fallbackFile, setFile]);
 
@@ -247,6 +245,7 @@ function AttachmentModalBaseContent({
                         fallbackSource={fallbackSource}
                         isUsedInAttachmentModal
                         transactionID={transaction?.transactionID}
+                        transaction={transaction}
                         isUploaded={!isEmptyObject(report)}
                         reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                     />
@@ -274,7 +273,7 @@ function AttachmentModalBaseContent({
         sourceForAttachmentView,
         sourceProp,
         styles.mh5,
-        transaction?.transactionID,
+        transaction,
         type,
     ]);
 

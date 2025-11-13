@@ -84,9 +84,23 @@ export default function PriorityModeController() {
 
         Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-        setShouldShowModal(true);
+        requestAnimationFrame(() => {
+            setShouldShowModal(true);
+        });
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
+
+    useEffect(() => {
+        if (!shouldShowModal) {
+            return;
+        }
+        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
+
+        // Hide focus modal when settings button is pressed from the prompt.
+        if (isNavigatingToPriorityModePage) {
+            setShouldShowModal(false);
+        }
+    }, [currentRouteName, shouldShowModal]);
 
     return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
 }

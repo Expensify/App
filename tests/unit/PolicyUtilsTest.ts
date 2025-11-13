@@ -16,6 +16,8 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDynamicExternalWorkflow,
+    hasOnlyPersonalPolicies,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -461,7 +463,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -476,7 +478,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -492,7 +494,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -511,7 +513,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -543,7 +545,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -570,7 +572,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -604,7 +606,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -639,7 +641,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -751,7 +753,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
             const result = getManagerAccountID(policy, report);
 
@@ -767,7 +769,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
 
             const result = getManagerAccountID(policy, report);
@@ -788,7 +790,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -805,7 +807,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -1226,6 +1228,82 @@ describe('PolicyUtils', () => {
 
             const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
             expect(result2).toBeUndefined();
+        });
+    });
+
+    describe('hasDynamicExternalWorkflow', () => {
+        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when policy has BASIC approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has ADVANCED approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has OPTIONAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const result = hasDynamicExternalWorkflow(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has no approvalMode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: undefined,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasOnlyPersonalPolicies', () => {
+        it('should return true when policies is empty', () => {
+            const result = hasOnlyPersonalPolicies({});
+            expect(result).toBe(true);
+        });
+
+        it('should return false when there are policies other than personal policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are no policies other than personal policies', () => {
+            const policies = {
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(true);
         });
     });
 });

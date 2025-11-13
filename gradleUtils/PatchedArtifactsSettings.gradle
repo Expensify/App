@@ -15,7 +15,7 @@ def patchedArtifacts = settings.getExtensions().create('patchedArtifacts', Patch
 
 def warnIfNotConfigured(reason) {
     ExpensiLog.warn("$reason")
-    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
+    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts")
 }
 
 def getNewDotRootDir() {
