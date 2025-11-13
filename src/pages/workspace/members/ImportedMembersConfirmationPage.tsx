@@ -4,7 +4,6 @@ import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEvent
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -19,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +31,6 @@ import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/Workspace
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
@@ -42,7 +41,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
-    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -57,10 +55,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             clearImportedSpreadsheetMemberData();
         };
     }, []);
-
-    const handleModalHide = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-    }, [policyID]);
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
     const newMembers = useMemo(() => {
@@ -96,9 +90,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
 
     const closeImportPageAndModal = () => {
-        setShouldShowConfirmModal(false);
         setIsClosing(true);
         setIsImporting(false);
+        closeImportPage();
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -137,12 +131,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         return items;
     }, [role, translate, policy]);
 
-    if (!spreadsheet) {
+    if (!spreadsheet || !importedSpreadsheetMemberData) {
         return <NotFoundPage />;
-    }
-
-    if (!importedSpreadsheetMemberData) {
-        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -212,9 +202,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 </PressableWithoutFeedback>
             </FixedFooter>
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
-                onModalHide={handleModalHide}
+                shouldHandleNavigationBack={false}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}

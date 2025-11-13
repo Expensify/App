@@ -14,9 +14,12 @@ type ImportSpreadsheetConfirmModalProps = {
 
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
+
+    /** Whether to handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
-function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide}: ImportSpreadsheetConfirmModalProps) {
+function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack = true}: ImportSpreadsheetConfirmModalProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
@@ -34,7 +37,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             onCancel={closeImportPageAndModal}
             confirmText={translate('common.buttonConfirm')}
             shouldShowCancelButton={false}
-            shouldHandleNavigationBack
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             onModalHide={onModalHide}
         />
     );
