@@ -40,8 +40,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         const manualRawFilters = parseManualQueryFilters(params.manualRawFilters);
-        return buildSearchQueryJSON(params.q, {manualRawFilterList: manualRawFilters});
-    }, [params?.q, params?.manualRawFilters]);
+        return buildSearchQueryJSON(params.q, {manualRawFilterList: manualRawFilters, rawQuery: params.rawQuery});
+    }, [params?.q, params?.manualRawFilters, params?.rawQuery]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {

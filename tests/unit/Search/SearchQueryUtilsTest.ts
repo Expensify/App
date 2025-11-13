@@ -268,7 +268,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {rawQuery: queryString});
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -288,7 +288,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {rawQuery: queryString});
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -308,7 +308,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {rawQuery: queryString});
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
                     name: 'Team Space',
@@ -338,6 +338,25 @@ describe('SearchQueryUtils', () => {
 
             const queryJSONWithManualFilters = buildSearchQueryJSON(canonicalQueryString, {manualRawFilterList: canonicalQueryResult?.rawFilterList});
             expect(queryJSONWithManualFilters?.rawFilterList).toEqual(canonicalQueryResult?.rawFilterList);
+        });
+
+        test('rawQuery takes precedence over manual raw filters when both are provided', () => {
+            const queryString = 'type:expense merchant:Uber';
+            const canonicalQueryResult = getQueryWithUpdatedValues(queryString);
+            const canonicalQueryString = canonicalQueryResult?.canonicalQuery;
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const overriddenRawQuery = 'type:expense merchant:Lyft';
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, {
+                rawQuery: overriddenRawQuery,
+                manualRawFilterList: canonicalQueryResult?.rawFilterList,
+            });
+            const merchantFilter = queryJSON?.rawFilterList?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+
+            expect(merchantFilter?.value).toBe('Lyft');
         });
     });
 

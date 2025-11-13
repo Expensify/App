@@ -43,16 +43,20 @@ function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensPa
     const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
     if (lastSearchRoute) {
-        const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-        const queryJSON = buildSearchQueryJSON(q);
+        const {q, rawQuery, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+        const queryJSON = buildSearchQueryJSON(q, {rawQuery});
         if (queryJSON) {
             const query = buildSearchQueryString(queryJSON);
-            navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: query, ...rest}});
+            navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {
+                screen: SCREENS.SEARCH.ROOT,
+                params: {q: query, rawQuery: rawQuery ?? query, ...rest},
+            });
             return;
         }
     }
 
-    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: buildCannedSearchQuery()}});
+    const defaultQuery = buildCannedSearchQuery();
+    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: defaultQuery, rawQuery: defaultQuery}});
 }
 
 function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {

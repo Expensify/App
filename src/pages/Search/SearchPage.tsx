@@ -106,7 +106,10 @@ function SearchPage({route}: SearchPageProps) {
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const manualRawFilters = useMemo(() => parseManualQueryFilters(route.params.manualRawFilters), [route.params.manualRawFilters]);
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, {manualRawFilterList: manualRawFilters}), [route.params.q, manualRawFilters]);
+    const queryJSON = useMemo(
+        () => buildSearchQueryJSON(route.params.q, {manualRawFilterList: manualRawFilters, rawQuery: route.params.rawQuery}),
+        [route.params.q, manualRawFilters, route.params.rawQuery],
+    );
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
 

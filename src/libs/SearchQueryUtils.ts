@@ -51,6 +51,7 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 type BuildSearchQueryJSONOptions = {
     preserveRawFilterList?: boolean;
     manualRawFilterList?: RawQueryFilter[];
+    rawQuery?: SearchQueryString;
 };
 
 // This map contains chars that match each operator
@@ -404,8 +405,20 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  *
  * In a way this is the reverse of buildSearchQueryString()
  */
+function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
+    try {
+        const rawResult = parseSearchQuery(rawQuery) as SearchQueryJSON;
+        const rawFilters = rawResult.rawFilterList;
+        return Array.isArray(rawFilters) ? rawFilters : undefined;
+    } catch (error) {
+        Log.warn('[Search] Failed to parse raw query for raw filters', {error, rawQuery});
+    }
+
+    return undefined;
+}
+
 function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQueryJSONOptions = {}) {
-    const {preserveRawFilterList = false, manualRawFilterList} = options;
+    const {preserveRawFilterList = false, manualRawFilterList, rawQuery} = options;
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
@@ -418,8 +431,11 @@ function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQuer
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
+        const rawFilterListFromRawQuery = rawQuery ? getRawFilterListFromQuery(rawQuery) : undefined;
         const parsedRawFilterList = Array.isArray(result.rawFilterList) ? result.rawFilterList : [];
-        if (manualRawFilterList && manualRawFilterList.length > 0) {
+        if (rawFilterListFromRawQuery && rawFilterListFromRawQuery.length > 0) {
+            result.rawFilterList = rawFilterListFromRawQuery;
+        } else if (manualRawFilterList && manualRawFilterList.length > 0) {
             result.rawFilterList = manualRawFilterList;
         } else if (preserveRawFilterList && parsedRawFilterList.length > 0) {
             result.rawFilterList = parsedRawFilterList;
@@ -1411,8 +1427,8 @@ function getCurrentSearchQueryJSON() {
         return;
     }
 
-    const {q: searchParams} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(searchParams);
+    const {q: searchParams, rawQuery} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const queryJSON = buildSearchQueryJSON(searchParams, {rawQuery});
     if (!queryJSON) {
         return;
     }

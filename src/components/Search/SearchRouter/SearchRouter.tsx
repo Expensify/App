@@ -298,6 +298,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({
                         query: updatedQuery,
+                        rawQuery: queryWithSubstitutions,
                         manualRawFilters,
                     }),
                 );
