@@ -17,6 +17,7 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
     hasDynamicExternalWorkflow,
+    hasOnlyPersonalPolicies,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -1279,6 +1280,30 @@ describe('PolicyUtils', () => {
             };
             const result = hasDynamicExternalWorkflow(policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('hasOnlyPersonalPolicies', () => {
+        it('should return true when policies is empty', () => {
+            const result = hasOnlyPersonalPolicies({});
+            expect(result).toBe(true);
+        });
+
+        it('should return false when there are policies other than personal policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are no policies other than personal policies', () => {
+            const policies = {
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(true);
         });
     });
 });
