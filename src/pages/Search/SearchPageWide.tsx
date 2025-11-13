@@ -30,7 +30,7 @@ type SearchPageWideProps = {
         total: number | undefined;
         currency: string | undefined;
     };
-    selectedPolicyIDs: string[] | undefined;
+    selectedPolicyIDs: Array<string | undefined>;
     selectedTransactionReportIDs: string[];
     selectedReportIDs: string[];
     latestBankItems?: BankAccountMenuItem[];
