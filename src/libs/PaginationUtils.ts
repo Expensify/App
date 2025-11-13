@@ -174,7 +174,7 @@ function getContinuousChain<TResource>(
     pages: Pages,
     getID: (item: TResource) => string,
     id?: string,
-    idPredicate?: (item: TResource) => boolean,
+    resourceItemPredicate?: (item: TResource) => boolean,
 ): ContinuousPageChainResult<TResource> {
     const getResourceById = (item: TResource) => getID(item) === id;
 
@@ -202,13 +202,17 @@ function getContinuousChain<TResource>(
     };
 
     let index = -1;
+
+    // If an id is provided, find the index of the item with that id
     if (id) {
         index = sortedItems.findIndex(getResourceById);
-    } else if (idPredicate) {
-        index = sortedItems.findIndex(idPredicate);
+    } else if (resourceItemPredicate) {
+        // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
+        index = sortedItems.findIndex(resourceItemPredicate);
     }
 
-    if (index !== -1 || !idPredicate) {
+    // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
+    if (index !== -1 || !resourceItemPredicate) {
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
         if (index === -1) {
             return {data: [], hasNextPage: false, hasPreviousPage: false};
@@ -226,6 +230,7 @@ function getContinuousChain<TResource>(
             page = linkedPage;
         }
     } else {
+        // If we didn't find an item with the resourceItemPredicate or no id was provided, we want to link to the first page
         const pageAtIndex0 = pagesWithIndexes.at(0);
         if (pageAtIndex0) {
             page = pageAtIndex0;
