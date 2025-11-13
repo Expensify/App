@@ -19,7 +19,6 @@ type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
-    const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
 

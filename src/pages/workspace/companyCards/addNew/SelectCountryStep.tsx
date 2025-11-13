@@ -35,7 +35,7 @@ function SelectCountryStep({route}: CountryStepProps) {
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -77,7 +77,7 @@ function SelectCountryStep({route}: CountryStepProps) {
     }, [getCountry]);
 
     const handleBackButtonPress = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
+        Navigation.dismissModal();
     };
 
     const onSelectionChange = useCallback((country: Option) => {

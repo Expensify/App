@@ -107,7 +107,7 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
         previousNetworkState.current = isOffline;
     }, [addNewCard?.data?.selectedCountry, domain, feed, isAuthenticatedWithPlaid, isOffline]);
 
-    const handleBackButtonPress = (showingExitModal: boolean = false) => {
+    const handleBackButtonPress = (showingExitModal = false) => {
         if (feed && !showingExitModal) {
             Navigation.dismissModal();
             return;
