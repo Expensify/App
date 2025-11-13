@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NavigationRoute} from '@libs/Navigation/types';
+import type {NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -115,11 +115,46 @@ const expenseReportSelector = (reports: OnyxCollection<Report>) => {
     );
 };
 
+function getCurrentWideRHPKeys(allWideRHPKeys: string[], lastVisibleRHPRouteKey: string | undefined) {
+    const rootState = navigationRef.getRootState();
+
+    if (!rootState) {
+        return [];
+    }
+
+    const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
+
+    if (!lastRHPRoute) {
+        return [];
+    }
+
+    const lastRHPKeys = extractNavigationKeys(lastRHPRoute.state);
+    const currentKeys = allWideRHPKeys.filter((key) => lastRHPKeys.has(key));
+
+    return currentKeys;
+}
+
+function getLastVisibleRHPRouteKey(state: NavigationState<RootNavigatorParamList>) {
+    // Safe handling when navigation is not yet initialized
+    if (!state) {
+        return undefined;
+    }
+    const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
+    const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+    // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
+    if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
+        return undefined;
+    }
+
+    return state?.routes.at(lastRHPRouteIndex)?.key;
+}
+
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
     // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
-    const [superWideRHPRouteKeys, setSuperWideRHPRouteKeys] = useState<string[]>([]);
+    const [allSuperWideRHPRouteKeys, setAllSuperWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [shouldRenderThirdOverlay, setShouldRenderThirdOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
@@ -128,40 +163,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     // Return undefined if RHP is not the last route
-    const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
-        // Safe handling when navigation is not yet initialized
-        if (!state) {
-            return undefined;
-        }
-        const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
-        const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    const lastVisibleRHPRouteKey = useRootNavigationState((state) => getLastVisibleRHPRouteKey(state));
 
-        // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
-        if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
-            return undefined;
-        }
-
-        return state?.routes.at(lastRHPRouteIndex)?.key;
-    });
-
-    const wideRHPRouteKeys = useMemo(() => {
-        const rootState = navigationRef.getRootState();
-
-        if (!rootState) {
-            return [];
-        }
-
-        const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
-
-        if (!lastRHPRoute) {
-            return [];
-        }
-
-        const lastRHPKeys = extractNavigationKeys(lastRHPRoute.state);
-        const currentKeys = allWideRHPRouteKeys.filter((key) => lastRHPKeys.has(key));
-
-        return currentKeys;
-    }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
+    const wideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allWideRHPRouteKeys, lastVisibleRHPRouteKey), [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
+    const superWideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey), [allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
     const isWideRhpFocused = useMemo(() => {
         return focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
@@ -179,6 +184,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
         const focusedRoute = findFocusedRoute(state);
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+        const currentWideRHPRouteKeys = getCurrentWideRHPKeys(allWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
+        const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
 
         // Shouldn't ever happen but for type safety
         if (!focusedRoute?.key) {
@@ -190,16 +198,21 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        if (superWideRHPRouteKeys.includes(focusedRoute.key) && wideRHPRouteKeys.length > 0) {
+        if (currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && currentWideRHPRouteKeys.length > 0) {
             return false;
         }
 
-        if (superWideRHPRouteKeys.length > 0 && !superWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+        if (
+            currentSuperWideRHPRouteKeys.length > 0 &&
+            !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) &&
+            isRHPLastRootRoute &&
+            focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT
+        ) {
             return true;
         }
 
         // Check the focused route to avoid glitching when quickly close and open RHP.
-        if (wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
+        if (currentWideRHPRouteKeys.length > 0 && !currentWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
             return true;
         }
 
@@ -214,6 +227,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
         const focusedRoute = findFocusedRoute(state);
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+        const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
 
         // Shouldn't ever happen but for type safety
         if (!focusedRoute?.key) {
@@ -221,7 +236,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const isSuperWideRhpDisplayedBelow =
-            superWideRHPRouteKeys.length > 0 && !superWideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+            currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT;
         const isWideRhpDisplayedBelow = wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP;
 
         // Check the focused route to avoid glitching when quickly close and open RHP.
@@ -241,7 +256,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
         // If the key is in the array, don't add it.
         // Ensure mutual exclusivity: remove key from other array if present
-        setSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
+        setAllSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
         setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
@@ -255,7 +270,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         // If the key is in the array, don't add it.
         // Ensure mutual exclusivity: remove key from other array if present
         setAllWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev.filter((key) => key !== newKey) : prev));
-        setSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
+        setAllSuperWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
     /**
@@ -276,7 +291,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             }
 
             setAllWideRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
-            setSuperWideRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
+            setAllSuperWideRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
         },
         [allWideRHPRouteKeys, superWideRHPRouteKeys],
     );
