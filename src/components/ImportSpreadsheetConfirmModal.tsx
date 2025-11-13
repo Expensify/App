@@ -15,7 +15,7 @@ type ImportSpreadsheetConfirmModalProps = {
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
 
-    /** Whether to handle navigation back when modal show. */
+    /** Whether to handle navigation back when modal visibility changes. */
     shouldHandleNavigationBack?: boolean;
 };
 
