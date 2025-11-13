@@ -129,7 +129,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isBlockedToAddNewFeeds || isAllFeedsResultLoading) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
             return;
         }
 
