@@ -156,27 +156,27 @@ function createRegistrationResultStatus(partialStatus: Partial<MultifactorAuthen
  * Success depends on having no pending requirements and previous success.
  * Returns unchanged status if already fulfilled.
  */
-function createCancelStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
-    return {
+function createCancelStatus(wasRecentStepSuccessful?: boolean) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
         ...prevStatus,
         step: {
             isRequestFulfilled: true,
-            wasRecentStepSuccessful: undefined,
+            wasRecentStepSuccessful,
             requiredFactorForNextStep: undefined,
         },
-    };
+    });
 }
 
-function createCancelStatusWithNoValue<T>(prevStatus: MultifactorAuthenticationStatus<T>): MultifactorAuthenticationStatus<T | undefined> {
-    return {
+function createCancelStatusWithNoValue(wasRecentStepSuccessful?: boolean) {
+    return <T>(prevStatus: MultifactorAuthenticationStatus<T>): MultifactorAuthenticationStatus<T | undefined> => ({
         ...prevStatus,
         value: undefined,
         step: {
             isRequestFulfilled: true,
-            wasRecentStepSuccessful: undefined,
+            wasRecentStepSuccessful,
             requiredFactorForNextStep: undefined,
         },
-    };
+    });
 }
 
 /**

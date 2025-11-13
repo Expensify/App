@@ -9,7 +9,7 @@ import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthen
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+// import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -20,14 +20,14 @@ type MFAApproveTransactionPageProps = PlatformStackScreenProps<MultiFactorAuthen
 function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {process} = useMultifactorAuthenticationContext();
+    const {process, trigger} = useMultifactorAuthenticationContext();
 
     const transactionID = route.params.transactionID;
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const onGoBackPress = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+    // const onGoBackPress = useCallback(() => {
+    //     Navigation.goBack();
+    // }, []);
 
     const showConfirmModal = useCallback(() => {
         setConfirmModalVisibility(true);
@@ -49,9 +49,11 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
+        // TODO: Niewiadomo jaki tu jest scenariusz de facto
+        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FAILURE, 'authorize-transaction-denied');
         // MFAdenyTransaction(); // TODO: Create a trigger responsible for failure
-        onGoBackPress();
-    }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
+        // onGoBackPress();
+    }, [isConfirmModalVisible, trigger, hideConfirmModal]);
 
     return (
         <ScreenWrapper testID={MFAScenarioApproveTransactionPage.displayName}>

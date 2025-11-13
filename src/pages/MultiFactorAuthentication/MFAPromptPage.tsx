@@ -11,13 +11,14 @@ import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultiFactorAuthenticationParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 type MultiFactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultiFactorAuthenticationParamList, typeof SCREENS.MULTIFACTORAUTHENTICATION.PROMPT>;
 
 function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
-    const {update} = useMultifactorAuthenticationContext();
+    const {update, trigger} = useMultifactorAuthenticationContext();
 
     const contentData = useMemo(() => MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType], [route.params.promptType]);
 
@@ -43,9 +44,10 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
+        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FAILURE);
         // MFAdenyTransaction(); // TODO: Create a trigger responsible for failure
-        onGoBackPress();
-    }, [isConfirmModalVisible, hideConfirmModal, onGoBackPress]);
+        // onGoBackPress();
+    }, [isConfirmModalVisible, trigger, hideConfirmModal]);
 
     if (!contentData) {
         return <NotFoundPage />;

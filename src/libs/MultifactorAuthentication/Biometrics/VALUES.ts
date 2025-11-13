@@ -75,6 +75,7 @@ const MULTI_FACTOR_AUTHENTICATION_VALUES = {
         REVOKE: 'REVOKE',
         CANCEL: 'CANCEL',
         FULFILL: 'FULFILL',
+        FAILURE: 'FAILURE',
     },
     /**
      * Used to obtain the reason for the error from its message,

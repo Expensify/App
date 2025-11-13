@@ -7,6 +7,7 @@ import type {MultifactorAuthenticationScenarioParameters} from '@components/Mult
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import type {SignedChallenge} from './ED25519.types';
+import type {AllMultifactorAuthenticationNotificationType} from './notifications.types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
 
@@ -38,6 +39,11 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
     : EmptyObject;
 
 type MultifactorAuthenticationTrigger = ValueOf<typeof VALUES.TRIGGER>;
+
+type MultifactorAuthenticationTriggerArgument = {
+    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationNotificationType;
+    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationNotificationType;
+};
 
 /**
  * Represents the core status information for multifactorial authentication operations.
@@ -221,4 +227,5 @@ export type {
     MultifactorAuthenticationUIConfigOptions,
     MultifactorAuthenticationPromptUI,
     MultifactorAuthenticationNotificationUI,
+    MultifactorAuthenticationTriggerArgument,
 };

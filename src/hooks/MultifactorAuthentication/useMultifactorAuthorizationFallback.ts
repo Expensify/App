@@ -63,9 +63,12 @@ function useMultifactorAuthorizationFallback() {
      * Marks the current authorization request as fulfilled and resets the validate code.
      * Used when completing or canceling an authorization flow.
      */
-    const cancel = useCallback(() => {
-        return setStatus(Status.createCancelStatusWithNoValue);
-    }, [setStatus]);
+    const cancel = useCallback(
+        (wasRecentStepSuccessful?: boolean) => {
+            return setStatus(Status.createCancelStatusWithNoValue(wasRecentStepSuccessful));
+        },
+        [setStatus],
+    );
 
     return useMemo(
         () => ({

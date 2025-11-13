@@ -64,16 +64,19 @@ function useNativeBiometrics() {
      * Marks the current authorization request as complete.
      * Preserves the success/failure state while clearing any pending requirements.
      */
-    const cancel = useCallback(() => {
-        return setStatus((prevStatus) => ({
-            ...prevStatus,
-            step: {
-                isRequestFulfilled: true,
-                requiredFactorForNextStep: undefined,
-                wasRecentStepSuccessful: undefined,
-            },
-        }));
-    }, [setStatus]);
+    const cancel = useCallback(
+        (wasRecentStepSuccessful?: boolean) => {
+            return setStatus((prevStatus) => ({
+                ...prevStatus,
+                step: {
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                    wasRecentStepSuccessful,
+                },
+            }));
+        },
+        [setStatus],
+    );
 
     return {status, authorize, cancel, setup: BiometricsSetup};
 }

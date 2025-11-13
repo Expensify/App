@@ -10,6 +10,7 @@ import type {
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationStep,
     MultifactorAuthenticationTrigger,
+    MultifactorAuthenticationTriggerArgument,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 
@@ -91,10 +92,13 @@ type UseBiometricsSetup = MultifactorAuthenticationStep &
         revoke: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
 
         /** Completes current request and updates UI state accordingly */
-        cancel: () => MultifactorAuthenticationStatus<BiometricsStatus>;
+        cancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>;
 
         refresh: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
     };
+
+type TriggerWithArgument = keyof MultifactorAuthenticationTriggerArgument;
+type MultifactorTriggerArgument<T extends MultifactorAuthenticationTrigger> = T extends TriggerWithArgument ? MultifactorAuthenticationTriggerArgument[T] : void;
 
 type UseMultifactorAuthentication = {
     info: MultifactorAuthenticationInfo &
@@ -113,7 +117,10 @@ type UseMultifactorAuthentication = {
             softPromptDecision?: boolean;
         },
     ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
-    trigger: (triggerType: MultifactorAuthenticationTrigger) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    trigger: <T extends MultifactorAuthenticationTrigger>(
+        triggerType: T,
+        argument?: MultifactorTriggerArgument<T>,
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
 };
 
 type MultifactorAuthenticationScenarioStatus = {
@@ -155,4 +162,5 @@ export type {
     MultifactorAuthenticationScenarioStatus,
     MultifactorAuthenticationStatusMessage,
     BiometricsStatus,
+    MultifactorTriggerArgument,
 };

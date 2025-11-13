@@ -37,7 +37,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Marks the current authentication request as complete.
      * Clears any pending requirements while preserving success/failure state.
      */
-    const cancel = useCallback(() => setStatus(Status.createCancelStatus), [setStatus]);
+    const cancel = useCallback((wasRecentStepSuccessful?: boolean) => setStatus(Status.createCancelStatus(wasRecentStepSuccessful)), [setStatus]);
 
     /** Memoized check for device biometric capability */
     const deviceSupportBiometrics = useMemo(() => doesDeviceSupportBiometrics(), []);

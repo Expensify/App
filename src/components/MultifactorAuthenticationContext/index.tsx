@@ -9,7 +9,7 @@ import {
     shouldAllowBiometrics,
     shouldAllowFallback,
 } from '@hooks/MultifactorAuthentication/helpers';
-import type {MultifactorAuthenticationScenarioStatus, Register, UseMultifactorAuthentication} from '@hooks/MultifactorAuthentication/types';
+import type {MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, Register, UseMultifactorAuthentication} from '@hooks/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
@@ -248,20 +248,25 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         [NativeBiometrics, allowedMethods, setStatus],
     );
 
-    const cancel = useCallback(() => {
-        const {scenario, type} = mergedStatus.value;
-        softPromptStore.current.accepted = undefined;
-        softPromptStore.current.validateCode = undefined;
+    const cancel = useCallback(
+        (wasRecentStepSuccessful?: boolean) => {
+            const {scenario, type} = mergedStatus.value;
+            softPromptStore.current.accepted = undefined;
+            softPromptStore.current.validateCode = undefined;
 
-        if (type === CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
-            return setStatus(convertResultIntoMFAStatus(NativeBiometrics.cancel(), scenario, type, false));
-        }
-        if (type === CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK) {
-            return setStatus(convertResultIntoMFAStatus(MultifactorAuthorizationFallback.cancel(), scenario, type, false));
-        }
+            if (type === CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
+                return setStatus(convertResultIntoMFAStatus(NativeBiometrics.cancel(wasRecentStepSuccessful), scenario, type, false));
+            }
+            if (type === CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK) {
+                return setStatus(convertResultIntoMFAStatus(MultifactorAuthorizationFallback.cancel(wasRecentStepSuccessful), scenario, type, false));
+            }
 
-        return setStatus(convertResultIntoMFAStatus(NativeBiometrics.setup.cancel(), scenario, CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, false));
-    }, [NativeBiometrics, MultifactorAuthorizationFallback, mergedStatus.value, setStatus]);
+            return setStatus(
+                convertResultIntoMFAStatus(NativeBiometrics.setup.cancel(wasRecentStepSuccessful), scenario, CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, false),
+            );
+        },
+        [NativeBiometrics, MultifactorAuthorizationFallback, mergedStatus.value, setStatus],
+    );
 
     const process = useCallback(
         async <T extends MultifactorAuthenticationScenario>(
@@ -390,14 +395,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         [mergedStatus, process, setStatus],
     );
 
-    const done = useCallback(() => {
-        const {step} = mergedStatus;
-
-        const result = cancel();
-        success.current = !!step.wasRecentStepSuccessful && step.isRequestFulfilled;
-        return result;
-    }, [cancel, mergedStatus]);
-
     const revoke = useCallback(async () => {
         const revokeStatus = await NativeBiometrics.setup.revoke();
         return setStatus(
@@ -424,22 +421,32 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     }, [NativeBiometrics.setup, mergedStatus.message, mergedStatus.title]);
 
     const trigger = useCallback(
-        async (triggerType: MultifactorAuthenticationTrigger) => {
+        async <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => {
             if (triggerType === CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.REVOKE) {
                 return revoke();
             }
 
             if (triggerType === CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FULFILL) {
-                return done();
+                if (argument) {
+                    overriddenScreens.current.success = argument;
+                }
+                return cancel(true);
             }
 
             if (triggerType === CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.CANCEL) {
                 return cancel();
             }
 
+            if (triggerType === CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FAILURE) {
+                if (argument) {
+                    overriddenScreens.current.failure = argument;
+                }
+                return cancel(false);
+            }
+
             return mergedStatus;
         },
-        [cancel, done, mergedStatus, revoke],
+        [cancel, mergedStatus, revoke],
     );
 
     const MultifactorAuthenticationData = useMemo(
