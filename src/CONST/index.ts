@@ -1143,6 +1143,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -1520,10 +1521,39 @@ const CONST = {
     },
     EXPORT_TEMPLATE: 'exportTemplate',
     NEXT_STEP: {
+        MESSAGE_KEY: {
+            WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
+            NO_FURTHER_ACTION: 'noFurtherAction',
+            WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
+            WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
+            WAITING_TO_FIX_ISSUES: 'waitingToFixIssues',
+            WAITING_TO_APPROVE: 'waitingToApprove',
+            WAITING_TO_PAY: 'waitingToPay',
+            WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
+            WAITING_FOR_PAYMENT: 'waitingForPayment',
+        },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+        },
+        ETA_KEY: {
+            SHORTLY: 'shortly',
+            TODAY: 'today',
+            END_OF_WEEK: 'endOfWeek',
+            SEMI_MONTHLY: 'semiMonthly',
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            END_OF_TRIP: 'endOfTrip',
+        },
+        ACTOR_TYPE: {
+            CURRENT_USER: 'currentUser',
+            OTHER_USER: 'otherUser',
+            UNSPECIFIED_ADMIN: 'unspecifiedAdmin',
+        },
+        ETA_TYPE: {
+            KEY: 'key',
+            DATE_TIME: 'dateTime',
         },
     },
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,

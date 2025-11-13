@@ -10,6 +10,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -64,6 +65,7 @@ function TransactionPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -106,7 +108,8 @@ function TransactionPreviewContent({
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
-    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
+    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL) : undefined;
 
     const previewText = useMemo(
         () =>
