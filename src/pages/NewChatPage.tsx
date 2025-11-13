@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
-const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 
 type SelectedOption = ListItem &
     Omit<OptionData, 'reportID'> & {
@@ -289,7 +289,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             }
             if (selectedOptions.length && option) {
                 // Prevent excluded emails from being added to groups
-                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                if (option?.login && excludedGroupEmails.has(option.login)) {
                     return;
                 }
                 toggleOption(option);
@@ -316,7 +316,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
                 return null;
             }
 
