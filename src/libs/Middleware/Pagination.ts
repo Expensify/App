@@ -1,13 +1,11 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
@@ -134,17 +132,6 @@ const Pagination: Middleware = (requestResponse, request) => {
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,
         });
-
-        if (request.command === WRITE_COMMANDS.OPEN_REPORT) {
-            // Stores the oldestUnreadReportActionID in Onyx to to allow fetching the correct page initially when a report is loaded.
-            // This value is reset once the report has finished loading.
-            const oldestUnreadReportActionID = response.oldestUnreadReportActionID ?? CONST.NOT_FOUND_ID;
-            response.onyxData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
-                value: oldestUnreadReportActionID,
-            });
-        }
 
         return Promise.resolve(response);
     });

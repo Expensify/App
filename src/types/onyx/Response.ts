@@ -87,9 +87,6 @@ type Response = {
     /** If there is newer data to load for pagination commands */
     hasNewerActions?: boolean;
 
-    /** The oldest unread report action ID */
-    oldestUnreadReportActionID?: string | null;
-
     /** The email of the original user (returned when in delegate mode) */
     requesterEmail?: string;
 
