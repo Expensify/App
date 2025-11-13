@@ -49,6 +49,9 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Whether fetching the SCIM token has failed and why */
         scimTokenError: OnyxCommon.Errors;
     };
+
+    /** Whether setting SAML metadata failed and why */
+    samlMetadataError: OnyxCommon.Errors;
 }>;
 
 /** Model of SAML metadata */

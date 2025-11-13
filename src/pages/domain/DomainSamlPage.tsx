@@ -15,11 +15,13 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSamlSettings, getScimToken, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
+import {getSamlSettings, getScimToken, setSamlEnabled, setSamlMetadata, setSamlRequired} from '@libs/actions/Domain';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -147,15 +149,20 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         titleStyles={styles.accountSettingsSectionTitle}
                                         childrenStyles={styles.pt3}
                                     >
-                                        <MenuItemWithTopDescription
-                                            title={samlMetadata?.metaIdentity}
+                                        <TextPicker
+                                            value={samlMetadata?.metaIdentity}
+                                            inputID="identityProviderMetadata"
                                             description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            numberOfLinesTitle={2}
                                             titleStyle={[styles.fontSizeLabel, styles.textMono]}
                                             descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
-                                            shouldShowRightIcon
-                                            numberOfLinesTitle={2}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={() => {}}
+                                            numberOfLines={4}
+                                            multiline
+                                            onValueCommitted={(value) => {
+                                                setSamlMetadata(accountID, domainName ?? '', {metaIdentity: value});
+                                            }}
+                                            errorText={getLatestErrorMessage({errors: domain.samlMetadataError})}
                                         />
 
                                         <MenuItemWithTopDescription

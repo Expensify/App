@@ -20,6 +20,10 @@ function TextPicker(
         disabled = false,
         interactive = true,
         required = false,
+        wrapperStyle,
+        numberOfLinesTitle,
+        titleStyle,
+        descriptionTextStyle,
         ...rest
     }: TextPickerProps,
     forwardedRef: ForwardedRef<View>,
@@ -60,6 +64,10 @@ function TextPicker(
                 errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
                 interactive={interactive}
+                wrapperStyle={wrapperStyle}
+                numberOfLinesTitle={numberOfLinesTitle}
+                titleStyle={titleStyle}
+                descriptionTextStyle={descriptionTextStyle}
             />
             <TextSelectorModal
                 value={value}
