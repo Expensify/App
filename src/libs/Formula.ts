@@ -546,7 +546,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     try {
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
-            if (trimmedDisplayCurrency?.toLowerCase() === 'nosymbol') {
+            if (trimmedDisplayCurrency === 'NOSYMBOL') {
                 return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
             }
 
