@@ -31,8 +31,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
 
+    const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     /**
@@ -92,9 +92,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             );
 
             Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
-                const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID);
+                const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
                 const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
-                    (transaction) => !splitIDs.includes(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
+                    (transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
                 );
 
                 if (childTransactions.length === 0) {
@@ -128,8 +128,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     isChatReportArchived: isChatIOUReportArchived,
-                    isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                 });
             });
 
@@ -162,7 +162,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, isBetaEnabled, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet],
+        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet, isBetaEnabled],
     );
 
     return {

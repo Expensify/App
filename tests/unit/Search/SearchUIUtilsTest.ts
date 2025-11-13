@@ -78,7 +78,6 @@ const report1 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -100,7 +99,6 @@ const report2 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -123,7 +121,6 @@ const report3 = {
     currency: 'VND',
     isOneTransactionReport: false,
     isOwnPolicyExpenseChat: false,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: approverAccountID,
     nonReimbursableTotal: 0,
@@ -132,7 +129,7 @@ const report3 = {
     policyID,
     private_isArchived: '',
     reportID: reportID3,
-    reportName: 'Report Name',
+    reportName: 'owes ₫44.00',
     stateNum: 1,
     statusNum: 1,
     total: 4400,
@@ -156,7 +153,6 @@ const report5 = {
     created: '2024-12-21 13:05:20',
     currency: 'USD',
     isOneTransactionReport: true,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: adminAccountID,
     nonReimbursableTotal: 0,
@@ -171,64 +167,71 @@ const report5 = {
     unheldTotal: 0,
 } as const;
 
-const reportAction1 = {
+const reportAction1: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:21',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '11111111',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID,
         IOUReportID: report1.reportID,
     },
     reportID: report1.reportID,
-    reportName: report1.reportName,
 };
 
-const reportAction2 = {
+const reportAction2: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:22',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '22222222',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID2,
         IOUReportID: report2.reportID,
     },
     reportID: report2.reportID,
-    reportName: report2.reportName,
 };
 
-const reportAction3 = {
+const reportAction3: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:23',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '33333333',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID3,
         IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
-    reportName: report3.reportName,
 };
 
-const reportAction4 = {
+const reportAction4: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
+    actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:24',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '44444444',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID4,
         IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
-    reportName: report3.reportName,
 };
 
 const policy = {
     id: 'Admin',
+    name: 'Policy',
+    outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
     approvalMode: 'ADVANCED',
     autoReimbursement: {
         limit: 0,
@@ -269,7 +272,7 @@ const policy = {
             submitsTo: adminEmail,
         },
     },
-} as const;
+} as OnyxTypes.Policy;
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -331,7 +334,6 @@ const searchResults: OnyxTypes.SearchResults = {
                 ],
                 reportActionID: 'Admin',
                 reportID,
-                reportName: 'Admin',
             },
             test1: {
                 accountID: adminAccountID,
@@ -352,7 +354,6 @@ const searchResults: OnyxTypes.SearchResults = {
                 ],
                 reportActionID: 'Admin1',
                 reportID,
-                reportName: 'Admin1',
             },
         },
         [`reportActions_${reportID2}`]: {
@@ -368,9 +369,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID4}`]: report4,
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
-            accountID: adminAccountID,
-            action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -385,9 +383,6 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
-            description: '',
-            hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -395,9 +390,7 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            policyID,
             reportID,
-            reportType: 'expense',
             tag: '',
             transactionID,
             transactionThreadReportID: '456',
@@ -414,9 +407,6 @@ const searchResults: OnyxTypes.SearchResults = {
             convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
-            accountID: adminAccountID,
-            action: 'view',
-            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -431,18 +421,13 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: adminAccountID,
-            description: '',
-            hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
-            policyID,
             reportID: reportID2,
-            reportType: 'expense',
             tag: '',
             transactionID: transactionID2,
             transactionThreadReportID: '456',
@@ -461,10 +446,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
-            accountID: adminAccountID,
             amount: 1200,
-            action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -478,23 +460,19 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
             transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
-            description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
@@ -502,15 +480,11 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
-            accountID: adminAccountID,
             amount: 3200,
-            action: 'view',
-            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -524,21 +498,17 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             isFromOneTransactionReport: false,
-            managerID: approverAccountID,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
-            policyID,
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
-            description: '',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -548,7 +518,6 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
-            hasViolation: undefined,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -703,9 +672,11 @@ const reportActionListItems = [
         },
         keyForList: reportAction1.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report1.reportID,
             IOUTransactionID: transactionID,
         },
+        reportName: report1.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -735,8 +706,8 @@ const reportActionListItems = [
             },
         ],
         reportActionID: 'Admin',
+        reportName: report1.reportName,
         reportID: '123456789',
-        reportName: 'Expense Report #123',
     },
     {
         ...reportAction2,
@@ -750,9 +721,11 @@ const reportActionListItems = [
         },
         keyForList: reportAction2.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report2.reportID,
             IOUTransactionID: transactionID2,
         },
+        reportName: report2.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -767,11 +740,12 @@ const reportActionListItems = [
         },
         keyForList: reportAction3.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report3.reportID,
             IOUTransactionID: transactionID3,
         },
+        reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
-        reportName: 'owes ₫44.00',
     },
     {
         ...reportAction4,
@@ -785,17 +759,17 @@ const reportActionListItems = [
         },
         keyForList: reportAction4.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report3.reportID,
             IOUTransactionID: transactionID4,
         },
+        reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
-        reportName: 'owes ₫44.00',
     },
 ] as ReportActionListItemType[];
 
 const transactionsListItems = [
     {
-        accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
         amount: -5000,
@@ -825,7 +799,6 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '1',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -833,9 +806,7 @@ const transactionsListItems = [
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        policyID: 'A1B2C3',
         reportID: '123456789',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -852,20 +823,17 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         action: 'review',
         allActions: ['review', 'approve'],
         amount: -5000,
@@ -895,16 +863,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '2',
-        managerID: 18439984,
         merchant: 'Expense',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '11111',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -921,7 +886,6 @@ const transactionsListItems = [
         transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -929,7 +893,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: true,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -940,7 +903,6 @@ const transactionsListItems = [
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         amount: 1200,
         action: 'view',
         allActions: ['view'],
@@ -958,16 +920,13 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '3',
         transactionThreadReportID: '8287398995021380',
@@ -996,7 +955,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1004,13 +962,11 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
     },
     {
-        accountID: 18439984,
         amount: 3200,
         action: 'view',
         allActions: ['view'],
@@ -1028,16 +984,13 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         isFromOneTransactionReport: false,
-        managerID: 1111111,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
         parentTransactionID: '',
-        policyID: 'A1B2C3',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '4',
         transactionThreadReportID: '1014872441234902',
@@ -1066,7 +1019,6 @@ const transactionsListItems = [
         isTaxAmountColumnWide: false,
         receipt: undefined,
         taxAmount: undefined,
-        description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
@@ -1074,7 +1026,6 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
-        hasViolation: undefined,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1097,7 +1048,6 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
         managerID: 18439984,
@@ -1117,7 +1067,6 @@ const transactionReportGroupListItems = [
         total: -5000,
         transactions: [
             {
-                accountID: 18439984,
                 action: 'submit',
                 allActions: ['submit'],
                 report: report1,
@@ -1134,7 +1083,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1146,10 +1094,8 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: false,
                 isFromOneTransactionReport: true,
                 keyForList: '1',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
@@ -1157,9 +1103,7 @@ const transactionReportGroupListItems = [
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                policyID: 'A1B2C3',
                 reportID: '123456789',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1205,7 +1149,6 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
         managerID: 18439984,
@@ -1225,7 +1168,6 @@ const transactionReportGroupListItems = [
         total: -5000,
         transactions: [
             {
-                accountID: 18439984,
                 action: 'review',
                 allActions: ['review', 'approve'],
                 report: report2,
@@ -1242,7 +1184,6 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
-                description: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
@@ -1254,7 +1195,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                hasViolation: true,
                 violations: [
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -1263,16 +1203,13 @@ const transactionReportGroupListItems = [
                 ],
                 isFromOneTransactionReport: true,
                 keyForList: '2',
-                managerID: 18439984,
                 merchant: 'Expense',
                 modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
-                policyID: 'A1B2C3',
                 reportID: '11111',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1312,7 +1249,6 @@ const transactionReportGroupListItems = [
         currency: 'VND',
         isOneTransactionReport: false,
         isOwnPolicyExpenseChat: false,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         managerID: 1111111,
         nonReimbursableTotal: 0,
@@ -1359,7 +1295,6 @@ const transactionReportGroupListItems = [
             login: undefined,
         },
         isOneTransactionReport: true,
-        isPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
         managerID: 18439984,
@@ -1861,7 +1796,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1889,7 +1824,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1906,6 +1841,8 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -1918,6 +1855,8 @@ describe('SearchUIUtils', () => {
                 [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
                 [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
                 // Other required data
+                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
                 personalDetailsList: searchResults.data.personalDetailsList,
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
@@ -2019,7 +1958,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2400,14 +2339,11 @@ describe('SearchUIUtils', () => {
                     personalDetailsList: {},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
-                        accountID: 2074551,
                         amount: 0,
                         canDelete: false,
                         canHold: true,
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
-                        action: 'approve',
-                        allActions: ['approve'],
                         comment: {
                             comment: '',
                         },
@@ -2415,20 +2351,17 @@ describe('SearchUIUtils', () => {
                         currency: 'USD',
                         hasEReceipt: false,
                         isFromOneTransactionReport: true,
-                        managerID: adminAccountID,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
                         modifiedCurrency: 'USD',
                         modifiedMerchant: 'Costco Wholesale',
                         parentTransactionID: '',
-                        policyID: '137DA25D273F2423',
                         receipt: {
                             source: 'https://www.expensify.com/receipts/fake.jpg',
                             state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         },
                         reportID: '6523565988285061',
-                        reportType: 'expense',
                         tag: '',
                         transactionID: '1805965960759424086',
                         transactionThreadReportID: '4139222832581831',
@@ -2507,16 +2440,15 @@ describe('SearchUIUtils', () => {
                         expenseRules: [],
                     },
                     type: 'corporate',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
-                    accountID: 2074551,
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
                     currency: 'USD',
-                    isOneTransactionReport: true,
                     isOwnPolicyExpenseChat: false,
-                    isPolicyExpenseChat: false,
                     isWaitingOnBankAccount: false,
                     managerID: adminAccountID,
                     nonReimbursableTotal: 0,
@@ -2525,7 +2457,6 @@ describe('SearchUIUtils', () => {
                     parentReportActionID: '5568426544518647396',
                     parentReportID: '4128157185472356',
                     policyID: '137DA25D273F2423',
-                    private_isArchived: '',
                     reportID: '6523565988285061',
                     reportName: 'Expense Report #6523565988285061',
                     stateNum: 1,
@@ -2536,7 +2467,6 @@ describe('SearchUIUtils', () => {
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
-                    accountID: 2074551,
                     amount: 0,
                     canDelete: false,
                     canHold: true,
@@ -2544,8 +2474,6 @@ describe('SearchUIUtils', () => {
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
-                    action: 'approve',
-                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
@@ -2553,20 +2481,17 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     hasEReceipt: false,
                     isFromOneTransactionReport: true,
-                    managerID: adminAccountID,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
                     modifiedCurrency: 'USD',
                     modifiedMerchant: 'Costco Wholesale',
                     parentTransactionID: '',
-                    policyID: '137DA25D273F2423',
                     receipt: {
                         source: 'https://www.expensify.com/receipts/fake.jpg',
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                     },
                     reportID: '6523565988285061',
-                    reportType: 'expense',
                     tag: '',
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
@@ -2652,7 +2577,7 @@ describe('SearchUIUtils', () => {
                 } as OnyxTypes.Policy,
             };
 
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2666,7 +2591,7 @@ describe('SearchUIUtils', () => {
                 successfulDate: new Date().toISOString(),
             };
 
-            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
     });
@@ -2685,7 +2610,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2697,7 +2621,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2709,7 +2632,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: 'Office Supplies',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2721,7 +2643,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: 'Project A',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2733,7 +2654,6 @@ describe('SearchUIUtils', () => {
                 comment: {comment: 'Business meeting lunch'},
                 category: '',
                 tag: '',
-                accountID: submitterAccountID,
                 managerID: submitterAccountID,
             };
 
@@ -2745,9 +2665,18 @@ describe('SearchUIUtils', () => {
                 comment: {comment: ''},
                 category: '',
                 tag: '',
-                accountID: approverAccountID, // Different from current user
                 managerID: adminAccountID, // Different from current user
                 reportID: reportID2, // Needs to be a submitter report for 'To' to show
+            };
+            const differentUsersTransactionIOUAction: OnyxTypes.ReportAction = {
+                ...reportAction2,
+                accountID: approverAccountID,
+                actorAccountID: approverAccountID,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'differentUsers',
+                    IOUReportID: report2.reportID,
+                },
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
@@ -2785,6 +2714,8 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
+                [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
+                personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);

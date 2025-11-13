@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -54,7 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -112,12 +113,12 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             action: item.action,
             convertedCurrency: item.convertedCurrency,
             reportID: item.reportID,
-            policyID: item.policyID,
+            policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.reportAction?.actorAccountID,
         },
     ];
 }
@@ -197,7 +198,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
-            ownerAccountID: item.report?.ownerAccountID ?? item.accountID,
+            ownerAccountID: item.reportAction?.actorAccountID,
         },
     };
 }
@@ -279,8 +280,8 @@ function Search({
             if (report && policy) {
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
                 if (transactionViolations) {
-                    const filteredTransactionViolations = transactionViolations.filter((violation) =>
-                        shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name, email ?? ''),
+                    const filteredTransactionViolations = mergeProhibitedViolations(
+                        transactionViolations.filter((violation) => shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name, email ?? '')),
                     );
 
                     if (filteredTransactionViolations.length > 0) {
@@ -368,7 +369,7 @@ function Search({
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -470,12 +471,12 @@ function Search({
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
-                        policyID: transactionItem.policyID,
+                        policyID: transactionItem.report?.policyID,
                         amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         convertedAmount: transactionItem.convertedAmount,
                         convertedCurrency: transactionItem.convertedCurrency,
                         currency: transactionItem.currency,
-                        ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                        ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
                 });
             });
@@ -507,12 +508,12 @@ function Search({
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canDelete: transactionItem.canDelete,
                     reportID: transactionItem.reportID,
-                    policyID: transactionItem.policyID,
+                    policyID: transactionItem.report?.policyID,
                     amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     convertedAmount: transactionItem.convertedAmount,
                     convertedCurrency: transactionItem.convertedCurrency,
                     currency: transactionItem.currency,
-                    ownerAccountID: transactionItem.report?.ownerAccountID ?? transactionItem.accountID,
+                    ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
             });
         }
@@ -711,7 +712,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -761,14 +762,14 @@ function Search({
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
                 // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-                const isBaseKeyMatch = baseKey === newSearchResultKey;
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
                 // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return transactionKey === newSearchResultKey;
+                        return !!newSearchResultKeys?.has(transactionKey);
                     });
 
                 // Determine if either the base key or any transaction key matches
@@ -776,7 +777,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     useEffect(() => {
@@ -890,6 +891,7 @@ function Search({
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
@@ -917,20 +919,22 @@ function Search({
                     onDEWModalOpen={handleDEWModalOpen}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columnsToShow}
-                                type={type}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
-                            />
+                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                                <SearchTableHeader
+                                    canSelectMultiple={canSelectMultiple}
+                                    columns={columnsToShow}
+                                    type={type}
+                                    onSortPress={onSortPress}
+                                    sortOrder={sortOrder}
+                                    sortBy={sortBy}
+                                    shouldShowYear={shouldShowYear}
+                                    isAmountColumnWide={shouldShowAmountInWideColumn}
+                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                    shouldShowSorting={shouldShowSorting}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    groupBy={validGroupBy}
+                                />
+                            </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
@@ -976,4 +980,6 @@ function Search({
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
+WrappedSearch.displayName = 'Search';
+export default WrappedSearch;

@@ -30,6 +30,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
@@ -144,10 +145,10 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 }
 
                                 const fieldValue = reportField.value ?? reportField.defaultValue;
-                                const isFieldDisabled = isReportFieldDisabled(report, reportField, policy);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
-                                const violation = getFieldViolation(violations, reportField);
+                                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
 
                                 return (
