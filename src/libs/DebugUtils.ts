@@ -461,6 +461,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -532,6 +533,13 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             );
         case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'nextStep':
+            return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
+                messageKey: 'string',
+                icon: 'string',
+                actorAccountID: 'number',
+                eta: 'object',
+            });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
                 startDate: 'string',
@@ -591,6 +599,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionLastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -629,6 +638,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -963,6 +973,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'modifiedAmount':
         case 'cardID':
         case 'originalAmount':
+        case 'convertedAmount':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
@@ -1031,6 +1042,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    convertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     category: CONST.RED_BRICK_ROAD_PENDING_ACTION,

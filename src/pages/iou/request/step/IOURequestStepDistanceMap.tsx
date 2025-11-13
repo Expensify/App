@@ -83,6 +83,8 @@ function IOURequestStepDistanceMap({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -93,10 +95,6 @@ function IOURequestStepDistanceMap({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -151,6 +149,8 @@ function IOURequestStepDistanceMap({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -348,6 +348,7 @@ function IOURequestStepDistanceMap({
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -375,9 +376,6 @@ function IOURequestStepDistanceMap({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    transactionViolations,
                     isASAPSubmitBetaEnabled,
                 });
                 return;
@@ -427,7 +425,6 @@ function IOURequestStepDistanceMap({
         report,
         reportNameValuePairs,
         iouType,
-        personalPolicy?.autoReporting,
         defaultExpensePolicy,
         setDistanceRequestData,
         shouldSkipConfirmation,
@@ -439,14 +436,14 @@ function IOURequestStepDistanceMap({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
-        backToReport,
-        customUnitRateID,
-        navigateToConfirmationPage,
-        reportID,
         lastSelectedDistanceRates,
         localeCompare,
-        transactionViolations,
+        backToReport,
         isASAPSubmitBetaEnabled,
+        customUnitRateID,
+        navigateToConfirmationPage,
+        personalPolicy?.autoReporting,
+        reportID,
     ]);
 
     const getError = () => {
@@ -522,9 +519,6 @@ function IOURequestStepDistanceMap({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;
@@ -549,9 +543,6 @@ function IOURequestStepDistanceMap({
         transaction?.routes,
         report?.reportID,
         policy,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.login,
-        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(

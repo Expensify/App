@@ -203,16 +203,17 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(
-            policyIDToDelete,
-            policyNameToDelete,
+        deleteWorkspace({
+            policyID: policyIDToDelete,
+            activePolicyID,
+            policyName: policyNameToDelete,
             lastAccessedWorkspacePolicyID,
-            defaultCardFeeds,
+            policyCardFeeds: defaultCardFeeds,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            lastPaymentMethod,
-        );
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);

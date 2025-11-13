@@ -134,8 +134,6 @@ function IOURequestStepScan({
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -200,6 +198,8 @@ function IOURequestStepScan({
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
@@ -335,6 +335,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -358,25 +359,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
-                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        transactionViolations,
                         isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [
-            backToReport,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            iouType,
-            report,
-            transactions,
-            shouldGenerateTransactionThreadReport,
-            transactionViolations,
-            isASAPSubmitBetaEnabled,
-        ],
+        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -615,7 +603,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -661,6 +649,8 @@ function IOURequestStepScan({
         },
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
+
+    const submitMultiScanReceipts = useCallback(() => submitReceipts(receiptFiles), [receiptFiles, submitReceipts]);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
@@ -723,30 +713,32 @@ function IOURequestStepScan({
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({file, filename, source}) => {
-                            // Add source property to file for prepareRequestPayload compatibility
-                            const cameraFile = {
-                                ...file,
-                                source,
-                            };
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
+                            ({file, filename, source}) => {
+                                // Add source property to file for prepareRequestPayload compatibility
+                                const cameraFile = {
+                                    ...file,
+                                    source,
+                                };
 
-                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+                                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
 
-                            if (isEditing) {
-                                updateScanAndNavigate(cameraFile as FileObject, source);
-                                return;
-                            }
+                                if (isEditing) {
+                                    updateScanAndNavigate(cameraFile as FileObject, source);
+                                    return;
+                                }
 
-                            const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                            setReceiptFiles(newReceiptFiles);
+                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                                setReceiptFiles(newReceiptFiles);
 
-                            if (isMultiScanEnabled) {
-                                setDidCapturePhoto(false);
-                                return;
-                            }
+                                if (isMultiScanEnabled) {
+                                    setDidCapturePhoto(false);
+                                    return;
+                                }
 
-                            submitReceipts(newReceiptFiles);
-                        });
+                                submitReceipts(newReceiptFiles);
+                            },
+                        );
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
@@ -974,7 +966,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitReceipts}
+                        submit={submitMultiScanReceipts}
                     />
                 )}
 
