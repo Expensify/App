@@ -1,6 +1,5 @@
 import {useCallback, useContext, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentUploadValidationProps = {
@@ -93,6 +93,7 @@ function useAttachmentUploadValidation({
             report,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         files.forEach((file, index) => {

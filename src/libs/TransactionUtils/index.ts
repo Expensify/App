@@ -368,7 +368,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         pendingAction,
         receipt: receipt?.source
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
-            : {},
+            : undefined,
+        hasEReceipt: existingTransaction?.hasEReceipt,
         filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
@@ -379,6 +380,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         reimbursable,
         inserted: DateUtils.getDBTime(),
         participants,
+        cardID: existingTransaction?.cardID,
+        cardName: existingTransaction?.cardName,
+        cardNumber: existingTransaction?.cardNumber,
     };
 }
 
@@ -1150,6 +1154,28 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Merge prohibited violations into one violation.
+ */
+function mergeProhibitedViolations(transactionViolations: TransactionViolations): TransactionViolations {
+    const prohibitedViolations = transactionViolations.filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+
+    if (prohibitedViolations.length === 0) {
+        return transactionViolations;
+    }
+
+    const prohibitedExpenses = prohibitedViolations.flatMap((violation: TransactionViolation) => violation.data?.prohibitedExpenseRule ?? []);
+    const mergedProhibitedViolations: TransactionViolation = {
+        name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+        data: {
+            prohibitedExpenseRule: prohibitedExpenses,
+        },
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+    };
+
+    return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
 }
 
 /**
@@ -2152,6 +2178,7 @@ export {
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,
+    mergeProhibitedViolations,
 };
 
 export type {TransactionChanges};

@@ -5,6 +5,7 @@ import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerE
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -55,6 +56,8 @@ function DistanceRequestStartPage({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
@@ -103,6 +106,7 @@ function DistanceRequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             localeCompare,
+            currentUserPersonalDetails,
         });
         // eslint-disable-next-line
     }, []);
@@ -124,9 +128,10 @@ function DistanceRequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 localeCompare,
+                currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, localeCompare],
+        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, localeCompare, currentUserPersonalDetails],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
