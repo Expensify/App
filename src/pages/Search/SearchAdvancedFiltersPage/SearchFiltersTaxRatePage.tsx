@@ -29,7 +29,7 @@ function SearchFiltersTaxRatePage() {
             selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
         });
     });
-    const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm]);
+    const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm?.policyID]);
     const selectedPolicies = useMemo(() => {
         if (policyIDs.length === 0) {
             return [];
