@@ -191,7 +191,17 @@ function getOnyxTargetTransactionData(
         });
     }
 
-    return data.onyxData;
+    const onyxData = data.onyxData;
+
+    onyxData.optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            receipt: mergeTransaction.receipt ?? null,
+        },
+    });
+
+    return onyxData;
 }
 
 type MergeTransactionRequestParams = {
