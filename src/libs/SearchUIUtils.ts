@@ -1371,7 +1371,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
-                const from = data.personalDetailsList?.[reportAction.accountID];
+                const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
@@ -1398,7 +1398,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
-                });
+                } as ReportActionListItemType);
             }
         }
     }

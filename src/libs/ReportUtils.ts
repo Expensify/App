@@ -388,6 +388,7 @@ type OptimisticNewReport = Pick<
     | 'managerID'
     | 'pendingFields'
     | 'chatReportID'
+    | 'nextStep'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {

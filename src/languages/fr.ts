@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -1416,11 +1417,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver seulement',
-        holdEducationalTitle: 'Cette demande est activée',
-        holdEducationalText: 'tenir',
-        whatIsHoldExplain: 'La mise en attente, c\'est comme appuyer sur "pause" pour une dépense afin de demander plus de détails avant l\'approbation ou le paiement.',
-        holdIsLeftBehind: 'Les dépenses en attente sont déplacées vers un autre rapport après approbation ou paiement.',
-        unholdWhenReady: "Les approbateurs peuvent débloquer les dépenses lorsqu'elles sont prêtes pour approbation ou paiement.",
+        holdEducationalTitle: 'Dois-tu mettre cette dépense en attente ?',
+        whatIsHoldExplain: 'Mettre en attente, c\'est comme appuyer sur "pause" pour une dépense jusqu\'à ce que tu sois prêt à la soumettre.',
+        holdIsLeftBehind: 'Les dépenses mises en attente sont laissées de côté même si tu soumets un rapport complet.',
+        unholdWhenReady: 'Retire les dépenses en attente lorsque tu es prêt à les soumettre.',
         changePolicyEducational: {
             title: 'Vous avez déplacé ce rapport !',
             description: 'Vérifiez ces éléments, qui ont tendance à changer lors du déplacement des rapports vers un nouvel espace de travail.',
@@ -6848,14 +6848,14 @@ ${amount} pour ${merchant} - ${date}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour associer le reçu</a>`
+                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour associer le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
@@ -7425,6 +7425,109 @@ ${amount} pour ${merchant} - ${date}`,
         title: "Quelque chose s'est mal passé...",
         subtitle: `Nous n'avons pas pu charger toutes vos données. Nous avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
         refreshAndTryAgain: 'Actualisez puis réessayez',
+    },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> ajoutiez des dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> ajoute des dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur ajoute des dépenses.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> ajoutiez un compte bancaire.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> ajoute un compte bancaire.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur ajoute un compte bancaire.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `le ${eta}` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que les dépenses de <strong>${actor}</strong> soient automatiquement soumises${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’envoi automatique des dépenses d’un administrateur${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> corrigiez le(s) problème(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> corrige le(s) problème(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente d’un administrateur pour résoudre le(s) problème(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> approuviez les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’approbation des dépenses par un administrateur.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> payiez les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> paie les dépenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu’un administrateur paie les dépenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> terminiez la configuration d’un compte bancaire professionnel.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attendant que <strong>${actor}</strong> termine la configuration d'un compte bancaire professionnel.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu’un administrateur termine la configuration d’un compte bancaire professionnel.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `avant ${eta}` : ` ${eta}`;
+                }
+                return `En attente de finalisation du paiement${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'bientôt',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: "plus tard aujourd'hui",
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'dimanche',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'les 1er et 16 de chaque mois',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'le dernier jour ouvrable du mois',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'le dernier jour du mois',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'à la fin de votre voyage',
+        },
     },
     domain: {
         notVerified: 'Non vérifié',

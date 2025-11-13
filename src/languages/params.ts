@@ -326,10 +326,10 @@ type ViolationsCustomRulesParams = {message: string};
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
-    email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+    companyCardPageURL?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -946,6 +946,13 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type NextStepParams = {
+    actor: string;
+    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+};
+
 type ToggleImportTitleParams = {
     mappingTitle: string;
 };
@@ -1265,6 +1272,7 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
 };
