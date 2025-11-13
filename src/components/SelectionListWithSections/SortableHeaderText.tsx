@@ -9,11 +9,9 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchTableHeaderColumnProps = {
     text: string;
-    icon?: IconAsset;
     isActive: boolean;
     sortOrder: SortOrder;
     isSortable?: boolean;
@@ -22,7 +20,7 @@ type SearchTableHeaderColumnProps = {
     onPress: (order: SortOrder) => void;
 };
 
-export default function SortableHeaderText({text, icon, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
+export default function SortableHeaderText({text, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -30,28 +28,18 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
         return (
             <View style={containerStyle}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            fill={theme.icon}
-                            height={16}
-                            width={16}
-                        />
-                    )}
-                    {!!text && (
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicroSupporting, textStyle]}
-                        >
-                            {text}
-                        </Text>
-                    )}
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, textStyle]}
+                    >
+                        {text}
+                    </Text>
                 </View>
             </View>
         );
     }
 
-    const sortArrowIcon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
+    const icon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const displayIcon = isActive;
     const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
@@ -67,25 +55,15 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
                 disabled={!isSortable}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            fill={theme.icon}
-                            height={16}
-                            width={16}
-                        />
-                    )}
-                    {!!text && (
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
-                        >
-                            {text}
-                        </Text>
-                    )}
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
+                    >
+                        {text}
+                    </Text>
                     {displayIcon && (
                         <Icon
-                            src={sortArrowIcon}
+                            src={icon}
                             fill={theme.icon}
                             height={12}
                             width={12}

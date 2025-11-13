@@ -6661,7 +6661,6 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TOTAL_AMOUNT: 'amount',
-            TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
@@ -6671,8 +6670,6 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
-            AVATAR: 'avatar',
-            STATUS: 'status',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

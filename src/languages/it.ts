@@ -694,7 +694,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
-        reportName: 'Nome del report',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
