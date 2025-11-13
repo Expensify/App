@@ -195,7 +195,6 @@ async function signInAndGetApp(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             }),
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${REPORT_ID}`, '-1'),
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             }),
@@ -227,7 +226,6 @@ async function signInAndGetApp(): Promise<void> {
                     actorAccountID: USER_A_ACCOUNT_ID,
                 },
             }),
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${COMMENT_LINKING_REPORT_ID}`, '-1'),
         ]);
 
         // Manually mark the sidebar as loaded since onLayout does not fire in tests.
