@@ -264,12 +264,10 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         allTransactions: context.allTransactions,
     };
 
-    const needsBackendComputation = requiresBackendComputation(formulaParts, formulaContext);
-
     // When we cannot properly compute the formula (e.g., currency conversion requires exchange rates),
     // computing while online causes flickering between incorrect optimistic values and correct backend values.
     // Return null to skip optimistic updates and let the backend provide the accurate result.
-    if (needsBackendComputation) {
+    if (requiresBackendComputation(formulaParts, formulaContext)) {
         if (!isOffline) {
             return null;
         }
