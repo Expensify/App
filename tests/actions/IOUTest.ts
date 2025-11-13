@@ -6544,8 +6544,8 @@ describe('actions/IOU', () => {
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false, undefined, undefined, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true, undefined, undefined, false)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true)).toBeTruthy();
         });
     });
 
