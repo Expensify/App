@@ -1,17 +1,20 @@
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
-    translationKey: TranslationPaths;
+    translationKey: TranslationPaths | undefined;
+    icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
 };
@@ -126,6 +129,44 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
+const expenseReportHeaders: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+        translationKey: undefined,
+        icon: Expensicons.Profile,
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        translationKey: 'common.date',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
+        translationKey: 'common.status',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+        translationKey: 'common.reportName',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+        translationKey: 'common.from',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
+        translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+];
+
 function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -136,6 +177,8 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return expenseReportHeaders;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;

@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import openSearchReport from '@components/Search/openSearchReport';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -41,7 +40,17 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    getAmount,
+    getCategory,
+    getCreated,
+    getMerchant,
+    getTag,
+    getTransactionPendingAction,
+    isTransactionPendingDelete,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -51,6 +60,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -179,7 +189,9 @@ function MoneyRequestReportTransactionList({
         for (const transaction of transactions) {
             const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             if (transactionViolations) {
-                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''));
+                const filteredTransactionViolations = mergeProhibitedViolations(
+                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '')),
+                );
 
                 if (filteredTransactionViolations.length > 0) {
                     filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
@@ -268,7 +280,7 @@ function MoneyRequestReportTransactionList({
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                openSearchReport(routeParams.reportID, backTo);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [report, reportActions, sortedTransactions, markReportIDAsExpense],

@@ -391,6 +391,7 @@ type OptimisticNewReport = Pick<
     | 'managerID'
     | 'pendingFields'
     | 'chatReportID'
+    | 'nextStep'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
@@ -2687,18 +2688,14 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
  * Returns false if:
  * - if current user is not the submitter of an expense report
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false, isMovingTransaction = false): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport) || (isExpenseReport(moneyRequestReport) && !isCurrentUserSubmitter(moneyRequestReport))) {
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (
-        isInstantSubmitEnabled(policy) &&
-        isSubmitAndClose(policy) &&
-        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) || (!isMovingTransaction && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
-    ) {
+    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -4257,6 +4254,15 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     }
 
     return reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+}
+
+/**
+ * Determines if a report field should be disabled for the current user.
+ * A field is considered disabled if it is disabled by the report configuration itself
+ * or if the user is not an admin, owner, approver, or the report owner.
+ */
+function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    return isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
 }
 
 /**
@@ -12809,6 +12815,7 @@ export {
     isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isReportManager,
     isReportOwner,
