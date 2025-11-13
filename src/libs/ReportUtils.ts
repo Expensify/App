@@ -4260,7 +4260,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     const fields = mergedFieldIds.map((id) => {
         const field = report?.fieldList?.[getReportFieldKey(id)];
 
-        if (field) {
+        if (field && field.fieldID === id) {
             return field;
         }
 
