@@ -69,17 +69,15 @@ function getTagListSections({
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
 
-    // eslint-disable-next-line unicorn/prefer-set-has
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
-    // eslint-disable-next-line unicorn/prefer-set-has
-    const enabledTagsNames = enabledTags.map((tag) => tag.name);
-    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
+    const enabledTagsNames = new Set(enabledTags.map((tag) => tag.name));
+    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.has(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
 
     selectedOptions.forEach((tag) => {
-        if (enabledTagsNames.includes(tag.name)) {
+        if (enabledTagsNames.has(tag.name)) {
             selectedTagsWithDisabledState.push({...tag, enabled: true});
             return;
         }
@@ -128,7 +126,7 @@ function getTagListSections({
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
-            return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         })
         .map((tag) => ({name: tag, enabled: true}));
 

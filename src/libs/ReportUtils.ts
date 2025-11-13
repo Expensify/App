@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
@@ -9,7 +10,6 @@ import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
 import type {ColorValue} from 'react-native';
-import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -388,6 +388,7 @@ type OptimisticNewReport = Pick<
     | 'managerID'
     | 'pendingFields'
     | 'chatReportID'
+    | 'nextStep'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
@@ -1001,6 +1002,13 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+let allPolicyDrafts: OnyxCollection<Policy>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY_DRAFTS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyDrafts = value),
+});
+
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
@@ -1018,10 +1026,7 @@ Onyx.connect({
                 return acc;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                handlePreexistingReport(report);
-            });
+            handlePreexistingReport(report);
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
@@ -1208,10 +1213,10 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, searchReports?: Report[], fallbackReport?: Report): OnyxEntry<Report> {
+function getReportOrDraftReport(reportID: string | undefined, searchReports?: Report[], fallbackReport?: Report, reportDrafts?: OnyxCollection<Report>): OnyxEntry<Report> {
     const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return searchReport ?? onyxReport ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
+    return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
 
 function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
@@ -1896,12 +1901,16 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
  */
 function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
+    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT;
 
-    return (
-        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE) &&
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        iouType !== CONST.IOU.TYPE.INVOICE
-    );
+    const isExpenseReportType = isExpenseReport(report);
+    const isGroupPolicyType = isGroupPolicy(policy?.type ?? '');
+    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE;
+    const supportsNegativeAmounts = isExpenseReportType || isGroupPolicyType || isSelfDMReport || isCreatingNewIOU || isFirstTimeCreatingReport;
+
+    const isExcludedType = iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE;
+
+    return supportsNegativeAmounts && !isExcludedType;
 }
 
 /**
@@ -2164,7 +2173,26 @@ function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Arr
  * Whether the provided report is a closed expense report with no expenses
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID, transactions);
+    if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
+        return false;
+    }
+
+    // If the report has a total amount, it definitely has expenses
+    if (report.total && report.total !== 0) {
+        return false;
+    }
+
+    if (report.transactionCount) {
+        return false;
+    }
+
+    // If the report has non-reimbursable total, it has expenses even if total is 0
+    // (reimbursable and non-reimbursable totals can cancel each other out)
+    if (report.nonReimbursableTotal && report.nonReimbursableTotal !== 0) {
+        return false;
+    }
+
+    return !hasExpenses(report.reportID, transactions);
 }
 
 /**
@@ -2587,14 +2615,18 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
  * Returns false if:
  * - if current user is not the submitter of an expense report
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false, isMovingTransaction = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport) || (isExpenseReport(moneyRequestReport) && !isCurrentUserSubmitter(moneyRequestReport))) {
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
+    if (
+        isInstantSubmitEnabled(policy) &&
+        isSubmitAndClose(policy) &&
+        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) || (!isMovingTransaction && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
+    ) {
         return false;
     }
 
@@ -4156,6 +4188,15 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
 }
 
 /**
+ * Determines if a report field should be disabled for the current user.
+ * A field is considered disabled if it is disabled by the report configuration itself
+ * or if the user is not an admin, owner, approver, or the report owner.
+ */
+function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    return isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+}
+
+/**
  * Given a set of report fields, return the field that refers to title
  */
 function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
@@ -4187,10 +4228,11 @@ function getReportFieldsByPolicyID(policyID: string | undefined): Record<string,
         return {};
     }
 
-    const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
-    const fieldList = policyReportFields?.[1]?.fieldList;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
+    const fieldList = (policy ?? policyDraft)?.fieldList;
 
-    if (!policyReportFields || !fieldList) {
+    if ((!policy && !policyDraft) || !fieldList) {
         return {};
     }
 
@@ -6570,12 +6612,14 @@ function buildOptimisticExpenseReport(
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
-    const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
+    const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
     const policyName = getPolicyName({report});
     const formattedTotal = convertToDisplayString(storedTotal, currency);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+    const policyReal = getPolicy(policyID);
+    const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
+    const policy = policyReal ?? policyDraft;
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
@@ -6611,7 +6655,7 @@ function buildOptimisticExpenseReport(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-    if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
+    if (!!titleReportField && isGroupPolicy(policy?.type ?? '')) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
@@ -12702,6 +12746,7 @@ export {
     isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isReportManager,
     isReportOwner,
@@ -12821,6 +12866,7 @@ export {
     getOutstandingReportsForUser,
     isReportOutstanding,
     generateReportAttributes,
+    getHumanReadableStatus,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
