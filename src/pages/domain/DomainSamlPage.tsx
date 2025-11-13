@@ -20,6 +20,7 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -57,7 +58,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={domainResults.status === 'loaded' && isAdminResults.status === 'loaded' && (!doesDomainExist || !isAdmin)}
+                shouldShow={!isLoadingOnyxValue(domainResults, isAdminResults) && (!doesDomainExist || !isAdmin)}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >

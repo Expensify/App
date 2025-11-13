@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -76,7 +77,7 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
         resetDomainValidationError(accountID);
     }, [accountID, doesDomainExist]);
 
-    if (domainMetadata.status === 'loading' || isAdminMetadata.status === 'loading') {
+    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 

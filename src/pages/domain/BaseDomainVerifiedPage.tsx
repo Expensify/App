@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BaseDomainVerifiedPageProps = {
     /** The accountID of the domain */
@@ -41,7 +42,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmatio
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [accountID, domain?.validated, doesDomainExist, redirectTo]);
 
-    if (domainMetadata.status === 'loading' || isAdminMetadata.status === 'loading') {
+    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 
