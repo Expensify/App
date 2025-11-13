@@ -224,6 +224,7 @@ const customFeedCardsList = {
     },
 } as unknown as WorkspaceCardsList;
 const customFeedName = 'Custom feed name';
+const unknownFeed = 'ofx.chase.com' as CompanyCardFeed;
 
 const combinedCardFeeds: CombinedCardFeeds = {
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#11111111`]: {
@@ -299,6 +300,14 @@ const cardFeedsCollection: OnyxCollection<CardFeeds> = {
     FAKE_ID_2: {
         settings: {
             companyCards: companyCardsSettingsWithPendingRemovedFeeds,
+        },
+    },
+    // Policy with unknown feed
+    FAKE_ID_7: {
+        settings: {
+            companyCardNicknames: {
+                [unknownFeed]: '',
+            },
         },
     },
 };
@@ -528,6 +537,12 @@ describe('CardUtils', () => {
             const feed = undefined;
             const feedName = getCustomOrFormattedFeedName(feed);
             expect(feedName).toBe(undefined);
+        });
+
+        it('Should return feed key name for unknown feed', () => {
+            const companyCardNicknames = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames;
+            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNicknames);
+            expect(feedName).toBe(unknownFeed);
         });
     });
 
