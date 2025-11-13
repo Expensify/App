@@ -11,5 +11,4 @@ const createPersonalDetailsSelector = <T>(personalDetails: OnyxEntry<PersonalDet
 const personalDetailsByEmailSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) =>
     personalDetails ? lodashMapKeys(personalDetails, (value, key) => value?.login ?? key) : undefined;
 
-// eslint-disable-next-line import/prefer-default-export
 export {createPersonalDetailsSelector, personalDetailsByEmailSelector};
