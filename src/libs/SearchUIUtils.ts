@@ -7,7 +7,6 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import openSearchReport from '@components/Search/openSearchReport';
 import type {
     SearchAction,
     SearchColumnType,
@@ -51,7 +50,6 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchPersonalDetails,
     SearchReport,
     SearchTask,
     SearchTransaction,
@@ -605,12 +603,13 @@ function getSuggestedSearchesVisibility(
  */
 function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
-    from: SearchPersonalDetails,
-    to: SearchPersonalDetails,
+    from: OnyxTypes.PersonalDetails,
+    to: OnyxTypes.PersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    report: OnyxTypes.Report | undefined,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
-    const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
     const formattedFrom = formatPhoneNumber(fromName);
@@ -759,9 +758,8 @@ function isTransactionAmountTooLong(transactionItem: TransactionListItemType | S
 }
 
 function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
-    const reportType = (transactionItem as TransactionListItemType)?.reportType;
-    const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
-    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+    // it won't matter if pass true or false as second argument to getTaxAmount here because isAmountTooLong function uses Math.abs on the returned value of getTaxAmount
+    const taxAmount = getTaxAmount(transactionItem, false);
     return isAmountTooLong(taxAmount);
 }
 
@@ -1024,9 +1022,16 @@ function getTransactionsSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -1336,7 +1341,7 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, has
     }
 
     if (shouldNavigate) {
-        openSearchReport(transactionThreadReport?.reportID, backTo);
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
     }
 }
 
@@ -1365,7 +1370,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
-                const from = data.personalDetailsList?.[reportAction.accountID];
+                const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
@@ -1392,7 +1397,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
-                });
+                } as ReportActionListItemType);
             }
         }
     }
@@ -1493,9 +1498,16 @@ function getReportSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
             const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+                transactionItem,
+                from,
+                to,
+                policy,
+                formatPhoneNumber,
+                report,
+            );
 
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
             const transaction = {

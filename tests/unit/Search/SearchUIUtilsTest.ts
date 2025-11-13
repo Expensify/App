@@ -1,6 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import openSearchReport from '@components/Search/openSearchReport';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
@@ -13,6 +12,7 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -25,6 +25,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -44,7 +45,6 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
-jest.mock('@components/Search/openSearchReport', () => jest.fn());
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -129,7 +129,7 @@ const report3 = {
     policyID,
     private_isArchived: '',
     reportID: reportID3,
-    reportName: 'Report Name',
+    reportName: 'owes ₫44.00',
     stateNum: 1,
     statusNum: 1,
     total: 4400,
@@ -167,7 +167,7 @@ const report5 = {
     unheldTotal: 0,
 } as const;
 
-const reportAction1 = {
+const reportAction1: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -175,14 +175,14 @@ const reportAction1 = {
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '11111111',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID,
         IOUReportID: report1.reportID,
     },
     reportID: report1.reportID,
-    reportName: report1.reportName,
 };
 
-const reportAction2 = {
+const reportAction2: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -190,14 +190,14 @@ const reportAction2 = {
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '22222222',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID2,
         IOUReportID: report2.reportID,
     },
     reportID: report2.reportID,
-    reportName: report2.reportName,
 };
 
-const reportAction3 = {
+const reportAction3: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -205,14 +205,14 @@ const reportAction3 = {
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '33333333',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID3,
         IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
-    reportName: report3.reportName,
 };
 
-const reportAction4 = {
+const reportAction4: OnyxTypes.ReportAction = {
     accountID: adminAccountID,
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -220,11 +220,11 @@ const reportAction4 = {
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '44444444',
     originalMessage: {
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID4,
         IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
-    reportName: report3.reportName,
 };
 
 const policy = {
@@ -334,7 +334,6 @@ const searchResults: OnyxTypes.SearchResults = {
                 ],
                 reportActionID: 'Admin',
                 reportID,
-                reportName: 'Admin',
             },
             test1: {
                 accountID: adminAccountID,
@@ -355,7 +354,6 @@ const searchResults: OnyxTypes.SearchResults = {
                 ],
                 reportActionID: 'Admin1',
                 reportID,
-                reportName: 'Admin1',
             },
         },
         [`reportActions_${reportID2}`]: {
@@ -393,7 +391,6 @@ const searchResults: OnyxTypes.SearchResults = {
             parentTransactionID: '',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             reportID,
-            reportType: 'expense',
             tag: '',
             transactionID,
             transactionThreadReportID: '456',
@@ -431,7 +428,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
             reportID: reportID2,
-            reportType: 'expense',
             tag: '',
             transactionID: transactionID2,
             transactionThreadReportID: '456',
@@ -471,7 +467,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: '',
             parentTransactionID: '',
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
@@ -510,7 +505,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMerchant: '',
             parentTransactionID: '',
             reportID: reportID3,
-            reportType: 'iou',
             tag: '',
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
@@ -678,9 +672,11 @@ const reportActionListItems = [
         },
         keyForList: reportAction1.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report1.reportID,
             IOUTransactionID: transactionID,
         },
+        reportName: report1.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -710,8 +706,8 @@ const reportActionListItems = [
             },
         ],
         reportActionID: 'Admin',
+        reportName: report1.reportName,
         reportID: '123456789',
-        reportName: 'Expense Report #123',
     },
     {
         ...reportAction2,
@@ -725,9 +721,11 @@ const reportActionListItems = [
         },
         keyForList: reportAction2.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report2.reportID,
             IOUTransactionID: transactionID2,
         },
+        reportName: report2.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -742,11 +740,12 @@ const reportActionListItems = [
         },
         keyForList: reportAction3.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report3.reportID,
             IOUTransactionID: transactionID3,
         },
+        reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
-        reportName: 'owes ₫44.00',
     },
     {
         ...reportAction4,
@@ -760,11 +759,12 @@ const reportActionListItems = [
         },
         keyForList: reportAction4.reportActionID,
         originalMessage: {
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             IOUReportID: report3.reportID,
             IOUTransactionID: transactionID4,
         },
+        reportName: report3.reportName,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
-        reportName: 'owes ₫44.00',
     },
 ] as ReportActionListItemType[];
 
@@ -807,7 +807,6 @@ const transactionsListItems = [
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -871,7 +870,6 @@ const transactionsListItems = [
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        reportType: 'expense',
         shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -929,7 +927,6 @@ const transactionsListItems = [
         modifiedMerchant: '',
         parentTransactionID: '',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '3',
         transactionThreadReportID: '8287398995021380',
@@ -994,7 +991,6 @@ const transactionsListItems = [
         modifiedMerchant: '',
         parentTransactionID: '',
         reportID: '99999',
-        reportType: 'iou',
         tag: '',
         transactionID: '4',
         transactionThreadReportID: '1014872441234902',
@@ -1108,7 +1104,6 @@ const transactionReportGroupListItems = [
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1215,7 +1210,6 @@ const transactionReportGroupListItems = [
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                reportType: 'expense',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
@@ -1802,7 +1796,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1830,7 +1824,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2368,7 +2362,6 @@ describe('SearchUIUtils', () => {
                             state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         },
                         reportID: '6523565988285061',
-                        reportType: 'expense',
                         tag: '',
                         transactionID: '1805965960759424086',
                         transactionThreadReportID: '4139222832581831',
@@ -2499,7 +2492,6 @@ describe('SearchUIUtils', () => {
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                     },
                     reportID: '6523565988285061',
-                    reportType: 'expense',
                     tag: '',
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
@@ -2676,11 +2668,12 @@ describe('SearchUIUtils', () => {
                 managerID: adminAccountID, // Different from current user
                 reportID: reportID2, // Needs to be a submitter report for 'To' to show
             };
-            const differentUsersTransactionIOUAction = {
+            const differentUsersTransactionIOUAction: OnyxTypes.ReportAction = {
                 ...reportAction2,
                 accountID: approverAccountID,
                 actorAccountID: approverAccountID,
                 originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: 'differentUsers',
                     IOUReportID: report2.reportID,
                 },
@@ -2814,12 +2807,12 @@ describe('SearchUIUtils', () => {
 
         test('Should not navigate if shouldNavigate = false', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
-            expect(openSearchReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(openSearchReport).toHaveBeenCalledWith(threadReportID, backTo);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
     });
 
