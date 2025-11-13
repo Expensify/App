@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';

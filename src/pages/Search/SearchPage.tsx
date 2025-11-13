@@ -494,9 +494,9 @@ function SearchPage({route}: SearchPageProps) {
         // Check if any items are explicitly not rejectable (only when data is hydrated)
         // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
         const login = currentUserPersonalDetails?.login ?? '';
-        const areAnyExplicitlyNotRejectable =
+        const areAllExplicitlyRejectable =
             selectedTransactionReportIDs.length > 0 &&
-            selectedTransactionReportIDs.some((id) => {
+            selectedTransactionReportIDs.every((id) => {
                 const report = getReportOrDraftReport(id);
                 if (!report) {
                     return false;
@@ -505,7 +505,7 @@ function SearchPage({route}: SearchPageProps) {
                 if (!policyForReport) {
                     return false;
                 }
-                return !canRejectReportAction(login, report, policyForReport);
+                return canRejectReportAction(login, report, policyForReport);
             });
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
@@ -517,7 +517,7 @@ function SearchPage({route}: SearchPageProps) {
         const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
 
         // Show the Reject option unless we know for sure it's not allowed
-        const shouldShowRejectOption = !isOffline && !areAnyExplicitlyNotRejectable && hasNoRejectedTransaction;
+        const shouldShowRejectOption = !isOffline && areAllExplicitlyRejectable && hasNoRejectedTransaction;
 
         // Disabled if not hydrated
         const isRejectDisabled = !areItemsHydratedForReject;
