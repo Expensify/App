@@ -201,9 +201,13 @@ function navigate(route: Route, options?: LinkToOptions) {
         const reportIDMatch = route.match(/^(?:search\/)?r\/(\w+)/);
         if (reportIDMatch?.at(1)) {
             const reportID = reportIDMatch.at(1);
+            const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
             startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
-                name: route.split('?').at(0) ?? '',
+                name: spanName,
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                attributes: {
+                    reportID,
+                },
             });
         }
     }
