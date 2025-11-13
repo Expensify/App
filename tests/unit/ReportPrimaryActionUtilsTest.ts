@@ -1191,7 +1191,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction('', report, reportTransactions, violations, policy);
             expect(result).toBe(true);
         });
 
@@ -1224,7 +1224,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction('', report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1254,7 +1254,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction('', report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1284,7 +1284,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction('', report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
     });
