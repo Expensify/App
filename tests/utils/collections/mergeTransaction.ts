@@ -23,5 +23,8 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         receipt: {},
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         reportID: index.toString(),
+        taxAmount: randAmount(),
+        taxValue: randAmount().toString(),
+        taxCode: randWord(),
     };
 }
