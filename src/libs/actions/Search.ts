@@ -602,7 +602,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
     let deletedTotal = 0;
     transactionIDList.forEach((transactionID) => {
         const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        deletedTotal += -(transaction?.convertedAmount ?? 0);
+        deletedTotal -= (transaction?.convertedAmount ?? 0);
     });
 
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
