@@ -1,0 +1,16 @@
+diff --git a/node_modules/@sentry/core/build/esm/fetch.js b/node_modules/@sentry/core/build/esm/fetch.js
+index da1d1ac..77dc915 100644
+--- a/node_modules/@sentry/core/build/esm/fetch.js
++++ b/node_modules/@sentry/core/build/esm/fetch.js
+@@ -215,6 +215,11 @@ function endSpan(span, handlerData) {
+   if (handlerData.response) {
+     setHttpStatus(span, handlerData.response.status);
+
++    const requestId = handlerData.response?.headers?.get('x-request-id');
++    if (requestId) {
++        span.setAttribute('request-id', requestId)
++    }
++
+     const contentLength = handlerData.response?.headers?.get('content-length');
+ 
+     if (contentLength) {
