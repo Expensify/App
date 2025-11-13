@@ -61,7 +61,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes: unknown;
         fieldList: unknown;
         permissions: unknown;
-        transactionCount: unknown;
         tripData: {
             startDate: unknown;
             endDate: unknown;
@@ -70,6 +69,15 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         private_isArchived: unknown;
         welcomeMessage: unknown;
         agentZeroProcessingRequestIndicator: unknown;
+        nextStep: {
+            messageKey: unknown;
+            icon: unknown;
+            actorAccountID: unknown;
+            eta: {
+                etaKey: unknown;
+                dateTime: unknown;
+            };
+        };
         transactionCount: unknown;
     },
     PolicyReportField['fieldID']
