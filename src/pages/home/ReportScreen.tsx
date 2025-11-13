@@ -45,7 +45,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {endReportNavigationSpan} from '@libs/Navigation/navigationSpans';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -111,7 +110,6 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
-import {endSpan} from '@libs/Telemetry/activeSpans';
 
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -349,14 +347,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
-
-    useEffect(() => {
-        if (shouldWaitForTransactions || !reportIDFromRoute) {
-            return;
-        }
-        // End the navigation span now that the report is ready to display
-        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportIDFromRoute}`);
-    }, [shouldWaitForTransactions, reportIDFromRoute]);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 

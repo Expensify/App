@@ -1649,7 +1649,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
-        SPAN_OPEN_REPORT: 'ManualOpenReport'
+        SPAN_OPEN_REPORT: 'ManualOpenReport',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
