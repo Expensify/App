@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        reportName: 'Rapportnaam',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1595,7 +1596,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Zoek om opties te zien',
     },
     contacts: {
-        contactMethod: 'Contactmethode',
         contactMethods: 'Contactmethoden',
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',

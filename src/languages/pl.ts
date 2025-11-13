@@ -694,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        reportName: 'Nazwa raportu',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1593,7 +1594,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Wyszukaj, aby zobaczyć opcje',
     },
     contacts: {
-        contactMethod: 'Metoda kontaktu',
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',

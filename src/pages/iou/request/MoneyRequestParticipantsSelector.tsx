@@ -24,6 +24,7 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -108,6 +109,7 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -182,8 +184,21 @@ function MoneyRequestParticipantsSelector({
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
+        [
+            participants,
+            iouType,
+            action,
+            isCategorizeOrShareAction,
+            isPerDiemRequest,
+            isCorporateCardTransaction,
+            canShowManagerMcTest,
+            isPaidGroupPolicy,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
+        ],
     );
 
     const handleSelectionChange = useCallback(

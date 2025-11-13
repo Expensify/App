@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        reportName: 'Nome do relatório',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1592,7 +1593,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Pesquisar para ver opções',
     },
     contacts: {
-        contactMethod: 'Método de contato',
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',

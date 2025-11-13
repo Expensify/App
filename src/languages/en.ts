@@ -579,6 +579,7 @@ const translations = {
         businessName: 'Business name',
         clear: 'Clear',
         type: 'Type',
+        reportName: 'Report name',
         action: 'Action',
         expenses: 'Expenses',
         totalSpend: 'Total spend',
@@ -1702,7 +1703,6 @@ const translations = {
         placeholderText: 'Search to see options',
     },
     contacts: {
-        contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',

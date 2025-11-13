@@ -688,6 +688,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        reportName: '报告名称',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1571,7 +1572,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: '搜索以查看选项',
     },
     contacts: {
-        contactMethod: '联系方式',
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',

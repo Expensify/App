@@ -265,6 +265,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessName: 'Nombre de la empresa',
         clear: 'Borrar',
         type: 'Tipo',
+        reportName: 'Nombre del informe',
         action: 'Acción',
         expenses: 'Gastos',
         totalSpend: 'Gasto total',
@@ -1372,7 +1373,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
-        contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
