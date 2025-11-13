@@ -365,7 +365,14 @@ function MoneyRequestConfirmationListFooter({
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    const taxRateTitle = (getTaxName(policy, transaction) ?? isMovingCurrentTransactionFromTrackExpense) ? getTaxName(policyForMovingExpenses, transaction) : '';
+    let taxRateTitle;
+    if (getTaxName(policy, transaction)) {
+        taxRateTitle = getTaxName(policy, transaction);
+    } else if (isMovingCurrentTransactionFromTrackExpense) {
+        taxRateTitle = getTaxName(policyForMovingExpenses, transaction);
+    } else {
+        taxRateTitle = '';
+    }
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
