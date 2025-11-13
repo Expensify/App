@@ -32,7 +32,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
     }, [isLoading]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && prevCompanyFeeds >= 1 && !isLoading,
+        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeeds >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
