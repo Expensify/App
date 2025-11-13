@@ -42,7 +42,7 @@ function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: Reac
                     // Create canvas with 2x resolution for better quality
                     const canvas = document.createElement('canvas');
                     canvas.width = width;
-                    canvas.height = width;
+                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
 
                     if (!ctx) {
