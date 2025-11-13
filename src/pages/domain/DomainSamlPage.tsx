@@ -67,38 +67,31 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
             childrenStyles={[styles.gap6, styles.pt6]}
         >
             <View style={styles.sectionMenuItemTopDescription}>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    <View style={styles.flex4}>
-                        <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.alignItemsEnd]}>
-                        <Switch
-                            accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
-                            isOn={isSamlEnabled}
-                            onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
-                        />
-                    </View>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
+                    <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
+
+                    <Switch
+                        accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
+                        isOn={isSamlEnabled}
+                        onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
+                    />
                 </View>
 
-                <Text style={styles.formHelp}>{translate('domain.samlLogin.allowMembers')}</Text>
+                <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
             </View>
 
             {isSamlEnabled && (
                 <View style={styles.sectionMenuItemTopDescription}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                        <View style={styles.flex4}>
-                            <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
-                        </View>
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
-                            <Switch
-                                accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
-                                isOn={isSamlRequired}
-                                onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
-                            />
-                        </View>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
+                        <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                        <Switch
+                            accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
+                            isOn={isSamlRequired}
+                            onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
+                        />
                     </View>
 
-                    <Text style={styles.formHelp}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                    <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
                 </View>
             )}
         </Section>
@@ -218,6 +211,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 }
                 description={translate('domain.samlConfigurationDetails.oktaScimToken')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+                interactive={false}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
             />
         </Section>

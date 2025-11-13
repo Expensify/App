@@ -192,7 +192,7 @@ function getScimToken(accountID: number, domainName: string) {
         },
     ];
 
-    API.read(READ_COMMANDS.GET_SCIM_TOKEN, {domainName}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.GET_SCIM_TOKEN, {domain: domainName}, {optimisticData, finallyData});
 }
 
 export {getDomainValidationCode, validateDomain, resetDomainValidationError, openDomainInitialPage, getSamlSettings, setSamlEnabled, setSamlRequired, setSamlMetadata, getScimToken};
