@@ -9,9 +9,9 @@ import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList, CompanyCardFeed, CurrencyList, DomainSettings, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/DomainSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -344,7 +344,7 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CompanyFeeds {
+function getCompanyFeeds(cardFeeds: OnyxEntry<DomainSettings>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -513,7 +513,7 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
     return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
 }
 
-function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<DomainSettings>): CompanyCardFeed | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
@@ -585,7 +585,7 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
-    cardFeeds?: CardFeeds,
+    cardFeeds?: DomainSettings,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
     const cards = {};
@@ -612,7 +612,7 @@ function isSmartLimitEnabled(cards: CardList) {
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
-function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<DomainSettings>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(feedKey));
 

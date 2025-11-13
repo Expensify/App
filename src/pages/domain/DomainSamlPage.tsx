@@ -30,7 +30,7 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
+import type {DomainSettings} from '@src/types/onyx';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -49,7 +49,7 @@ const samlFeatures: FeatureListItem[] = [
     },
 ];
 
-const domainSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => ({
+const domainSamlSettingsSelector = (domainSettings: OnyxEntry<DomainSettings>) => ({
     isSamlEnabled: domainSettings?.settings.samlEnabled,
     isSamlRequired: domainSettings?.settings.samlRequired,
 });

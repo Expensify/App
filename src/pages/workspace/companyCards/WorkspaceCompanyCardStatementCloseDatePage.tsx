@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from './WorkspaceCompanyCardStatementCloseDateSelectionList';
 

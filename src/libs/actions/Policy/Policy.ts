@@ -106,7 +106,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    CardFeeds,
+    DomainSettings,
     DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -374,7 +374,7 @@ function deleteWorkspace(
     policyID: string,
     policyName: string,
     lastAccessedWorkspacePolicyID: string | undefined,
-    policyCardFeeds: CardFeeds | undefined,
+    policyCardFeeds: DomainSettings | undefined,
     reportsToArchive: Report[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     reimbursementAccountError: Errors | undefined,

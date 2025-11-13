@@ -2250,7 +2250,7 @@ function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
     );
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.DomainSettings>, allCards: OnyxTypes.CardList) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
         value: cardFeed.id,

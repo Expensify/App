@@ -14,7 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeed} from '@src/types/onyx/DomainSettings';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {

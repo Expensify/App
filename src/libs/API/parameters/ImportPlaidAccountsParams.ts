@@ -1,4 +1,4 @@
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
 
 type ImportPlaidAccountsParams = {
     publicToken: string;

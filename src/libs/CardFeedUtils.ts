@@ -4,7 +4,7 @@ import type {AdditionalCardProps} from '@components/SelectionListWithSections/Se
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardList, CompanyCardFeed, DomainSettings, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -414,7 +414,7 @@ const generateSelectedCards = (
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  */
-function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<DomainSettings>, allCards: CardList): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
     Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
@@ -468,7 +468,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
  *
  * Note: "Expensify Card" feeds are not included.
  */
-function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
+function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<DomainSettings>): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
     Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {

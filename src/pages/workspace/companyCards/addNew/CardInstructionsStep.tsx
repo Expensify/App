@@ -18,7 +18,7 @@ import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider} from '@src/types/onyx/DomainSettings';
 
 type CardInstructionsStepProps = {
     policyID?: string;

@@ -20,9 +20,9 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds} from '@src/types/onyx';
+import type {Card, DomainSettings} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
@@ -63,7 +63,7 @@ function addNewCompanyCardsFeed(
     policyID: string | undefined,
     cardFeed: CompanyCardFeed,
     feedDetails: CardFeedDetails,
-    cardFeeds: OnyxEntry<CardFeeds>,
+    cardFeeds: OnyxEntry<DomainSettings>,
     statementPeriodEnd: StatementPeriodEnd | undefined,
     statementPeriodEndDay: StatementPeriodEndDay | undefined,
     lastSelectedFeed?: CompanyCardFeed,

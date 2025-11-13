@@ -1,4 +1,4 @@
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
 
 type SetFeedStatementPeriodEndDayParams = {
     authToken: string | null | undefined;

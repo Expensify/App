@@ -133,8 +133,8 @@ type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 /** Custom feed names */
 type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
 
-/** Card feeds model */
-type CardFeeds = {
+/** Domain settings model, including card feeds */
+type DomainSettings = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
@@ -220,7 +220,7 @@ type AddNewCompanyCardFeed = {
 /** Card fund ID */
 type FundID = number;
 
-export default CardFeeds;
+export default DomainSettings;
 export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,

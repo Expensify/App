@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
 
