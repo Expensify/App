@@ -79,7 +79,7 @@ import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import NetworkConnection from '@libs/NetworkConnection';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -2445,9 +2445,7 @@ function updateReportField(
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStepDeprecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStep({
         report,
         predictedNextStatus,
         shouldFixViolations,
@@ -2842,9 +2840,7 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStepDeprecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStep({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -5600,7 +5596,7 @@ function buildOptimisticChangePolicyData(
     if (newStatusNum) {
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticNextStepDeprecated = buildNextStepNew({
+        const optimisticNextStepDeprecated = buildNextStep({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
             policy,

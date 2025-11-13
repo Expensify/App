@@ -9,7 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -410,9 +410,7 @@ function dismissDuplicateTransactionViolation(
         const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
-        // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticNextStepDeprecated = buildNextStepNew({
+        const optimisticNextStepDeprecated = buildNextStep({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: hasOtherViolationsBesideDuplicates,
@@ -1301,9 +1299,7 @@ function changeTransactionsReport(
     };
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
 
-    // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStepDeprecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStep({
         report: nextStepReport,
         policy,
         currentUserAccountIDParam: accountID,

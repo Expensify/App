@@ -86,6 +86,8 @@ function IOURequestStepDistanceManual({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -95,7 +97,6 @@ function IOURequestStepDistanceManual({
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
@@ -160,6 +161,9 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -231,6 +235,9 @@ function IOURequestStepDistanceManual({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        transactionViolations,
                         isASAPSubmitBetaEnabled,
                     });
                     return;
@@ -297,6 +304,7 @@ function IOURequestStepDistanceManual({
             lastSelectedDistanceRates,
             localeCompare,
             backToReport,
+            transactionViolations,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,

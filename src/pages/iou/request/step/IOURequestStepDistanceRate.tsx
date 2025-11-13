@@ -3,8 +3,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
@@ -48,6 +50,9 @@ function IOURequestStepDistanceRate({
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -101,7 +106,19 @@ function IOURequestStepDistanceRate({
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
             if (isEditing && transaction?.transactionID) {
-                updateMoneyRequestDistanceRate(transaction.transactionID, reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);
+                updateMoneyRequestDistanceRate({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: reportID,
+                    rateID: customUnitRateID,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    isASAPSubmitBetaEnabled,
+                    updatedTaxAmount: taxAmount,
+                    updatedTaxCode: taxRateExternalID,
+                });
             }
         }
 
