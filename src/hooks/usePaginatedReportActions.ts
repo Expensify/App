@@ -58,13 +58,17 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionID, isUnreadReportAction);
     }, [report?.lastReadTime, reportActionID, reportActionPages, shouldLinkToUnreadReportAction, sortedAllReportActions]);
 
-    const linkedAction = useMemo(
-        () => (reportActionID ? sortedAllReportActions?.find((reportAction) => String(reportAction.reportActionID) === String(reportActionID)) : undefined),
-        [reportActionID, sortedAllReportActions],
-    );
+    const linkedAction = useMemo(() => resourceItem?.item, [resourceItem]);
+
+    const oldestUnreadReportActionID = useMemo(() => {
+        if (shouldLinkToUnreadReportAction && resourceItem && reportActionID) {
+            return resourceItem.id;
+        }
+        return undefined;
+    }, [resourceItem, shouldLinkToUnreadReportAction, reportActionID]);
 
     if (report?.reportID === '2636639376691898') {
-        console.log({resourceItem});
+        console.log({resourceItem, linkedAction, oldestUnreadReportActionID});
     }
 
     return {
@@ -73,7 +77,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         sortedAllReportActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,
-        oldestUnreadReportActionID: resourceItem?.id,
+        oldestUnreadReportActionID,
         report,
     };
 }
