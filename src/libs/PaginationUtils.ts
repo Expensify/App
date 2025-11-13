@@ -185,17 +185,32 @@ function getContinuousChain<TResource>(
 ): ContinuousPageChainResult<TResource> {
     const getResourceById = (item: TResource) => getID(item) === resourceId;
 
-    if (pages.length === 0) {
-        let data: TResource[] = sortedItems;
-        if (resourceId) {
-            const foundDataItems = sortedItems.filter(getResourceById);
+    // If an id is provided, find the index of the item with that id
+    let index = -1;
+    if (resourceId) {
+        index = sortedItems.findIndex(getResourceById);
+    } else if (resourceItemPredicate) {
+        // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
+        index = sortedItems.findIndex(resourceItemPredicate);
+    }
+    const itemFound = index !== -1;
 
-            if (foundDataItems) {
-                data = foundDataItems;
-            }
+    // If we found an item, return it as the resource item
+    let resourceItem: ResourceItemResult<TResource> | undefined;
+    if (itemFound) {
+        const item = sortedItems.at(index);
+        console.log({item});
+        if (item) {
+            resourceItem = {
+                index,
+                item,
+                id: getID(item),
+            };
         }
+    }
 
-        return {data, hasNextPage: false, hasPreviousPage: false};
+    if (pages.length === 0) {
+        return {data: itemFound ? [] : [], hasNextPage: false, hasPreviousPage: false, resourceItem};
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
@@ -208,34 +223,11 @@ function getContinuousChain<TResource>(
         lastIndex: 0,
     };
 
-    let index = -1;
-    let resourceItem: ResourceItemResult<TResource> | undefined;
-
-    // If an id is provided, find the index of the item with that id
-    if (resourceId) {
-        index = sortedItems.findIndex(getResourceById);
-    } else if (resourceItemPredicate) {
-        // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
-        index = sortedItems.findIndex(resourceItemPredicate);
-    }
-
-    // If we found an index, get the item and create a resource item result
-    if (index) {
-        const item = sortedItems.at(index);
-        if (item) {
-            resourceItem = {
-                index,
-                item,
-                id: getID(item),
-            };
-        }
-    }
-
     // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
-    if (index !== -1 || !resourceItemPredicate) {
+    if (itemFound || !resourceItemPredicate) {
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
-        if (index === -1) {
-            return {data: [], hasNextPage: false, hasPreviousPage: false};
+        if (!itemFound) {
+            return {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem};
         }
 
         const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
@@ -243,7 +235,7 @@ function getContinuousChain<TResource>(
         const item = sortedItems.at(index);
         // If we are linked to an action in a gap return it by itself
         if (!linkedPage && item) {
-            return {data: [item], hasNextPage: false, hasPreviousPage: false};
+            return {data: [item], hasNextPage: false, hasPreviousPage: false, resourceItem};
         }
 
         if (linkedPage) {
@@ -258,7 +250,7 @@ function getContinuousChain<TResource>(
     }
 
     if (!page) {
-        return {data: sortedItems, hasNextPage: false, hasPreviousPage: false};
+        return {data: sortedItems, hasNextPage: false, hasPreviousPage: false, resourceItem};
     }
 
     return {
