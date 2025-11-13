@@ -14,13 +14,19 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {buildMergeFieldsData, getMergeableDataAndConflictFields, getMergeFieldErrorText, getMergeFieldValue, isEmptyMergeValue} from '@libs/MergeTransactionUtils';
+import {
+    buildMergeFieldsData,
+    getMergeableDataAndConflictFields,
+    getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
+    getMergeFieldValue,
+    isEmptyMergeValue,
+} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -67,9 +73,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue);
+
             setMergeTransactionKey(transactionID, {
-                [field]: fieldValue,
-                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...updatedValues,
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,
