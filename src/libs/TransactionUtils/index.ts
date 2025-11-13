@@ -1163,6 +1163,28 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 }
 
 /**
+ * Merge prohibited violations into one violation.
+ */
+function mergeProhibitedViolations(transactionViolations: TransactionViolations): TransactionViolations {
+    const prohibitedViolations = transactionViolations.filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+
+    if (prohibitedViolations.length === 0) {
+        return transactionViolations;
+    }
+
+    const prohibitedExpenses = prohibitedViolations.flatMap((violation: TransactionViolation) => violation.data?.prohibitedExpenseRule ?? []);
+    const mergedProhibitedViolations: TransactionViolation = {
+        name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+        data: {
+            prohibitedExpenseRule: prohibitedExpenses,
+        },
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+    };
+
+    return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+}
+
+/**
  * Check if the user should see the violation
  */
 function shouldShowViolation(
@@ -2152,6 +2174,7 @@ export {
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,
+    mergeProhibitedViolations,
 };
 
 export type {TransactionChanges};

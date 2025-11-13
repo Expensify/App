@@ -59,6 +59,7 @@ function AttachmentModalBaseContent({
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
+    transaction: transactionProp,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -82,7 +83,8 @@ function AttachmentModalBaseContent({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
@@ -243,6 +245,7 @@ function AttachmentModalBaseContent({
                         fallbackSource={fallbackSource}
                         isUsedInAttachmentModal
                         transactionID={transaction?.transactionID}
+                        transaction={transaction}
                         isUploaded={!isEmptyObject(report)}
                         reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                     />
@@ -270,7 +273,7 @@ function AttachmentModalBaseContent({
         sourceForAttachmentView,
         sourceProp,
         styles.mh5,
-        transaction?.transactionID,
+        transaction,
         type,
     ]);
 
