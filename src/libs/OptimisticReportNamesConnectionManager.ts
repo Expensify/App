@@ -1,7 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaConfiguration, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, Policy, Report, Transaction} from '@src/types/onyx';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 

@@ -1,10 +1,9 @@
 import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -270,7 +269,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
  * Check if a formula part is a submission info part (report:submit:*)
  */
 function isSubmissionInfoPart(part: FormulaPart): boolean {
-    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath[0]?.toLowerCase() === 'submit';
+    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath.at(0)?.toLowerCase() === 'submit';
 }
 
 /**
