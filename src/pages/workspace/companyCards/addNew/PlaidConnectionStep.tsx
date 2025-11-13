@@ -51,8 +51,8 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     const [isExitModalVisible, setIsExitModalVisible] = useState(false);
 
     // Use the appropriate navigation hook based on whether we're in the assign card flow or add new card flow
-    useAssignCardNavigation(policyID, feed, route.params?.backTo);
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed);
+    useAddNewCardNavigation(policyID);
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
 
@@ -107,8 +107,8 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
         previousNetworkState.current = isOffline;
     }, [addNewCard?.data?.selectedCountry, domain, feed, isAuthenticatedWithPlaid, isOffline]);
 
-    const handleBackButtonPress = () => {
-        if (feed) {
+    const handleBackButtonPress = (showingExitModal: boolean = false) => {
+        if (feed && !showingExitModal) {
             Navigation.dismissModal();
             return;
         }
@@ -157,7 +157,6 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                                         currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                                     });
                                 });
-                                Log.hmmm('1- Importing Plaid accounts in assign card flow');
                                 return;
                             }
                             setAssignCardStepAndData({
@@ -169,7 +168,6 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
-                            Log.hmmm('2- Moving to bank connection step in assign card flow');
                             return;
                         }
 
@@ -182,7 +180,6 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                                 plaidAccounts: metadata?.accounts,
                             },
                         });
-                        Log.hmmm('3- Moving to select statement close date step in add new card flow');
                     }}
                     onError={handlePlaidLinkError}
                     onEvent={(event) => {
@@ -196,7 +193,7 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onExit={() => {
                         setIsExitModalVisible(true);
-                        handleBackButtonPress();
+                        handleBackButtonPress(true);
                     }}
                 />
             );

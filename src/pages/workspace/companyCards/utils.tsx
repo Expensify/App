@@ -386,7 +386,7 @@ function getExportMenuItem(
     }
 }
 
-function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, backTo?: string | undefined, isStartStep = false) {
+function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, isStartStep = false) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
     const previousStepRef = useRef(currentStep);
@@ -415,17 +415,17 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
             [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute(policyID, feed),
             [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute(policyID, feed),
             [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute(policyID, feed),
-            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed, shouldUseBackToParam ? backTo : ''),
+            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed),
         };
 
         const targetRoute: AssignCardRoute = stepRoutes[currentStep];
         if (targetRoute) {
             Navigation.navigate(targetRoute);
         }
-    }, [currentStep, policyID, feed, backTo, isStartStep, shouldUseBackToParam]);
+    }, [currentStep, policyID, feed, isStartStep, shouldUseBackToParam]);
 }
 
-function useAddNewCardNavigation(policyID: string | undefined, backTo?: string | undefined, isStartStep = false) {
+function useAddNewCardNavigation(policyID: string | undefined, isStartStep = false) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const currentStep = addNewCard?.currentStep;
     const previousStepRef = useRef(currentStep);
@@ -444,29 +444,29 @@ function useAddNewCardNavigation(policyID: string | undefined, backTo?: string |
         }
 
         const stepRoutes: Record<string, AddNewCardRoute> = {
-            [CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.SELECT_BANK]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.CARD_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_BANK]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(policyID),
             [CONST.COMPANY_CARDS.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
                 policyID,
                 addNewCard?.data?.selectedBank ?? '',
-                ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, backTo),
+                ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID),
             ),
-            [CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.CARD_DETAILS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_DETAILS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(policyID),
             [CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute(policyID, addNewCard?.data?.selectedBank ?? ''),
-            [CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(policyID, backTo),
-            [CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(policyID, backTo),
+            [CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(policyID),
         };
 
         const targetRoute: AddNewCardRoute = currentStep ? stepRoutes[currentStep] : stepRoutes[defaultStep];
         if (targetRoute) {
             Navigation.navigate(targetRoute);
         }
-    }, [currentStep, policyID, backTo, isStartStep, addNewCard?.data?.selectedBank, defaultStep]);
+    }, [currentStep, policyID, isStartStep, addNewCard?.data?.selectedBank, defaultStep]);
 }
 
 // eslint-disable-next-line import/prefer-default-export

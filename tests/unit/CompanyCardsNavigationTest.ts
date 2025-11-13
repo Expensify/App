@@ -22,7 +22,6 @@ jest.mock('@hooks/usePermissions', () =>
 
 const POLICY_ID = 'test-policy-id';
 const FEED = 'cdf';
-const BACK_TO = '/test/back/to';
 
 describe('useAssignCardNavigation', () => {
     beforeAll(() => {
@@ -42,7 +41,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Wait for effects to run
         await waitForBatchedUpdates();
@@ -56,7 +55,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Change the step
         await act(async () => {
@@ -76,7 +75,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Change the step
         await act(async () => {
@@ -96,7 +95,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Change the step
         await act(async () => {
@@ -107,7 +106,7 @@ describe('useAssignCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(POLICY_ID, FEED, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(POLICY_ID, FEED));
     });
 
     it('should navigate to BANK_CONNECTION step', async () => {
@@ -116,7 +115,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Change the step
         await act(async () => {
@@ -138,7 +137,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, false));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, false));
 
         // Change the step
         await act(async () => {
@@ -158,7 +157,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, BACK_TO, true));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, FEED, true));
 
         await waitForBatchedUpdates();
 
@@ -171,7 +170,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(undefined, FEED, BACK_TO, true));
+        renderHook(() => useAssignCardNavigation(undefined, FEED, true));
 
         await waitForBatchedUpdates();
 
@@ -184,7 +183,7 @@ describe('useAssignCardNavigation', () => {
             data: {email: 'test@example.com'},
         });
 
-        renderHook(() => useAssignCardNavigation(POLICY_ID, undefined, BACK_TO, true));
+        renderHook(() => useAssignCardNavigation(POLICY_ID, undefined, true));
 
         await waitForBatchedUpdates();
 
@@ -211,7 +210,7 @@ describe('useAddNewCardNavigation', () => {
             data: {selectedBank: 'Stripe'},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await waitForBatchedUpdates();
 
@@ -226,11 +225,11 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, true));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, true));
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID));
     });
 
     it('should navigate to SELECT_COUNTRY step by default when PLAID beta is enabled', async () => {
@@ -241,11 +240,11 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, true));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, true));
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(POLICY_ID));
     });
 
     it('should navigate to SELECT_COUNTRY step when step changes', async () => {
@@ -254,7 +253,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -264,7 +263,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(POLICY_ID));
     });
 
     it('should navigate to SELECT_BANK step when step changes', async () => {
@@ -273,7 +272,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -283,7 +282,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID));
     });
 
     it('should navigate to SELECT_FEED_TYPE step', async () => {
@@ -292,7 +291,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -302,7 +301,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(POLICY_ID));
     });
 
     it('should navigate to CARD_TYPE step', async () => {
@@ -311,7 +310,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -321,7 +320,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(POLICY_ID));
     });
 
     it('should navigate to BANK_CONNECTION step with selected bank', async () => {
@@ -331,7 +330,7 @@ describe('useAddNewCardNavigation', () => {
             data: {selectedBank},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -342,7 +341,7 @@ describe('useAddNewCardNavigation', () => {
         await waitForBatchedUpdates();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(POLICY_ID, selectedBank, ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(POLICY_ID, BACK_TO)),
+            ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(POLICY_ID, selectedBank, ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(POLICY_ID)),
         );
     });
 
@@ -352,7 +351,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -362,7 +361,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(POLICY_ID));
     });
 
     it('should navigate to CARD_NAME step', async () => {
@@ -371,7 +370,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -381,7 +380,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(POLICY_ID));
     });
 
     it('should navigate to CARD_DETAILS step', async () => {
@@ -390,7 +389,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -400,7 +399,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(POLICY_ID));
     });
 
     it('should navigate to AMEX_CUSTOM_FEED step', async () => {
@@ -409,7 +408,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -419,7 +418,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(POLICY_ID));
     });
 
     it('should navigate to PLAID_CONNECTION step with selected bank', async () => {
@@ -429,7 +428,7 @@ describe('useAddNewCardNavigation', () => {
             data: {selectedBank},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -448,7 +447,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -458,7 +457,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(POLICY_ID));
     });
 
     it('should navigate to SELECT_DIRECT_STATEMENT_CLOSE_DATE step', async () => {
@@ -467,7 +466,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, false));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, false));
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
@@ -477,7 +476,7 @@ describe('useAddNewCardNavigation', () => {
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(POLICY_ID));
     });
 
     it('should navigate immediately when isStartStep is true', async () => {
@@ -488,11 +487,11 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(POLICY_ID, BACK_TO, true));
+        renderHook(() => useAddNewCardNavigation(POLICY_ID, true));
 
         await waitForBatchedUpdates();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID, BACK_TO));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(POLICY_ID));
     });
 
     it('should not navigate when policyID is undefined', async () => {
@@ -501,7 +500,7 @@ describe('useAddNewCardNavigation', () => {
             data: {},
         });
 
-        renderHook(() => useAddNewCardNavigation(undefined, BACK_TO, true));
+        renderHook(() => useAddNewCardNavigation(undefined, true));
 
         await waitForBatchedUpdates();
 

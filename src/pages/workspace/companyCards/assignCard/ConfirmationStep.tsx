@@ -36,7 +36,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const policyID = route.params?.policyID;
-    const backTo = route.params?.backTo;
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
@@ -50,7 +49,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((_route) => isFullScreenName(_route.name)));
 
-    useAssignCardNavigation(policyID, feed, backTo);
+    useAssignCardNavigation(policyID, feed);
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
@@ -58,14 +57,14 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         }
 
         const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-        if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
-            Navigation.goBack(backTo);
+        if (lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {

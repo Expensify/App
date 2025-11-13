@@ -27,7 +27,7 @@ function AmexCustomFeed({route}: AmexCustomFeedProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params?.policyID;
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
     const [hasError, setHasError] = useState(false);
 

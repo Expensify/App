@@ -25,7 +25,7 @@ function StatementCloseDateStep({route}: StatementCloseDateStepProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
 
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!addNewCard?.data?.publicToken;
 

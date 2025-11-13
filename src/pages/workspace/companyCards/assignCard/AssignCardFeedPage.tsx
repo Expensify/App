@@ -29,7 +29,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         };
     }, []);
 
-    useAssignCardNavigation(policyID, feed, backTo, true);
+    useAssignCardNavigation(policyID, feed, true);
 
     if (isActingAsDelegate) {
         return (

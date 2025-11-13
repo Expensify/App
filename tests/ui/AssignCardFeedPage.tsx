@@ -150,7 +150,6 @@ describe('AssignCardFeedPage', () => {
         expect(navigationCall).toContain('company-cards');
         expect(navigationCall).toContain('assign-card/confirmation');
         expect(navigationCall).toContain(policy.id);
-        expect(navigationCall).toContain('backTo');
 
         // Unmount the component after assertions to clean up.
         unmount();

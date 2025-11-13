@@ -24,7 +24,7 @@ function DirectStatementCloseDateStep({route}: DirectStatementCloseDateStepProps
     const policyID = route.params?.policyID;
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const workspaceAccountID = useWorkspaceAccountID(policyID);

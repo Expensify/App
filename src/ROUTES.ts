@@ -2119,63 +2119,43 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/select-country',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/select-country`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/select-country` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/select-bank',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/select-bank`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/select-bank` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/select-feed-type',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/select-feed-type`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/select-feed-type` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/card-type',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/card-type`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/card-type` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/card-instructions',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/card-instructions`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/card-instructions` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/card-name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/card-name`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/card-name` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/card-details',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/card-details`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/card-details` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/amex-custom-feed',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/amex-custom-feed`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/amex-custom-feed` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/select-statement-close-date',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/select-statement-close-date`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/select-statement-close-date` as const,
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/select-direct-statement-close-date',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/add-card-feed/select-direct-statement-close-date`, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/select-direct-statement-close-date` as const,
     },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
         route: 'workspaces/:policyID/company-cards/select-feed',
@@ -2189,39 +2169,27 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/assignee',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/assignee`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/assignee` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/select`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/select` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/transaction-start-date-step',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/transaction-start-date-step`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/transaction-start-date-step` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/name`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/name` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/confirmation',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/confirmation`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/confirmation` as const,
     },
     WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/plaid-connection',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card/plaid-connection`, backTo),
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/plaid-connection` as const,
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID',

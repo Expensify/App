@@ -74,7 +74,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         ),
     }));
 
-    useAssignCardNavigation(policyID, feed, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

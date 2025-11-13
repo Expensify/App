@@ -29,7 +29,7 @@ function SelectFeedType({route}: SelectFeedTypeProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params?.policyID;
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();

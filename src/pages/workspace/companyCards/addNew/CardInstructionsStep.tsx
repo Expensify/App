@@ -42,7 +42,7 @@ function CardInstructionsStep({route}: CardInstructionsStepProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const {isOffline} = useNetwork();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});

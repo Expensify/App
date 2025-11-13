@@ -98,7 +98,7 @@ function CardTypeStep({route}: CardTypeStepProps) {
     const {isBetaEnabled} = usePermissions();
     const policyID = route.params?.policyID;
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
     const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)});
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;

@@ -60,7 +60,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         setShouldShowError(false);
     };
 
-    useAssignCardNavigation(policyID, feed, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed);
 
     const submit = () => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;

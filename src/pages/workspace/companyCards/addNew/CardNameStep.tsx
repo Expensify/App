@@ -30,7 +30,7 @@ function CardNameStep({route}: CardNameStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params?.policyID;
 
-    useAddNewCardNavigation(policyID, route.params?.backTo);
+    useAddNewCardNavigation(policyID);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);

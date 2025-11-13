@@ -10,22 +10,22 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type AddNewCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW> & WithPolicyAndFullscreenLoadingProps;
 
-function AddNewCardPage({policy, route}: AddNewCardPageProps) {
+function AddNewCardPage({policy}: AddNewCardPageProps) {
     const policyID = policy?.id;
-    const backTo = route.params?.backTo;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
     useEffect(() => {
         return () => {
             clearAddNewCardFlow();
+            clearAssignCardStepAndData();
         };
     }, []);
 
@@ -39,7 +39,7 @@ function AddNewCardPage({policy, route}: AddNewCardPageProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
 
-    useAddNewCardNavigation(policyID, backTo, true);
+    useAddNewCardNavigation(policyID, true);
 
     if (isActingAsDelegate) {
         return (

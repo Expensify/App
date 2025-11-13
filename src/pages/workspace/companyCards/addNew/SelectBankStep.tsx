@@ -22,6 +22,7 @@ import variables from '@styles/variables';
 import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type SelectBankStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_BANK>;
@@ -64,14 +65,10 @@ function SelectBankStep({route}: SelectBankStepProps) {
     }, [addNewCard?.data.selectedBank]);
 
     const handleBackButtonPress = () => {
-        if (route?.params?.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
         if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
         } else {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
         }
     };
 

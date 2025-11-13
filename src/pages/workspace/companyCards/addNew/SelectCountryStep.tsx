@@ -77,11 +77,7 @@ function SelectCountryStep({route}: CountryStepProps) {
     }, [getCountry]);
 
     const handleBackButtonPress = () => {
-        if (route?.params?.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
     };
 
     const onSelectionChange = useCallback((country: Option) => {

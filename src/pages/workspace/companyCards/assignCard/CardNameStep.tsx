@@ -34,7 +34,7 @@ function CardNameStep({route}: CardNameStepProps) {
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const data = assignCard?.data;
 
-    useAssignCardNavigation(policyID, feed, route.params?.backTo);
+    useAssignCardNavigation(policyID, feed);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
