@@ -41,7 +41,8 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
-    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    const reportFieldFromList = report?.fieldList?.[fieldKey];
+    const reportField = reportFieldFromList && reportFieldFromList.fieldID === route.params.fieldID ? reportFieldFromList : policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy);
     const {isBetaEnabled} = usePermissions();
