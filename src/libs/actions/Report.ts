@@ -1897,7 +1897,7 @@ function handlePreexistingReport(report: Report) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                if (parentReportActionID && !isOneTransactionReport(existingReport)) {
+                if (!parentReportActionID || !isOneTransactionReport(existingReport)) {
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
