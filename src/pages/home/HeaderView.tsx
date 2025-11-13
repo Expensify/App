@@ -151,7 +151,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    // If the parent report action has type add comment, we don't want to parse the full title
+    // This is the part where we display the header text. Adding this condition is to prevent us from parsing HTML to text for user inputs
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const subscriptionPlan = useSubscriptionPlan();
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
