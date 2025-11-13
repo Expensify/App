@@ -100,14 +100,11 @@ function prepareRequest<TCommand extends ApiCommand>(
         } else {
             try {
                 const context = getUpdateContext();
-                const {updates: processedOptimisticData, reportsWithPendingFields} = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
-                Onyx.update(processedOptimisticData);
+                const processedData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, successData, failureData, context);
 
-                // Process success and failure data to clear pending fields
-                if (reportsWithPendingFields) {
-                    processedSuccessData = OptimisticReportNames.clearPendingFieldsForReports(successData, reportsWithPendingFields);
-                    processedFailureData = OptimisticReportNames.clearPendingFieldsForReports(failureData, reportsWithPendingFields);
-                }
+                Onyx.update(processedData.optimisticData);
+                processedSuccessData = processedData.successData;
+                processedFailureData = processedData.failureData;
             } catch (error) {
                 Log.hmmm('[API] Failed to process optimistic report names', {error});
                 // Fallback to original optimistic data if processing fails
