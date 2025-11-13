@@ -76,6 +76,7 @@ import {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
+    isClosedExpenseReportWithNoExpenses,
     isDeprecatedGroupDM,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
@@ -1689,6 +1690,7 @@ describe('ReportUtils', () => {
                     const expenseReport: Report = {
                         ...baseExpenseReport,
                         statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
                     };
 
                     const params = {
@@ -1699,6 +1701,32 @@ describe('ReportUtils', () => {
                     const reportName = getSearchReportName(params);
 
                     expect(reportName).toBe('Deleted report');
+                });
+
+                test('closed expense report with total and transactions not loaded', () => {
+                    // Given a closed (submitted) expense report with a total and no transactions yet loaded
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: -4400, // Report has expenses (negative total indicates expense)
+                    };
+
+                    // Then it should not be considered closed without expenses, because it has a total
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                });
+
+                test('closed expense report with zero total but non-reimbursable total exists', () => {
+                    // Given a closed expense report where reimbursable and non-reimbursable totals cancel out
+                    // The total will be zero, but the non-reimbursable total will exist
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        nonReimbursableTotal: -10000,
+                    };
+
+                    // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
@@ -5697,6 +5725,55 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a submitted report when the policy is submit and close with payment disabled', async () => {
+            // Given the policy is submit and close with payment disabled
+            const workflowDisabledPolicy: Policy = {
+                ...createRandomPolicy(2962),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: workflowDisabledPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    displayName: 'Lagertha Lothbrok',
+                    firstName: 'Lagertha',
+                    login: currentUserEmail,
+                    pronouns: 'She/her',
+                },
+            });
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // If the canAddTransaction is used for the case of adding expense into the report
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result should be false
+            expect(result).toBe(false);
+
+            // If the canAddTransaction is used for the case of moving transaction into the report
+            const result2 = canAddTransaction(report, isReportArchived.current, true);
+
+            // Then the result should be true
+            expect(result2).toBe(true);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -8853,6 +8930,36 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
+    });
+
+    it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
+        const workspaceChat = {
+            ...createPolicyExpenseChat(41000),
+            hasOutstandingChildTask: true,
+        };
+        const cardMissingAddressAction: ReportAction = {
+            reportActionID: 'card-missing-address-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: 'task-11000',
+            created: DateUtils.getDBTime(),
+            originalMessage: {
+                assigneeAccountID: currentUserAccountID,
+                cardID: 11000,
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+            [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+        const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+        expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+        expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
     });
 
     it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {

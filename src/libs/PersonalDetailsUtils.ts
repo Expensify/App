@@ -421,7 +421,10 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function isMissingPrivatePersonalDetails(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+/**
+ * Checks whether any personal details are missing
+ */
+function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
     return (
         !privatePersonalDetails?.legalFirstName ||
         !privatePersonalDetails?.legalLastName ||
@@ -451,5 +454,5 @@ export {
     getShortMentionIfFound,
     getLoginByAccountID,
     getPhoneNumber,
-    isMissingPrivatePersonalDetails,
+    arePersonalDetailsMissing,
 };
