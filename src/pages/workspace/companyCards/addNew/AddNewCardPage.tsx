@@ -49,7 +49,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
-        if (!isBlockedToAddNewFeeds || !policyID) {
+        if (!policyID || !isBlockedToAddNewFeeds) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
