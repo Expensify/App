@@ -13,6 +13,7 @@ import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +45,7 @@ import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, R
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -69,7 +71,6 @@ function handleActionButtonPress(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    isInMobileSelectionMode: boolean,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     snapshotReport: SearchReport,
     snapshotPolicy: Policy,
@@ -83,7 +84,7 @@ function handleActionButtonPress(
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense || isInMobileSelectionMode) {
+    if (hasHeldExpense) {
         goToItem();
         return;
     }
@@ -246,6 +247,7 @@ function getOnyxLoadingData(
     ];
 
     const failureData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -517,6 +519,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null, reportAction?: OptimisticExportIntegrationAction | null): OnyxUpdate[] => [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -591,8 +594,18 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], currentSearchResults?: SearchResults) {
+    const currentMetadata = currentSearchResults?.search;
+
+    // Calculate total amount of transactions being deleted
+    const deletedTotal = transactionIDList.reduce((sum, transactionID) => {
+        const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        return sum - (transaction?.convertedAmount ?? 0);
+    }, 0);
+
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         ...loadingOptimisticData,
         {
@@ -602,6 +615,11 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 data: Object.fromEntries(
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
                 ) as Partial<SearchTransaction>,
+                search: {
+                    ...(currentMetadata ?? {}),
+                    count: Math.max(0, (currentMetadata?.count ?? 0) - transactionIDList.length),
+                    total: (currentMetadata?.total ?? 0) - deletedTotal,
+                },
             },
         },
     ];
@@ -613,6 +631,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 data: Object.fromEntries(
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}]),
                 ) as Partial<SearchTransaction>,
+                search: currentMetadata,
             },
         },
     ];
@@ -788,7 +807,6 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
  */
 function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
-    const hasInvoiceReport = selectedReports.some((report) => isInvoiceReport(report?.reportID));
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
@@ -815,8 +833,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
               );
 
     return {
-        // We will handle invoice in a separate flow, so we won't show bulk pay option if invoice is selected
-        shouldEnableBulkPayOption: shouldShowBulkPayOption && !hasInvoiceReport,
+        shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
 }
@@ -843,7 +860,7 @@ function handleBulkPayItemSelected(
     latestBankItems: BankAccountMenuItem[] | undefined,
     activeAdminPolicies: Policy[],
     isUserValidated: boolean | undefined,
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
@@ -877,7 +894,8 @@ function handleBulkPayItemSelected(
         }
         return;
     }
-    confirmPayment?.(paymentType as PaymentMethodType);
+
+    confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
 }
 
 /**
@@ -890,7 +908,38 @@ function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], sele
 }
 
 /**
- * Optimistically sets the data necessary to show the transaction thread report right away if user opens it from the Search tab.
+ * Return the payment params for paying invoice reports on Search.
+ */
+function getPayMoneyOnSearchInvoiceParams(policyID: string | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod): Partial<PaymentData> {
+    const invoiceParams: Partial<PaymentData> = {
+        policyID,
+        payAsBusiness,
+    };
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        invoiceParams.bankAccountID = methodID;
+    }
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        invoiceParams.fundID = methodID;
+    }
+
+    return invoiceParams;
+}
+
+/**
+ * Return the total amount of selected transactions/reports.
+ */
+function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency?: string): string {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const totalAmount =
+        selectedReports.length > 0
+            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
+            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
+    const formattedAmount = convertToDisplayString(totalAmount, currency);
+    return formattedAmount ?? '';
+}
+
+/* Optimistically sets the data necessary to show the transaction thread report right away if user opens it from the Search tab.
  *
  * When we open a transaction thread from the Search tab we already have all necessary information to show its preview without waiting for OpenReport API call to be finished.
  * So we generate necessary data optimistically: parent report, parent report action, transaction, and transaction thread report.
@@ -905,6 +954,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
     // Set optimistic parent report
     if (!hasParentReport) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -979,6 +1029,8 @@ export {
     isCurrencySupportWalletBulkPay,
     getExportTemplates,
     getReportType,
+    getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
+    getPayMoneyOnSearchInvoiceParams,
 };
 export type {TransactionPreviewData};

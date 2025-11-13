@@ -32,7 +32,7 @@ function flushQueue(): Promise<void> {
     queuedOnyxUpdates = [];
 
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
-        const preservedKeys: OnyxKey[] = [
+        const preservedKeys = new Set<OnyxKey>([
             ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
@@ -49,9 +49,9 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.NETWORK,
             ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
             ONYXKEYS.PRESERVED_USER_SESSION,
-        ];
+        ]);
 
-        copyUpdates = copyUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
+        copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
     }
     return Onyx.update(copyUpdates);
 }

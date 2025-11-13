@@ -31,14 +31,23 @@ type GetBillingStatusProps = {
     purchase?: Purchase;
     retryBillingSuccessful: OnyxEntry<boolean>;
     billingDisputePending: number | undefined;
+    retryBillingFailed: boolean | undefined;
 };
 
-function getBillingStatus({translate, stripeCustomerId, accountData, purchase, retryBillingSuccessful, billingDisputePending}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({
+    translate,
+    stripeCustomerId,
+    accountData,
+    purchase,
+    retryBillingSuccessful,
+    billingDisputePending,
+    retryBillingFailed,
+}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed);
 
     const endDate = getOverdueGracePeriodDate();
 

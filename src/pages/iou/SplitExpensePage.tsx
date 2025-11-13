@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
@@ -16,12 +17,14 @@ import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUn
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    evenlyDistributeSplitExpenseAmounts,
     getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
@@ -45,7 +48,6 @@ import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
@@ -82,7 +84,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0), [draftTransaction]);
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -97,6 +99,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
 
+    const {isBetaEnabled} = usePermissions();
+
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -107,7 +111,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     useEffect(() => {
         setErrorMessage('');
-    }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
+    }, [sumOfSplitExpenses, splitExpenses]);
 
     const onAddSplitExpense = useCallback(() => {
         if (draftTransaction?.errors) {
@@ -115,6 +119,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction, transactionID]);
+
+    const onMakeSplitsEven = useCallback(() => {
+        if (!draftTransaction) {
+            return;
+        }
+        evenlyDistributeSplitExpenseAmounts(draftTransaction);
+    }, [draftTransaction]);
 
     const onSaveSplitExpense = useCallback(() => {
         if (splitExpenses.length <= 1 && !childTransactions.length) {
@@ -137,13 +148,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
-            const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
+        if (sumOfSplitExpenses > transactionDetailsAmount) {
+            const difference = sumOfSplitExpenses - transactionDetailsAmount;
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < Math.abs(transactionDetailsAmount) && (isPerDiem || isCard)) {
-            const difference = Math.abs(transactionDetailsAmount) - sumOfSplitExpenses;
+        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
+            const difference = transactionDetailsAmount - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
@@ -176,6 +187,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             iouReport,
             chatReport,
             firstIOU: iouActions.at(0),
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             isChatReportArchived: isChatIOUReportArchived,
         });
     }, [
@@ -205,6 +217,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         transactionID,
         transactionDetails?.currency,
+        isBetaEnabled,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -225,7 +238,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
-            const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
+            const currentReport = getReportOrDraftReport(currentTransaction?.reportID);
             const isApproved = isReportApproved({report: currentReport});
             const isSettled = isSettledReportUtils(currentReport?.reportID);
             const isCancelled = currentReport && currentReport?.isCancelledIOU;
@@ -252,7 +265,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 ...item,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+                amount: Number(item.amount),
                 merchant: item?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -280,31 +293,35 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    success
+    const listFooterContent = useMemo(() => {
+        const shouldShowMakeSplitsEven = childTransactions.length === 0;
+        return (
+            <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
+                <MenuItem
                     onPress={onAddSplitExpense}
+                    title={translate('iou.addSplit')}
                     icon={Expensicons.Plus}
-                    text={translate('iou.addSplit')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={[styles.ph4]}
                 />
+                {shouldShowMakeSplitsEven && (
+                    <MenuItem
+                        onPress={onMakeSplitsEven}
+                        title={translate('iou.makeSplitsEven')}
+                        icon={Expensicons.ArrowsLeftRight}
+                        style={[styles.ph4]}
+                    />
+                )}
             </View>
-        ),
-        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
-    );
+        );
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
-        const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
+        const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
         const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
+            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View
-                ref={footerRef}
-                style={styles.pt3}
-            >
+            <View ref={footerRef}>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -324,7 +341,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -376,12 +393,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
-                        headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto, styles.pt1]}
+                        containerStyle={[styles.flexBasisAuto]}
                         footerContent={footerContent}
+                        listFooterContent={listFooterContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
