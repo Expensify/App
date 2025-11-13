@@ -2948,6 +2948,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 firstIOU: iouAction,
                 isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -3051,6 +3052,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -3167,6 +3169,7 @@ describe('actions/IOU', () => {
                 chatReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -8003,6 +8006,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserPersonalDetails,
                 });
                 await waitForBatchedUpdates();
 
@@ -8147,6 +8151,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserPersonalDetails,
                 });
                 await waitForBatchedUpdates();
 
@@ -8305,6 +8310,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserPersonalDetails,
                 });
                 await waitForBatchedUpdates();
 
