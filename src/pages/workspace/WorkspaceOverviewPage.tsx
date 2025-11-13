@@ -222,7 +222,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const confirmDelete = useCallback(() => {
-        setIsDeleteModalOpen(false);
         if (!policy?.id || !policyName) {
             return;
         }
@@ -239,6 +238,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
         });
         if (isOffline) {
+            setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
     }, [
