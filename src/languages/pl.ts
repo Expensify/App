@@ -1409,11 +1409,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Płać tylko',
         approveOnly: 'Zatwierdź tylko',
-        holdEducationalTitle: 'To żądanie jest w toku',
-        holdEducationalText: 'trzymaj',
-        whatIsHoldExplain: 'Wstrzymanie jest jak naciśnięcie „pauzy” na wydatku, aby poprosić o więcej szczegółów przed zatwierdzeniem lub płatnością.',
+        holdEducationalTitle: 'To żądanie jest aktywne',
+        holdEducationalText: 'wstrzymanie',
+        whatIsHoldExplain: 'Hold jest jak naciśnięcie „pauzy” na wydatku, aby poprosić o więcej szczegółów przed zatwierdzeniem lub płatnością.',
         holdIsLeftBehind: 'Wstrzymane wydatki są przenoszone do innego raportu po zatwierdzeniu lub opłaceniu.',
-        unholdWhenReady: 'Osoby zatwierdzające mogą zdjąć blokadę z wydatków, gdy będą gotowe do zatwierdzenia lub płatności.',
+        unholdWhenReady: 'Osoby zatwierdzające mogą zdjąć wstrzymanie wydatków, gdy są one gotowe do zatwierdzenia lub płatności.',
         changePolicyEducational: {
             title: 'Przeniosłeś ten raport!',
             description: 'Sprawdź te elementy, które mają tendencję do zmiany podczas przenoszenia raportów do nowego obszaru roboczego.',
@@ -7364,8 +7364,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         modal: {
             title: 'Wypróbuj nas w wersji testowej',
-            description: 'Weź szybką wycieczkę po produkcie, aby szybko się zorientować. Żadnych przystanków nie potrzeba!',
-            confirmText: 'Rozpocznij jazdę próbną',
+            description: 'Skorzystaj z krótkiego przewodnika po produkcie, aby szybko się wdrożyć.',
+            confirmText: 'Rozpocznij wersję demonstracyjną',
             helpText: 'Pomiń',
             employee: {
                 description:

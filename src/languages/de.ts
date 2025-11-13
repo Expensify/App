@@ -1415,11 +1415,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
-        holdEducationalTitle: 'Diese Anfrage ist an',
-        holdEducationalText: 'halten',
-        whatIsHoldExplain: 'Halten ist wie das Drücken der „Pause“-Taste bei einer Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
+        holdEducationalTitle: 'Diese Anfrage ist aktiv',
+        holdEducationalText: 'Anhalten',
+        whatIsHoldExplain: 'Hold ist, als würde man bei einer Ausgabe auf „Pause“ drücken, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden nach Genehmigung oder Zahlung in einen anderen Bericht verschoben.',
-        unholdWhenReady: 'Genehmiger können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',
+        unholdWhenReady: 'Genehmigende können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfen Sie diese Punkte, die sich beim Verschieben von Berichten in einen neuen Arbeitsbereich ändern können.',
@@ -7387,8 +7387,8 @@ ${amount} für ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probieren Sie uns aus',
-            description: 'Machen Sie eine schnelle Produkttour, um schnell auf den neuesten Stand zu kommen. Keine Zwischenstopps erforderlich!',
-            confirmText: 'Testfahrt starten',
+            description: 'Machen Sie eine kurze Tour durch das Produkt, um schnell auf den neuesten Stand zu kommen.',
+            confirmText: 'Testversion starten',
             helpText: 'Überspringen',
             employee: {
                 description:
