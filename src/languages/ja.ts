@@ -7485,6 +7485,16 @@ ${date} - ${merchant}に${amount}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML シングルサインオン (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> は、<strong>${domainName}</strong> のメールアドレスを持つメンバーのExpensifyへのログイン方法をより細かく管理できるセキュリティ機能です。有効にするには、権限のある会社の管理者であることを確認する必要があります。</muted-text>`,
+            fasterAndEasierLogin: 'より速く、より簡単なログイン',
+            moreSecurityAndControl: 'さらなるセキュリティと管理',
+            onePasswordForAnything: 'すべてを1つのパスワードで',
+        },
+        goToDomain: 'ドメインに移動',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -374,7 +374,7 @@ function popToSidebar() {
 
     const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 

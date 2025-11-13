@@ -7360,6 +7360,16 @@ ${merchant}的${amount} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML 单点登录 (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> 是一项安全功能，可让您更好地控制使用 <strong>${domainName}</strong> 邮箱的成员如何登录 Expensify。要启用它，您需要验证自己是授权的公司管理员。</muted-text>`,
+            fasterAndEasierLogin: '更快、更简单的登录',
+            moreSecurityAndControl: '更强的安全性与控制',
+            onePasswordForAnything: '一个密码搞定一切',
+        },
+        goToDomain: '前往域',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
