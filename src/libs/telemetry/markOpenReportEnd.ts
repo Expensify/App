@@ -1,7 +1,7 @@
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
-import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
+import {endSpan} from './activeSpans';
 
 /**
  * Mark all 'open_report*' performance events as finished using both Performance (local) and Timing (remote) tracking.
