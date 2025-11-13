@@ -199,8 +199,8 @@ function parsePart(definition: string): FormulaPart {
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
-    const formulaParts = extract(fieldValue);
-    if (formulaParts.length === 0 || isEmptyObject(fieldList)) {
+    const formulaPartDefinitions = extract(fieldValue);
+    if (formulaPartDefinitions.length === 0 || isEmptyObject(fieldList)) {
         return false;
     }
 
@@ -217,11 +217,11 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
         // Add current field to the visited lists
         visitedFields.add(currentFieldName);
 
-        // Extract all formula parts from the current field
-        const currentFormulaParts = extract(currentFieldValue);
+        // Extract all formula part definitions
+        const currentFormulaPartDefinitions = extract(currentFieldValue);
 
-        for (const currentFormulaPartDefinitions of currentFormulaParts) {
-            const part = parsePart(currentFormulaPartDefinitions);
+        for (const formulaPartDefinition of currentFormulaPartDefinitions) {
+            const part = parsePart(formulaPartDefinition);
 
             // Only check field references (skip report, user, or freetext)
             if (part.type !== FORMULA_PART_TYPES.FIELD) {
