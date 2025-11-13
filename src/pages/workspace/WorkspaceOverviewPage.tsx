@@ -29,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
@@ -218,18 +219,40 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
+        deleteWorkspace({
+            policyID: policy.id,
+            activePolicyID,
+            policyName,
+            lastAccessedWorkspacePolicyID,
+            policyCardFeeds: defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod, isOffline]);
+    }, [
+        policy?.id,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        defaultCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastPaymentMethod,
+        isOffline,
+        activePolicyID,
+    ]);
 
     const handleLeaveWorkspace = useCallback(() => {
         if (!policy?.id) {
@@ -382,7 +405,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     value: 'leave',
                     text: translate('common.leave'),
                     icon: Expensicons.Exit,
-                    onSelected: handleLeave,
+                    onSelected: () => close(handleLeave),
                 });
                 return renderDropdownMenu(secondaryActions);
             }
@@ -436,7 +459,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 value: 'leave',
                 text: translate('common.leave'),
                 icon: Expensicons.Exit,
-                onSelected: handleLeave,
+                onSelected: () => close(handleLeave),
             });
         }
 
@@ -652,7 +675,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         danger
                     />
                     <ConfirmModal
-                        title={translate('common.leave')}
+                        title={translate('common.leaveWorkspace')}
                         isVisible={isLeaveModalOpen}
                         onConfirm={handleLeaveWorkspace}
                         onCancel={() => setIsLeaveModalOpen(false)}
