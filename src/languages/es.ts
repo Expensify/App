@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {ViolationsRterParams, TagSelectionParams} from './params';
+import type {TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
