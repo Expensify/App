@@ -1091,6 +1091,7 @@ function openReport(
             transactionID: transaction.transactionID,
             isOwnPolicyExpenseChat: true,
             reportActionID: iouReportActionID,
+            iouReportID: transactionParentReportID,
         });
 
         // We have a case where the transaction data is only available from the snapshot
