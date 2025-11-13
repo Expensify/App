@@ -79,13 +79,13 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {buildNextStepNew} from '@libs/NextStepUtils';
-import Permissions from '@libs/Permissions';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -123,7 +123,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportNextStep,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -134,6 +133,7 @@ import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommo
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
+import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
@@ -810,7 +810,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             return;
         }
 
-        const currentNextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`] ?? null;
+        const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
+        const currentNextStep: OnyxEntry<ReportNextStep> | null = allNextSteps?.[nextStepKey] ?? null;
         const hasViolations = ReportUtils.hasViolations(reportID, transactionViolations);
         const optimisticNextStep = buildNextStepNew({
             report,
@@ -824,14 +825,14 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
         nextStepOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            key: nextStepKey,
             value: optimisticNextStep,
         });
 
         nextStepFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: currentNextStep,
+            key: nextStepKey,
+            value: currentNextStep ?? null,
         });
     });
 
