@@ -687,6 +687,8 @@ const translations = {
         copyToClipboard: 'Copy to clipboard',
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',

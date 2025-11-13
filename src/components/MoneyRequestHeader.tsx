@@ -15,6 +15,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
@@ -101,6 +102,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
@@ -327,6 +329,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
+            text: isDuplicateActive ? translate('common.duplicate') : translate('common.duplicated'),
+            icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
+            onSelected: () => {
+                if (!isDuplicateActive) {
+                    return;
+                }
+
+                temporarilyDisableDuplicateAction();
+            },
+            shouldCloseModalOnSelect: false,
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,

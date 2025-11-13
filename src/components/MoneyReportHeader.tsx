@@ -28,6 +28,7 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openOldDotLink} from '@libs/actions/Link';
@@ -276,6 +277,7 @@ function MoneyReportHeader({
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -1065,6 +1067,20 @@ function MoneyReportHeader({
                 setupMergeTransactionData(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getActiveRoute()));
             },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
+            text: isDuplicateActive ? translate('common.duplicate') : translate('common.duplicated'),
+            icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
+            onSelected: () => {
+                if (!isDuplicateActive) {
+                    return;
+                }
+
+                temporarilyDisableDuplicateAction();
+            },
+            shouldCloseModalOnSelect: false,
+            shouldShow: transactions.length === 1,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),

@@ -62,6 +62,7 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
 } from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
@@ -580,6 +581,33 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const isExpenseReport = isExpenseReportUtils(report);
+
+    if (!isExpenseReport) {
+        return false;
+    }
+
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (isInvoiceReport) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+    const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
+
+    if (isManagedCardTransaction) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     report,
@@ -670,6 +698,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
+    if (isDuplicateAction(report, reportTransactions, reportActions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -738,6 +770,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(parentReport, [reportTransaction], policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
