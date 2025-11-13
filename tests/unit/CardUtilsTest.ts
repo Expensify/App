@@ -540,8 +540,8 @@ describe('CardUtils', () => {
         });
 
         it('Should return feed key name for unknown feed', () => {
-            const companyCardNicknames = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames;
-            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNicknames);
+            const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
+            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
         });
     });
