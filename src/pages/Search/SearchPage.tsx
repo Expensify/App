@@ -216,9 +216,10 @@ function SearchPage({route}: SearchPageProps) {
     // Allow retry on reconnect
     const prevIsOffline = usePrevious(isOffline);
     useEffect(() => {
-        if (prevIsOffline && !isOffline) {
-            lastPrefetchKeyRef.current = '';
+        if (isOffline || !prevIsOffline) {
+            return;
         }
+        lastPrefetchKeyRef.current = '';
     }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
