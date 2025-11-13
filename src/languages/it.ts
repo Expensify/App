@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -339,7 +340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         notNow: 'Non ora',
         noThanks: 'No grazie',
         learnMore: 'Scopri di più',
-        buttonConfirm: 'Capito',
+        buttonConfirm: 'Ho capito',
         name: 'Nome',
         attachment: 'Allegato',
         attachments: 'Allegati',
@@ -466,7 +467,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Importo non valido',
             acceptTerms: 'Devi accettare i Termini di Servizio per continuare',
-            phoneNumber: `Per favore, inserisci un numero di telefono valido, con il prefisso internazionale (ad es. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Per favore, inserisci un numero di telefono completo\n(ad es. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Questo campo è obbligatorio',
             requestModified: 'Questa richiesta è in fase di modifica da un altro membro.',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite di caratteri superato (${length}/${limit})`,
@@ -826,8 +827,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Invia una spesa, riferisci al tuo capo',
-            subtitleText: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
+            title: 'Invia una spesa, riferisci al tuo team',
+            subtitleText: 'Vuoi che anche il tuo team usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -1128,6 +1129,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
         addSplit: 'Aggiungi divisione',
+        makeSplitsEven: 'Uniformare le suddivisioni',
         editSplits: 'Modifica suddivisioni',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} maggiore della spesa originale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} inferiore alla spesa originale.`,
@@ -1409,11 +1411,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Paga solo',
         approveOnly: 'Approva solo',
-        holdEducationalTitle: 'Questa richiesta è attiva',
-        holdEducationalText: 'tieni',
-        whatIsHoldExplain: 'Mettere in sospeso è come premere "pausa" su una spesa per chiedere ulteriori dettagli prima dell\'approvazione o del pagamento.',
-        holdIsLeftBehind: "Le spese trattenute vengono spostate in un altro report al momento dell'approvazione o del pagamento.",
-        unholdWhenReady: "Gli approvatori possono sbloccare le spese quando sono pronte per l'approvazione o il pagamento.",
+        holdEducationalTitle: 'Devi sospendere questa spesa?',
+        whatIsHoldExplain: 'Sospendere significa mettere in "pausa" una spesa fino a quando non sei pronto per inviarla.',
+        holdIsLeftBehind: "Le spese sospese rimangono in sospeso anche se invii l'intero rapporto.",
+        unholdWhenReady: 'Rimuovi la sospensione dalle spese quando sei pronto per inviarle.',
         changePolicyEducational: {
             title: 'Hai spostato questo report!',
             description: 'Ricontrolla questi elementi, che tendono a cambiare quando si spostano i report in un nuovo spazio di lavoro.',
@@ -1598,8 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
-        helpTextBeforeEmail: 'Aggiungi più modi per inviare le ricevute. Inoltrale a',
-        helpTextAfterEmail: 'o inviarli al 47777 (solo numeri USA).',
+        helpText: ({email}: {email: string}) => `Aggiungi più modi per inviare le ricevute. Inoltrale a <copy-text text="${email}"/> o inviarli al 47777 (solo numeri USA).`,
         pleaseVerify: 'Si prega di verificare questo metodo di contatto',
         getInTouch: 'Ogni volta che avremo bisogno di contattarti, useremo questo metodo di contatto.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
@@ -4201,6 +4201,8 @@ ${amount} per ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Se cambi l’impostazione di esportazione delle carte aziendali in note spese, i fornitori NetSuite e i conti di registrazione per le singole carte saranno disabilitati.\n\nNon preoccuparti, salveremo comunque le tue selezioni precedenti nel caso tu voglia tornare indietro in seguito.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify si sincronizzerà automaticamente con NetSuite ogni giorno.',
@@ -6751,9 +6753,9 @@ ${amount} per ${merchant} - ${date}`,
             body: 'Vuoi che i tuoi amici usino Expensify, anche loro? Inizia una chat con loro e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro capo</strong></success>.',
-            header: 'Invia una spesa, riferisci al tuo capo',
-            body: 'Vuoi che anche il tuo capo usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
+            buttonText: 'Presentate una spesa, <success><strong>riferite al vostro team</strong></success>.',
+            header: 'Invia una spesa, riferisci al tuo team',
+            body: 'Vuoi che anche il tuo team usi Expensify? Basta inviare loro una spesa e ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Segnala un amico',
@@ -6822,33 +6824,45 @@ ${amount} per ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcol`;
-                case 'gambling':
-                    return `${preMessage} gioco d'azzardo`;
-                case 'tobacco':
-                    return `${preMessage} tabacco`;
-                case 'adultEntertainment':
-                    return `${preMessage} intrattenimento per adulti`;
-                case 'hotelIncidentals':
-                    return `${preMessage} spese accessorie dell'hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcol`;
+                    case 'gambling':
+                        return `gioco d'azzardo`;
+                    case 'tobacco':
+                        return `tabacco`;
+                    case 'adultEntertainment':
+                        return `intrattenimento per adulti`;
+                    case 'hotelIncidentals':
+                        return `spese accessorie dell'hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisione richiesta',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che ${email} deve risolvere.`
-                    : 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
+                    ? `Connessione bancaria interrotta. <a href="${companyCardPageURL}">Riconnetti per abbinarla alla ricevuta</a>`
+                    : 'Connessione bancaria interrotta. Chiedi a un amministratore di riconnetterla per abbinare la ricevuta.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Chiedi a ${member} di contrassegnarlo come contante o attendi 7 giorni e riprova` : 'In attesa di unione con la transazione della carta.';
@@ -7417,6 +7431,109 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Qualcosa è andato storto...',
         subtitle: `Non siamo riusciti a caricare tutti i tuoi dati. Siamo stati avvisati e stiamo esaminando il problema. Se il problema persiste, contatta`,
         refreshAndTryAgain: 'Aggiorna e riprova',
+    },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> aggiunga spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> aggiunga le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore aggiunga le spese.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nessuna ulteriore azione richiesta!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> aggiunga un conto bancario.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> aggiunga un conto bancario.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore aggiunga un conto bancario.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `il ${eta}` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>le tue</strong> spese vengano inviate automaticamente${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che le spese di <strong>${actor}</strong> vengano inviate automaticamente${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che le spese di un amministratore vengano inviate automaticamente${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> risolva il problema o i problemi.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> risolva il problema o i problemi.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore risolva il problema (o i problemi).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> approvi le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> approvi le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa dell'approvazione delle spese da parte di un amministratore.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> paghi le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> paghi le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore paghi le spese.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> completi la configurazione di un conto bancario aziendale.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario aziendale.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore completi la configurazione di un conto bancario aziendale.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `entro ${eta}` : ` ${eta}`;
+                }
+                return `In attesa che il pagamento sia completato${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'a breve',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'più tardi oggi',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'di domenica',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'il 1º e il 16 di ogni mese',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: "nell'ultimo giorno lavorativo del mese",
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: "l'ultimo giorno del mese",
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'alla fine del tuo viaggio',
+        },
     },
     domain: {
         notVerified: 'Non verificato',
