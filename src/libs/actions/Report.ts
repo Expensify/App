@@ -150,6 +150,7 @@ import {
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportManuallyReimbursed,
@@ -1866,25 +1867,41 @@ function handlePreexistingReport(report: Report) {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
         let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+
+            if (!parentReportActionID) {
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    // Replacing the existing report's participants to avoid duplicates
+                    participants: existingReport?.participants ?? report.participants,
+                });
+            } else if (existingReport?.type === report.type) {
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                });
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {childReportID: preexistingReportID},
+                });
+            }
         };
         // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`)) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
+                if (!isOneTransactionReport(existingReport)) {
+                    Navigation.setParams({reportID: preexistingReportID.toString()});
+                } else {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+                }
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
