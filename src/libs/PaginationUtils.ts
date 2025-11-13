@@ -25,10 +25,17 @@ type ItemWithIndex = {
     index: number;
 };
 
+type ResourceItemResult<TResource> = {
+    index: number;
+    id: string;
+    item: TResource;
+};
+
 type ContinuousPageChainResult<TResource> = {
     data: TResource[];
     hasNextPage: boolean;
     hasPreviousPage: boolean;
+    resourceItem?: ResourceItemResult<TResource>;
 };
 
 /**
@@ -173,14 +180,14 @@ function getContinuousChain<TResource>(
     sortedItems: TResource[],
     pages: Pages,
     getID: (item: TResource) => string,
-    id?: string,
+    resourceId?: string,
     resourceItemPredicate?: (item: TResource) => boolean,
 ): ContinuousPageChainResult<TResource> {
-    const getResourceById = (item: TResource) => getID(item) === id;
+    const getResourceById = (item: TResource) => getID(item) === resourceId;
 
     if (pages.length === 0) {
         let data: TResource[] = sortedItems;
-        if (id) {
+        if (resourceId) {
             const foundDataItems = sortedItems.filter(getResourceById);
 
             if (foundDataItems) {
@@ -202,13 +209,26 @@ function getContinuousChain<TResource>(
     };
 
     let index = -1;
+    let resourceItem: ResourceItemResult<TResource> | undefined;
 
     // If an id is provided, find the index of the item with that id
-    if (id) {
+    if (resourceId) {
         index = sortedItems.findIndex(getResourceById);
     } else if (resourceItemPredicate) {
         // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
         index = sortedItems.findIndex(resourceItemPredicate);
+    }
+
+    // If we found an index, get the item and create a resource item result
+    if (index) {
+        const item = sortedItems.at(index);
+        if (item) {
+            resourceItem = {
+                index,
+                item,
+                id: getID(item),
+            };
+        }
     }
 
     // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
@@ -241,7 +261,12 @@ function getContinuousChain<TResource>(
         return {data: sortedItems, hasNextPage: false, hasPreviousPage: false};
     }
 
-    return {data: sortedItems.slice(page.firstIndex, page.lastIndex + 1), hasNextPage: page.lastID !== CONST.PAGINATION_END_ID, hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID};
+    return {
+        data: sortedItems.slice(page.firstIndex, page.lastIndex + 1),
+        hasNextPage: page.lastID !== CONST.PAGINATION_END_ID,
+        hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID,
+        resourceItem,
+    };
 }
 
 export default {mergeAndSortContinuousPages, getContinuousChain};
