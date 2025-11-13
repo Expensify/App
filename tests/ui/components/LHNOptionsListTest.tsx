@@ -1,6 +1,6 @@
 import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import {render, screen, userEvent, waitFor} from '@testing-library/react-native';
+import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -78,15 +78,19 @@ describe('LHNOptionsList', () => {
     };
 
     beforeEach(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
+        act(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+            });
         });
 
         jest.clearAllMocks();
     });
 
     afterEach(() => {
-        return Onyx.clear();
+        return act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('shows context menu on long press', async () => {

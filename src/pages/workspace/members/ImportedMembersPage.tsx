@@ -1,9 +1,9 @@
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,8 +78,26 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let isRoleMissing = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
-        const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
+
+        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+        const hasAuditorRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data
+                ?.at(membersRolesColumn)
+                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
+
+        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (hasAuditorRole && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
+            return;
+        }
+
+        const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
@@ -144,7 +162,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
+    }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -180,17 +198,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

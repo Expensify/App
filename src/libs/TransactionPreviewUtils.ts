@@ -34,10 +34,10 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
-    isCardTransaction,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isMerchantMissing,
     isOnHold,
     isPending,
@@ -72,11 +72,17 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
     };
 }
 
-const getReviewNavigationRoute = (backTo: string, threadReportID: string, transaction: OnyxEntry<OnyxTypes.Transaction>, duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+const getReviewNavigationRoute = (
+    backTo: string,
+    threadReportID: string,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
+    policyCategories: OnyxTypes.PolicyCategories | undefined,
+) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID);
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID, policyCategories);
     setReviewDuplicatesKey({
         ...comparisonResult.keep,
         duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
@@ -194,7 +200,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
@@ -223,6 +229,16 @@ function getTransactionPreviewTextAndTranslationPaths({
     const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
+    }
+
+    if ((RBRMessage === undefined || RBRMessage.text === '') && isDistanceRequest(transaction) && violationMessage) {
+        const hasModifiedAmountViolation = violations?.some(
+            (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+        );
+
+        if (hasModifiedAmountViolation) {
+            RBRMessage = {text: violationMessage};
+        }
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
@@ -363,7 +379,11 @@ function createTransactionPreviewConditionals({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations) ||
-        hasViolation(transaction, violations, true);
+        hasViolation(transaction, violations, true) ||
+        (isDistanceRequest(transaction) &&
+            violations?.some(
+                (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+            ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);

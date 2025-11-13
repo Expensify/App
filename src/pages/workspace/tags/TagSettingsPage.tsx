@@ -54,9 +54,11 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
-    const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
+    const approverText = useMemo(() => {
+        const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
+        const approver = getPersonalDetailByEmail(tagApprover);
+        return approver?.displayName ?? tagApprover;
+    }, [route.params?.tagName, policy]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = useMemo(() => {
         if (hasDependentTags) {
@@ -89,7 +91,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled({policyID, tagsToUpdate: {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, tagListIndex: policyTag.orderWeight, policyTags});
     };
 
     const navigateToEditTag = () => {

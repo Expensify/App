@@ -16,17 +16,13 @@ jobs:
   prettier:
     uses: ./.github/workflows/prettier.yml
 
-  react-compiler-compliance:
-    uses: ./.github/workflows/react-compiler-compliance.yml
-    secrets: inherit
-
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
-    needs: [typecheck, lint, react-compiler-compliance, test]
+    needs: [typecheck, lint, test]
     if: ${{ always() }}
 
     steps:

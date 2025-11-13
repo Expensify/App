@@ -1,3 +1,5 @@
+name: Translation Dry Run
+
 on:
   pull_request:
     types: [opened, synchronize]

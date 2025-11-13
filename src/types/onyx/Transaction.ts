@@ -90,6 +90,9 @@ type Comment = {
     /** Collection of split expenses */
     splitExpenses?: SplitExpense[];
 
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
@@ -161,7 +164,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -403,6 +406,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected accountant */
         accountant?: Accountant;
 
+        /** The Transaction converted amount */
+        convertedAmount?: number;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -524,9 +530,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
-
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
 
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;

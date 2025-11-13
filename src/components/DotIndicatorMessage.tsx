@@ -15,8 +15,8 @@ import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
@@ -62,34 +62,30 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const receiptError = uniqueMessages.find(isReceiptError);
+
+    const handleLinkPress = (href: string) => {
+        if (!receiptError) {
+            return;
+        }
+
+        if (href.endsWith('retry')) {
+            handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
+        } else if (href.endsWith('download')) {
+            fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
+        }
+    };
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
                 <>
-                    <Text
-                        key={index}
-                        style={styles.offlineFeedback.text}
-                    >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
-                        >
-                            {translate('iou.error.tryAgainMessage')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('common.or')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
-                            }}
-                        >
-                            {translate('iou.error.saveFileMessage')}
-                        </TextLink>
-
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.uploadLaterMessage')}</Text>
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('iou.error.receiptFailureMessage')}
+                            onLinkPress={(_evt, href) => handleLinkPress(href)}
+                        />
+                    </View>
 
                     <ConfirmModal
                         isVisible={shouldShowErrorModal}
@@ -117,13 +113,13 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>{uniqueMessages.map(renderMessage)}</View>
+            <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
 }

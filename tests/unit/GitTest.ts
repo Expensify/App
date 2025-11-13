@@ -21,7 +21,7 @@ describe('Git', () => {
             const result = Git.isValidRef('main');
 
             expect(result).toBe(true);
-            expect(mockExecSync).toHaveBeenCalledWith('git rev-parse --verify "main"', {
+            expect(mockExecSync).toHaveBeenCalledWith('git rev-parse --verify "main^{object}"', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe',

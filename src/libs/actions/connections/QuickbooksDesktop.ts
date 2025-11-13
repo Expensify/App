@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
+    UpdateQuickbooksDesktopAccountingMethodParams,
     UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
     UpdateQuickbooksDesktopGenericTypeParams,
@@ -89,6 +90,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -114,6 +116,7 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     ];
 
     const failureData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -538,8 +541,23 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopAccountingMethodParams = {
+        policyID,
+        accountingMethod: settingValue,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopAutoSync,
+    updateQuickbooksDesktopAccountingMethod,
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,

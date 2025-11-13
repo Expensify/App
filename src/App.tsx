@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -20,7 +21,9 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -37,6 +40,7 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
+import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -47,6 +51,7 @@ import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
+import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
@@ -120,7 +125,11 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        ModalProvider,
                                         SidePanelContextProvider,
+                                        ExpensifyCardContextProvider,
+                                        KYCWallContextProvider,
+                                        WideRHPContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
@@ -142,4 +151,6 @@ function App() {
 
 App.displayName = 'App';
 
-export default App;
+const WrappedApp = Sentry.wrap(App);
+WrappedApp.displayName = 'App';
+export default WrappedApp;

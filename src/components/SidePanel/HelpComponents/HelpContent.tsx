@@ -34,6 +34,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
 
     const {params, routeName, currentState} = useRootNavigationState((rootState) => {
+        // Safe handling when navigation is not yet initialized
+        if (!rootState) {
+            return {
+                routeName: '' as Screen,
+                params: {} as Record<string, string>,
+                currentState: undefined,
+            };
+        }
+
         const focusedRoute = findFocusedRoute(rootState);
         setExpandedIndex(0);
         return {
@@ -51,8 +60,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
             return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
-                .filter(isMoneyRequestAction)
-                .at(0);
+                .find(isMoneyRequestAction);
         },
         [report?.parentReportActionID],
     );

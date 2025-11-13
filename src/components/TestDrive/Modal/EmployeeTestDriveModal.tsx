@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -43,6 +44,7 @@ function EmployeeTestDriveModal() {
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
     const {testDrive} = useOnboardingMessages();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -75,6 +77,7 @@ function EmployeeTestDriveModal() {
                             report,
                             parentReport,
                             currentDate,
+                            currentUserPersonalDetails,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -94,7 +97,7 @@ function EmployeeTestDriveModal() {
 
                         Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
                         Navigation.goBack();
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));

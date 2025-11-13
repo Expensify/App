@@ -3,6 +3,7 @@ import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {startOutCreateTaskQuickAction} from '@libs/actions/Task';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import createPersonalDetails from '../utils/collections/personalDetails';
 
 jest.mock('@libs/actions/IOU', () => ({
     startMoneyRequest: jest.fn(),
@@ -28,6 +29,8 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start manual submit request flow
@@ -42,6 +45,8 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start scan split request flow
@@ -56,6 +61,8 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start distance track request flow
@@ -70,6 +77,8 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start map distance request flow
@@ -84,7 +93,9 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
                 lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start manual distance request flow
@@ -99,6 +110,8 @@ describe('IOU Utils', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
 
             // Then we should start per diem request flow
@@ -116,6 +129,8 @@ describe('Non IOU quickActions test:', () => {
                 selectOption: (onSelected: () => void) => {
                     onSelected();
                 },
+                targetAccountPersonalDetails: createPersonalDetails(123),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
             });
             expect(startOutCreateTaskQuickAction).toHaveBeenCalled();
         });

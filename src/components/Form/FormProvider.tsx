@@ -3,8 +3,9 @@ import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurContext} from '@components/InputBlurContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +53,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
     /** Callback to validate the form */
-    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+    validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
     shouldValidateOnBlur?: boolean;
@@ -149,7 +150,7 @@ function FormProvider({
             }
             clearErrorFields(formID);
 
-            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error
@@ -344,7 +345,7 @@ function FormProvider({
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
-                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                    onSubmitEditing: (event: TextInputSubmitEditingEvent) => {
                         submit();
 
                         inputProps.onSubmitEditing?.(event);
@@ -417,7 +418,7 @@ function FormProvider({
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setIsBlurred(true);
                         });

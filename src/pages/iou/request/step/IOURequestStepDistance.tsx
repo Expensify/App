@@ -19,6 +19,8 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -39,7 +41,7 @@ import {
 } from '@libs/actions/IOU';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
-import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
+import {openDraftDistanceExpense, removeWaypoint, setTransactionReport, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -81,10 +83,12 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
@@ -145,6 +149,8 @@ function IOURequestStepDistance({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
         (participants: Participant[]) => {
@@ -155,7 +161,7 @@ function IOURequestStepDistance({
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -341,6 +347,7 @@ function IOURequestStepDistance({
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -368,6 +375,7 @@ function IOURequestStepDistance({
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
+                    isASAPSubmitBetaEnabled,
                 });
                 return;
             }
@@ -386,12 +394,15 @@ function IOURequestStepDistance({
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                reportID: activePolicyExpenseChat?.reportID,
+                reportID: transactionReportID,
                 isPolicyExpenseChat: true,
                 policy: defaultExpensePolicy,
                 lastSelectedDistanceRates,
             });
+            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
@@ -423,11 +434,13 @@ function IOURequestStepDistance({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
+        isASAPSubmitBetaEnabled,
         customUnitRateID,
         navigateToConfirmationPage,
+        personalPolicy?.autoReporting,
         reportID,
-        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {

@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputKeyPressEventData, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -11,6 +11,8 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
@@ -51,15 +53,14 @@ function BaseSelectionList<TItem extends ListItem>({
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
     selectedItems = CONST.EMPTY_ARRAY,
-    listStyle,
-    listItemTitleStyles,
-    listItemWrapperStyle,
+    style,
     isSelected,
+    isDisabled = false,
     isSmallScreenWidth,
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
-    showListEmptyContent,
+    showListEmptyContent = true,
     showLoadingPlaceholder,
     showScrollIndicator = true,
     canSelectMultiple = false,
@@ -73,13 +74,16 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldShowTextInput = !!textInputOptions,
+    shouldShowTextInput = !!textInputOptions?.label,
+    shouldHighlightSelectedItem = true,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const activeElementRole = useActiveElementRole();
+    const {isKeyboardShown} = useKeyboardState();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
@@ -95,15 +99,20 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
+    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
+
+    const hasFooter = !!footerContent || confirmButtonConfig?.showButton;
+
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
-            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem) => {
-                const idx = item.index;
-                const isDisabled = !!item?.isDisabled && !isItemSelected(item);
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem, index: number) => {
+                const idx = item.index ?? index;
+                const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
 
                 if (isItemSelected(item)) {
                     acc.selectedOptions.push(item);
-                } else if (isDisabled && idx != null) {
+                }
+                if (isItemDisabled) {
                     acc.disabledIndexes.push(idx);
 
                     if (!item?.isDisabledCheckbox) {
@@ -121,7 +130,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
-    }, [data, isItemSelected]);
+    }, [data, isDisabled, isItemSelected]);
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -144,7 +153,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: data.findIndex((item) => item.keyForList === initiallyFocusedItemKey),
+        initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
@@ -241,7 +250,7 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     );
 
-    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
@@ -287,7 +296,7 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
-        const isDisabled = item.isDisabled;
+        const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
 
@@ -302,18 +311,20 @@ function BaseSelectionList<TItem extends ListItem>({
                 index={index}
                 normalizedIndex={index}
                 isFocused={isItemFocused}
-                isDisabled={isDisabled}
+                isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={!!alternateNumberOfSupportedLines}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
-                wrapperStyle={listItemWrapperStyle}
-                titleStyles={listItemTitleStyles}
+                wrapperStyle={style?.listItemWrapperStyle}
+                titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
     };
@@ -349,6 +360,19 @@ function BaseSelectionList<TItem extends ListItem>({
         [data, itemsToHighlight, scrollToIndex],
     );
 
+    const updateFocusedIndex = useCallback(
+        (newFocusedIndex: number, shouldScroll = false) => {
+            if (newFocusedIndex < 0 || newFocusedIndex >= data.length) {
+                return;
+            }
+            setFocusedIndex(newFocusedIndex);
+            if (shouldScroll) {
+                scrollToIndex(newFocusedIndex);
+            }
+        },
+        [data.length, scrollToIndex, setFocusedIndex],
+    );
+
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
             return;
@@ -363,9 +387,9 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()
@@ -391,7 +415,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={listStyle as ViewStyle}
+                        style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
                         ListHeaderComponent={

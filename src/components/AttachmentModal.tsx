@@ -16,7 +16,7 @@ import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -25,6 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
@@ -47,17 +48,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  * Modal render prop component that exposes modal launching triggers that can be used
  * to display a full size image or PDF modally with optional confirmation button.
  */
-
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     show: () => void;
@@ -210,6 +200,8 @@ function AttachmentModal({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
@@ -302,10 +294,10 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        detachReceipt(transaction?.transactionID);
+        detachReceipt(transaction?.transactionID, policyCategories);
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.goBack();
-    }, [transaction]);
+    }, [transaction?.transactionID, policyCategories]);
 
     /**
      * Closes the modal.
@@ -437,7 +429,7 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -505,7 +497,7 @@ function AttachmentModal({
                                     attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
-                                    onClose={closeModal}
+                                    onSwipeDown={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}
@@ -603,5 +595,3 @@ function AttachmentModal({
 AttachmentModal.displayName = 'AttachmentModal';
 
 export default memo(AttachmentModal);
-
-export type {FileObject, ImagePickerResponse};

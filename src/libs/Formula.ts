@@ -1,11 +1,15 @@
+import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
+import {formatDate} from './FormulaDatetime';
+import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
+import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -25,7 +29,10 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    allTransactions?: Record<string, Transaction>;
 };
+
+type FieldList = Record<string, {name: string; defaultValue: string}>;
 
 const FORMULA_PART_TYPES = {
     REPORT: 'report',
@@ -189,6 +196,68 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
+ * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
+ */
+function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
+    const formulaPartDefinitions = extract(fieldValue);
+    if (formulaPartDefinitions.length === 0 || isEmptyObject(fieldList)) {
+        return false;
+    }
+
+    const visitedFields = new Set<string>();
+    const fieldsByName = new Map<string, {name: string; defaultValue: string}>(Object.values(fieldList).map((field) => [field.name, field]));
+
+    // Helper function to check if a field has circular references
+    const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
+        // If we've already visited this field in the current path, return true
+        if (visitedFields.has(currentFieldName)) {
+            return true;
+        }
+
+        // Add current field to the visited lists
+        visitedFields.add(currentFieldName);
+
+        // Extract all formula part definitions
+        const currentFormulaPartDefinitions = extract(currentFieldValue);
+
+        for (const formulaPartDefinition of currentFormulaPartDefinitions) {
+            const part = parsePart(formulaPartDefinition);
+
+            // Only check field references (skip report, user, or freetext)
+            if (part.type !== FORMULA_PART_TYPES.FIELD) {
+                continue;
+            }
+
+            // Get the referenced field name (first element in fieldPath)
+            const referencedFieldName = part.fieldPath.at(0)?.trim();
+            if (!referencedFieldName) {
+                continue;
+            }
+
+            // Check if this reference creates a cycle
+            if (referencedFieldName === fieldName || visitedFields.has(referencedFieldName)) {
+                return true;
+            }
+
+            const referencedField = fieldsByName.get(referencedFieldName);
+
+            if (referencedField?.defaultValue) {
+                // Recursively check the referenced field
+                if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
+                    return true;
+                }
+            }
+        }
+
+        // Remove current field from visited lists
+        visitedFields.delete(currentFieldName);
+        return false;
+    };
+
+    return hasCircularReferencesRecursive(fieldValue, fieldName);
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -233,23 +302,58 @@ function compute(formula?: string, context?: FormulaContext): string {
 }
 
 /**
+ * Compute auto-reporting info for a report formula part
+ */
+function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, subField: string | undefined, format: string | undefined): string {
+    const {report, policy} = context;
+
+    if (!subField) {
+        return part.definition;
+    }
+
+    const {startDate, endDate} = getAutoReportingDates(policy, report);
+
+    switch (subField.toLowerCase()) {
+        case 'start':
+            return formatDate(startDate?.toISOString(), format);
+        case 'end':
+            return formatDate(endDate?.toISOString(), format);
+        default:
+            return part.definition;
+    }
+}
+
+/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
-    const {report, policy} = context;
-    const [field, format] = part.fieldPath;
+    const {report, policy, allTransactions} = context;
+    const [field, ...additionalPath] = part.fieldPath;
+    // Reconstruct format string by joining additional path elements with ':'
+    // This handles format strings with colons like 'HH:mm:ss'
+    const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
 
     if (!field) {
         return part.definition;
     }
 
     switch (field.toLowerCase()) {
+        case 'id':
+            return getBase62ReportID(Number(report.reportID));
+        case 'status':
+            return formatStatus(report.statusNum);
+        case 'expensescount':
+            return String(getExpensesCount(report, allTransactions));
         case 'type':
             return formatType(report.type);
         case 'startdate':
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
+        case 'enddate':
+            return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+        case 'reimbursable':
+            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -259,9 +363,44 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'autoreporting': {
+            const subField = additionalPath.at(0);
+            // For multi-part formulas, format is everything after the subfield
+            const autoReportingFormat = additionalPath.length > 1 ? additionalPath.slice(1).join(':') : undefined;
+            return computeAutoReportingInfo(part, context, subField, autoReportingFormat);
+        }
         default:
             return part.definition;
     }
+}
+
+/**
+ * Get the number of expenses in a report
+ * @param report - The report to get expenses for
+ * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
+ */
+function getExpensesCount(report: Report, allTransactions?: Record<string, Transaction>): number {
+    if (!report.reportID) {
+        return 0;
+    }
+
+    if (allTransactions) {
+        const transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === report.reportID);
+        return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
+    }
+
+    return report.transactionCount ?? 0;
+}
+
+/**
+ * Format a report status number to human-readable string
+ */
+function formatStatus(statusNum: number | undefined): string {
+    if (statusNum === undefined) {
+        return '';
+    }
+
+    return getHumanReadableStatus(statusNum);
 }
 
 /**
@@ -352,54 +491,6 @@ function getSubstring(value: string, args: string[]): string {
 }
 
 /**
- * Format a date value with support for multiple date formats
- */
-function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
-    if (!dateString) {
-        return '';
-    }
-
-    try {
-        const date = new Date(dateString);
-        if (Number.isNaN(date.getTime())) {
-            return '';
-        }
-
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        switch (format) {
-            case 'M/dd/yyyy':
-                return `${month}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'MMMM dd, yyyy':
-                return `${monthNames.at(month - 1)} ${day.toString().padStart(2, '0')}, ${year}`;
-            case 'dd MMM yyyy':
-                return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
-            case 'yyyy/MM/dd':
-                return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'MMMM, yyyy':
-                return `${monthNames.at(month - 1)}, ${year}`;
-            case 'yy/MM/dd':
-                return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'dd/MM/yy':
-                return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
-            case 'yyyy':
-                return year.toString();
-            case 'MM/dd/yyyy':
-                return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'yyyy-MM-dd':
-            default:
-                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        }
-    } catch {
-        return '';
-    }
-}
-
-/**
  * Format an amount value
  */
 function formatAmount(amount: number | undefined, currency: string | undefined): string {
@@ -469,6 +560,26 @@ function formatType(type: string | undefined): string {
 }
 
 /**
+ * Get all transactions for a report, including any context transaction.
+ * Updates an existing transaction if it matches the context or adds it if new.
+ */
+function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
+    const transactions = [...getReportTransactions(reportID)];
+    const contextTransaction = context?.transaction;
+
+    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
+        if (transactionIndex >= 0) {
+            transactions[transactionIndex] = contextTransaction;
+        } else {
+            transactions.push(contextTransaction);
+        }
+    }
+
+    return transactions;
+}
+
+/**
  * Get the date of the oldest transaction for a given report
  */
 function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
@@ -476,7 +587,7 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         return undefined;
     }
 
-    const transactions = getReportTransactions(reportID);
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
     if (!transactions || transactions.length === 0) {
         return new Date().toISOString();
     }
@@ -484,17 +595,18 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     let oldestDate: string | undefined;
 
     transactions.forEach((transaction) => {
-        // Use updated transaction data if available and matches this transaction
-        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
-
-        const created = getCreated(currentTransaction);
+        const created = getCreated(transaction);
         if (!created) {
+            return;
+        }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         if (oldestDate && created >= oldestDate) {
             return;
         }
-        if (isPartialTransaction(currentTransaction)) {
+        if (isPartialTransaction(transaction)) {
             return;
         }
         oldestDate = created;
@@ -503,6 +615,175 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     return oldestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+/**
+ * Calculate monthly reporting period for a specific day offset
+ */
+function getMonthlyReportingPeriod(currentDate: Date, offsetDay: number): {startDate: Date; endDate: Date} {
+    const currentDay = currentDate.getDate();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
 
-export type {FormulaContext, FormulaPart};
+    if (currentDay <= offsetDay) {
+        // We haven't reached the reporting day yet - period is from last month's offset+1 to this month's offset
+        const prevMonth = currentMonth - 1;
+        const prevYear = prevMonth < 0 ? currentYear - 1 : currentYear;
+        const adjustedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
+
+        const prevMonthDays = lastDayOfMonth(new Date(prevYear, adjustedPrevMonth, 1)).getDate();
+        const prevOffsetDay = Math.min(offsetDay, prevMonthDays);
+
+        const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+        const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+        return {
+            startDate: new Date(prevYear, adjustedPrevMonth, prevOffsetDay + 1, 0, 0, 0, 0),
+            endDate: new Date(currentYear, currentMonth, currentOffsetDay, 23, 59, 59, 999),
+        };
+    }
+
+    // We've passed the reporting day - period is from this month's offset+1 to next month's offset
+    const nextMonth = currentMonth + 1;
+    const nextYear = nextMonth > 11 ? currentYear + 1 : currentYear;
+    const adjustedNextMonth = nextMonth > 11 ? 0 : nextMonth;
+
+    const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+    const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+    const nextMonthDays = lastDayOfMonth(new Date(nextYear, adjustedNextMonth, 1)).getDate();
+    const nextOffsetDay = Math.min(offsetDay, nextMonthDays);
+
+    return {
+        startDate: new Date(currentYear, currentMonth, currentOffsetDay + 1, 0, 0, 0, 0),
+        endDate: new Date(nextYear, adjustedNextMonth, nextOffsetDay, 23, 59, 59, 999),
+    };
+}
+
+/**
+ * Calculate monthly reporting period for last business day
+ */
+function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; endDate: Date} {
+    let endDate = endOfMonth(currentDate);
+
+    // Move backward to find last business day (Mon-Fri)
+    while (getDay(endDate) === 0 || getDay(endDate) === 6) {
+        endDate = subDays(endDate, 1);
+    }
+
+    return {
+        startDate: startOfMonth(currentDate),
+        endDate: endOfDay(endDate),
+    };
+}
+
+/**
+ * Calculate the start and end dates for auto-reporting based on the frequency and current date
+ */
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+    const frequency = policy?.autoReportingFrequency;
+    const offset = policy?.autoReportingOffset;
+
+    // Return undefined if no frequency is set
+    if (!frequency || !policy) {
+        return {startDate: undefined, endDate: undefined};
+    }
+
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
+            // Weekly: use the app's configured week start convention (Monday)
+            const weekStartsOn = CONST.WEEK_STARTS_ON;
+            startDate = startOfWeek(currentDate, {weekStartsOn});
+            endDate = endOfWeek(currentDate, {weekStartsOn});
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            // Semi-monthly: 1st-15th or 16th-end of month
+            const dayOfMonth = currentDate.getDate();
+            if (dayOfMonth <= 15) {
+                startDate = startOfMonth(currentDate);
+                endDate = set(currentDate, {date: 15, hours: 23, minutes: 59, seconds: 59, milliseconds: 999});
+            } else {
+                startDate = set(currentDate, {date: 16, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+                endDate = endOfMonth(currentDate);
+            }
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            // Monthly reporting with different offset configurations
+            if (offset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                const period = getMonthlyLastBusinessDayPeriod(currentDate);
+                startDate = period.startDate;
+                endDate = period.endDate;
+            } else if (typeof offset === 'number') {
+                const period = getMonthlyReportingPeriod(currentDate, offset);
+                startDate = period.startDate;
+                endDate = period.endDate;
+            } else {
+                // Default to full month
+                startDate = startOfMonth(currentDate);
+                endDate = endOfMonth(currentDate);
+            }
+            break;
+        }
+
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
+            // For trip-based, use oldest transaction as start
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
+            endDate = currentDate;
+            break;
+        }
+
+        default:
+            // For any other frequency, use current date as both start and end
+            startDate = currentDate;
+            endDate = currentDate;
+            break;
+    }
+
+    return {startDate, endDate};
+}
+
+/**
+ * Get the date of the newest transaction for a given report
+ */
+function getNewestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
+    if (!transactions || transactions.length === 0) {
+        return new Date().toISOString();
+    }
+
+    let newestDate: string | undefined;
+
+    transactions.forEach((transaction) => {
+        const created = getCreated(transaction);
+        if (!created) {
+            return;
+        }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+        if (newestDate && created <= newestDate) {
+            return;
+        }
+        if (isPartialTransaction(transaction)) {
+            return;
+        }
+        newestDate = created;
+    });
+
+    return newestDate;
+}
+
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
+
+export type {FormulaContext, FormulaPart, FieldList};
