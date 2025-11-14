@@ -58,6 +58,14 @@ const config = defineConfig([
         },
     },
 
+    // Allow direct icon imports (from Expensicons and Illustrations) in lib files
+    {
+        files: ['**/libs/**/*.{ts,tsx}'],
+        rules: {
+            'no-restricted-imports': 'off',
+        },
+    },
+
     {
         files: ['**/libs/**/*.{ts,tsx}'],
         rules: {
