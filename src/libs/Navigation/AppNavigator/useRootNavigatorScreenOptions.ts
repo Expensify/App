@@ -30,8 +30,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
-function abs(a: any) {
+function abs(a: Animated.AnimatedSubtraction<number | string>) {
     const b = Animated.multiply(a, -1);
     const clampedA = Animated.diffClamp(a, 0, Number.MAX_SAFE_INTEGER);
     const clampedB = Animated.diffClamp(b, 0, Number.MAX_SAFE_INTEGER);
