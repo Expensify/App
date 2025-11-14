@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -15,6 +15,7 @@ import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getReportActions} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -386,6 +387,7 @@ function buildNextStep(
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
+    isRetracted?: boolean,
 ): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
@@ -454,6 +456,9 @@ function buildNextStep(
         ],
     };
 
+    const reportActions = getReportActions(report?.reportID);
+    const isReportRetracted = Object.values(reportActions ?? {})?.some((action: ReportAction) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) || isRetracted;
+
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
@@ -480,7 +485,8 @@ function buildNextStep(
                 };
                 break;
             }
-            if (isReopen) {
+
+            if ((isReportRetracted && isASAPSubmitBetaEnabled && isInstantSubmitEnabled) || isReopen) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
