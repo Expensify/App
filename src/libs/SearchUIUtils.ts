@@ -7,7 +7,6 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import openSearchReport from '@components/Search/openSearchReport';
 import type {
     SearchAction,
     SearchColumnType,
@@ -51,7 +50,6 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchPersonalDetails,
     SearchReport,
     SearchTask,
     SearchTransaction,
@@ -278,6 +276,20 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
+
+type GetSectionsParams = {
+    type: SearchDataTypes;
+    data: OnyxTypes.SearchResults['data'];
+    currentAccountID: number | undefined;
+    currentUserEmail: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    groupBy?: SearchGroupBy;
+    reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+    currentSearch?: SearchKey;
+    archivedReportsIDList?: ArchivedReportsIDSet;
+    queryJSON?: SearchQueryJSON;
+    isActionLoadingSet?: ReadonlySet<string>;
+};
 
 /**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
@@ -605,8 +617,8 @@ function getSuggestedSearchesVisibility(
  */
 function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
-    from: SearchPersonalDetails,
-    to: SearchPersonalDetails,
+    from: OnyxTypes.PersonalDetails,
+    to: OnyxTypes.PersonalDetails,
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
@@ -1024,7 +1036,7 @@ function getTransactionsSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             // Use Map.get() for faster lookups with default values
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1343,7 +1355,7 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, has
     }
 
     if (shouldNavigate) {
-        openSearchReport(transactionThreadReport?.reportID, backTo);
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
     }
 }
 
@@ -1372,7 +1384,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
-                const from = data.personalDetailsList?.[reportAction.accountID];
+                const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
@@ -1399,7 +1411,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
-                });
+                } as ReportActionListItemType);
             }
         }
     }
@@ -1418,6 +1430,7 @@ function getReportSections(
     currentAccountID: number | undefined,
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isActionLoadingSet: ReadonlySet<string> | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1455,7 +1468,7 @@ function getReportSections(
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
             let shouldShow = true;
-            if (queryJSON && !reportItem.isActionLoading) {
+            if (queryJSON && isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`)) {
                 if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = queryJSON.status;
 
@@ -1500,7 +1513,7 @@ function getReportSections(
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
             const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction) as SearchPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1669,18 +1682,19 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections(
-    type: SearchDataTypes,
-    data: OnyxTypes.SearchResults['data'],
-    currentAccountID: number | undefined,
-    currentUserEmail: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    groupBy?: SearchGroupBy,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    archivedReportsIDList?: ArchivedReportsIDSet,
-    queryJSON?: SearchQueryJSON,
-) {
+function getSections({
+    type,
+    data,
+    currentAccountID,
+    currentUserEmail,
+    formatPhoneNumber,
+    groupBy,
+    reportActions = {},
+    currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    archivedReportsIDList,
+    queryJSON,
+    isActionLoadingSet,
+}: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
@@ -1689,7 +1703,7 @@ function getSections(
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
     }
 
     if (groupBy) {

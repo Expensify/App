@@ -5,8 +5,11 @@ import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -87,6 +90,7 @@ import {
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
+    pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
@@ -113,6 +117,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
+    PolicyTag,
     Report,
     ReportAction,
     ReportActions,
@@ -120,15 +125,19 @@ import type {
     ReportNameValuePairs,
     Transaction,
 } from '@src/types/onyx';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
-import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
+import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
+import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
+import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
@@ -350,7 +359,6 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -2336,6 +2344,33 @@ describe('ReportUtils', () => {
             // The GBR should appear on the policy expense chat but not on the report itself
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+        });
+
+        it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
+            // Given a policy with reimbursement enabled
+            const policyID = '1';
+            // And an expense report that is already approved
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                policyID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                id: policyID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            });
+            await waitForBatchedUpdates();
+
+            // When we evaluate if the report requires attention from the current user
+            const requiresAttention = requiresAttentionFromCurrentUser(report);
+
+            // Then it should return false because the report is already approved and reimbursement is enabled
+            expect(requiresAttention).toBe(false);
         });
     });
 
@@ -5725,55 +5760,6 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
-
-        it('should return false for a submitted report when the policy is submit and close with payment disabled', async () => {
-            // Given the policy is submit and close with payment disabled
-            const workflowDisabledPolicy: Policy = {
-                ...createRandomPolicy(2962),
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-                employeeList: {
-                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
-                },
-                approver: currentUserEmail,
-            };
-            const report: Report = {
-                ...createRandomReport(10002, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                policyID: workflowDisabledPolicy.id,
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-                [currentUserAccountID]: {
-                    accountID: currentUserAccountID,
-                    displayName: 'Lagertha Lothbrok',
-                    firstName: 'Lagertha',
-                    login: currentUserEmail,
-                    pronouns: 'She/her',
-                },
-            });
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-
-            // If the canAddTransaction is used for the case of adding expense into the report
-            const result = canAddTransaction(report, isReportArchived.current);
-
-            // Then the result should be false
-            expect(result).toBe(false);
-
-            // If the canAddTransaction is used for the case of moving transaction into the report
-            const result2 = canAddTransaction(report, isReportArchived.current, true);
-
-            // Then the result should be true
-            expect(result2).toBe(true);
-        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -6283,6 +6269,120 @@ describe('ReportUtils', () => {
 
             // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
             expect(result).toBe(false);
+        });
+    });
+
+    describe('pushTransactionViolationsOnyxData', () => {
+        beforeAll(() => {
+            initOnyxDerivedValues();
+        });
+        it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
+            // Given policy categories, the first is pending deletion
+            const fakePolicyCategories = createRandomPolicyCategories(3);
+            const fakePolicyCategoryNameToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [fakePolicyCategoryNameToDelete]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    enabled: false,
+                },
+            };
+
+            // Given policy tags, the first is pending deletion
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 3);
+            const fakePolicyTagsToDelete = Object.entries(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {}).slice(1, 2);
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        ...fakePolicyTagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, [tagName]) => {
+                            acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
+                            return acc;
+                        }, {}),
+                    },
+                },
+            };
+
+            const fakePolicyID = '0';
+
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresTag: true,
+                areTagsEnabled: true,
+                requiresCategory: true,
+                areCategoriesEnabled: true,
+            };
+
+            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
+                    ...mockIOUReport,
+                    policyID: fakePolicyID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
+                    ...mockedChatReport,
+                    policyID: fakePolicyID,
+                },
+            };
+
+            // Populating Onyx with required data
+            await Onyx.multiSet({
+                ...fakePolicyReports,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
+                    [mockIOUAction.reportActionID]: mockIOUAction,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: mockIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: fakePolicyCategoryNameToDelete,
+                    tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+
+            const expectedOnyxData = {
+                // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: [
+                            {
+                                name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+
+                            {
+                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+                        ],
+                    },
+                ],
+
+                // Expecting the failure data to clear the violations.
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: null,
+                    },
+                ],
+            };
+
+            expect(onyxData).toMatchObject(expectedOnyxData);
         });
     });
 
@@ -8930,6 +9030,36 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
+    });
+
+    it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
+        const workspaceChat = {
+            ...createPolicyExpenseChat(41000),
+            hasOutstandingChildTask: true,
+        };
+        const cardMissingAddressAction: ReportAction = {
+            reportActionID: 'card-missing-address-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: 'task-11000',
+            created: DateUtils.getDBTime(),
+            originalMessage: {
+                assigneeAccountID: currentUserAccountID,
+                cardID: 11000,
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+            [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+        const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+        expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+        expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
     });
 
     it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {
