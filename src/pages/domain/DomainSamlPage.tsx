@@ -28,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -174,6 +175,7 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
             childrenStyles={[styles.gap6, styles.pt6]}
         >
             <OfflineWithFeedback
+                pendingAction={domain?.settings.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                 errors={domain?.settings.samlEnabledError}
                 canDismissError={false}
             >
@@ -194,6 +196,7 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
 
             {isSamlEnabled && (
                 <OfflineWithFeedback
+                    pendingAction={domain?.settings.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                     errors={domain?.settings.samlRequiredError}
                     canDismissError={false}
                 >
