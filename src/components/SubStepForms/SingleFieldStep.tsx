@@ -66,7 +66,7 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     shouldDelayAutoFocus?: boolean;
 
     /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    showPatriotActLink?: boolean;
+    shouldShowPatriotActLink?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -87,7 +87,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
-    showPatriotActLink = false,
+    shouldShowPatriotActLink = false,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -130,7 +130,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                 {shouldShowHelpLinks && (
                     <>
                         <HelpLinks containerStyles={[styles.mt5]} />
-                        {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
                     </>
                 )}
             </View>

@@ -52,7 +52,7 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
             shouldShowHelpLinks
-            showPatriotActLink
+            shouldShowPatriotActLink
         />
     );
 }

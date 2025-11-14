@@ -76,7 +76,7 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     shouldValidateZipCodeFormat?: boolean;
 
     /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    showPatriotActLink?: boolean;
+    shouldShowPatriotActLink?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -99,7 +99,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
-    showPatriotActLink = false,
+    shouldShowPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -162,7 +162,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                 {!!shouldShowHelpLinks && (
                     <>
                         <HelpLinks containerStyles={[styles.mt6]} />
-                        {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
                     </>
                 )}
             </View>

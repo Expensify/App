@@ -39,7 +39,7 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     footerComponent?: React.ReactNode;
 
     /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    showPatriotActLink?: boolean;
+    shouldShowPatriotActLink?: boolean;
 };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -52,7 +52,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobDefaultValue,
     isEditing,
     footerComponent,
-    showPatriotActLink = false,
+    shouldShowPatriotActLink = false,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -104,7 +104,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 autoFocus
             />
             {footerComponent}
-            {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt5]} />}
+            {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
         </FormProvider>
     );
 }
