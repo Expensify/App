@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import PaginationUtils from '@libs/PaginationUtils';
@@ -43,6 +43,21 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     );
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
 
+    const initialReportLastReadTime = useRef(report?.lastReadTime);
+    const isUnreadReportAction = useMemo(
+        () =>
+            shouldLinkToOldestUnreadReportAction
+                ? (reportAction: ReportAction) => {
+                      if (!initialReportLastReadTime.current) {
+                          return false;
+                      }
+
+                      return reportAction.created > initialReportLastReadTime.current;
+                  }
+                : undefined,
+        [shouldLinkToOldestUnreadReportAction],
+    );
+
     const {
         data: reportActions,
         hasNextPage,
@@ -53,18 +68,8 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
-        const isUnreadReportAction = shouldLinkToOldestUnreadReportAction
-            ? (reportAction: ReportAction) => {
-                  if (!report?.lastReadTime) {
-                      return false;
-                  }
-
-                  return reportAction.created > report.lastReadTime;
-              }
-            : undefined;
-
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionID, isUnreadReportAction);
-    }, [report?.lastReadTime, reportActionID, reportActionPages, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
+    }, [isUnreadReportAction, reportActionID, reportActionPages, sortedAllReportActions]);
 
     const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem, reportActionID]);
 
