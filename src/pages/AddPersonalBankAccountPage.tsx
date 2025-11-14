@@ -20,7 +20,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import PersonalInfoPage from './settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo';
 
 function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
