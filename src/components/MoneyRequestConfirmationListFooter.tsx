@@ -909,7 +909,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? [styles.flex1, {minHeight: 200}] : styles.receiptPreviewAspectRatio]}>
+            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.receiptPreviewAspectRatio]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -1108,7 +1108,7 @@ function MoneyRequestConfirmationListFooter({
                 {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
 
                 {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
-                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative]}>
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
                             text={translate('common.showMore')}
