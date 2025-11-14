@@ -273,6 +273,7 @@ function useSearchSelectorBase({
         searchContext,
         optionsWithContacts,
         draftComments,
+        nvpDismissedProductTraining,
         betas,
         computedSearchTerm,
         maxResults,
@@ -283,7 +284,6 @@ function useSearchSelectorBase({
         maxRecentReportsToShow,
         getValidOptionsConfig,
         selectedOptions,
-        nvpDismissedProductTraining,
     ]);
 
     const isOptionSelected = useMemo(() => {
