@@ -288,6 +288,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         runOnUI(clear)();
     }, []);
 
@@ -404,6 +405,7 @@ function ReportActionCompose({
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         runOnUI(() => {
             'worklet';
 
@@ -530,6 +532,7 @@ function ReportActionCompose({
                             isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                             reportID={reportID}
+                            key={reportID}
                             policyID={report?.policyID}
                             includeChronos={chatIncludesChronos(report)}
                             isGroupPolicyReport={isGroupPolicyReport}
