@@ -65,5 +65,4 @@ jobs:
           APK_PATH=$(find android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           echo "Using APK: $APK_PATH"
 
-          chmod +x scripts/check-elf-alignment.sh
           scripts/check-elf-alignment.sh "$APK_PATH"
