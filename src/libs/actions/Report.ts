@@ -1933,8 +1933,8 @@ function handlePreexistingReport(report: Report) {
         }
 
         if (isParentOneTransactionReport && (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`))) {
-            // We are already on the parent one expense report, so just call the API to fetch report data
             callback();
+            // We are already on the parent one expense report, so just call the API to fetch report data
             openReport(parentReportID);
             return;
         }
