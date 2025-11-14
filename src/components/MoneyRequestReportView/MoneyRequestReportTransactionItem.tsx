@@ -91,7 +91,7 @@ function MoneyRequestReportTransactionItem({
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
-    const {isSuperWideRHPFocused} = useContext(WideRHPContext);
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
 
     const viewRef = useRef<View>(null);
 
@@ -156,7 +156,7 @@ function MoneyRequestReportTransactionItem({
                     columns={columns}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
-                    style={[styles.p3, isLargeScreenWidth && !isSuperWideRHPFocused && styles.pr0]}
+                    style={[styles.p3, isLargeScreenWidth && !superWideRHPRouteKeys.length && styles.pr0]}
                     onButtonPress={() => {
                         handleOnPress(transaction.transactionID);
                     }}

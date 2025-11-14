@@ -45,9 +45,6 @@ type WideRHPContextType = {
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
 
-    // Whether the currently focused route is inside the super wide RHP set
-    isSuperWideRHPFocused: boolean;
-
     // Whether the wide rhp modal is closing
     isWideRHPClosing: boolean;
 
