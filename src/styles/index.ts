@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -15,7 +14,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {calculateReceiptPaneRHPWidth, receiptPaneRHPWidth, superWideRHPWidth} from '@components/WideRHPContextProvider';
+import {receiptPaneRHPWidth, superWideRHPWidth, wideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -5351,19 +5350,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        wideRHPExtendedCardInterpolatorStyles: (windowWidth: number) => ({
+        wideRHPExtendedCardInterpolatorStyles: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: Animated.add(variables.sideBarWidth, calculateReceiptPaneRHPWidth(windowWidth)),
-        }),
+            width: wideRHPWidth,
+        },
 
-        superWideRHPExtendedCardInterpolatorStyles: (windowWidth: number) => ({
+        superWideRHPExtendedCardInterpolatorStyles: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
             width: superWideRHPWidth,
-        }),
+        },
 
         flexibleHeight: {
             height: 'auto',
