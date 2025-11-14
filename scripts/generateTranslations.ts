@@ -1018,12 +1018,6 @@ class TranslationGenerator {
         });
 
         // Add closing line with proper indentation for pretty formatting
-        if (isTail) {
-            console.log('RORY_DEBUG text', `"${text}"`);
-            console.log(`RORY_DEBUG ends with newline: ${text.endsWith('\n')}`);
-            console.log(`RORY_DEBUG ends with indentation: ${text.endsWith(' '.repeat(closingIndentation))}`);
-        }
-
         if (isTail && (text.endsWith(' '.repeat(closingIndentation)) || !text.endsWith('\n'))) {
             if (text.endsWith(' '.repeat(closingIndentation))) {
                 formattedLines.pop();
