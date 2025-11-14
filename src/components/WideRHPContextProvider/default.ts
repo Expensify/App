@@ -20,6 +20,7 @@ const defaultWideRHPContextValue: WideRHPContextType = {
     shouldRenderThirdOverlay: false,
     superWideRHPRouteKeys: [],
     showSuperWideRHPVersion: () => {},
+    thirdOverlayProgress: new Animated.Value(0),
 };
 
 export default defaultWideRHPContextValue;
