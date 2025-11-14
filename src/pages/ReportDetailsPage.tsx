@@ -690,7 +690,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
                             textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
                             shouldUseFullTitle={shouldUseFullTitle}
-
                         />
                     </View>
                     {isPolicyAdmin ? (
