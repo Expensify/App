@@ -4814,14 +4814,18 @@ function deleteAppReport(reportID: string | undefined) {
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    const selfDMReportID = getSelfDMReportID();
+    let selfDMReportID = getSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let selfDMCreatedReportActionID: string;
     let createdAction: ReportAction;
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = selfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMCreatedReportActionID = createdAction.reportActionID;
+
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -4847,6 +4851,11 @@ function deleteAppReport(reportID: string | undefined) {
                     [createdAction.reportActionID]: createdAction,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
+            },
         );
 
         successData.push(
@@ -4870,11 +4879,18 @@ function deleteAppReport(reportID: string | undefined) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                 value: {
-                    // created self DM action has different ID so we have to clean it
-                    [createdAction.reportActionID]: null,
+                    [createdAction.reportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         );
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.SELF_DM_REPORT_ID,
+            value: null,
+        });
     }
 
     // 1. Get all report transactions
@@ -5115,6 +5131,8 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+        selfDMReportID,
+        selfDMCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});

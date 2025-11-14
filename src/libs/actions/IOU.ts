@@ -4022,8 +4022,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
                 value: {
-                    // created self DM action has different ID so we have to clean it
-                    [optimisticReportActionID]: null,
+                    [optimisticReportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         );

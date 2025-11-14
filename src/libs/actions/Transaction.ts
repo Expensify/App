@@ -719,7 +719,7 @@ function changeTransactionsReport(
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    const selfDMReportID = getSelfDMReportID();
+    let selfDMReportID = getSelfDMReportID();
     let selfDMReport: Report | undefined = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let selfDMCreatedReportAction: ReportAction | undefined;
 
@@ -727,6 +727,7 @@ function changeTransactionsReport(
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        selfDMReportID = selfDMReport.reportID;
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -751,6 +752,11 @@ function changeTransactionsReport(
                 value: {
                     [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
             },
         );
 
@@ -794,6 +800,11 @@ function changeTransactionsReport(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
                 value: null,
             },
         );
@@ -1168,7 +1179,7 @@ function changeTransactionsReport(
                 : {}),
         };
 
-        if (!selfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
+        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
