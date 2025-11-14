@@ -150,7 +150,6 @@ import {
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
     isMoneyRequestReport,
-    isOneTransactionReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportManuallyReimbursed,
@@ -792,6 +791,18 @@ function addComment(reportID: string, notifyReportID: string, text: string, time
 
 function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
+}
+
+/**
+ * Checks if a report has only one transaction associated with it
+ * NOTE: This function should not be exported because it accesses module-level Onyx data (allReportActions, allReports)
+ * which can become stale. Each file should implement its own version using local Onyx collections.
+ * See tests/actions/EnforceActionExportRestrictions.ts for more details.
+ */
+function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
+    const reportActions = allReportActions?.[`${report?.reportID}`] ?? ([] as ReportAction[]);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+    return !!ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions);
 }
 
 function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
