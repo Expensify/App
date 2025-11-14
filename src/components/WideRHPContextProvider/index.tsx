@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -138,7 +138,7 @@ function getCurrentWideRHPKeys(allWideRHPKeys: string[], lastVisibleRHPRouteKey:
     return currentKeys;
 }
 
-function getLastVisibleRHPRouteKey(state: NavigationState<RootNavigatorParamList>) {
+function getLastVisibleRHPRouteKey(state: NavigationState | undefined) {
     // Safe handling when navigation is not yet initialized
     if (!state) {
         return undefined;
@@ -163,7 +163,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [shouldRenderThirdOverlay, setShouldRenderThirdOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
     const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
-    const focusedRouteKey = useRootNavigationState((state) => findFocusedRoute(state))?.key;
+    const focusedRouteKey = useRootNavigationState((state) => (state ? findFocusedRoute(state)?.key : undefined));
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     // Return undefined if RHP is not the last route
