@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -54,7 +54,104 @@ const samlFeatures: FeatureListItem[] = [
 const domainSamlSettingsSelector = (domainSettings: OnyxEntry<DomainSettings>) => ({
     isSamlEnabled: domainSettings?.settings.samlEnabled,
     isSamlRequired: domainSettings?.settings.samlRequired,
+    oktaSCIM: domainSettings?.settings.oktaSCIM,
 });
+
+function DomainSamlPage({route}: DomainSamlPageProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
+
+    const accountID = route.params.accountID;
+    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
+
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+        canBeMissing: false,
+        selector: domainSamlSettingsSelector,
+    });
+    const isSamlEnabled = !!domainSettings?.isSamlEnabled;
+    const isSamlRequired = !!domainSettings?.isSamlRequired;
+
+    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const doesDomainExist = !!domain;
+
+    useEffect(() => {
+        if (!domainName) {
+            return;
+        }
+        getSamlSettings(accountID, domainName);
+    }, [accountID, domainName]);
+
+    return (
+        <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen
+            testID={DomainSamlPage.displayName}
+        >
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                shouldShow={!isLoadingOnyxValue(domainResults, isAdminResults) && (!doesDomainExist || !isAdmin)}
+                shouldForceFullScreen
+                shouldDisplaySearchRouter
+            >
+                <HeaderWithBackButton
+                    title={translate('domain.saml')}
+                    onBackButtonPress={Navigation.popToSidebar}
+                    icon={LockClosed}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                />
+
+                <ScrollViewWithContext
+                    keyboardShouldPersistTaps="handled"
+                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                >
+                    <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                        {domain?.validated ? (
+                            <>
+                                <SamlLoginSection
+                                    accountID={accountID}
+                                    domainName={domainName ?? ''}
+                                    isSamlEnabled={isSamlEnabled}
+                                    isSamlRequired={isSamlRequired}
+                                />
+
+                                {isSamlEnabled && (
+                                    <SamlConfigurationDetailsSection
+                                        accountID={accountID}
+                                        domainName={domainName ?? ''}
+                                        shouldShowOktaScim={isSamlRequired && !!domainSettings.oktaSCIM}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <FeatureList
+                                menuItems={samlFeatures}
+                                title={translate('domain.samlFeatureList.title')}
+                                renderSubtitle={() => (
+                                    <View style={styles.pt3}>
+                                        <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
+                                    </View>
+                                )}
+                                ctaText={translate('domain.verifyDomain.title')}
+                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                onCtaPress={() => {
+                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(accountID));
+                                }}
+                                illustrationBackgroundColor={colors.blue700}
+                                illustration={LaptopOnDeskWithCoffeeAndKey}
+                                illustrationStyle={styles.emptyStateSamlIllustration}
+                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        )}
+                    </View>
+                </ScrollViewWithContext>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
+}
 
 function SamlLoginSectionSubtitle() {
     const {translate} = useLocalize();
@@ -118,7 +215,42 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
     );
 }
 
-function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: number; domainName: string}) {
+function OktaScimTokenMenuItem({accountID, domainName}: {accountID: number; domainName: string}) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+
+    const [oktaScimToken, setOktaScimToken] = useState<string | undefined>(undefined);
+
+    return (
+        <MenuItemWithTopDescription
+            titleComponent={
+                oktaScimToken ? (
+                    <CopyableTextField
+                        value={oktaScimToken}
+                        textStyle={styles.fontSizeLabel}
+                    />
+                ) : (
+                    <Button
+                        text={translate('domain.samlConfigurationDetails.revealToken')}
+                        style={styles.wFitContent}
+                        onPress={() => {
+                            getScimToken(accountID, domainName ?? '').then(setOktaScimToken);
+                        }}
+                        isLoading={domain?.settings.isScimTokenLoading}
+                    />
+                )
+            }
+            description={translate('domain.samlConfigurationDetails.oktaScimToken')}
+            descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
+            interactive={false}
+            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
+            errorText={getLatestErrorMessage({errors: domain?.settings.scimTokenError})}
+        />
+    );
+}
+
+function SamlConfigurationDetailsSection({accountID, domainName, shouldShowOktaScim}: {accountID: number; domainName: string; shouldShowOktaScim: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -221,117 +353,13 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <Button
-                        text={translate('domain.samlConfigurationDetails.revealToken')}
-                        style={styles.wFitContent}
-                        onPress={() => {
-                            getScimToken(accountID, domainName ?? '');
-                        }}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.oktaScimToken')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-            />
-        </Section>
-    );
-}
-
-function DomainSamlPage({route}: DomainSamlPageProps) {
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
-
-    const accountID = route.params.accountID;
-    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
-
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
-        canBeMissing: false,
-        selector: domainSamlSettingsSelector,
-    });
-    const isSamlEnabled = !!domainSettings?.isSamlEnabled;
-    const isSamlRequired = !!domainSettings?.isSamlRequired;
-
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    const doesDomainExist = !!domain;
-
-    useEffect(() => {
-        if (!domainName) {
-            return;
-        }
-        getSamlSettings(accountID, domainName);
-    }, [accountID, domainName]);
-
-    return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID={DomainSamlPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainResults, isAdminResults) && (!doesDomainExist || !isAdmin)}
-                shouldForceFullScreen
-                shouldDisplaySearchRouter
-            >
-                <HeaderWithBackButton
-                    title={translate('domain.saml')}
-                    onBackButtonPress={Navigation.popToSidebar}
-                    icon={LockClosed}
-                    shouldShowBackButton={shouldUseNarrowLayout}
+            {shouldShowOktaScim && (
+                <OktaScimTokenMenuItem
+                    accountID={accountID}
+                    domainName={domainName}
                 />
-
-                <ScrollViewWithContext
-                    keyboardShouldPersistTaps="handled"
-                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                >
-                    <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-                        {domain?.validated ? (
-                            <>
-                                <SamlLoginSection
-                                    accountID={accountID}
-                                    domainName={domainName ?? ''}
-                                    isSamlEnabled={isSamlEnabled}
-                                    isSamlRequired={isSamlRequired}
-                                />
-
-                                {isSamlEnabled && (
-                                    <SamlConfigurationDetailsSection
-                                        accountID={accountID}
-                                        domainName={domainName ?? ''}
-                                    />
-                                )}
-                            </>
-                        ) : (
-                            <FeatureList
-                                menuItems={samlFeatures}
-                                title={translate('domain.samlFeatureList.title')}
-                                renderSubtitle={() => (
-                                    <View style={styles.pt3}>
-                                        <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
-                                    </View>
-                                )}
-                                ctaText={translate('domain.verifyDomain.title')}
-                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
-                                onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(accountID));
-                                }}
-                                illustrationBackgroundColor={colors.blue700}
-                                illustration={LaptopOnDeskWithCoffeeAndKey}
-                                illustrationStyle={styles.emptyStateSamlIllustration}
-                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-                                titleStyles={styles.textHeadlineH1}
-                            />
-                        )}
-                    </View>
-                </ScrollViewWithContext>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            )}
+        </Section>
     );
 }
 

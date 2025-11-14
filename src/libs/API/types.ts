@@ -1141,7 +1141,6 @@ const READ_COMMANDS = {
     GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
     OPEN_DOMAIN_INITIAL_PAGE: 'OpenDomainInitialPage',
     GET_SAML_SETTINGS: 'GetSAMLSettings',
-    GET_SCIM_TOKEN: 'GetSCIMToken',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1225,7 +1224,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
     [READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE]: Parameters.DomainParams;
     [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
-    [READ_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
@@ -1244,6 +1242,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
     SEARCH: 'Search',
+    GET_SCIM_TOKEN: 'GetSCIMToken',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
@@ -1282,6 +1281,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

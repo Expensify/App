@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SamlMetadata} from '@src/types/onyx';
 
@@ -208,28 +209,55 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
 /**
  * Fetches the decrypted Okta SCIM token for the domain
  */
-function getScimToken(accountID: number, domainName: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {
-                settings: {
-                    isScimTokenLoading: true,
-                    scimTokenError: null,
+function getScimToken(accountID: number, domainName: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+                value: {
+                    settings: {
+                        isScimTokenLoading: true,
+                        scimTokenError: null,
+                    },
                 },
             },
-        },
-    ];
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {settings: {isScimTokenLoading: null}},
-        },
-    ];
+        ];
+        const finallyData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+                value: {settings: {isScimTokenLoading: null}},
+            },
+        ];
 
-    API.read(READ_COMMANDS.GET_SCIM_TOKEN, {domain: domainName}, {optimisticData, finallyData});
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {isLoading: false},
+            },
+        ];
+
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN,
+            {domain: domainName},
+            {
+                optimisticData,
+                failureData,
+                finallyData,
+            },
+        )
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    reject();
+                    return;
+                }
+                resolve((response as {SCIMToken: string}).SCIMToken);
+            })
+            .catch(() => reject());
+    });
 }
 
 export {getDomainValidationCode, validateDomain, resetDomainValidationError, openDomainInitialPage, getSamlSettings, setSamlEnabled, setSamlRequired, setSamlMetadata, getScimToken};
