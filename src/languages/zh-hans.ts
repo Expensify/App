@@ -1450,6 +1450,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '应该保留还是拒绝？',
             educationalText: '如果你还没准备好批准或支付一笔报销，可以选择保留或拒绝。',
             holdExpenseTitle: '保留报销，以便在批准或支付之前要求更多细节。',
+            approveExpenseTitle: '在保留的报销保持分配给你的同时，批准其他报销。',
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
             rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
