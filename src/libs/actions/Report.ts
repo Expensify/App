@@ -1865,6 +1865,7 @@ function handlePreexistingReport(report: Report) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+        // Or we optimistically created a transaction thread chat report for an IOU report for an IOU report action that already has an associated child chat report.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
         const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
@@ -1873,6 +1874,7 @@ function handlePreexistingReport(report: Report) {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
             if (!parentReportActionID) {
+                // Clear the optimistic DM/group-DM
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
@@ -1881,11 +1883,13 @@ function handlePreexistingReport(report: Report) {
                     participants: existingReport?.participants ?? report.participants,
                 });
             } else {
+                // Clear the optimistic transaction thread report
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
                     preexistingReportID: null,
                 });
+                // Update the IOU report action to point to the preexisting transaction thread report
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                     [parentReportActionID]: {childReportID: preexistingReportID},
                 });
@@ -1897,9 +1901,12 @@ function handlePreexistingReport(report: Report) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
+                // isOneTransactionReport should have a correct result since we updated the IOU action child reportID above
                 if (!parentReportActionID || !isOneTransactionReport(existingReport)) {
+                    // We are either in a DM/group-DM or in a transaction thread report that its parent is not a one expense report
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
+                    // We need to navigate to the one expense report innstead of the transaction thread report
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 }
             };
