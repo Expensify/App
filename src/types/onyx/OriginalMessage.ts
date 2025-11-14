@@ -367,6 +367,9 @@ type OriginalMessageChangeLog = {
 
     /** Name of the added category */
     categoryName?: string;
+
+    /** Avatar URL of workspace room */
+    avatarURL?: string;
 };
 
 /** Model of change log */
@@ -415,6 +418,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Name of the added category */
     categoryName?: string;
+
+    /** Name of the added tax */
+    taxName?: string;
 
     /** Name of the updated field */
     updatedField?: string;
@@ -658,6 +664,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The list of attendees */
     newAttendees?: Attendee[];
+
+    /** Source of category change (agentZero, mccMapping, or manual) */
+    source?: string;
 };
 
 /** Model of a `travel update` report action */

@@ -16,7 +16,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -67,6 +67,7 @@ type SplitNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
+    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: DomainSplitNavigatorParamList;
 };
 
 type SplitNavigatorBySidebar<T extends SplitNavigatorSidebarScreen> = (typeof SIDEBAR_TO_SPLIT)[T];
@@ -80,6 +81,12 @@ type ConsoleNavigatorParamList = {
     [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
+    };
+};
+
+type ReportVerifyAccountNavigatorParamList = {
+    [SCREENS.REPORT_VERIFY_ACCOUNT]: {
+        reportID: string;
     };
 };
 
@@ -162,6 +169,10 @@ type SettingsNavigatorParamList = {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -1289,7 +1300,25 @@ type SettingsNavigatorParamList = {
         rateID: string;
         subRateID: string;
     };
+    [SCREENS.DOMAIN.VERIFY]: {
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.VERIFIED]: {
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
+
+type DomainCardNavigatorParamList = {
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
+        cardID: string;
+    };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
+        cardID: string;
+    };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
+};
 
 type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
@@ -1344,12 +1373,6 @@ type NewReportWorkspaceSelectionNavigatorParamList = {
         isMovingExpenses?: boolean;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-    };
-};
-
-type SetDefaultWorkspaceNavigatorParamList = {
-    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: {
-        navigateTo?: Routes;
     };
 };
 
@@ -1661,6 +1684,12 @@ type MoneyRequestNavigatorParamList = {
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
         action: IOUAction;
         iouType: IOUType;
@@ -1802,6 +1831,9 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.SET_DEFAULT_WORKSPACE]: {
+        navigateTo?: Routes;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -1940,7 +1972,6 @@ type SignInNavigatorParamList = {
 
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
-    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
@@ -2032,6 +2063,15 @@ type MergeTransactionNavigatorParamList = {
     };
 };
 
+type WorkspacesDomainModalNavigatorParamList = {
+    [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+        accountID: number;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -2039,8 +2079,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
+    [SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT]: NavigatorScreenParams<ReportVerifyAccountNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: NavigatorScreenParams<SetDefaultWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
@@ -2080,6 +2120,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2108,6 +2149,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
+    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: undefined;
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2200,12 +2242,6 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
-        policyID: string;
-        feed: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2314,6 +2350,15 @@ type WorkspaceSplitNavigatorParamList = {
     };
 };
 
+type DomainSplitNavigatorParamList = {
+    [SCREENS.DOMAIN.INITIAL]: {
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.SAML]: {
+        accountID: number;
+    };
+};
+
 type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2415,6 +2460,7 @@ type SharedScreensParamList = {
 type ShareNavigatorParamList = {
     [SCREENS.SHARE.ROOT]: undefined;
     [SCREENS.SHARE.SHARE_DETAILS]: {reportOrAccountID: string};
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: {reportOrAccountID: string};
     [SCREENS.SHARE.SUBMIT_DETAILS]: {reportOrAccountID: string};
 };
 
@@ -2467,6 +2513,8 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
+        source?: AvatarSource;
+        originalFileName?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2494,6 +2542,12 @@ type AttachmentModalScreensParamList = {
         iouType: IOUType;
         readonly: string;
     };
+    [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
+        source?: AvatarSource;
+        fallbackSource?: AvatarSource;
+        originalFileName?: string;
+        headerTitle?: string;
+    };
 };
 
 type AuthScreensParamList = SharedScreensParamList &
@@ -2514,6 +2568,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+        [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
@@ -2535,6 +2590,12 @@ type SearchReportParamList = {
         reportActionID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: {
+        reportID: string;
+    };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: {
+        reportID: string;
     };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
@@ -2589,6 +2650,7 @@ type RestrictedActionParamList = {
 
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
 };
 
 type SplitExpenseParamList = {
@@ -2687,10 +2749,12 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST;
 
-// There are two screens/navigators which can be displayed when the Workspaces tab is selected
-type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+// There are three screens/navigators which can be displayed when the Workspaces tab is selected
+type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
+
+type DomainScreenName = keyof DomainSplitNavigatorParamList;
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -2707,6 +2771,7 @@ export type {
     BackToParams,
     DebugParamList,
     DetailsNavigatorParamList,
+    DomainCardNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
@@ -2729,10 +2794,10 @@ export type {
     ProfileNavigatorParamList,
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
+    ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
-    SetDefaultWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
@@ -2780,4 +2845,7 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
+    WorkspacesDomainModalNavigatorParamList,
+    DomainSplitNavigatorParamList,
+    DomainScreenName,
 };

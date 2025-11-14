@@ -4,7 +4,7 @@ import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -61,6 +61,9 @@ type AvatarButtonWithIconProps = {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
+
+    /** The name associated with avatar */
+    name?: string;
 };
 
 /**
@@ -82,6 +85,7 @@ function AvatarButtonWithIcon({
     disabled = false,
     editIcon = Expensicons.Pencil,
     anchorRef,
+    name = '',
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -110,6 +114,7 @@ function AvatarButtonWithIcon({
                             fallbackIcon={fallbackIcon}
                             size={size}
                             type={type}
+                            name={name}
                         />
                     ) : (
                         <DefaultAvatar />

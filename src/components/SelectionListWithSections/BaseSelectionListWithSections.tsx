@@ -142,6 +142,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     canShowProductTrainingTooltip,
     renderScrollComponent,
     shouldShowRightCaret,
+    shouldHighlightSelectedItem = true,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -604,6 +605,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
+                            testID="selection-list-select-all-checkbox"
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
@@ -648,6 +650,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         isSelected: selected,
                         ...item,
                     }}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     sectionIndex={section?.indexOffset}
