@@ -14,6 +14,12 @@ const defaultWideRHPContextValue: WideRHPContextType = {
     markReportIDAsExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
     dismissToWideReport: () => {},
+    isWideRHPClosing: false,
+    setIsWideRHPClosing: () => {},
+    isWideRHPFocused: false,
+    shouldRenderThirdOverlay: false,
+    superWideRHPRouteKeys: [],
+    showSuperWideRHPVersion: () => {},
 };
 
 export default defaultWideRHPContextValue;

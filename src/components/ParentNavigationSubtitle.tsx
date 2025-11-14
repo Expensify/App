@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchMoneyRequestReportParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -98,7 +98,7 @@ function ParentNavigationSubtitle({
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
                 const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
                 if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    const moneyRequestReportID = (lastRoute?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
+                    const moneyRequestReportID = (lastRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
                     // If the parent report is already displayed underneath RHP, simply dismiss the modal
                     if (moneyRequestReportID === parentReportID) {
                         Navigation.dismissModal();
