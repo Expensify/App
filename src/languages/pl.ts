@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6130,6 +6131,30 @@ ${amount} dla ${merchant} - ${date}`,
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodał podatek "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `zmienił nazwę podatku z "${oldValue}" na "${newValue}"`;
+                }
+                case 'code': {
+                    return `zmienił kod podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'rate': {
+                    return `zmienił stawkę podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `wyłączył podatek "${taxName}"` : `włączył podatek "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
