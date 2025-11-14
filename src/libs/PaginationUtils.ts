@@ -191,7 +191,7 @@ function getContinuousChain<TResource>(
         index = sortedItems.findIndex(getResourceById);
     } else if (resourceItemPredicate) {
         // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
-        index = sortedItems.findIndex(resourceItemPredicate);
+        index = sortedItems.findLastIndex(resourceItemPredicate);
     }
     const itemFound = index !== -1;
 
