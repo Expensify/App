@@ -48,6 +48,7 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
 			defaultValues={defaultValues}
+			shouldShowHelpLinks
 			showPatriotActLink
         />
     );

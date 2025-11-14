@@ -88,7 +88,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stepFields,
     inputFieldsIDs,
     defaultValues,
-    shouldShowHelpLinks,
+	shouldShowHelpLinks,
     isEditing,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
