@@ -10,6 +10,7 @@ import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LaptopOnDeskWithCoffeeAndKey, LockClosed, OpenSafe, ShieldYellow} from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -55,45 +56,63 @@ const domainSamlSettingsSelector = (domainSettings: OnyxEntry<DomainSettings>) =
     isSamlRequired: domainSettings?.settings.samlRequired,
 });
 
+function SamlLoginSectionSubtitle() {
+    const {translate} = useLocalize();
+
+    return <RenderHTML html={translate('domain.samlLogin.subtitle')} />;
+}
+
 function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}: {accountID: number; domainName: string; isSamlEnabled: boolean; isSamlRequired: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+
     return (
         <Section
             title={translate('domain.samlLogin.title')}
-            renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
+            renderSubtitle={SamlLoginSectionSubtitle}
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={[styles.gap6, styles.pt6]}
         >
-            <View style={styles.sectionMenuItemTopDescription}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
-                    <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
-
-                    <Switch
-                        accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
-                        isOn={isSamlEnabled}
-                        onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
-                    />
-                </View>
-
-                <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
-            </View>
-
-            {isSamlEnabled && (
+            <OfflineWithFeedback
+                errors={domain?.settings.samlEnabledError}
+                canDismissError={false}
+            >
                 <View style={styles.sectionMenuItemTopDescription}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
-                        <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                        <Text>{translate('domain.samlLogin.enableSamlLogin')}</Text>
+
                         <Switch
-                            accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
-                            isOn={isSamlRequired}
-                            onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
+                            accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
+                            isOn={isSamlEnabled}
+                            onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
                         />
                     </View>
 
-                    <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                    <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.allowMembers')}</Text>
                 </View>
+            </OfflineWithFeedback>
+
+            {isSamlEnabled && (
+                <OfflineWithFeedback
+                    errors={domain?.settings.samlRequiredError}
+                    canDismissError={false}
+                >
+                    <View style={styles.sectionMenuItemTopDescription}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
+                            <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
+                                isOn={isSamlRequired}
+                                onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
+                            />
+                        </View>
+
+                        <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                    </View>
+                </OfflineWithFeedback>
             )}
         </Section>
     );
@@ -113,7 +132,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             subtitleMuted
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
-            childrenStyles={styles.pt3}
+            childrenStyles={[styles.gap6, styles.pt6]}
         >
             <TextPicker
                 value={samlMetadata?.metaIdentity}
@@ -142,7 +161,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.entityID')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
 
             <MenuItemWithTopDescription
@@ -155,7 +174,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.nameIDFormat')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
 
             <MenuItemWithTopDescription
@@ -169,7 +188,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.loginUrl')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
                 hintText={translate('domain.samlConfigurationDetails.acsUrl')}
             />
 
@@ -184,7 +203,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.logoutUrl')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
                 hintText={translate('domain.samlConfigurationDetails.sloUrl')}
             />
 
@@ -199,7 +218,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.serviceProviderMetaData')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
 
             <MenuItemWithTopDescription
@@ -215,7 +234,7 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
                 description={translate('domain.samlConfigurationDetails.oktaScimToken')}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                 interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
         </Section>
     );
@@ -251,6 +270,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen
             testID={DomainSamlPage.displayName}
         >
             <FullPageNotFoundView

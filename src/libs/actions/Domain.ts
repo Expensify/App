@@ -93,7 +93,17 @@ function openDomainInitialPage(domainName: string) {
  * Sets SAML metadata for a domain, e.g. the identity provider xml
  */
 function setSamlMetadata(accountID: number, domainName: string, settings: Partial<SamlMetadata>) {
-    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {...settings, domainName});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlMetadataError: null,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {...settings, domainName}, {optimisticData});
 }
 
 /**
@@ -106,6 +116,7 @@ function getSamlSettings(accountID: number, domainName: string) {
             key: `${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`,
             value: {
                 isLoading: true,
+                errors: null,
             },
         },
     ];
@@ -142,6 +153,7 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
             value: {
                 settings: {
                     isSamlEnabledLoading: true,
+                    samlEnabledError: null,
                 },
             },
         },
@@ -177,6 +189,7 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
             value: {
                 settings: {
                     isSamlRequiredLoading: true,
+                    samlRequiredError: null,
                 },
             },
         },
@@ -203,6 +216,7 @@ function getScimToken(accountID: number, domainName: string) {
             value: {
                 settings: {
                     isScimTokenLoading: true,
+                    scimTokenError: null,
                 },
             },
         },
