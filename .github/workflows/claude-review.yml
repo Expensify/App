@@ -37,6 +37,12 @@ jobs:
         run: |
           echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
 
+      - name: Extract allowed rules from code-inline-reviewer.md
+        run: |
+          "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
+            "$GITHUB_WORKSPACE/.claude/agents/code-inline-reviewer.md" \
+            "$GITHUB_WORKSPACE/.claude/allowed-rules.txt"
+
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@f30f5eecfce2f34fa72e40fa5f7bcdbdcad12eb8 # v1.0.14

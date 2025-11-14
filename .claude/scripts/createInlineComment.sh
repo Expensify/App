@@ -15,6 +15,31 @@ if [[ -z "$PATH_ARG" || -z "$BODY_ARG" || -z "$LINE_ARG" ]]; then
     exit 1
 fi
 
+# Check if comment body contains a reference to an allowed rule
+ALLOWED_RULES_FILE="${GITHUB_WORKSPACE}/.claude/allowed-rules.txt"
+
+if [[ -f "$ALLOWED_RULES_FILE" ]]; then
+    # Extract rule IDs from comment body (format: [CAPS-NUMBER] e.g., [PERF-1], [SEC-1], [STYLE-1])
+    COMMENT_RULE=$(echo "$BODY_ARG" | grep -oE '\[[A-Z]+-\d+\]' | head -1)
+    
+    if [[ -z "$COMMENT_RULE" ]]; then
+        echo "Error: Comment body must contain a reference to an allowed rule (e.g., [PERF-1])" >&2
+        echo "Allowed rules:" >&2
+        cat "$ALLOWED_RULES_FILE" >&2
+        exit 1
+    fi
+    
+    # Check if the rule is in the allowed list
+    if ! grep -qF "$COMMENT_RULE" "$ALLOWED_RULES_FILE"; then
+        echo "Error: Rule $COMMENT_RULE is not in the allowed rules list" >&2
+        echo "Allowed rules:" >&2
+        cat "$ALLOWED_RULES_FILE" >&2
+        exit 1
+    fi
+else
+    echo "Warning: Allowed rules file not found at $ALLOWED_RULES_FILE. Skipping rule validation." >&2
+fi
+
 # Get commit ID from PR head
 COMMIT_ID=$(gh api "/repos/$REPO/pulls/$PR_NUMBER" --jq '.head.sha')
 
