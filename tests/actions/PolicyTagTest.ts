@@ -22,7 +22,7 @@ import {
 } from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
