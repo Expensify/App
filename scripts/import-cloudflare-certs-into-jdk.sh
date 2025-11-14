@@ -177,7 +177,8 @@ function main() {
     # Verify certificate file exists
     if [[ ! -f "${CERT_FILE}" ]]; then
         error "Cloudflare certificate not found at: ${CERT_FILE}"
-        error "Make sure you have the Expensidev repository cloned."
+        error "Make sure you have the Expensidev repository cloned and that App is a child of Expensidev."
+        error "Alternatively, manually follow this stackoverflow: https://stackoverflowteams.com/c/expensify/questions/18506"
         exit 1
     fi
 
