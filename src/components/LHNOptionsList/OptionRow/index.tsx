@@ -3,18 +3,23 @@ import {View} from 'react-native';
 import useIsInFocusMode from '@hooks/useIsInFocusMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AlternateText from './AlternateText';
+import Avatars from './Avatars';
+import Body from './Body';
+import DisplayNames from './DisplayNames';
+import FreeTrial from './FreeTrial';
 import useIsReportUnread from './hooks/useIsReportUnread';
 import useOptionAlternateText from './hooks/useOptionAlternateText';
 import useOptionName from './hooks/useOptionName';
-import AlternateText from './AlternateText';
-import FreeTrial from './FreeTrial';
-import Avatars from './Avatars';
-import Body from './Body';
 import Hoverable from './Hoverable';
-import DisplayNames from './DisplayNames';
 import Wrapper from './Wrapper';
 
-function OptionRowLHNData({reportID, onSelectRow}: {reportID: string; onSelectRow: (reportID: string) => void}) {
+type Props = {
+    reportID: string;
+    onSelectRow: (reportID: string) => void;
+};
+
+function OptionRow({reportID, onSelectRow}: Props) {
     const isInFocusMode = useIsInFocusMode();
 
     const reportName = useOptionName(reportID);
@@ -64,4 +69,4 @@ function OptionRowLHNData({reportID, onSelectRow}: {reportID: string; onSelectRo
     );
 }
 
-export default OptionRowLHNData;
+export default OptionRow;
