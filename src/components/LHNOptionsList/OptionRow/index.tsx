@@ -6,13 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useIsReportUnread from './hooks/useIsReportUnread';
 import useOptionAlternateText from './hooks/useOptionAlternateText';
 import useOptionName from './hooks/useOptionName';
-import OptionRowAlternateText from './OptionRowAlternateText';
-import OptionRowFreeTrial from './OptionRowFreeTrial';
-import OptionRowLHNAvatars from './OptionRowLHNAvatars';
-import OptionRowLHNDataBody from './OptionRowLHNDataBody';
-import OptionRowLHNDataHoverable from './OptionRowLHNDataHoverable';
-import OptionRowLHNDisplayNames from './OptionRowLHNDisplayNames';
-import OptionRowLHNWrapper from './OptionRowLHNWrapper';
+import AlternateText from './AlternateText';
+import FreeTrial from './FreeTrial';
+import Avatars from './Avatars';
+import Body from './Body';
+import Hoverable from './Hoverable';
+import DisplayNames from './DisplayNames';
+import Wrapper from './Wrapper';
 
 function OptionRowLHNData({reportID, onSelectRow}: {reportID: string; onSelectRow: (reportID: string) => void}) {
     const isInFocusMode = useIsInFocusMode();
@@ -25,11 +25,11 @@ function OptionRowLHNData({reportID, onSelectRow}: {reportID: string; onSelectRo
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
     return (
-        <OptionRowLHNWrapper
+        <Wrapper
             reportID={reportID}
             onSelectRow={onSelectRow}
         >
-            <OptionRowLHNDataHoverable
+            <Hoverable
                 reportID={reportID}
                 isOptionFocused={false}
                 reportName={reportName}
@@ -37,30 +37,30 @@ function OptionRowLHNData({reportID, onSelectRow}: {reportID: string; onSelectRo
                 alternateText={alternateText}
                 onSelectRow={onSelectRow}
             >
-                <OptionRowLHNDataBody>
+                <Body>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <OptionRowLHNAvatars
+                        <Avatars
                             reportID={reportID}
                             isHovered={false}
                             isFocused={false}
                         />
                         <View style={contentContainerStyles}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                <OptionRowLHNDisplayNames
+                                <DisplayNames
                                     reportID={reportID}
                                     isFocused={false}
                                 />
-                                <OptionRowFreeTrial reportID={reportID} />
-                                <OptionRowAlternateText
+                                <FreeTrial reportID={reportID} />
+                                <AlternateText
                                     isFocused={false}
                                     text={alternateText}
                                 />
                             </View>
                         </View>
                     </View>
-                </OptionRowLHNDataBody>
-            </OptionRowLHNDataHoverable>
-        </OptionRowLHNWrapper>
+                </Body>
+            </Hoverable>
+        </Wrapper>
     );
 }
 

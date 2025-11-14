@@ -23,7 +23,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OptionRowLHNData from './OptionRowLHNDataNew';
+import OptionRowLHNData from './OptionRow';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
