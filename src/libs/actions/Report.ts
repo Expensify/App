@@ -1865,7 +1865,7 @@ function handlePreexistingReport(report: Report) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
-        // Or we optimistically created a transaction thread chat report for an IOU report for an IOU report action that already has an associated child chat report.
+        // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
         const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
