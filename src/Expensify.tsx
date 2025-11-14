@@ -42,9 +42,9 @@ import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
-import {endStartupSpan} from './libs/SentryStartupSpan';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
+import {endSpan} from './libs/telemetry/activeSpans';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -174,7 +174,7 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        endStartupSpan();
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {

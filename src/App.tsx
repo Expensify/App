@@ -50,7 +50,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {startStartupSpan} from './libs/SentryStartupSpan';
+import {startSpan} from './libs/telemetry/activeSpans';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import './setup/backgroundTask';
@@ -75,7 +75,10 @@ function App() {
 
     // Start custom app startup span to measure time until first screen is interactive
     useEffect(() => {
-        startStartupSpan();
+        startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
+            name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            op: CONST.TELEMETRY.SPAN_APP_STARTUP,
+        });
     }, []);
 
     return (

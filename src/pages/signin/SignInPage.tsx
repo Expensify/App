@@ -19,7 +19,6 @@ import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/A
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {endStartupSpan} from '@libs/SentryStartupSpan';
 import Visibility from '@libs/Visibility';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -183,8 +182,6 @@ function SignInPage({ref}: SignInPageProps) {
 
     useEffect(() => {
         Performance.measureTTI();
-        // End app startup span for unauthenticated users when login screen is rendered
-        endStartupSpan();
     }, []);
 
     useEffect(() => {

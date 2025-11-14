@@ -20,7 +20,7 @@ export default function (): void {
         profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration(), Sentry.reactNativeTracingIntegration()],
+        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
