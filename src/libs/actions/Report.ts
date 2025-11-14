@@ -1914,7 +1914,7 @@ function handlePreexistingReport(report: Report) {
                     // because we cleared the optimistically created report in the callback
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
-                    // We are in a transaction thread report under a one expense report,
+                    // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
                     // We need to navigate to the one expense report screen instead of the preexisting report chat
                     // because we cleared the optimistically created transaction thread report in the callback
                     // and the one transaction should be accessed via the one expense report screen
