@@ -124,7 +124,7 @@ for lib in "${unaligned_libs[@]}"; do
 done
 
 if [ "$arm64_unaligned" -eq 1 ]; then
-  printf "%sarm64-v8a ELF misalignment detected.%s\n" "$RED" "$RESET"
+  printf "%s arm64-v8a ELF misalignment detected. %s\n" "$RED" "$RESET"
   exit 1
 fi
 
