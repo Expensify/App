@@ -1927,11 +1927,11 @@ function handlePreexistingReport(report: Report) {
             });
 
             return;
-        } else if (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`)) {
-            if (isParentOneTransactionReport) {
-                // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport(parentReportID);
-            }
+        }
+
+        if (isParentOneTransactionReport && (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`))) {
+            // We are already on the parent one expense report, so just call the API to fetch report data
+            openReport(parentReportID);
         }
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
