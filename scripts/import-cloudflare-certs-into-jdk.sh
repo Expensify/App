@@ -36,26 +36,19 @@ function is_cloudflare_cert_imported() {
     local JAVA_HOME_PATH
     JAVA_HOME_PATH=$(/usr/libexec/java_home 2>/dev/null) || return 1
 
-    if keytool -list -keystore "${JAVA_HOME_PATH}/lib/security/cacerts" \
-       -storepass changeit -alias cloudflare-gateway-root &>/dev/null; then
-        return 0
-    else
-        return 1
-    fi
+    keytool -list -keystore "${JAVA_HOME_PATH}/lib/security/cacerts" \
+        -storepass "${KEYSTORE_PASSWORD}" -alias "${CERT_ALIAS}" &>/dev/null
 }
 
 function stop_gradle_daemons() {
     title "Step 1: Stopping Gradle daemons"
-    
-    local DAEMON_STOPPED=false
-    
+
     # Method 1: Use gradle/gradlew globally if available
     if command -v gradle &>/dev/null; then
         info "Stopping Gradle daemons globally..."
         gradle --stop &>/dev/null || true
-        DAEMON_STOPPED=true
     fi
-    
+
     # Method 2: Find all gradlew files and stop their daemons
     local -a SEARCH_DIRS=(
         "${HOME}/Expensidev"
@@ -63,7 +56,7 @@ function stop_gradle_daemons() {
         "${HOME}/projects"
         "${HOME}/workspace"
     )
-    
+
     local SEARCH_DIR
     for SEARCH_DIR in "${SEARCH_DIRS[@]}"; do
         if [[ -d "${SEARCH_DIR}" ]]; then
@@ -73,22 +66,14 @@ function stop_gradle_daemons() {
                 GRADLE_DIR=$(dirname "${GRADLEW_PATH}")
                 info "Stopping Gradle daemon in ${GRADLE_DIR}..."
                 (cd "${GRADLE_DIR}" && ./gradlew --stop &>/dev/null) || true
-                DAEMON_STOPPED=true
             done < <(find "${SEARCH_DIR}" -name gradlew -type f 2>/dev/null | head -10)
         fi
     done
-    
+
     # Method 3: Kill any remaining Gradle daemon processes
     if pgrep -f "GradleDaemon" &>/dev/null; then
         info "Terminating remaining Gradle daemon processes..."
         pkill -f "GradleDaemon" &>/dev/null || true
-        DAEMON_STOPPED=true
-    fi
-    
-    if [[ "${DAEMON_STOPPED}" == true ]]; then
-        success "Gradle daemon(s) stopped"
-    else
-        info "No Gradle daemons found (this is OK)"
     fi
 }
 
@@ -275,4 +260,3 @@ function main() {
 }
 
 main "$@"
-
