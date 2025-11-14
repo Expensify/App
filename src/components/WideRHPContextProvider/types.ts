@@ -43,7 +43,13 @@ type WideRHPContextType = {
     dismissToWideReport: () => void;
 
     // Whether the currently focused route is inside the wide RHP set
-    isWideRhpFocused: boolean;
+    isWideRHPFocused: boolean;
+
+    // Whether the wide rhp modal is closing
+    isWideRHPClosing: boolean;
+
+    // Mark that wide rhp is being closed
+    setIsWideRHPClosing: (isClosing: boolean) => void
 };
 
 // eslint-disable-next-line import/prefer-default-export
