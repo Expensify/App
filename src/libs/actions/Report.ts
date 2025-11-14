@@ -1869,6 +1869,7 @@ function handlePreexistingReport(report: Report) {
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
         const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
@@ -1902,7 +1903,7 @@ function handlePreexistingReport(report: Report) {
             callback = () => {
                 currCallback();
                 // isOneTransactionReport should have a correct result since we updated the IOU action child reportID above
-                if (!parentReportActionID || !isOneTransactionReport(existingReport)) {
+                if (!parentReportActionID || !isOneTransactionReport(parentReport)) {
                     // We are either in a DM/group-DM or in a transaction thread report that its parent is not a one expense report
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
