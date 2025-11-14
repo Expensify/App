@@ -300,7 +300,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         sortedAllReportActions,
         hasNewerActions,
         hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToUnreadReportAction: true});
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToOldestUnreadReportAction: true});
 
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);

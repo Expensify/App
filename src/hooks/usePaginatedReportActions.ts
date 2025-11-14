@@ -11,14 +11,14 @@ import useReportIsArchived from './useReportIsArchived';
 
 type UsePaginatedReportActionsOptions = {
     /** Whether to link to the oldest unread report action, if no other report action id is provided. */
-    shouldLinkToUnreadReportAction?: boolean;
+    shouldLinkToOldestUnreadReportAction?: boolean;
 };
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string, options?: UsePaginatedReportActionsOptions) {
-    const {shouldLinkToUnreadReportAction = false} = options ?? {};
+    const {shouldLinkToOldestUnreadReportAction = false} = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`, {canBeMissing: true});
@@ -53,31 +53,35 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
-        const isUnreadReportAction = shouldLinkToUnreadReportAction ? (reportAction: ReportAction) => reportAction.created > (report?.lastReadTime ?? 0) : undefined;
+        const isUnreadReportAction = shouldLinkToOldestUnreadReportAction
+            ? (reportAction: ReportAction) => {
+                  if (!report?.lastReadTime) {
+                      return false;
+                  }
+
+                  return reportAction.created > report.lastReadTime;
+              }
+            : undefined;
 
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionID, isUnreadReportAction);
-    }, [report?.lastReadTime, reportActionID, reportActionPages, shouldLinkToUnreadReportAction, sortedAllReportActions]);
+    }, [report?.lastReadTime, reportActionID, reportActionPages, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
 
-    const linkedAction = useMemo(() => resourceItem?.item, [resourceItem]);
+    const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem, reportActionID]);
 
-    const oldestUnreadReportActionID = useMemo(() => {
-        if (shouldLinkToUnreadReportAction && resourceItem && !reportActionID) {
-            return resourceItem.id;
+    const oldestUnreadReportAction = useMemo(() => {
+        if (shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID) {
+            return resourceItem.item;
         }
         return undefined;
-    }, [resourceItem, shouldLinkToUnreadReportAction, reportActionID]);
-
-    if (report?.reportID === '2636639376691898') {
-        console.log({resourceItem, linkedAction, oldestUnreadReportActionID});
-    }
+    }, [resourceItem, shouldLinkToOldestUnreadReportAction, reportActionID]);
 
     return {
         reportActions,
         linkedAction,
+        oldestUnreadReportAction,
         sortedAllReportActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,
-        oldestUnreadReportActionID,
         report,
     };
 }
