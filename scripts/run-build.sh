@@ -24,12 +24,16 @@ function print_error_and_exit {
     exit 1
 }
 
-# Assign the arguments to variables if arguments are correct
-if [ "$#" -ne 1 ] || [[ "$1" != "--ios" && "$1" != "--ipad" && "$1" != "--ipad-sm" && "$1" != "--android" ]]; then
+# Parse arguments
+if [ "$#" -lt 1 ] || [[ "$1" != "--ios" && "$1" != "--ipad" && "$1" != "--ipad-sm" && "$1" != "--android" ]]; then
     print_error_and_exit
 fi
 
 BUILD="$1"
+shift
+
+# Capture any additional flags to pass through to rock
+ROCK_FLAGS=("$@")
 
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
@@ -62,13 +66,13 @@ fi
 # RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 - force React Native to build from source to include our custom patches
 case "$BUILD" in
     --ios)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad-sm)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
+        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --android)
         # Check if Cloudflare WARP is active and certificates need to be imported
@@ -76,7 +80,7 @@ case "$BUILD" in
             "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
         fi
 
-        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
         ;;
     *)
         print_error_and_exit
