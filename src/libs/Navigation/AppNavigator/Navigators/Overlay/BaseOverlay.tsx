@@ -23,7 +23,7 @@ type BaseOverlayProps = {
     positionRightValue?: number | Animated.Value;
 };
 
-// The default value of postionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
+// The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
 function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
