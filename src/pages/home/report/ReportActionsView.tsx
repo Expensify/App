@@ -32,7 +32,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -269,8 +269,8 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd();
-    }, []);
+        markOpenReportEnd(reportID);
+    }, [reportID]);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionIDFromRoute;
