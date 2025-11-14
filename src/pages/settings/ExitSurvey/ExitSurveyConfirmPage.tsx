@@ -54,11 +54,8 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
         if (isOffline) {
             return ROUTES.SETTINGS;
         }
-        if (exitReason) {
-            return ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(exitReason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
-        }
         return ROUTES.SETTINGS;
-    }, [exitReason, isOffline]);
+    }, [isOffline]);
     const {backTo} = route.params || {};
     useEffect(() => {
         const newBackTo = getBackToParam();
