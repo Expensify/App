@@ -98,6 +98,7 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
@@ -230,4 +231,5 @@ export {
     BlueShield,
     OpenSafe,
     LaptopOnDeskWithCoffeeAndKey,
+    Rules,
 };

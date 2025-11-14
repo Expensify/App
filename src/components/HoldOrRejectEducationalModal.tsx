@@ -34,6 +34,10 @@ const menuSections: SectionMenuItem[] = [
         titleTranslationKey: 'iou.reject.holdExpenseTitle',
     },
     {
+        icon: Illustrations.Rules,
+        titleTranslationKey: 'iou.reject.approveExpenseTitle',
+    },
+    {
         icon: Illustrations.RealtimeReport,
         titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
     },

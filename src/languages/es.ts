@@ -1131,6 +1131,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '¿Debes retener o rechazar?',
             educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
             holdExpenseTitle: 'Retén un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
+            approveExpenseTitle: 'Aprueba otros gastos mientras los gastos retenidos permanecen asignados a ti.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
