@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1593,7 +1594,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Wyszukaj, aby zobaczyć opcje',
     },
     contacts: {
-        contactMethod: 'Metoda kontaktu',
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
@@ -6131,6 +6131,30 @@ ${amount} dla ${merchant} - ${date}`,
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodał podatek "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `zmienił nazwę podatku z "${oldValue}" na "${newValue}"`;
+                }
+                case 'code': {
+                    return `zmienił kod podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'rate': {
+                    return `zmienił stawkę podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `wyłączył podatek "${taxName}"` : `włączył podatek "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7363,8 +7387,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         modal: {
             title: 'Wypróbuj nas w wersji testowej',
-            description: 'Weź szybką wycieczkę po produkcie, aby szybko się zorientować. Żadnych przystanków nie potrzeba!',
-            confirmText: 'Rozpocznij jazdę próbną',
+            description: 'Skorzystaj z krótkiego przewodnika po produkcie, aby szybko się wdrożyć.',
+            confirmText: 'Rozpocznij wersję demonstracyjną',
             helpText: 'Pomiń',
             employee: {
                 description:
@@ -7518,6 +7542,16 @@ ${amount} dla ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Domena <strong>${domainName}</strong> została pomyślnie zweryfikowana i możesz teraz skonfigurować SAML oraz inne funkcje zabezpieczeń.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Jednokrotne logowanie SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> to funkcja bezpieczeństwa, która daje Ci większą kontrolę nad tym, w jaki sposób członkowie z adresami e‑mail w domenie <strong>${domainName}</strong> logują się do Expensify. Aby ją włączyć, musisz potwierdzić, że jesteś uprawnionym administratorem firmy.</muted-text>`,
+            fasterAndEasierLogin: 'Szybsze i łatwiejsze logowanie',
+            moreSecurityAndControl: 'Więcej bezpieczeństwa i kontroli',
+            onePasswordForAnything: 'Jedno hasło do wszystkiego',
+        },
+        goToDomain: 'Przejdź do domeny',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
