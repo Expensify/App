@@ -67,6 +67,8 @@ function IOURequestStepDistanceManual({
 }: IOURequestStepDistanceManualProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -84,9 +86,6 @@ function IOURequestStepDistanceManual({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -96,13 +95,14 @@ function IOURequestStepDistanceManual({
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
             return;
         }
         numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance]);
+    }, [distance, selectedTab]);
 
     const shouldSkipConfirmation: boolean = useMemo(() => {
         if (!skipConfirmation || !report?.reportID) {
@@ -160,9 +160,6 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
-                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -207,6 +204,7 @@ function IOURequestStepDistanceManual({
                                 customUnitRateID,
                                 attendees: transaction?.comment?.attendees,
                             },
+                            isASAPSubmitBetaEnabled,
                         });
                         return;
                     }
@@ -233,9 +231,6 @@ function IOURequestStepDistanceManual({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
-                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                        transactionViolations,
                         isASAPSubmitBetaEnabled,
                     });
                     return;
@@ -282,31 +277,30 @@ function IOURequestStepDistanceManual({
         },
         [
             transactionID,
-            reportID,
-            transaction,
-            report,
-            backTo,
-            backToReport,
-            iouType,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            reportNameValuePairs,
             isTransactionDraft,
-            personalPolicy?.autoReporting,
+            action,
+            backTo,
+            report,
+            reportNameValuePairs,
+            iouType,
             defaultExpensePolicy,
+            distance,
+            transaction,
+            reportID,
+            policy,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
-            policy,
-            lastSelectedDistanceRates,
-            customUnitRateID,
             translate,
-            navigateToConfirmationPage,
-            action,
-            distance,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            lastSelectedDistanceRates,
             localeCompare,
-            transactionViolations,
+            backToReport,
             isASAPSubmitBetaEnabled,
+            customUnitRateID,
+            navigateToConfirmationPage,
+            personalPolicy?.autoReporting,
         ],
     );
 

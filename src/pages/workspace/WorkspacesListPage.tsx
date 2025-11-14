@@ -63,7 +63,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -203,16 +203,17 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(
-            policyIDToDelete,
-            policyNameToDelete,
+        deleteWorkspace({
+            policyID: policyIDToDelete,
+            activePolicyID,
+            policyName: policyNameToDelete,
             lastAccessedWorkspacePolicyID,
-            defaultCardFeeds,
+            policyCardFeeds: defaultCardFeeds,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            lastPaymentMethod,
-        );
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
@@ -498,7 +499,7 @@ function WorkspacesListPage() {
         if (isValidated) {
             return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
         }
-        Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID));
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
     /**
