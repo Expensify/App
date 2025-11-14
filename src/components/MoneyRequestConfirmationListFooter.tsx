@@ -2,8 +2,8 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo} from 'react';
-import {Text, View} from 'react-native';
+import React, {memo, useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +32,7 @@ import {
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
+    isScanRequest,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
@@ -47,6 +48,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
+import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from './Icon';
@@ -58,6 +60,7 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
+import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -272,6 +275,8 @@ function MoneyRequestConfirmationListFooter({
     const {isOffline} = useNetwork();
     const theme = useTheme();
 
+    const [showMoreFields, setShowMoreFields] = useState(false);
+
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -464,6 +469,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
+            isRequired: true,
         },
         {
             item: (
@@ -497,6 +503,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: true,
+            isRequired: true,
         },
         {
             item: (
@@ -524,6 +531,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            isRequired: true, // Distance is required for distance requests
         },
         {
             item: (
@@ -561,6 +569,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            isRequired: false,
         },
         {
             item: (
@@ -588,6 +597,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
+            isRequired: false,
         },
         {
             item: (
@@ -632,6 +642,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowCategories,
+            isRequired: false,
         },
         {
             item: (
@@ -657,6 +668,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
+            isRequired: false,
         },
         ...policyTagLists.map(({name}, index) => {
             const tagVisibilityItem = tagVisibility.at(index);
@@ -690,6 +702,7 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
+                isRequired: false,
             };
         }),
         {
@@ -713,6 +726,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isRequired: false,
         },
         {
             item: (
@@ -735,6 +749,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isRequired: false,
         },
         {
             item: (
@@ -759,6 +774,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
+            isRequired: false,
         },
         {
             item: (
@@ -778,6 +794,7 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowReimbursable,
             isSupplementary: true,
+            isRequired: false,
         },
         {
             item: (
@@ -796,6 +813,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
+            isRequired: false,
         },
         {
             item: (
@@ -817,6 +835,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat,
+            isRequired: false,
         },
     ];
 
@@ -881,7 +900,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall, !showMoreFields && styles.moneyRequestImageLarge]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -945,9 +964,11 @@ function MoneyRequestConfirmationListFooter({
         [
             styles.moneyRequestImage,
             styles.expenseViewImageSmall,
+            styles.moneyRequestImageLarge,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
+            showMoreFields,
             isLocalFile,
             receiptFilename,
             translate,
@@ -961,10 +982,10 @@ function MoneyRequestConfirmationListFooter({
             fileExtension,
             isDistanceRequest,
             transactionID,
+            isReceiptEditable,
+            reportID,
             action,
             iouType,
-            reportID,
-            isReceiptEditable,
         ],
     );
 
@@ -1058,18 +1079,39 @@ function MoneyRequestConfirmationListFooter({
                                   style={styles.expenseViewImageSmall}
                               />
                           )}
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mh5, styles.mt5]}>
-                        <Icon
-                            src={Expensicons.Sparkles}
-                            fill={theme.icon}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                        <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                    </View>
+                    {isScanRequest(transaction) && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mh5, styles.mt5]}>
+                            <Icon
+                                src={Expensicons.Sparkles}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                            <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                        </View>
+                    )}
                 </View>
             )}
-            <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
+            <View style={[styles.mb5]}>
+                {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
+
+                {showMoreFields && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+
+                {!showMoreFields && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative]}>
+                        <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
+                        <Button
+                            text={translate('common.showMore')}
+                            onPress={() => setShowMoreFields(true)}
+                            small
+                            shouldShowRightIcon
+                            iconRight={Expensicons.DownArrow}
+                            innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
+                            textStyles={[styles.buttonSmallText]}
+                        />
+                    </View>
+                )}
+            </View>
         </>
     );
 }

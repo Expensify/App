@@ -4180,6 +4180,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        moneyRequestImageLarge: {
+            height: 400,
+            maxHeight: '60vh',
+        },
+
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
