@@ -132,9 +132,6 @@ function import_certificates() {
 }
 
 function print_summary() {
-    local SUCCESS_COUNT="$1"
-    local FAIL_COUNT="$2"
-
     title "Summary"
 
     success "Successfully imported: ${SUCCESS_COUNT}"
@@ -183,7 +180,7 @@ function main() {
     stop_gradle_daemons
     find_java_installations
     import_certificates
-    print_summary "${SUCCESS_COUNT}" "${FAIL_COUNT}"
+    print_summary
 }
 
 main "$@"
