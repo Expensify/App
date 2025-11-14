@@ -9,7 +9,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import {isSuperWideRHPRouteName} from '@libs/Navigation/helpers/isWideRHPRouteName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
@@ -29,6 +28,10 @@ const thirdOverlayProgress = new Animated.Value(0);
 
 const singleRHPWidth = variables.sideBarWidth;
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
+
+function isSuperWideRHPRouteName(routeName: string) {
+    return routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.EXPENSE_REPORT_RHP;
+}
 
 /**
  * Utility function that extracts all unique navigation keys from a React Navigation state.
@@ -198,8 +201,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
+        const isFocusedRouteSuperWide = isSuperWideRHPRouteName(focusedRoute.name);
+
         // This screen is always first in RHP, so secondary overlay is not displayed in this case.
-        if (isSuperWideRHPRouteName(focusedRoute.name)) {
+        if (isFocusedRouteSuperWide) {
             return false;
         }
 
@@ -207,7 +212,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        if (currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && !isSuperWideRHPRouteName(focusedRoute.name)) {
+        if (currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && !isFocusedRouteSuperWide) {
             return true;
         }
 

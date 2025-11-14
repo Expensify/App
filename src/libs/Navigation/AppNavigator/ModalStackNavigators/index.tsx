@@ -6,7 +6,6 @@ import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, recei
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import {isSuperWideRHPRouteName, isWideRHPRouteName} from '@libs/Navigation/helpers/isWideRHPRouteName';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -86,6 +85,14 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
         animationTypeForReplace: 'push',
     },
 };
+
+function isSuperWideRHPRouteName(routeName: string) {
+    return routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
+}
+
+function isWideRHPRouteName(routeName: string) {
+    return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+}
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
