@@ -566,6 +566,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Richiesto',
+        automatic: 'Automatico',
         showing: 'Mostrando',
         of: 'di',
         default: 'Predefinito',
@@ -1177,6 +1178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con transazione della carta. Segna come contante per annullare.',
         markAsCash: 'Segna come contante',
         routePending: 'Instradamento in corso...',
+        automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({
             one: 'Scansione della ricevuta...',
             other: 'Scansione delle ricevute...',

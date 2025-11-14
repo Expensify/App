@@ -566,6 +566,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'カード',
         whyDoWeAskForThis: 'なぜこれを尋ねるのですか？',
         required: '必須',
+        automatic: '自動',
         showing: '表示中',
         of: 'の',
         default: 'デフォルト',
@@ -1179,6 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: '領収書がカード取引と一致待ちです。現金としてマークしてキャンセルしてください。',
         markAsCash: '現金としてマーク',
         routePending: 'ルートを保留中...',
+        automaticallyEnterExpenseDetails: 'コンシェルジュが自動的に経費の詳細を入力するか、手動で追加することができます。',
         receiptScanning: () => ({
             one: '領収書をスキャン中...',
             other: '領収書をスキャン中...',

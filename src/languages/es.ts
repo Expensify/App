@@ -486,7 +486,6 @@ const translations: TranslationDeepObject<typeof en> = {
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
         whatsItFor: '¿Para qué es?',
-        smartScanExplainer: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
     },
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
@@ -837,11 +836,12 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         findExpense: 'Buscar gasto',
-        deletedTransaction: ({amount, merchant}) => `eliminó un gasto (${amount} para ${merchant})`,
-        movedFromReport: ({reportName}) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
-        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}) => {
+        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto (${amount} para ${merchant})`,
+        movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `movió este informe al espacio de trabajo <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }

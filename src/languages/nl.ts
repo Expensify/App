@@ -566,6 +566,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Kaart',
         whyDoWeAskForThis: 'Waarom vragen we hierom?',
         required: 'Vereist',
+        automatic: 'Automatisch',
         showing: 'Weergeven',
         of: 'of',
         default: 'Standaard',
@@ -1177,6 +1178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ontvangst in afwachting van overeenkomst met kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Als contant markeren',
         routePending: 'Route in behandeling...',
+        automaticallyEnterExpenseDetails: 'Concierge zal automatisch de uitgavendetails voor je invoeren, of je kunt ze handmatig toevoegen.',
         receiptScanning: () => ({
             one: 'Bonnetjes scannen...',
             other: 'Bonnen scannen...',
