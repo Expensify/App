@@ -1,7 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {fireEvent, render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -67,9 +67,8 @@ describe('Subscription/AddPaymentCard', () => {
 
     describe('AddPaymentCardPage Expiration Date Formatting', () => {
         const runFormatTest = async (input: string, formattedAs: string) => {
-            const {findByTestId} = renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
-            // eslint-disable-next-line testing-library/prefer-screen-queries
-            const expirationDateField = await findByTestId('addPaymentCardPage.expiration');
+            renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+            const expirationDateField = await screen.findByTestId('addPaymentCardPage.expiration');
             fireEvent.changeText(expirationDateField, input);
             expect(expirationDateField.props.value).toBe(formattedAs);
         };
