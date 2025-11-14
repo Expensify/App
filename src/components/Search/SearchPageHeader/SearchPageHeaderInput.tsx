@@ -32,7 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue, serializeManualQueryFilters} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -205,13 +205,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 return;
             }
 
-            const manualRawFilters = serializeManualQueryFilters(updatedQueryResult?.rawFilterList);
-
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: updatedQuery,
                     rawQuery: queryWithSubstitutions,
-                    manualRawFilters,
                 }),
             );
             hideSearchRouterList?.();

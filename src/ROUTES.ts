@@ -56,16 +56,12 @@ const ROUTES = {
 
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, rawQuery, name, manualRawFilters}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string; manualRawFilters?: string}) => {
+        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
             const resolvedRawQuery = rawQuery ?? query;
             let route = `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}`;
 
             if (resolvedRawQuery) {
                 route += `&rawQuery=${encodeURIComponent(resolvedRawQuery)}`;
-            }
-
-            if (manualRawFilters) {
-                route += `&manualRawFilters=${encodeURIComponent(manualRawFilters)}`;
             }
 
             return route as const;

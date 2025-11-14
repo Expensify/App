@@ -48,12 +48,6 @@ import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
-type BuildSearchQueryJSONOptions = {
-    preserveRawFilterList?: boolean;
-    manualRawFilterList?: RawQueryFilter[];
-    rawQuery?: SearchQueryString;
-};
-
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
@@ -417,8 +411,7 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQueryJSONOptions = {}) {
-    const {preserveRawFilterList = false, manualRawFilterList, rawQuery} = options;
+function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
@@ -432,13 +425,8 @@ function buildSearchQueryJSON(query: SearchQueryString, options: BuildSearchQuer
         result.similarSearchHash = similarSearchHash;
 
         const rawFilterListFromRawQuery = rawQuery ? getRawFilterListFromQuery(rawQuery) : undefined;
-        const parsedRawFilterList = Array.isArray(result.rawFilterList) ? result.rawFilterList : [];
         if (rawFilterListFromRawQuery && rawFilterListFromRawQuery.length > 0) {
             result.rawFilterList = rawFilterListFromRawQuery;
-        } else if (manualRawFilterList && manualRawFilterList.length > 0) {
-            result.rawFilterList = manualRawFilterList;
-        } else if (preserveRawFilterList && parsedRawFilterList.length > 0) {
-            result.rawFilterList = parsedRawFilterList;
         } else {
             delete result.rawFilterList;
         }
@@ -546,51 +534,6 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
     }
 
     return sanitizedFilters;
-}
-
-function serializeManualQueryFilters(rawFilters?: RawQueryFilter[]) {
-    if (!rawFilters || rawFilters.length === 0) {
-        return undefined;
-    }
-
-    try {
-        return JSON.stringify(rawFilters);
-    } catch (error) {
-        Log.warn('[SEARCH] Failed to serialize manual query filters', {error});
-    }
-
-    return undefined;
-}
-
-function parseManualQueryFilters(serializedFilters?: string) {
-    if (!serializedFilters) {
-        return undefined;
-    }
-
-    const parseValue = (value: string) => {
-        try {
-            const parsed = JSON.parse(value) as unknown;
-            return Array.isArray(parsed) ? (parsed as RawQueryFilter[]) : undefined;
-        } catch {
-            return undefined;
-        }
-    };
-
-    const parsed = parseValue(serializedFilters);
-    if (parsed) {
-        return parsed;
-    }
-
-    try {
-        const decodedValue = decodeURIComponent(serializedFilters);
-        if (decodedValue) {
-            return parseValue(decodedValue);
-        }
-    } catch (error) {
-        Log.warn('[Search] Failed to decode manual query filters', {error});
-    }
-
-    return undefined;
 }
 
 /**
@@ -1393,7 +1336,7 @@ type UpdatedQueryWithValuesResult = {
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
 function getQueryWithUpdatedValues(query: string) {
-    const queryJSON = buildSearchQueryJSON(query, {preserveRawFilterList: true});
+    const queryJSON = buildSearchQueryJSON(query, query);
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
@@ -1428,7 +1371,7 @@ function getCurrentSearchQueryJSON() {
     }
 
     const {q: searchParams, rawQuery} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(searchParams, {rawQuery});
+    const queryJSON = buildSearchQueryJSON(searchParams, rawQuery);
     if (!queryJSON) {
         return;
     }
@@ -1490,6 +1433,4 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    serializeManualQueryFilters,
-    parseManualQueryFilters,
 };

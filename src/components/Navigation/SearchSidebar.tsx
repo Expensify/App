@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, parseManualQueryFilters} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,9 +39,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
             return undefined;
         }
 
-        const manualRawFilters = parseManualQueryFilters(params.manualRawFilters);
-        return buildSearchQueryJSON(params.q, {manualRawFilterList: manualRawFilters, rawQuery: params.rawQuery});
-    }, [params?.q, params?.manualRawFilters, params?.rawQuery]);
+        return buildSearchQueryJSON(params.q, params.rawQuery);
+    }, [params?.q, params?.rawQuery]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {

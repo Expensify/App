@@ -35,7 +35,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue, serializeManualQueryFilters} from '@libs/SearchQueryUtils';
+import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -280,15 +280,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString, options: {shouldPreserveRawFilters?: boolean} = {}) => {
+        (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
             const updatedQueryResult = getQueryWithUpdatedValues(queryWithSubstitutions);
             const updatedQuery = updatedQueryResult?.canonicalQuery;
             if (!updatedQuery) {
                 return;
             }
-
-            const manualRawFilters = options.shouldPreserveRawFilters ? serializeManualQueryFilters(updatedQueryResult?.rawFilterList) : undefined;
 
             // Reset the search query flag when performing a new search
             setShouldResetSearchQuery(false);
@@ -299,7 +297,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     ROUTES.SEARCH_ROOT.getRoute({
                         query: updatedQuery,
                         rawQuery: queryWithSubstitutions,
-                        manualRawFilters,
                     }),
                 );
             });
@@ -516,7 +513,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         const focusedOption = listRef.current?.getFocusedOption();
 
                         if (!focusedOption) {
-                            submitSearch(textInputValue, {shouldPreserveRawFilters: true});
+                            submitSearch(textInputValue);
                             return;
                         }
 

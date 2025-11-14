@@ -138,7 +138,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
 
             if (lastSearchRoute) {
                 const {q, rawQuery, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q, {rawQuery});
+                const queryJSON = buildSearchQueryJSON(q, rawQuery);
                 if (queryJSON) {
                     const query = buildSearchQueryString(queryJSON);
                     Navigation.navigate(
