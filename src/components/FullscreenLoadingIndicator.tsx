@@ -19,6 +19,9 @@ type FullScreenLoadingIndicatorProps = {
     /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
+    /** Whether the "Go Back" button appears after a timeout. */
+    shouldUseGoBackButton?: boolean;
+
     /** The ID of the test to be used for testing */
     testID?: string;
 
@@ -26,17 +29,27 @@ type FullScreenLoadingIndicatorProps = {
     extraLoadingContext?: ExtraLoadingContext;
 };
 
-function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE, testID = '', extraLoadingContext}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({
+    style,
+    iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
+    shouldUseGoBackButton = false,
+    testID = '',
+    extraLoadingContext,
+}: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
 
     useEffect(() => {
+        if (!shouldUseGoBackButton) {
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
             setShowGoBackButton(true);
         }, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
         return () => clearTimeout(timeoutId);
-    }, []);
+    }, [shouldUseGoBackButton]);
 
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
@@ -46,7 +59,7 @@ function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
                 />
-                {showGoBackButton && (
+                {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>

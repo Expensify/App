@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 import {getFakePolicy, getFakeReport} from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 
 const policyID = '1';
 const report: Report = {
@@ -73,6 +74,7 @@ describe('PerDiemRequestUtils', () => {
         const tokenizeSearchResult = getDestinationListSections({
             destinations,
             searchValue: tokenizeSearch,
+            translate: translateLocal,
         });
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });

@@ -1,5 +1,8 @@
+import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
+import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
+import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
 
@@ -14,15 +17,14 @@ export default function (): void {
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         tracesSampleRate: 1.0,
-        profilesSampleRate: 1.0,
+        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations: [navigationIntegration],
+        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
+        beforeSendTransaction: processBeforeSendTransactions,
     });
-
-    Sentry.captureMessage('Sentry initialized successfully!');
 }
 
 export {navigationIntegration};

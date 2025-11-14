@@ -157,6 +157,7 @@ function useSearchSelectorBase({
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const onListEndReached = useCallback(() => {
         setMaxResults((previous) => previous + maxResultsPerPage);
@@ -176,6 +177,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
+                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -185,7 +187,7 @@ function useSearchSelectorBase({
                     countryCode,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, draftComments, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -197,7 +199,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, draftComments, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -210,6 +212,7 @@ function useSearchSelectorBase({
                 return getValidOptions(
                     optionsWithContacts,
                     draftComments,
+                    nvpDismissedProductTraining,
                     {
                         betas,
                         includeMultipleParticipantReports: true,
@@ -226,7 +229,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, draftComments, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -251,6 +254,7 @@ function useSearchSelectorBase({
         searchContext,
         optionsWithContacts,
         draftComments,
+        nvpDismissedProductTraining,
         betas,
         computedSearchTerm,
         maxResults,
