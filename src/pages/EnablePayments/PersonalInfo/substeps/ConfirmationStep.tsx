@@ -74,9 +74,9 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             pageTitle={translate('personalInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks
-			onfidoLinksTitle={`${translate('personalInfoStep.byAddingThisBankAccount')} `}
-			isLoading={isLoading}
-			error={error}
+            onfidoLinksTitle={`${translate('personalInfoStep.byAddingThisBankAccount')} `}
+            isLoading={isLoading}
+            error={error}
         />
     );
 }

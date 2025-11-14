@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
-import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -51,8 +51,8 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
     /** Custom label of the last name input */
     customLastNameLabel?: string;
 
-	/** Whether to show the Patriot Act help link (EnablePayments-only) */
-	showPatriotActLink?: boolean;
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    showPatriotActLink?: boolean;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -68,7 +68,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
-	showPatriotActLink = false,
+    showPatriotActLink = false,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -152,12 +152,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                 />
-				{shouldShowHelpLinks && (
-					<>
-						<HelpLinks />
-						{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-					</>
-				)}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks />
+                        {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

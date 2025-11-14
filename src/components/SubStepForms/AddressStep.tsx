@@ -7,9 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
-import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -75,8 +75,8 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Indicates if zip code format should be validated */
     shouldValidateZipCodeFormat?: boolean;
 
-	/** Whether to show the Patriot Act help link (EnablePayments-only) */
-	showPatriotActLink?: boolean;
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    showPatriotActLink?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -88,7 +88,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stepFields,
     inputFieldsIDs,
     defaultValues,
-	shouldShowHelpLinks,
+    shouldShowHelpLinks,
     isEditing,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
@@ -99,7 +99,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
-	showPatriotActLink = false,
+    showPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -159,12 +159,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldAllowCountryChange={shouldAllowCountryChange}
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
-				{!!shouldShowHelpLinks && (
-					<>
-						<HelpLinks containerStyles={[styles.mt6]} />
-						{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-					</>
-				)}
+                {!!shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt6]} />
+                        {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

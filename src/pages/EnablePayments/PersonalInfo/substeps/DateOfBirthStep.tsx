@@ -34,8 +34,8 @@ function DateOfBirthStep({onNext, onMove, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             dobInputID={PERSONAL_INFO_DOB_KEY as keyof FormOnyxValues}
-			dobDefaultValue={dobDefaultValue}
-			showPatriotActLink
+            dobDefaultValue={dobDefaultValue}
+            showPatriotActLink
         />
     );
 }

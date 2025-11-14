@@ -56,9 +56,9 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputId={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
             inputLabel={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
-			defaultValue={defaultSsnLast4}
-			maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
-			showPatriotActLink
+            defaultValue={defaultSsnLast4}
+            maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            showPatriotActLink
         />
     );
 }

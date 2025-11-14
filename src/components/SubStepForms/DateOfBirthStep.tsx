@@ -35,11 +35,11 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** The default value for the date of birth input */
     dobDefaultValue: string;
 
-	/** Optional footer component */
-	footerComponent?: React.ReactNode;
+    /** Optional footer component */
+    footerComponent?: React.ReactNode;
 
-	/** Whether to show the Patriot Act help link (EnablePayments-only) */
-	showPatriotActLink?: boolean;
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    showPatriotActLink?: boolean;
 };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -50,9 +50,9 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     stepFields,
     dobInputID,
     dobDefaultValue,
-	isEditing,
-	footerComponent,
-	showPatriotActLink = false,
+    isEditing,
+    footerComponent,
+    showPatriotActLink = false,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -103,8 +103,8 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
             />
-			{footerComponent}
-			{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt5]} />}
+            {footerComponent}
+            {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt5]} />}
         </FormProvider>
     );
 }

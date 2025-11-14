@@ -39,8 +39,8 @@ type ConfirmationStepProps = SubStepProps & {
     /** The error message to display */
     error?: string;
 
-	/** Whether to apply safe area padding bottom */
-	shouldApplySafeAreaPaddingBottom?: boolean;
+    /** Whether to apply safe area padding bottom */
+    shouldApplySafeAreaPaddingBottom?: boolean;
 };
 
 function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true}: ConfirmationStepProps) {

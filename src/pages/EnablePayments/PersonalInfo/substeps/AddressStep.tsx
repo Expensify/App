@@ -47,9 +47,9 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
-			defaultValues={defaultValues}
-			shouldShowHelpLinks
-			showPatriotActLink
+            defaultValues={defaultValues}
+            shouldShowHelpLinks
+            showPatriotActLink
         />
     );
 }

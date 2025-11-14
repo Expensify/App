@@ -60,9 +60,9 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputId={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
-			defaultValue={defaultPhoneNumber}
-			enabledWhenOffline
-			showPatriotActLink
+            defaultValue={defaultPhoneNumber}
+            enabledWhenOffline
+            showPatriotActLink
         />
     );
 }

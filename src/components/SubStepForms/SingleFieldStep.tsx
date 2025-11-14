@@ -11,8 +11,8 @@ import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -62,11 +62,11 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** Placeholder displayed inside input */
     placeholder?: string;
 
-	/** Whether to delay autoFocus to avoid conflicts with navigation animations */
-	shouldDelayAutoFocus?: boolean;
+    /** Whether to delay autoFocus to avoid conflicts with navigation animations */
+    shouldDelayAutoFocus?: boolean;
 
-	/** Whether to show the Patriot Act help link (EnablePayments-only) */
-	showPatriotActLink?: boolean;
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    showPatriotActLink?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -87,7 +87,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
-	showPatriotActLink = false,
+    showPatriotActLink = false,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -127,12 +127,12 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         ref={internalInputRef}
                     />
                 </View>
-				{shouldShowHelpLinks && (
-					<>
-						<HelpLinks containerStyles={[styles.mt5]} />
-						{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-					</>
-				)}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt5]} />
+                        {showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
