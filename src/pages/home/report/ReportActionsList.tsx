@@ -400,7 +400,7 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
-    useEffect(() => {
+    const handleReportChangeMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
@@ -415,12 +415,71 @@ function ReportActionsList({
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
-            } else {
-                readActionSkipped.current = true;
+                return true;
             }
+
+            readActionSkipped.current = true;
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
+
+    const handleAppVisibilityMarkAsRead = useCallback(() => {
+        if (report.reportID !== prevReportID) {
+            return;
+        }
+
+        if (!isVisible || !isFocused) {
+            if (!lastMessageTime.current) {
+                lastMessageTime.current = lastAction?.created ?? '';
+            }
+            return;
+        }
+
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        lastMessageTime.current = null;
+
+        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
+        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasUnreadReportAction = sortedVisibleReportActions.some(
+            (reportAction) =>
+                newMessageTimeReference &&
+                newMessageTimeReference < reportAction.created &&
+                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
+        );
+
+        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
+            return;
+        }
+
+        readNewestAction(report.reportID);
+        userActiveSince.current = DateUtils.getDBTime();
+        return true;
+
+        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
+        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
+        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
+        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, isVisible]);
+
+    const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
+    const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
+
+    useEffect(() => {
+        let isMarkedAsRead = false;
+        if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsRead.current) {
+            isMarkedAsRead = !!handleReportChangeMarkAsRead();
+        }
+
+        if (!isMarkedAsRead && handleAppVisibilityMarkAsRead !== prevHandleAppVisibilityMarkAsRead.current) {
+            handleAppVisibilityMarkAsRead();
+        }
+
+        prevHandleReportChangeMarkAsRead.current = handleReportChangeMarkAsRead;
+        prevHandleAppVisibilityMarkAsRead.current = handleAppVisibilityMarkAsRead;
+    }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -622,52 +681,12 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
-    useEffect(() => {
-        if (report.reportID !== prevReportID) {
-            return;
-        }
-
-        if (!isVisible || !isFocused) {
-            if (!lastMessageTime.current) {
-                lastMessageTime.current = lastAction?.created ?? '';
-            }
-            return;
-        }
-
-        // In case the user read new messages (after being inactive) with other device we should
-        // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
-        lastMessageTime.current = null;
-
-        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
-            (reportAction) =>
-                newMessageTimeReference &&
-                newMessageTimeReference < reportAction.created &&
-                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
-        );
-
-        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
-            return;
-        }
-
-        readNewestAction(report.reportID);
-        userActiveSince.current = DateUtils.getDBTime();
-
-        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
-        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
-        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
-        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused, isVisible]);
-
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalReportID = getOriginalReportID(report.reportID, reportAction);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+            const matchingDraftMessageString = matchingDraftMessage?.message;
 
             const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
             const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;

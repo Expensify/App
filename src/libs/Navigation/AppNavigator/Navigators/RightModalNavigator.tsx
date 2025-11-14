@@ -131,10 +131,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE}
-                            component={ModalStackNavigators.SetDefaultWorkspaceModalStackNavigator}
-                        />
-                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
                             component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                         />
@@ -153,6 +149,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                             component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
+                            component={ModalStackNavigators.ReportVerifyAccountModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
@@ -272,7 +272,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
-                            component={ModalStackNavigators.SearchMoneyRequestReportNavigator}
+                            component={ModalStackNavigators.SearchMoneyRequestReportModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
@@ -301,6 +301,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
                             component={ModalStackNavigators.ExpenseReportModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.DOMAIN}
+                            component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
                         />
                     </Stack.Navigator>
                 </Animated.View>
