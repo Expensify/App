@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -271,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1410,11 +1412,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: '支払いのみ',
         approveOnly: '承認のみ',
-        holdEducationalTitle: 'このリクエストはオン',
-        holdEducationalText: '保留',
-        whatIsHoldExplain: '保留は、承認や支払いの前に詳細を確認するために、経費を「一時停止」するようなものです。',
-        holdIsLeftBehind: '保留された経費は承認または支払い時に別のレポートに移動します。',
-        unholdWhenReady: '承認者は、承認または支払いの準備が整ったときに経費を解除できます。',
+        holdEducationalTitle: 'この経費は保留にしますか？',
+        whatIsHoldExplain: '保留とは、経費の提出準備が整うまで「一時停止」する機能です。',
+        holdIsLeftBehind: '保留中の経費は、レポート全体を提出しても除外されます。',
+        unholdWhenReady: '提出準備が整ったら、経費の保留を解除してください。',
         changePolicyEducational: {
             title: 'このレポートを移動しました！',
             description: 'レポートを新しいワークスペースに移動する際に変更される傾向があるこれらの項目を再確認してください。',
@@ -1595,12 +1596,11 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'オプションを表示するために検索',
     },
     contacts: {
-        contactMethod: '連絡方法',
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpTextBeforeEmail: '領収書を送信する方法を追加してください。それらを転送する先は',
-        helpTextAfterEmail: 'または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
+        helpText: ({email}: {email: string}) =>
+            `領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="${email}"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。`,
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
@@ -6097,6 +6097,30 @@ ${date} - ${merchant}に${amount}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `税 "${oldValue}" の名前を "${newValue}" に変更しました`;
+                }
+                case 'code': {
+                    return `税 "${taxName}" のコードを "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'rate': {
+                    return `税 "${taxName}" の税率を "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `税 "${taxName}" を無効にしました` : `税 "${taxName}" を有効にしました`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -6758,31 +6782,48 @@ ${date} - ${merchant}に${amount}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} アルコール`;
-                case 'gambling':
-                    return `${preMessage} ギャンブル`;
-                case 'tobacco':
-                    return `${preMessage} タバコ`;
-                case 'adultEntertainment':
-                    return `${preMessage} アダルトエンターテインメント`;
-                case 'hotelIncidentals':
-                    return `${preMessage} ホテル雑費`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `アルコール`;
+                    case 'gambling':
+                        return `ギャンブル`;
+                    case 'tobacco':
+                        return `タバコ`;
+                    case 'adultEntertainment':
+                        return `アダルトエンターテインメント`;
+                    case 'hotelIncidentals':
+                        return `ホテル雑費`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。` : '銀行接続が切れているため、領収書を自動照合できません。';
+                return isAdmin
+                    ? `銀行接続が切断されています。<a href="${companyCardPageURL}">再接続して領収書を照合してください</a>`
+                    : '銀行接続が切断されています。領収書を照合するには管理者に再接続を依頼してください。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member}に現金としてマークするように依頼するか、7日間待って再試行してください。` : 'カード取引とのマージを待機中。';
@@ -7310,7 +7351,7 @@ ${date} - ${merchant}に${amount}`,
         },
         modal: {
             title: '私たちを試してみてください',
-            description: '製品ツアーをすばやく見て、すぐに追いつきましょう。途中で止まる必要はありません！',
+            description: '短いプロダクトツアーで、すぐに使い方を把握しましょう。',
             confirmText: 'テストドライブを開始',
             helpText: 'Skip',
             employee: {
@@ -7346,6 +7387,109 @@ ${date} - ${merchant}に${amount}`,
         subtitle: `すべてのデータを読み込むことができませんでした。通知を受けており、問題を調査しています。この状態が続く場合は、お問い合わせください。`,
         refreshAndTryAgain: '再読み込みして、もう一度お試しください',
     },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が経費を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が経費を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を追加するのを待っています。`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の操作は必要ありません！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が銀行口座を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が銀行口座を追加するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が銀行口座を追加するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} に` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなたの</strong>経費が自動で提出されるのを待っています${formattedETA}。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が問題を修正するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が問題を修正するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が問題を修正するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `経費は<strong>あなた</strong>の承認待ちです。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `経費は<strong>${actor}</strong>の承認待ちです。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を承認するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が経費を支払うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が経費を支払うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を支払うのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `ビジネス用銀行口座の設定を<strong>あなた</strong>が完了するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>がビジネス用銀行口座のセットアップを完了するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がビジネス用銀行口座の設定を完了するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}までに` : ` ${eta}`;
+                }
+                return `支払いの完了を待っています${formattedETA}。`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'まもなく',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: '今日の後で',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: '日曜日に',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: '毎月の1日と16日',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: '月の最終営業日に',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: '月の最終日に',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: '旅行の終わりに',
+        },
+    },
     domain: {
         notVerified: '未確認',
         retry: '再試行',
@@ -7366,6 +7510,16 @@ ${date} - ${merchant}に${amount}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML シングルサインオン (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> は、<strong>${domainName}</strong> のメールアドレスを持つメンバーのExpensifyへのログイン方法をより細かく管理できるセキュリティ機能です。有効にするには、権限のある会社の管理者であることを確認する必要があります。</muted-text>`,
+            fasterAndEasierLogin: 'より速く、より簡単なログイン',
+            moreSecurityAndControl: 'さらなるセキュリティと管理',
+            onePasswordForAnything: 'すべてを1つのパスワードで',
+        },
+        goToDomain: 'ドメインに移動',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

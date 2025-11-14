@@ -15,7 +15,7 @@ import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemGenerator} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemFactory} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -34,6 +34,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
@@ -139,9 +140,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID);
+        detachReceipt(transaction?.transactionID, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID]);
+    }, [navigation, transaction?.transactionID, policyCategories]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -150,7 +151,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
-    const threeDotsMenuItems: ThreeDotsMenuItemGenerator = useCallback(
+    const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
             if (shouldShowReplaceReceiptButton) {
@@ -238,6 +239,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
+            transaction,
         }),
         [
             allowDownload,
