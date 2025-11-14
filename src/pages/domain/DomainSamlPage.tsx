@@ -135,8 +135,8 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        textStyle={styles.fontSizeLabel}
                         value={samlMetadata?.entityID}
+                        textStyle={styles.fontSizeLabel}
                     />
                 }
                 description={translate('domain.samlConfigurationDetails.entityID')}
@@ -148,8 +148,8 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        textStyle={styles.fontSizeLabel}
                         value={samlMetadata?.nameFormat}
+                        textStyle={styles.fontSizeLabel}
                     />
                 }
                 description={translate('domain.samlConfigurationDetails.nameIDFormat')}
@@ -161,8 +161,9 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        textStyle={[styles.fontSizeLabel, styles.mb2]}
                         value={samlMetadata?.urlLogin}
+                        style={styles.mb2}
+                        textStyle={styles.fontSizeLabel}
                     />
                 }
                 description={translate('domain.samlConfigurationDetails.loginUrl')}
@@ -175,8 +176,9 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        textStyle={[styles.fontSizeLabel, styles.mb2]}
                         value={samlMetadata?.urlLogout}
+                        style={styles.mb2}
+                        textStyle={styles.fontSizeLabel}
                     />
                 }
                 description={translate('domain.samlConfigurationDetails.logoutUrl')}
@@ -189,9 +191,9 @@ function SamlConfigurationDetailsSection({accountID, domainName}: {accountID: nu
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        textStyle={styles.fontSizeLabel}
                         value={samlMetadata?.metaService}
                         shouldDisplayShowMoreButton
+                        textStyle={styles.fontSizeLabel}
                     />
                 }
                 description={translate('domain.samlConfigurationDetails.serviceProviderMetaData')}

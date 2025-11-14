@@ -151,6 +151,9 @@ type DomainSettings = {
 
         /** Whether logging in with SAML is required for the domain */
         samlRequired?: boolean;
+
+        /** Encrypted SCIM token, exists only when okta is enabled for the domain */
+        oktaSCIM?: string;
     };
 
     /** Whether we are loading the data via the API */

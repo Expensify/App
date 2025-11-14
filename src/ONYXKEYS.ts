@@ -711,6 +711,7 @@ const ONYXKEYS = {
         /** Used for identifying user as admin of a domain */
         SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
 
+        /** SAML login metadata for a domain */
         PRIVATE_SAML_METADATA: 'private_samlMetadata',
     },
 

@@ -1058,6 +1058,9 @@ type WriteCommandParameters = {
 
     // Domain API
     [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.DomainParams;
+    [WRITE_COMMANDS.SET_SAML_METADATA]: Parameters.SetSamlMetadataParams;
+    [WRITE_COMMANDS.UPDATE_SAML_ENABLED]: Parameters.UpdateSamlEnabledParams;
+    [WRITE_COMMANDS.UPDATE_SAML_REQUIRED]: Parameters.UpdateSamlRequiredParams;
 };
 
 const READ_COMMANDS = {
@@ -1218,7 +1221,11 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
+    [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
     [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
+    [READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE]: Parameters.DomainParams;
+    [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
+    [READ_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

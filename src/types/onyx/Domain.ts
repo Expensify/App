@@ -56,22 +56,37 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** Model of SAML metadata */
 type SamlMetadata = {
-    /** ... */
+    /**
+     * The format of the name identifier to be used in SAML assertions.
+     * Common formats include 'emailAddress' for email addresses or 'persistent' for persistent pseudonymous identifiers.
+     */
     nameFormat?: string;
 
-    /** */
+    /**
+     * The unique identifier for the SAML entity (typically a URI).
+     * It is used to identify the issuer of a SAML request or the intended recipient of a SAML response.
+     */
     entityID?: string;
 
-    /** */
+    /** The URL to which users should be redirected for SAML-based authentication (SAML login endpoint). */
     urlLogin?: string;
 
-    /** */
+    /**
+     * The URL to which users can be redirected for logging out (SAML logout endpoint).
+     * This is used to initiate the single logout process.
+     */
     urlLogout?: string;
 
-    /** */
+    /**
+     * A URL or an identifier pointing to the SAML metadata of the service provider.
+     * This metadata includes keys and endpoints needed to establish the service provider in a SAML exchange.
+     */
     metaService?: string;
 
-    /** */
+    /**
+     * A URL or an identifier pointing to the SAML metadata of the identity provider.
+     * This metadata includes keys and endpoints necessary for the identity provider to participate in SAML exchanges.
+     */
     metaIdentity?: string;
 
     /** Whether the SAML metadata is currently being fetched */

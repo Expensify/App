@@ -4561,7 +4561,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         menuItemError: {
-            marginTop: 8,
+            marginTop: 4,
             marginBottom: 0,
         },
 
