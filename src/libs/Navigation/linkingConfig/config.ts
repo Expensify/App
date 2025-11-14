@@ -1754,7 +1754,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
                     screens: {
                         [SCREENS.EXPENSE_REPORT_RHP]: ROUTES.EXPENSE_REPORT_RHP.route,
-                    }
+                    },
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {

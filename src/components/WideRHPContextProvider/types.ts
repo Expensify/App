@@ -49,7 +49,7 @@ type WideRHPContextType = {
     isWideRHPClosing: boolean;
 
     // Mark that wide rhp is being closed
-    setIsWideRHPClosing: (isClosing: boolean) => void
+    setIsWideRHPClosing: (isClosing: boolean) => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export
