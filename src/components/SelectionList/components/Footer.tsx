@@ -6,12 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type FooterProps<TItem extends ListItem> = {
     footerContent?: React.ReactNode;
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
     addBottomSafeAreaPadding?: boolean;
 };
 
-function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
+function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
+    const {showButton, text, onConfirm, isDisabled, style} = confirmButtonOptions ?? {};
     if (footerContent) {
         return (
             <FixedFooter
@@ -23,7 +24,7 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
         );
     }
 
-    if (confirmButtonConfig?.showButton) {
+    if (showButton) {
         return (
             <FixedFooter
                 style={styles.mtAuto}
@@ -32,12 +33,12 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
                 <Button
                     success
                     large
-                    style={[styles.w100, confirmButtonConfig?.style]}
-                    text={confirmButtonConfig?.text}
-                    onPress={confirmButtonConfig?.onConfirm}
+                    style={[styles.w100, style]}
+                    text={text}
+                    onPress={onConfirm}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
-                    isDisabled={confirmButtonConfig?.isDisabled}
+                    isDisabled={isDisabled}
                 />
             </FixedFooter>
         );

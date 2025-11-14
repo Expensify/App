@@ -438,7 +438,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
             <Footer<TItem>
                 footerContent={footerContent}
-                confirmButtonConfig={confirmButtonOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>
