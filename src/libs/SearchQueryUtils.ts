@@ -1328,11 +1328,6 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
     return standardQuery;
 }
 
-type UpdatedQueryWithValuesResult = {
-    canonicalQuery?: SearchQueryString;
-    rawFilterList?: RawQueryFilter[];
-};
-
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
@@ -1346,8 +1341,8 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
     }
 
     const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
-    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
-    const sanitizedRawFilters = getSanitizedRawFilters(standardizedQuery, computeNodeValue);
+    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
+    const sanitizedRawFilters = getSanitizedRawFilters(standardizedQuery);
     const canonicalQueryString = buildSearchQueryString(standardizedQuery);
 
     return {

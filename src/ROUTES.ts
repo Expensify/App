@@ -58,13 +58,8 @@ const ROUTES = {
         route: 'search',
         getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
             const resolvedRawQuery = rawQuery ?? query;
-            let route = `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}`;
-
-            if (resolvedRawQuery) {
-                route += `&rawQuery=${encodeURIComponent(resolvedRawQuery)}`;
-            }
-
-            return route as const;
+            const rawQuerySegment = resolvedRawQuery ? `&rawQuery=${encodeURIComponent(resolvedRawQuery)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
