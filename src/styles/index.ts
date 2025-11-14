@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -35,6 +37,7 @@ import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
+import overflowMoneyRequestView from './utils/overflowMoneyRequestView';
 import overflowXHidden from './utils/overflowXHidden';
 import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
@@ -5498,6 +5501,12 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
+        },
+        moneyRequestView: {
+            position: 'relative',
+            paddingTop: 16,
+            marginTop: -16,
+            ...overflowMoneyRequestView,
         },
     }) satisfies StaticStyles;
 

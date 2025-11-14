@@ -108,19 +108,22 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial);
+    const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+        hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection
+            ? 'error'
+            : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -227,9 +230,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         styles.badgeSuccess,
         privateSubscription?.errors,
         stripeCustomerId,
-        freeTrialText,
         retryBillingSuccessful,
         billingDisputePending,
+        retryBillingFailed,
+        freeTrialText,
     ]);
 
     /**

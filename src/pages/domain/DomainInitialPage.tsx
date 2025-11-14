@@ -56,6 +56,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const accountID = route.params?.accountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
         const menuItems: DomainMenuItem[] = [
@@ -90,7 +91,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
                 onLinkPress={Navigation.goBackToHome}
-                shouldShow={!domain}
+                shouldShow={!domain || !isAdmin}
                 addBottomSafeAreaPadding
                 shouldForceFullScreen
                 shouldDisplaySearchRouter

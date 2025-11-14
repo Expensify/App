@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -52,9 +53,8 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
-    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
+    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
-    const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`];
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -77,7 +77,7 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
         resetDomainValidationError(accountID);
     }, [accountID, doesDomainExist]);
 
-    if (domainMetadata.status === 'loading') {
+    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 

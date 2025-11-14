@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DomainSettings} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -225,7 +226,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
-    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
 
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
         canBeMissing: false,
@@ -252,7 +253,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={domainResults.status === 'loaded' && (!doesDomainExist || !isAdmin)}
+                shouldShow={!isLoadingOnyxValue(domainResults, isAdminResults) && (!doesDomainExist || !isAdmin)}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
