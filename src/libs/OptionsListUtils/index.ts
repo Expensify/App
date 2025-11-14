@@ -34,6 +34,7 @@ import {
     isCurrentUserMemberOfAnyPolicy,
 } from '@libs/PolicyUtils';
 import {
+    getActionableMentionWhisperMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -598,6 +599,7 @@ function getLastMessageTextForReport({
     movedToReport,
     policy,
     isReportArchived = false,
+    policyForMovingExpensesID,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -605,6 +607,7 @@ function getLastMessageTextForReport({
     movedToReport?: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
+    policyForMovingExpensesID?: string;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -688,6 +691,7 @@ function getLastMessageTextForReport({
             policyID: report?.policyID,
             movedFromReport,
             movedToReport,
+            policyForMovingExpensesID,
         });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
@@ -778,6 +782,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
         lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage());
+    } else if (isActionableMentionWhisper(lastReportAction)) {
+        lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(lastReportAction));
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -931,8 +937,8 @@ function createOption(
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
-    const report = getReportOrDraftReport(participant.reportID);
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], reportDrafts?: OnyxCollection<Report>): OptionData {
+    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -1150,7 +1156,7 @@ function processReport(
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
 } {
-    if (!report) {
+    if (!report?.reportID) {
         return {reportOption: null};
     }
 
@@ -1679,6 +1685,8 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         includeDomainEmail = false,
         loginsToExclude = {},
         excludeNonAdminWorkspaces,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1719,6 +1727,11 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
+
+    if (isPolicyExpenseChat && isRestrictedToPreferredPolicy && option.policyID !== preferredPolicyID) {
+        return false;
+    }
+
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
     if (!includeP2P && !isPolicyExpenseChat) {
         return false;
@@ -2641,7 +2654,9 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
         }
 
         // Remove duplicate values and check if the term matches any value
-        return uniqFast(values).some((value) => value.includes(term));
+        return uniqFast(values)
+            .map((val) => val.toLocaleLowerCase())
+            .some((value) => value.includes(term.toLocaleLowerCase()));
     });
 
     return isMatch ? report : undefined;
