@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),mcp__github_inline_comment__create_inline_comment
+allowed-tools: Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*)
 description: Review a code contribution pull request
 ---
 
