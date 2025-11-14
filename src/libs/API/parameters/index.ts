@@ -104,6 +104,7 @@ export type {default as UpdateStatusParams} from './UpdateStatusParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
+export type {default as UpdateRoomAvatarParams} from './UpdateRoomAvatarParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
@@ -230,6 +231,7 @@ export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflo
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
+export type {default as OpenPolicyRulesPageParams} from './OpenPolicyRulesPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
 export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
@@ -375,6 +377,7 @@ export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
@@ -436,3 +439,4 @@ export type {default as AddReportApproverParams} from './AddReportApproverParams
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
+export type {default as DomainParams} from './DomainParams';
