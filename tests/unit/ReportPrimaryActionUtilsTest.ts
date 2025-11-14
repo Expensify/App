@@ -1,10 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isPrimaryMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -1151,6 +1152,140 @@ describe('getTransactionThreadPrimaryAction', () => {
 
             expect(result1).toBe(false);
             expect(result2).toBe(false);
+        });
+    });
+
+    describe('isPrimaryMarkAsResolvedAction', () => {
+        const submitterAccountID = 1;
+        const otherUserAccountID = 3;
+        const submitterEmail = 'submitter@example.com';
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID, email: submitterEmail});
+        });
+
+        it('should return true if isMarkAsResolvedAction returns true and there is exactly one transaction', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const violations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportTransactions = [
+                {
+                    transactionID: '1',
+                } as unknown as Transaction,
+            ];
+
+            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false if there are multiple transactions', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const violations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportTransactions = [
+                {
+                    transactionID: '1',
+                } as unknown as Transaction,
+                {
+                    transactionID: '2',
+                } as unknown as Transaction,
+            ];
+
+            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false if isMarkAsResolvedAction returns false', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: otherUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const violations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            const reportTransactions = [
+                {
+                    transactionID: '1',
+                } as unknown as Transaction,
+            ];
+
+            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false if report is not an expense report', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            } as unknown as Report;
+
+            const violations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportTransactions = [
+                {
+                    transactionID: '1',
+                } as unknown as Transaction,
+            ];
+
+            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            expect(result).toBe(false);
         });
     });
 });
