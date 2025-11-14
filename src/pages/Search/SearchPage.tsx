@@ -1,8 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {InteractionManager, View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {InteractionManager} from 'react-native';
+import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -12,19 +11,12 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
-import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +27,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
@@ -75,7 +66,6 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
@@ -96,7 +86,6 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -125,19 +114,7 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
-    const {accountID} = useCurrentUserPersonalDetails();
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(
-        () => Object.values(suggestedSearches).find((searchTypeMenuItem) => searchTypeMenuItem.similarSearchHash === queryJSON?.similarSearchHash)?.key,
-        [suggestedSearches, queryJSON?.similarSearchHash],
-    );
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, queryJSON?.similarSearchHash, true);
-    // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const isDataMissing = currentSearchResults === undefined || currentSearchResults === null;
-    const shouldRenderContent = isFocused;
-    const shouldShowLoadingState = !isFocused;
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
@@ -165,8 +142,6 @@ function SearchPage({route}: SearchPageProps) {
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
     });
-    const {status, hash} = queryJSON ?? {};
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -182,6 +157,9 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    const {status, hash} = queryJSON ?? {};
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
@@ -607,6 +585,7 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
+                    // Use InteractionManager to ensure this runs after the dropdown modal closes
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         setIsDeleteExpensesConfirmModalVisible(true);
@@ -830,15 +809,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    useEffect(() => {
-        if (!queryJSON || !isDataMissing || !isFocused) {
-            return;
-        }
-        handleSearchAction({queryJSON, searchKey, offset: 0, shouldCalculateTotals});
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused]);
-
     const footerData = useMemo(() => {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
@@ -853,13 +823,16 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     }, []);
 
-    const scrollHandler = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        if (!e.nativeEvent.contentOffset.y) {
-            return;
-        }
+    const scrollHandler = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            if (!e.nativeEvent.contentOffset.y) {
+                return;
+            }
 
-        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-    };
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [saveScrollOffset, route],
+    );
 
     return (
         <FullPageNotFoundView
@@ -868,117 +841,80 @@ function SearchPage({route}: SearchPageProps) {
             onBackButtonPress={handleOnBackButtonPress}
             shouldShowLink={false}
         >
-            {shouldShowLoadingState && (
-                <View style={styles.searchSplitContainer}>
-                    <ScreenWrapper
-                        testID={Search.displayName}
-                        shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicator}
-                        offlineIndicatorStyle={offlineIndicatorStyle}
-                    >
-                        {!!queryJSON && (
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            />
-                        )}
-                        <SearchFiltersSkeleton shouldAnimate />
-                        <Animated.View
-                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                            style={[styles.flex1]}
-                        >
-                            <SearchRowSkeleton
-                                shouldAnimate
-                                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-                            />
-                        </Animated.View>
-                        {shouldShowFooter && (
-                            <SearchPageFooter
-                                count={footerData.count}
-                                total={footerData.total}
-                                currency={footerData.currency}
-                            />
-                        )}
-                    </ScreenWrapper>
-                </View>
-            )}
-            {shouldRenderContent && (
-                <Animated.View style={[styles.flex1]}>
-                    {shouldUseNarrowLayout ? (
-                        <DragAndDropProvider>
-                            {PDFValidationComponent}
-                            <SearchPageNarrow
-                                queryJSON={queryJSON}
-                                metadata={metadata}
-                                headerButtonsOptions={headerButtonsOptions}
-                                searchResults={searchResults}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                footerData={footerData}
-                                currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                                currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                                confirmPayment={onBulkPaySelected}
-                                latestBankItems={latestBankItems}
-                            />
-                            <DragAndDropConsumer onDrop={initScanRequest}>
-                                <DropZoneUI
-                                    icon={Expensicons.SmartScan}
-                                    dropTitle={translate('dropzone.scanReceipts')}
-                                    dropStyles={styles.receiptDropOverlay(true)}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                                />
-                            </DragAndDropConsumer>
-                            {ErrorModal}
-                        </DragAndDropProvider>
-                    ) : (
-                        <SearchPageWide
+            <Animated.View style={[styles.flex1]}>
+                {shouldUseNarrowLayout ? (
+                    <DragAndDropProvider>
+                        {PDFValidationComponent}
+                        <SearchPageNarrow
                             queryJSON={queryJSON}
-                            searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            metadata={metadata}
                             headerButtonsOptions={headerButtonsOptions}
+                            searchResults={searchResults}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             footerData={footerData}
-                            selectedPolicyIDs={selectedPolicyIDs}
-                            selectedTransactionReportIDs={selectedTransactionReportIDs}
-                            selectedReportIDs={selectedReportIDs}
+                            currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                            currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                            confirmPayment={onBulkPaySelected}
                             latestBankItems={latestBankItems}
-                            onBulkPaySelected={onBulkPaySelected}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            scrollHandler={scrollHandler}
-                            initScanRequest={initScanRequest}
-                            PDFValidationComponent={PDFValidationComponent}
-                            ErrorModal={ErrorModal}
-                            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={offlineIndicatorStyle}
-                            shouldShowFooter={shouldShowFooter}
                         />
-                    )}
-                    {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
-                        <SearchModalsWrapper
-                            isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                            handleDeleteExpenses={handleDeleteExpenses}
-                            setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                            selectedTransactionsKeys={selectedTransactionsKeys}
-                            setIsOfflineModalVisible={setIsOfflineModalVisible}
-                            isOfflineModalVisible={isOfflineModalVisible}
-                            setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                            isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                            isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                            setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                            clearSelectedTransactions={clearSelectedTransactions}
-                            isDEWModalVisible={isDEWModalVisible}
-                            setIsDEWModalVisible={setIsDEWModalVisible}
-                            isDownloadExportModalVisible={isDownloadExportModalVisible}
-                            createExportAll={createExportAll}
-                            setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
-                        />
-                    )}
-                </Animated.View>
-            )}
+                        <DragAndDropConsumer onDrop={initScanRequest}>
+                            <DropZoneUI
+                                icon={Expensicons.SmartScan}
+                                dropTitle={translate('dropzone.scanReceipts')}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTextStyles={styles.receiptDropText}
+                                dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                                dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
+                            />
+                        </DragAndDropConsumer>
+                        {ErrorModal}
+                    </DragAndDropProvider>
+                ) : (
+                    <SearchPageWide
+                        queryJSON={queryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        headerButtonsOptions={headerButtonsOptions}
+                        footerData={footerData}
+                        selectedPolicyIDs={selectedPolicyIDs}
+                        selectedTransactionReportIDs={selectedTransactionReportIDs}
+                        selectedReportIDs={selectedReportIDs}
+                        latestBankItems={latestBankItems}
+                        onBulkPaySelected={onBulkPaySelected}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        scrollHandler={scrollHandler}
+                        initScanRequest={initScanRequest}
+                        PDFValidationComponent={PDFValidationComponent}
+                        ErrorModal={ErrorModal}
+                        shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+                        offlineIndicatorStyle={offlineIndicatorStyle}
+                        shouldShowFooter={shouldShowFooter}
+                    />
+                )}
+                {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
+                    <SearchModalsWrapper
+                        isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
+                        handleDeleteExpenses={handleDeleteExpenses}
+                        setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
+                        selectedTransactionsKeys={selectedTransactionsKeys}
+                        setIsOfflineModalVisible={setIsOfflineModalVisible}
+                        isOfflineModalVisible={isOfflineModalVisible}
+                        setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
+                        isDownloadErrorModalVisible={isDownloadErrorModalVisible}
+                        isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
+                        setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
+                        clearSelectedTransactions={clearSelectedTransactions}
+                        isDEWModalVisible={isDEWModalVisible}
+                        setIsDEWModalVisible={setIsDEWModalVisible}
+                        isDownloadExportModalVisible={isDownloadExportModalVisible}
+                        createExportAll={createExportAll}
+                        setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
+                    />
+                )}
+            </Animated.View>
+            )
         </FullPageNotFoundView>
     );
 }
