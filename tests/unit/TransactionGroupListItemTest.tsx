@@ -120,6 +120,7 @@ const mockReport: TransactionReportGroupListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
+    shouldShowYear: false,
     action: 'view',
     transactions: [],
     groupedBy: 'expense-report',

@@ -363,6 +363,8 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type ExpenseReportListItemType = TransactionReportGroupListItemType;
+
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
@@ -381,6 +383,21 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The personal details of the user paying the request */
         to: PersonalDetails;
+
+        /** Final and formatted "status" value used for displaying and sorting */
+        formattedStatus?: string;
+
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+
+        /** Final and formatted "to" value used for displaying and sorting */
+        formattedTo?: string;
+
+        /**
+         * Whether we should show the report year.
+         * This is true if at least one report in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -545,6 +562,14 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -1013,7 +1038,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
 export type {
     BaseListItemProps,
@@ -1040,6 +1065,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    ExpenseReportListItemType,
+    ExpenseReportListItemProps,
     TaskListItemType,
     TaskListItemProps,
     TransactionListItemProps,
