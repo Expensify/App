@@ -1028,6 +1028,7 @@ const CONST = {
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
+    SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1268,6 +1269,9 @@ const CONST = {
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    ADD_TAX: 'POLICYCHANGELOG_ADD_TAX',
+                    DELETE_TAX: 'POLICYCHANGELOG_DELETE_TAX',
+                    UPDATE_TAX: 'POLICYCHANGELOG_UPDATE_TAX',
                     DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
@@ -1649,6 +1653,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        SPAN_OPEN_REPORT: 'ManualOpenReport',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -5415,6 +5420,7 @@ const CONST = {
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
@@ -5426,6 +5432,7 @@ const CONST = {
     },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
+    DISTANCE_MERCHANT_SEPARATOR: '@',
     COLON: ':',
     MAPBOX: {
         PADDING: 32,
@@ -6661,7 +6668,6 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TOTAL_AMOUNT: 'amount',
-            TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
@@ -6671,8 +6677,6 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
-            AVATAR: 'avatar',
-            STATUS: 'status',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

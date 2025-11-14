@@ -482,6 +482,7 @@ type PerDiemExpenseInformationParams = {
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     gpsPoint?: GPSPoint;
@@ -501,6 +502,7 @@ type RequestMoneyInformation = {
 
 type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -509,6 +511,7 @@ type MoneyRequestInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     newReportTotal?: number;
+    newNonReimbursableTotal?: number;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -744,10 +747,8 @@ type UpdateSplitTransactionsParams = {
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    chatReport: OnyxEntry<OnyxTypes.Report>;
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
     isASAPSubmitBetaEnabled: boolean;
-    isChatReportArchived?: boolean;
 };
 
 type ReplaceReceipt = {
@@ -3384,6 +3385,7 @@ function getSendInvoiceInformation(
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
     const {
         parentChatReport,
+        existingIOUReport,
         transactionParams,
         participantParams,
         policyParams = {},
@@ -3392,6 +3394,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         moneyRequestReportID = '',
         retryParams,
         newReportTotal,
+        newNonReimbursableTotal,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -3454,10 +3457,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         });
     }
 
-    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // STEP 2: Get the Expense/IOU report. If the existingIOUReport or moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
-    if (moneyRequestReportID) {
+    if (existingIOUReport) {
+        iouReport = existingIOUReport;
+    } else if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
@@ -3484,7 +3489,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
 
                 if (!reimbursable) {
-                    iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
+                    if (newNonReimbursableTotal !== undefined) {
+                        iouReport.nonReimbursableTotal = newNonReimbursableTotal;
+                    } else {
+                        iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
+                    }
                 }
             }
             if (typeof iouReport.unheldTotal === 'number') {
@@ -5864,9 +5873,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
     const {
         report,
+        existingIOUReport,
         participantParams,
         policyParams = {},
         transactionParams,
@@ -5953,6 +5963,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         onyxData,
     } = getMoneyRequestInformation({
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        existingIOUReport,
         participantParams,
         policyParams,
         transactionParams,
@@ -5978,7 +5989,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
-                return;
+                return {};
             }
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
@@ -6098,6 +6109,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
         );
     }
+
+    return {iouReport};
 }
 
 /**
@@ -13933,10 +13946,8 @@ function updateSplitTransactions({
     policy,
     policyRecentlyUsedCategories,
     iouReport,
-    chatReport,
     firstIOU,
     isASAPSubmitBetaEnabled,
-    isChatReportArchived,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -14080,6 +14091,7 @@ function updateSplitTransactions({
             existingTransaction,
             existingTransactionID,
             newReportTotal: calculatedNewReportTotal,
+            newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
             isASAPSubmitBetaEnabled,
@@ -14199,7 +14211,26 @@ function updateSplitTransactions({
         });
 
         if (firstIOU) {
-            const {updatedReportAction, transactionThread} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU, iouReport, chatReport, isChatReportArchived);
+            const updatedReportAction = {
+                [firstIOU.reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    previousMessage: firstIOU.message,
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: '',
+                            text: '',
+                            isEdited: true,
+                            isDeletedParentAction: true,
+                        },
+                    ],
+                    originalMessage: {
+                        IOUTransactionID: null,
+                    },
+                    errors: null,
+                },
+            };
+            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
@@ -14221,7 +14252,6 @@ function updateSplitTransactions({
                     },
                 },
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,

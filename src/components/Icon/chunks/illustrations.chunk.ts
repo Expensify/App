@@ -21,6 +21,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
@@ -72,6 +73,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    Luggage,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
 };
