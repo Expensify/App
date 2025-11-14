@@ -7351,7 +7351,7 @@ ${date} - ${merchant}に${amount}`,
         },
         modal: {
             title: '私たちを試してみてください',
-            description: '製品ツアーをすばやく見て、すぐに追いつきましょう。途中で止まる必要はありません！',
+            description: '短いプロダクトツアーで、すぐに使い方を把握しましょう。',
             confirmText: 'テストドライブを開始',
             helpText: 'Skip',
             employee: {

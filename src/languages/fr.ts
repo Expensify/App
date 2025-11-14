@@ -7413,8 +7413,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         modal: {
             title: 'Faites un essai avec nous',
-            description: "Faites une visite rapide du produit pour vous mettre rapidement à jour. Pas d'arrêts nécessaires !",
-            confirmText: "Commencer l'essai",
+            description: 'Faites une visite rapide du produit pour être rapidement opérationnel.',
+            confirmText: 'Commencer l’essai',
             helpText: 'Passer',
             employee: {
                 description:

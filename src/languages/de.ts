@@ -7410,8 +7410,8 @@ ${amount} für ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probieren Sie uns aus',
-            description: 'Machen Sie eine schnelle Produkttour, um schnell auf den neuesten Stand zu kommen. Keine Zwischenstopps erforderlich!',
-            confirmText: 'Testfahrt starten',
+            description: 'Machen Sie eine kurze Tour durch das Produkt, um schnell auf den neuesten Stand zu kommen.',
+            confirmText: 'Testversion starten',
             helpText: 'Überspringen',
             employee: {
                 description:

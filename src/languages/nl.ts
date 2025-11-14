@@ -7399,7 +7399,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probeer ons uit',
-            description: 'Maak een snelle producttour om snel op de hoogte te zijn. Geen tussenstops nodig!',
+            description: 'Volg een korte producttour om snel op gang te komen.',
             confirmText: 'Start proefrit',
             helpText: 'Overslaan',
             employee: {

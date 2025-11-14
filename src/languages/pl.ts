@@ -7387,8 +7387,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         modal: {
             title: 'Wypróbuj nas w wersji testowej',
-            description: 'Weź szybką wycieczkę po produkcie, aby szybko się zorientować. Żadnych przystanków nie potrzeba!',
-            confirmText: 'Rozpocznij jazdę próbną',
+            description: 'Skorzystaj z krótkiego przewodnika po produkcie, aby szybko się wdrożyć.',
+            confirmText: 'Rozpocznij wersję demonstracyjną',
             helpText: 'Pomiń',
             employee: {
                 description:

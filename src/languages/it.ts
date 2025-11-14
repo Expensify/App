@@ -7419,8 +7419,8 @@ ${amount} per ${merchant} - ${date}`,
         },
         modal: {
             title: 'Mettici alla prova',
-            description: 'Fai un rapido tour del prodotto per metterti al passo velocemente. Nessuna sosta necessaria!',
-            confirmText: 'Inizia la prova',
+            description: 'Fai un breve tour del prodotto per metterti subito al passo.',
+            confirmText: 'Avvia il test drive',
             helpText: 'Salta',
             employee: {
                 description:
