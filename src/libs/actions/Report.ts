@@ -1866,6 +1866,7 @@ function handlePreexistingReport(report: Report) {
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
         // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
+        // Or we optimistically created a thread report under a comment that already has an associated child chat report.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
         const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
@@ -1884,31 +1885,37 @@ function handlePreexistingReport(report: Report) {
                     participants: existingReport?.participants ?? report.participants,
                 });
             } else {
-                // Clear the optimistic transaction thread report
+                // Clear the optimistic thread report
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
                     preexistingReportID: null,
                 });
-                // Update the IOU report action to point to the preexisting transaction thread report
+                // Update the parent report action to point to the preexisting thread report
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                     [parentReportActionID]: {childReportID: preexistingReportID},
                 });
             }
         };
+
+        const isParentOneTransactionReport = isOneTransactionReport(parentReport)
+
         // Only re-route them if they are still looking at the optimistically created report
         const activeRoute = Navigation.getActiveRoute();
         if (activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`)) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                // isOneTransactionReport should have a correct result since we updated the IOU action child reportID above
-                if (!parentReportActionID || !isOneTransactionReport(parentReport)) {
-                    // We are either in a DM/group-DM or in a transaction thread report that its parent is not a one expense report
+=                if (!parentReportActionID || !isParentOneTransactionReport) {
+                    // We are either in a DM/group-DM,
+                    // a transaction thread report that its parent is not a one expense report,
+                    // or a thread under any comment
+                    // navigate to the preexisting report chat
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
-                    // We need to navigate to the one expense report innstead of the transaction thread report
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+                    // We are in a transaction thread report under a one expense report,
+                    // We need to navigate to the one expense report screen instead of the preexisting report chat
+                    Navigation.setParams({reportID: parentReportID});
                 }
             };
 
@@ -1921,8 +1928,10 @@ function handlePreexistingReport(report: Report) {
 
             return;
         } else if (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`)) {
-            // We are already on the parent one expense report, so just call the API to fetch report data
-            openReport(parentReportID);
+            if (isParentOneTransactionReport) {
+                // We are already on the parent one expense report, so just call the API to fetch report data
+                openReport(parentReportID);
+            }
         }
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
