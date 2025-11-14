@@ -1939,7 +1939,7 @@ function handlePreexistingReport(report: Report) {
         const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
 
         // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
-        const reportToCopyDraftTo = (parentReportID && isParentOneTransactionReport) ? parentReportID : preexistingReportID;
+        const reportToCopyDraftTo = parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
         if (!draftReportComment) {
             callback();
             return;
