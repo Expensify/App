@@ -22,12 +22,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import type {Route} from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -39,26 +37,31 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     );
 }
 
-type VerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
+type BaseVerifyDomainPageProps = {
+    /** The accountID of the domain */
+    accountID: number;
 
-function VerifyDomainPage({route}: VerifyDomainPageProps) {
+    /** Route to navigate to after successful verification */
+    forwardTo: Route;
+};
+
+function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const accountID = route.params.accountID;
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const {isOffline} = useNetwork();
-
+    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
 
     useEffect(() => {
         if (!domain?.validated) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID), {forceReplace: true}));
-    }, [accountID, domain?.validated]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
+    }, [accountID, domain?.validated, forwardTo]);
 
     useEffect(() => {
         if (!doesDomainExist) {
@@ -74,17 +77,17 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
         resetDomainValidationError(accountID);
     }, [accountID, doesDomainExist]);
 
-    if (domainMetadata.status === 'loading') {
+    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain) {
+    if (!domain || !isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
     return (
         <ScreenWrapper
-            testID={VerifyDomainPage.displayName}
+            testID={BaseVerifyDomainPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -168,5 +171,5 @@ function VerifyDomainPage({route}: VerifyDomainPageProps) {
     );
 }
 
-VerifyDomainPage.displayName = 'VerifyDomainPage';
-export default VerifyDomainPage;
+BaseVerifyDomainPage.displayName = 'BaseVerifyDomainPage';
+export default BaseVerifyDomainPage;
