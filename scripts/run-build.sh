@@ -73,20 +73,7 @@ case "$BUILD" in
     --android)
         # Check if Cloudflare WARP is active and certificates need to be imported
         if is_warp_active; then
-            if ! is_cloudflare_cert_imported; then
-                error "Cloudflare WARP is active but certificates are not imported into JDK."
-                error "This will cause Gradle to fail with SSL errors."
-                echo
-                info "Please run: sudo ${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
-                echo
-                read -p "Would you like to run it now? (y/n) " -n 1 -r
-                echo
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
-                    sudo "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
-                else
-                    error "Continuing without importing certificates. Build may fail."
-                fi
-            fi
+            "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
         fi
 
         npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server

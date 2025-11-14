@@ -12,10 +12,8 @@ set -eu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 
-# Source shellUtils for colorized output
 source "${SCRIPT_DIR}/shellUtils.sh"
 
-# Global constants
 readonly CERT_ALIAS="cloudflare-gateway-root"
 readonly CERT_FILE="/tmp/cloudflare-gateway-ca.pem"
 readonly KEYSTORE_PASSWORD="changeit"
@@ -27,6 +25,24 @@ function cleanup_temp_files() {
     rm -f /tmp/cloudflare-chain.pem /tmp/cloudflare-cert-*.pem
 }
 trap cleanup_temp_files EXIT
+
+# Function to check if Cloudflare WARP certificate is imported into default JDK
+# Returns 0 if certificate is imported, 1 otherwise
+function is_cloudflare_cert_imported() {
+    if ! command -v keytool &>/dev/null; then
+        return 1
+    fi
+
+    local JAVA_HOME_PATH
+    JAVA_HOME_PATH=$(/usr/libexec/java_home 2>/dev/null) || return 1
+
+    if keytool -list -keystore "${JAVA_HOME_PATH}/lib/security/cacerts" \
+       -storepass changeit -alias cloudflare-gateway-root &>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 function stop_gradle_daemons() {
     title "Step 1: Stopping Gradle daemons"
@@ -225,23 +241,36 @@ function print_summary() {
 }
 
 function main() {
+    # Early exit if certs are already imported
+    if is_cloudflare_cert_imported; then
+        success "Cloudflare certificates are already imported into JDK."
+        exit 0
+    fi
+
+    # At this point, certs need to be imported
+    # If not running with sudo, re-exec with sudo (will prompt for password)
+    if [[ "${EUID}" -ne 0 ]]; then
+        info "Importing certificates requires sudo access."
+        exec sudo "$0" "$@"
+    fi
+
+    # At this point, we're running with sudo and certs need to be imported
     title "Cloudflare WARP Certificate Importer"
-    
-    check_sudo
+
     stop_gradle_daemons
     extract_cloudflare_certificate
-    
+
     local JAVA_HOMES
     JAVA_HOMES=$(find_java_installations)
-    
+
     local IMPORT_RESULTS
     IMPORT_RESULTS=$(import_certificates "${JAVA_HOMES}")
-    
+
     local SUCCESS_COUNT
     local FAIL_COUNT
     SUCCESS_COUNT=$(echo "${IMPORT_RESULTS}" | head -n 1)
     FAIL_COUNT=$(echo "${IMPORT_RESULTS}" | tail -n 1)
-    
+
     print_summary "${SUCCESS_COUNT}" "${FAIL_COUNT}"
 }
 
