@@ -36,7 +36,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRhpFocused, shouldRenderThirdOverlay, thirdOverlayProgress, isWideRHPClosing} =
+    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRHPFocused, shouldRenderThirdOverlay, thirdOverlayProgress, isWideRHPClosing} =
         useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
@@ -87,7 +87,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             isExecutingRef.current = false;
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
-    console.log('isWideRHPFocused', {isWideRHPClosing, isWideRhpFocused});
+
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
@@ -298,18 +298,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
+                            component={ModalStackNavigators.ExpenseReportModalStackNavigator}
+                        />
                     </Stack.Navigator>
                 </Animated.View>
                 {/* The second overlay is here to cover the wide rhp screen underneath */}
                 {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
-                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRhpFocused && !isWideRHPClosing && (
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRHPFocused && !isWideRHPClosing && (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
                         onPress={() => Navigation.closeRHPFlow()}
                     />
                 )}
-                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRhpFocused && (
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRHPFocused && (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionRightValue={wideRHPWidth}

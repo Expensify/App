@@ -9,6 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isSuperWideRHPRouteName} from '@libs/Navigation/helpers/isWideRHPRouteName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
@@ -168,8 +169,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const wideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allWideRHPRouteKeys, lastVisibleRHPRouteKey), [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
     const superWideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey), [allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
-    const isWideRhpFocused = useMemo(() => {
-        return focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
+    const isWideRHPFocused = useMemo(() => {
+        return !!focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
     }, [focusedRouteKey, wideRHPRouteKeys]);
 
     /**
@@ -194,7 +195,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         // This screen is always first in RHP, so secondary overlay is not displayed in this case.
-        if (focusedRoute.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+        if (isSuperWideRHPRouteName(focusedRoute.name)) {
             return false;
         }
 
@@ -202,12 +203,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        if (
-            currentSuperWideRHPRouteKeys.length > 0 &&
-            !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) &&
-            isRHPLastRootRoute &&
-            focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT
-        ) {
+        if (currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && !isSuperWideRHPRouteName(focusedRoute.name)) {
             return true;
         }
 
@@ -236,7 +232,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const isSuperWideRhpDisplayedBelow =
-            currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+            currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && !isSuperWideRHPRouteName(focusedRoute.name);
         const isWideRhpDisplayedBelow = wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP;
 
         // Check the focused route to avoid glitching when quickly close and open RHP.
@@ -455,7 +451,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToWideReport,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
-            isWideRhpFocused,
+            isWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
         }),
@@ -470,7 +466,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToWideReport,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
-            isWideRhpFocused,
+            isWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
         ],

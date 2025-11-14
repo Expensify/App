@@ -2,10 +2,11 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, receiptPaneRHPWidth, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
+import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import {isSuperWideRHPRouteName, isWideRHPRouteName} from '@libs/Navigation/helpers/isWideRHPRouteName';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,6 +17,7 @@ import type {
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    ExpenseReportNavigatorParamList,
     FlagCommentNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
@@ -51,7 +53,6 @@ import type {
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
 } from '@navigation/types';
-import variables from '@styles/variables';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -94,7 +95,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRhpFocused, superWideRHPRouteKeys, isWideRHPClosing} =
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} =
             useContext(WideRHPContext);
         const route = useRoute();
 
@@ -129,26 +130,26 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && !isFocused && !isWideRHPClosing && !shouldRenderThirdOverlay ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isWideRHPRouteName(route.name) && !isFocused && !isWideRHPClosing && !shouldRenderThirdOverlay ? (
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={receiptPaneRHPWidth}
                     />
                 ) : null}
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !!isWideRhpFocused && !isFocused ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name) && !!isWideRHPFocused && !isFocused ? (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={modalStackOverlayWideRHPWidth}
                     />
                 ) : null}
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT && !isWideRhpFocused && !isFocused ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name) && !isWideRHPFocused && !isFocused ? (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : receiptPaneRHPWidth}
                     />
                 ) : null}
-                {!isSmallScreenWidth && shouldRenderThirdOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
+                {!isSmallScreenWidth && shouldRenderThirdOverlay && isWideRHPRouteName(route.name) ? (
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionLeftValue={modalStackOverlaySuperWideRHPWidth}
@@ -946,6 +947,10 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const ExpenseReportModalStackNavigator = createModalStackNavigator<ExpenseReportNavigatorParamList>({
+    [SCREENS.EXPENSE_REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     AddUnreportedExpenseModalStackNavigator,
@@ -955,6 +960,7 @@ export {
     DomainCardModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
+    ExpenseReportModalStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
     MergeTransactionStackNavigator,
