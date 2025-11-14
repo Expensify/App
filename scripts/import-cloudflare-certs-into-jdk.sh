@@ -12,15 +12,21 @@ set -eu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 
-# Certificate is in the Expensidev repo (assumed to betwo levels up from scripts directory)
+source "${SCRIPT_DIR}/shellUtils.sh"
+
+# Certificate is in the Expensidev repo (two levels up from scripts directory)
 EXPENSIDEV_DIR="$(dirname "$(dirname "${SCRIPT_DIR}")")"
 readonly EXPENSIDEV_DIR
 readonly CERT_FILE="${EXPENSIDEV_DIR}/config/ssl/cloudflare-ca.pem"
 
-source "${SCRIPT_DIR}/shellUtils.sh"
-
+# Global constants
 readonly CERT_ALIAS="cloudflare-gateway-root"
 readonly KEYSTORE_PASSWORD="changeit"
+
+# Global variables
+JAVA_HOMES=""
+SUCCESS_COUNT=0
+FAIL_COUNT=0
 
 # Function to check if Cloudflare WARP certificate is imported into default JDK
 # Returns 0 if certificate is imported, 1 otherwise
@@ -42,15 +48,14 @@ function stop_gradle_daemons() {
         pkill -f "GradleDaemon" &>/dev/null || true
         success "Gradle daemons stopped"
     else
-        info "No Gradle daemons running"
+        echo "No Gradle daemons running"
     fi
 }
 
 function find_java_installations() {
     title "Step 2: Finding all Java installations"
 
-    local JAVA_HOMES
-    JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk -F'"' '{print $4}')
+    JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk '{print $NF}')
 
     if [[ -z "${JAVA_HOMES}" ]]; then
         error "No Java installations found"
@@ -60,17 +65,10 @@ function find_java_installations() {
     local JDK_COUNT
     JDK_COUNT=$(echo "${JAVA_HOMES}" | wc -l | tr -d ' ')
     success "Found ${JDK_COUNT} Java installation(s)"
-
-    echo "${JAVA_HOMES}"
 }
 
 function import_certificates() {
-    local JAVA_HOMES="$1"
-
     title "Step 3: Importing certificate into Java keystores"
-
-    local SUCCESS_COUNT=0
-    local FAIL_COUNT=0
 
     local JAVA_HOME_PATH
     while IFS= read -r JAVA_HOME_PATH; do
@@ -82,8 +80,8 @@ function import_certificates() {
         local VERSION
         VERSION=$("${JAVA_HOME_PATH}/bin/java" -version 2>&1 | head -n 1 | awk -F'"' '{print $2}')
         echo
-        info "Processing: Java ${VERSION}"
-        info "Location: ${JAVA_HOME_PATH}"
+        echo "Processing: Java ${VERSION}"
+        echo "  Location: ${JAVA_HOME_PATH}"
 
         # Determine keystore location (Java 8 has a different path)
         local KEYSTORE
@@ -92,7 +90,9 @@ function import_certificates() {
         elif [[ -f "${JAVA_HOME_PATH}/jre/lib/security/cacerts" ]]; then
             KEYSTORE="${JAVA_HOME_PATH}/jre/lib/security/cacerts"
         else
-            info "Warning: Could not find cacerts file, skipping"
+            error "Could not find cacerts file"
+            echo "  Tried: ${JAVA_HOME_PATH}/lib/security/cacerts"
+            echo "  Tried: ${JAVA_HOME_PATH}/jre/lib/security/cacerts"
             ((FAIL_COUNT++))
             continue
         fi
@@ -100,7 +100,7 @@ function import_certificates() {
         # Check if certificate already exists
         if keytool -list -keystore "${KEYSTORE}" -storepass "${KEYSTORE_PASSWORD}" \
            -alias "${CERT_ALIAS}" &>/dev/null; then
-            info "Certificate already exists, removing old one..."
+            echo "  Certificate already exists, removing old one..."
             keytool -delete -alias "${CERT_ALIAS}" \
                     -keystore "${KEYSTORE}" \
                     -storepass "${KEYSTORE_PASSWORD}" \
@@ -121,9 +121,6 @@ function import_certificates() {
             ((FAIL_COUNT++))
         fi
     done <<< "${JAVA_HOMES}"
-
-    echo "${SUCCESS_COUNT}"
-    echo "${FAIL_COUNT}"
 }
 
 function print_summary() {
@@ -141,15 +138,14 @@ function print_summary() {
     if [[ "${SUCCESS_COUNT}" -gt 0 ]]; then
         success "Certificate import complete!"
         echo
-        info "The Cloudflare WARP certificate has been imported into your"
-        info "Java keystores. You can now build Android apps with WARP enabled."
+        echo "The Cloudflare WARP certificate has been imported into your"
+        echo "Java keystores. You can now build Android apps with WARP enabled."
         echo
-        info "Note: Gradle daemon will automatically use the updated certificates"
-        info "when it restarts on your next build."
+        info "Note: Gradle daemon will automatically use the updated certificates when it restarts on your next build."
         echo
-        info "To verify the certificate was imported, run:"
-        info "  keytool -list -keystore \$JAVA_HOME/lib/security/cacerts \\"
-        info "    -storepass changeit -alias ${CERT_ALIAS}"
+        echo "To verify the certificate was imported, run:"
+        echo "  keytool -list -keystore \$JAVA_HOME/lib/security/cacerts \\"
+        echo "    -storepass changeit -alias ${CERT_ALIAS}"
         exit 0
     else
         error "No certificates were imported successfully"
@@ -168,7 +164,7 @@ function main() {
     # If not running with sudo, re-exec with sudo (will prompt for password)
     if [[ "${EUID}" -ne 0 ]]; then
         info "Importing certificates requires sudo access."
-        exec sudo "$0" "$@"
+        exec sudo bash "${BASH_SOURCE[0]}" "$@"
     fi
 
     # At this point, we're running with sudo and certs need to be imported
@@ -183,18 +179,8 @@ function main() {
     fi
 
     stop_gradle_daemons
-
-    local JAVA_HOMES
-    JAVA_HOMES=$(find_java_installations)
-
-    local IMPORT_RESULTS
-    IMPORT_RESULTS=$(import_certificates "${JAVA_HOMES}")
-
-    local SUCCESS_COUNT
-    local FAIL_COUNT
-    SUCCESS_COUNT=$(echo "${IMPORT_RESULTS}" | head -n 1)
-    FAIL_COUNT=$(echo "${IMPORT_RESULTS}" | tail -n 1)
-
+    find_java_installations
+    import_certificates
     print_summary "${SUCCESS_COUNT}" "${FAIL_COUNT}"
 }
 
