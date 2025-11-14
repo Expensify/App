@@ -46,6 +46,15 @@ clear_last_line() {
   echo -ne "\033[1A\033[K"
 }
 
+# Function to check if script is running with sudo/root privileges
+check_sudo() {
+  if [[ "${EUID}" -ne 0 ]]; then
+    error "This script must be run with sudo"
+    info "Usage: sudo $0"
+    exit 1
+  fi
+}
+
 function assert_equal {
   if [[ "$1" != "$2" ]]; then
     error "Assertion failed: $1 is not equal to $2"
