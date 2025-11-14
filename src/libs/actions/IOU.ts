@@ -11951,7 +11951,40 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
     ];
 
-    optimisticData.push(...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
+    // Get optimistic data for ancestors (e.g., policy expense chat reports)
+    const ancestorOptimisticData = getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    optimisticData.push(...ancestorOptimisticData);
+
+    // Update report actions for ancestors with any optimistic changes
+    // so if there are any updates to the IOU action they are reflected
+    for (let index = 0; index < ancestors.length; index++) {
+        const {report, reportAction, shouldDisplayNewMarker} = ancestors[index];
+        const reportActionID = reportAction?.reportActionID;
+        if (!reportActionID) {
+            return;
+        }
+        ancestorOptimisticData.forEach((data) => {
+            const {key, value} = data;
+            if (!(key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` && typeof value === 'object' && value !== null && reportActionID in value)) {
+                return;
+            }
+
+            const reportActionsUpdate = value as Record<string, Partial<OnyxTypes.ReportAction>>;
+            const optimisticAncestor = {
+                report,
+                reportAction: {
+                    ...reportAction,
+                    ...reportActionsUpdate[reportActionID],
+                },
+                shouldDisplayNewMarker,
+            }
+            ancestors.at(
+                index,
+                0,
+                optimisticAncestor
+            );
+        });
+    };
 
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReportLocal = isExpenseReport(iouReport);
