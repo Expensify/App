@@ -1898,7 +1898,7 @@ function handlePreexistingReport(report: Report) {
             }
         };
 
-        const isParentOneTransactionReport = isOneTransactionReport(parentReport)
+        const isParentOneTransactionReport = isOneTransactionReport(parentReport);
 
         // Only re-route them if they are still looking at the optimistically created report
         const activeRoute = Navigation.getActiveRoute();
@@ -1906,7 +1906,7 @@ function handlePreexistingReport(report: Report) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-=                if (!parentReportActionID || !isParentOneTransactionReport) {
+                if (!parentReportActionID || !isParentOneTransactionReport) {
                     // We are either in a DM/group-DM,
                     // a transaction thread report that its parent is not a one expense report,
                     // or a thread under any comment
