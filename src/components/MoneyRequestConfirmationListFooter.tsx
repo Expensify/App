@@ -290,6 +290,7 @@ function MoneyRequestConfirmationListFooter({
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
+    const isScan = isScanRequest(transaction);
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -531,7 +532,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
-            isRequired: true, // Distance is required for distance requests
+            isRequired: true,
         },
         {
             item: (
@@ -900,7 +901,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall, !showMoreFields && styles.moneyRequestImageLarge]}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall, !showMoreFields && isScan ? styles.moneyRequestImageLarge : styles.receiptPreviewAspectRatio]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -965,10 +966,12 @@ function MoneyRequestConfirmationListFooter({
             styles.moneyRequestImage,
             styles.expenseViewImageSmall,
             styles.moneyRequestImageLarge,
+            styles.receiptPreviewAspectRatio,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
             showMoreFields,
+            isScan,
             isLocalFile,
             receiptFilename,
             translate,
@@ -1076,28 +1079,30 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={styles.expenseViewImageSmall}
+                                  style={[styles.expenseViewImageSmall, (showMoreFields || !isScan) && styles.receiptPreviewAspectRatio]}
                               />
                           )}
-                    {isScanRequest(transaction) && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mh5, styles.mt5]}>
-                            <Icon
-                                src={Expensicons.Sparkles}
-                                fill={theme.icon}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                            <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                        </View>
-                    )}
                 </View>
             )}
-            <View style={[styles.mb5]}>
-                {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
 
-                {showMoreFields && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+            <View style={[styles.mb5, styles.mt2]}>
+                {isScan && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
+                        <Icon
+                            src={Expensicons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
+                )}
 
-                {!showMoreFields && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                {fields.filter((field) => !isScan || (field.shouldShow && (field.isRequired ?? false))).map((field) => field.item)}
+
+                {isScan && showMoreFields && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+
+                {isScan && !showMoreFields && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
