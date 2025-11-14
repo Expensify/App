@@ -33,6 +33,7 @@ const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
@@ -256,18 +257,20 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.SearchReportModalStackNavigator}
                             options={{
                                 presentation: Presentation.TRANSPARENT_MODAL,
-                                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
-                                    // Add 1 to change range from [0, 1] to [1, 2]
-                                    // Don't use outputMultiplier for the narrow layout
-                                    modalCardStyleInterpolator({
-                                        props,
-                                        shouldAnimateSidePanel: true,
+                                web: {
+                                    cardStyleInterpolator: (props: StackCardInterpolationProps) =>
+                                        // Add 1 to change range from [0, 1] to [1, 2]
+                                        // Don't use outputMultiplier for the narrow layout
+                                        modalCardStyleInterpolator({
+                                            props,
+                                            shouldAnimateSidePanel: true,
 
-                                        // Adjust output range to match the wide RHP size
-                                        outputRangeMultiplier: isSmallScreenWidth
-                                            ? undefined
-                                            : Animated.add(Animated.multiply(innerRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
-                                    }),
+                                            // Adjust output range to match the wide RHP size
+                                            outputRangeMultiplier: isSmallScreenWidth
+                                                ? undefined
+                                                : Animated.add(Animated.multiply(innerRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
+                                        }),
+                                },
                             }}
                         />
                         <Stack.Screen

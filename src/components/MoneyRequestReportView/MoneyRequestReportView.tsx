@@ -89,6 +89,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
