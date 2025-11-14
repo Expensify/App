@@ -7399,7 +7399,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         modal: {
             title: 'Faça um test drive conosco',
-            description: 'Faça um rápido tour pelo produto para se atualizar rapidamente. Sem paradas necessárias!',
+            description: 'Faça um tour rápido pelo produto para começar rapidamente.',
             confirmText: 'Iniciar test drive',
             helpText: 'Pular',
             employee: {

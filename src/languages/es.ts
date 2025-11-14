@@ -7602,7 +7602,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         modal: {
             title: 'Haz una prueba con nosotros',
-            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
+            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente.',
             confirmText: 'Iniciar prueba',
             helpText: 'Saltar',
             employee: {

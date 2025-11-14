@@ -7236,7 +7236,7 @@ ${merchant}的${amount} - ${date}`,
         },
         modal: {
             title: '试用我们吧',
-            description: '快速浏览产品，迅速上手。无需中途停留！',
+            description: '进行一次简短的产品导览，快速上手。',
             confirmText: '开始试用',
             helpText: 'Skip',
             employee: {
