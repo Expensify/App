@@ -16,7 +16,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -93,7 +93,7 @@ import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
-import type ReportNextStep from './ReportNextStep';
+import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
@@ -166,6 +166,7 @@ export type {
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,
@@ -209,7 +210,7 @@ export type {
     ReportActionsDraft,
     ReportActionsDrafts,
     ReportMetadata,
-    ReportNextStep,
+    ReportNextStepDeprecated,
     ReportViolationName,
     ReportViolations,
     ReportFieldsViolations,
