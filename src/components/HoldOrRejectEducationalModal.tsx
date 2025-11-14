@@ -1,20 +1,23 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
+
+const illustrationNames = ['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject'] as const;
+type IllustrationName = TupleToUnion<typeof illustrationNames>;
 
 type SectionMenuItem = {
     /** The icon supplied with the section */
-    icon: IconAsset;
+    iconName: IllustrationName;
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;
@@ -30,19 +33,19 @@ type HoldOrRejectEducationalModalProps = {
 
 const menuSections: SectionMenuItem[] = [
     {
-        icon: Illustrations.Stopwatch,
+        iconName: 'Stopwatch',
         titleTranslationKey: 'iou.reject.holdExpenseTitle',
     },
     {
-        icon: Illustrations.Rules,
+        iconName: 'Rules',
         titleTranslationKey: 'iou.reject.approveExpenseTitle',
     },
     {
-        icon: Illustrations.RealtimeReport,
+        iconName: 'RealtimeReport',
         titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
     },
     {
-        icon: Illustrations.ThumbsDown,
+        iconName: 'ThumbsDown',
         titleTranslationKey: 'iou.reject.rejectExpenseTitle',
     },
 ];
@@ -50,6 +53,7 @@ const menuSections: SectionMenuItem[] = [
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(illustrationNames);
 
     useBeforeRemove(onClose);
 
@@ -58,7 +62,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ModalHoldOrReject}
+            image={illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
@@ -78,7 +82,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                         <Icon
                             width={variables.menuIconSize}
                             height={variables.menuIconSize}
-                            src={section.icon}
+                            src={illustrations[section.iconName]}
                             additionalStyles={[styles.mr4]}
                         />
                         <View style={[styles.mb1, styles.flex1]}>
