@@ -326,10 +326,10 @@ type ViolationsCustomRulesParams = {message: string};
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
-    email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+    companyCardPageURL?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -373,6 +373,8 @@ type UpdatedPolicyCategoryMaxExpenseAmountParams = {categoryName: string; oldAmo
 type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldValue?: string; newValue: string};
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
+
+type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
 
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
@@ -1206,6 +1208,7 @@ export type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,

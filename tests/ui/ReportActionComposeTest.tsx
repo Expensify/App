@@ -228,6 +228,14 @@ describe('ReportActionCompose Integration Tests', () => {
     });
 
     describe('Message validation', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
         it('should send when length is within the limit', async () => {
             renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
@@ -241,6 +249,11 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // When the message is submitted
             act(onSubmitAction);
+
+            // scheduleOnUI mock uses setTimeout(() => ..., 0)
+            act(() => {
+                jest.advanceTimersByTime(1);
+            });
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);

@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1411,11 +1412,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Alleen betalen',
         approveOnly: 'Alleen goedkeuren',
-        holdEducationalTitle: 'Dit verzoek is ingediend op',
-        holdEducationalText: 'vasthouden',
-        whatIsHoldExplain: 'Vasthouden is als het indrukken van "pauze" op een uitgave om meer details te vragen voordat deze wordt goedgekeurd of betaald.',
-        holdIsLeftBehind: 'Ingehouden uitgaven worden naar een ander rapport verplaatst na goedkeuring of betaling.',
-        unholdWhenReady: 'Goedkeurders kunnen uitgaven vrijgeven wanneer ze klaar zijn voor goedkeuring of betaling.',
+        holdEducationalTitle: 'Moet u deze uitgave vasthouden?',
+        whatIsHoldExplain: 'Vasthouden is als op ‘pauze’ drukken voor een uitgave totdat u klaar bent om deze in te dienen.',
+        holdIsLeftBehind: 'Vastgehouden uitgaven blijven achter, zelfs als u een volledig rapport indient.',
+        unholdWhenReady: 'Haal uitgaven uit de wachtstand wanneer u klaar bent om ze in te dienen.',
         changePolicyEducational: {
             title: 'Je hebt dit rapport verplaatst!',
             description: 'Controleer deze items dubbel, aangezien ze de neiging hebben te veranderen bij het verplaatsen van rapporten naar een nieuwe werkruimte.',
@@ -1596,7 +1596,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Zoek om opties te zien',
     },
     contacts: {
-        contactMethod: 'Contactmethode',
         contactMethods: 'Contactmethoden',
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',
@@ -6145,6 +6144,30 @@ ${amount} voor ${merchant} - ${date}`,
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `heeft de handmatige goedkeuringslimiet voor alle uitgaven gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" toegevoegd`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" verwijderd`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `heeft de belasting "${oldValue}" hernoemd naar "${newValue}"`;
+                }
+                case 'code': {
+                    return `heeft de belastingcode voor "${taxName}" gewijzigd van "${oldValue}" naar "${newValue}"`;
+                }
+                case 'rate': {
+                    return `heeft het belastingtarief voor "${taxName}" gewijzigd van "${oldValue}" naar "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `heeft de belasting "${taxName}" uitgeschakeld` : `heeft de belasting "${taxName}" ingeschakeld`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -6839,14 +6862,14 @@ ${amount} voor ${merchant} - ${date}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Kan ontvangst niet automatisch koppelen vanwege een verbroken bankverbinding die ${email} moet herstellen.`
-                    : 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
+                    ? `Bankverbinding verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankverbinding verbroken. Vraag een beheerder om opnieuw te verbinden om de bon te koppelen.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw.` : 'In afwachting van samenvoeging met kaarttransactie.';
@@ -7376,7 +7399,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probeer ons uit',
-            description: 'Maak een snelle producttour om snel op de hoogte te zijn. Geen tussenstops nodig!',
+            description: 'Volg een korte producttour om snel op gang te komen.',
             confirmText: 'Start proefrit',
             helpText: 'Overslaan',
             employee: {
@@ -7531,6 +7554,16 @@ ${amount} voor ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Het domein <strong>${domainName}</strong> is succesvol geverifieerd en je kunt nu SAML en andere beveiligingsfuncties instellen.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML eenmalige aanmelding (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is een beveiligingsfunctie die je meer controle geeft over hoe leden met e-mailadressen van <strong>${domainName}</strong> inloggen bij Expensify. Om dit in te schakelen, moet je bevestigen dat je een geautoriseerde bedrijfsbeheerder bent.</muted-text>`,
+            fasterAndEasierLogin: 'Sneller en makkelijker inloggen',
+            moreSecurityAndControl: 'Meer beveiliging en controle',
+            onePasswordForAnything: 'Eén wachtwoord voor alles',
+        },
+        goToDomain: 'Ga naar het domein',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1417,11 +1418,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver seulement',
-        holdEducationalTitle: 'Cette demande est activée',
-        holdEducationalText: 'tenir',
-        whatIsHoldExplain: 'La mise en attente, c\'est comme appuyer sur "pause" pour une dépense afin de demander plus de détails avant l\'approbation ou le paiement.',
-        holdIsLeftBehind: 'Les dépenses en attente sont déplacées vers un autre rapport après approbation ou paiement.',
-        unholdWhenReady: "Les approbateurs peuvent débloquer les dépenses lorsqu'elles sont prêtes pour approbation ou paiement.",
+        holdEducationalTitle: 'Dois-tu mettre cette dépense en attente ?',
+        whatIsHoldExplain: 'Mettre en attente, c\'est comme appuyer sur "pause" pour une dépense jusqu\'à ce que tu sois prêt à la soumettre.',
+        holdIsLeftBehind: 'Les dépenses mises en attente sont laissées de côté même si tu soumets un rapport complet.',
+        unholdWhenReady: 'Retire les dépenses en attente lorsque tu es prêt à les soumettre.',
         changePolicyEducational: {
             title: 'Vous avez déplacé ce rapport !',
             description: 'Vérifiez ces éléments, qui ont tendance à changer lors du déplacement des rapports vers un nouvel espace de travail.',
@@ -1602,7 +1602,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Recherchez pour voir les options',
     },
     contacts: {
-        contactMethod: 'Méthode de contact',
         contactMethods: 'Méthodes de contact',
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',
@@ -6155,6 +6154,30 @@ ${amount} pour ${merchant} - ${date}`,
             `a changé le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)}% (précédemment ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `a modifié la limite d'approbation manuelle pour toutes les dépenses à ${newLimit} (précédemment ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `a renommé la taxe "${oldValue}" en "${newValue}"`;
+                }
+                case 'code': {
+                    return `a modifié le code de la taxe "${taxName}" de "${oldValue}" à "${newValue}"`;
+                }
+                case 'rate': {
+                    return `a modifié le taux de la taxe "${taxName}" de "${oldValue}" à "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'a désactivé' : 'a activé'} la taxe "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',
@@ -6849,14 +6872,14 @@ ${amount} pour ${merchant} - ${date}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour associer le reçu</a>`
+                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour associer le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
@@ -7390,8 +7413,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         modal: {
             title: 'Faites un essai avec nous',
-            description: "Faites une visite rapide du produit pour vous mettre rapidement à jour. Pas d'arrêts nécessaires !",
-            confirmText: "Commencer l'essai",
+            description: 'Faites une visite rapide du produit pour être rapidement opérationnel.',
+            confirmText: 'Commencer l’essai',
             helpText: 'Passer',
             employee: {
                 description:
@@ -7551,6 +7574,16 @@ ${amount} pour ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Le domaine <strong>${domainName}</strong> a été vérifié avec succès et vous pouvez maintenant configurer SAML et d'autres fonctionnalités de sécurité.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Authentification unique SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> est une fonctionnalité de sécurité qui vous donne davantage de contrôle sur la manière dont les membres ayant des adresses e‑mail <strong>${domainName}</strong> se connectent à Expensify. Pour l’activer, vous devrez confirmer que vous êtes un administrateur d’entreprise autorisé.</muted-text>`,
+            fasterAndEasierLogin: 'Connexion plus rapide et plus simple',
+            moreSecurityAndControl: 'Plus de sécurité et de contrôle',
+            onePasswordForAnything: 'Un seul mot de passe pour tout',
+        },
+        goToDomain: 'Accéder au domaine',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -261,6 +261,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1393,11 +1394,10 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This request is on',
-        holdEducationalText: 'hold',
-        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
-        unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
+        holdEducationalTitle: 'Should you hold this expense?',
+        whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to submit them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -1703,7 +1703,6 @@ const translations = {
         placeholderText: 'Search to see options',
     },
     contacts: {
-        contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
@@ -6229,6 +6228,30 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `renamed the tax "${oldValue}" to "${newValue}"`;
+                }
+                case 'code': {
+                    return `changed the tax code for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'rate': {
+                    return `changed the tax rate for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'disabled' : 'enabled'} the tax "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -6919,12 +6942,14 @@ const translations = {
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix` : "Can't auto-match receipt due to broken bank connection";
+                return isAdmin
+                    ? `Bank connection broken. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection broken. Ask an admin to reconnect to match receipt.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';
@@ -7452,7 +7477,7 @@ const translations = {
         },
         modal: {
             title: 'Take us for a test drive',
-            description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
+            description: 'Take a quick product tour to get up to speed fast.',
             confirmText: 'Start test drive',
             helpText: 'Skip',
             employee: {
@@ -7496,6 +7521,16 @@ const translations = {
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML Single Sign-On (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is a security feature that gives you more control over how members with <strong>${domainName}</strong> emails log into Expensify. To enable it, you'll need to verify yourself as an authorized company admin.</muted-text>`,
+            fasterAndEasierLogin: 'Faster and easier login',
+            moreSecurityAndControl: 'More security and control',
+            onePasswordForAnything: 'One password for everything',
+        },
+        goToDomain: 'Go to domain',
     },
 };
 

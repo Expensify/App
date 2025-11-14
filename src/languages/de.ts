@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1415,11 +1416,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
-        holdEducationalTitle: 'Diese Anfrage ist an',
-        holdEducationalText: 'halten',
-        whatIsHoldExplain: 'Halten ist wie das Drücken der „Pause“-Taste bei einer Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
-        holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden nach Genehmigung oder Zahlung in einen anderen Bericht verschoben.',
-        unholdWhenReady: 'Genehmiger können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',
+        holdEducationalTitle: 'Sollten Sie diese Ausgabe zurückhalten?',
+        whatIsHoldExplain: 'Zurückhalten bedeutet, dass Sie eine Ausgabe sozusagen „pausieren”, bis Sie bereit sind, sie einzureichen.',
+        holdIsLeftBehind: 'Zurückgehaltene Ausgaben bleiben auch dann zurück, wenn Sie einen gesamten Bericht einreichen.',
+        unholdWhenReady: 'Heben Sie die Zurückhaltung von Ausgaben auf, wenn Sie bereit sind, sie einzureichen.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfen Sie diese Punkte, die sich beim Verschieben von Berichten in einen neuen Arbeitsbereich ändern können.',
@@ -1600,7 +1600,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Suchen, um Optionen zu sehen',
     },
     contacts: {
-        contactMethod: 'Kontaktmethode',
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
@@ -6148,6 +6147,30 @@ ${amount} für ${merchant} - ${date}`,
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" hinzugefügt`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" entfernt`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `hat die Steuer "${oldValue}" in "${newValue}" umbenannt`;
+                }
+                case 'code': {
+                    return `hat den Steuercode für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'rate': {
+                    return `hat den Steuersatz für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `hat die Steuer "${taxName}" deaktiviert` : `hat die Steuer "${taxName}" aktiviert`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6842,14 +6865,14 @@ ${amount} für ${merchant} - ${date}`,
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
-                    : 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
+                    ? `Bankverbindung unterbrochen. <a href="${companyCardPageURL}">Jetzt wieder verbinden, um den Beleg zuzuordnen</a>`
+                    : 'Bankverbindung unterbrochen. Bitte einen Admin bitten, sie wieder zu verbinden, um den Beleg zuzuordnen.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
@@ -7387,8 +7410,8 @@ ${amount} für ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probieren Sie uns aus',
-            description: 'Machen Sie eine schnelle Produkttour, um schnell auf den neuesten Stand zu kommen. Keine Zwischenstopps erforderlich!',
-            confirmText: 'Testfahrt starten',
+            description: 'Machen Sie eine kurze Tour durch das Produkt, um schnell auf den neuesten Stand zu kommen.',
+            confirmText: 'Testversion starten',
             helpText: 'Überspringen',
             employee: {
                 description:
@@ -7548,6 +7571,16 @@ ${amount} für ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Die Domain <strong>${domainName}</strong> wurde erfolgreich verifiziert und Sie können jetzt SAML und andere Sicherheitsfunktionen einrichten.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML-Einmalanmeldung (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> ist eine Sicherheitsfunktion, die Ihnen mehr Kontrolle darüber gibt, wie sich Mitglieder mit E-Mail-Adressen unter <strong>${domainName}</strong> bei Expensify anmelden. Um sie zu aktivieren, müssen Sie sich als autorisierte/r Unternehmensadministrator/in verifizieren.</muted-text>`,
+            fasterAndEasierLogin: 'Schnelleres und einfacheres Anmelden',
+            moreSecurityAndControl: 'Mehr Sicherheit und Kontrolle',
+            onePasswordForAnything: 'Ein Passwort für alles',
+        },
+        goToDomain: 'Zur Domain wechseln',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

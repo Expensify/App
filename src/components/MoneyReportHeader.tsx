@@ -35,6 +35,7 @@ import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -62,6 +63,8 @@ import {
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
+    isCurrentUserSubmitter,
+    isDM,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
@@ -78,7 +81,6 @@ import {
     hasDuplicateTransactions,
     isDuplicate,
     isExpensifyCardTransaction,
-    isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
@@ -112,7 +114,6 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -124,6 +125,7 @@ import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
@@ -237,9 +239,8 @@ function MoneyReportHeader({
     });
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
@@ -272,7 +273,6 @@ function MoneyReportHeader({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const isOnHold = isOnHoldTransactionUtils(transaction);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -318,12 +318,16 @@ function MoneyReportHeader({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
+        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    > | null>(null);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const showExportProgressModal = useCallback(() => {
@@ -418,6 +422,8 @@ function MoneyReportHeader({
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+    const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
+    const isChatReportDM = isDM(chatReport);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
@@ -576,21 +582,29 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
-    const dismissModalAndUpdateUseReject = () => {
-        setIsRejectEducationalModalVisible(false);
-        dismissRejectUseExplanation();
+
+    const dismissModalAndUpdateUseHold = () => {
+        setIsHoldEducationalModalVisible(false);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
         if (requestParentReportAction) {
-            rejectMoneyRequestReason(requestParentReportAction);
+            changeMoneyRequestHoldStatus(requestParentReportAction);
         }
     };
 
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
-            return;
+    const dismissRejectModalBasedOnAction = () => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
+            dismissRejectUseExplanation();
+            if (requestParentReportAction) {
+                changeMoneyRequestHoldStatus(requestParentReportAction);
+            }
+        } else {
+            dismissRejectUseExplanation();
+            if (requestParentReportAction) {
+                rejectMoneyRequestReason(requestParentReportAction);
+            }
         }
-        Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
+        setRejectModalAction(null);
+    };
 
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
@@ -1024,7 +1038,15 @@ function MoneyReportHeader({
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction);
+                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                if (isDismissed || isChatReportDM) {
+                    changeMoneyRequestHoldStatus(requestParentReportAction);
+                } else if (isReportSubmitter) {
+                    setIsHoldEducationalModalVisible(true);
+                } else {
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                }
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD]: {
@@ -1187,7 +1209,7 @@ function MoneyReportHeader({
                         rejectMoneyRequestReason(requestParentReportAction);
                     }
                 } else {
-                    setIsRejectEducationalModalVisible(true);
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
             },
             shouldShow: transactions.length === 1,
@@ -1478,10 +1500,16 @@ function MoneyReportHeader({
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
-            {!!isRejectEducationalModalVisible && (
+            {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
-                    onClose={dismissModalAndUpdateUseReject}
-                    onConfirm={dismissModalAndUpdateUseReject}
+                    onClose={dismissRejectModalBasedOnAction}
+                    onConfirm={dismissRejectModalBasedOnAction}
+                />
+            )}
+            {!!isHoldEducationalModalVisible && (
+                <HoldSubmitterEducationalModal
+                    onClose={dismissModalAndUpdateUseHold}
+                    onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
             <DecisionModal
