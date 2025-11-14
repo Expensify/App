@@ -15,16 +15,12 @@ readonly SCRIPT_DIR
 source "${SCRIPT_DIR}/shellUtils.sh"
 
 readonly CERT_ALIAS="cloudflare-gateway-root"
-readonly CERT_FILE="/tmp/cloudflare-gateway-ca.pem"
 readonly KEYSTORE_PASSWORD="changeit"
-readonly TEST_DOMAIN="plugins.gradle.org"
 
-# Cleanup temporary files on exit (invoked via trap)
-# shellcheck disable=SC2329
-function cleanup_temp_files() {
-    rm -f /tmp/cloudflare-chain.pem /tmp/cloudflare-cert-*.pem
-}
-trap cleanup_temp_files EXIT
+# Certificate is in the Expensidev repo (assumed to betwo levels up from scripts directory)
+EXPENSIDEV_DIR="$(dirname "$(dirname "${SCRIPT_DIR}")")"
+readonly EXPENSIDEV_DIR
+readonly CERT_FILE="${EXPENSIDEV_DIR}/config/ssl/cloudflare-ca.pem"
 
 # Function to check if Cloudflare WARP certificate is imported into default JDK
 # Returns 0 if certificate is imported, 1 otherwise
@@ -77,45 +73,8 @@ function stop_gradle_daemons() {
     fi
 }
 
-function extract_cloudflare_certificate() {
-    title "Step 2: Extracting Cloudflare Gateway Root CA certificate"
-    
-    # Extract the full certificate chain
-    echo | openssl s_client -showcerts -connect "${TEST_DOMAIN}:443" 2>/dev/null \
-        | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' > /tmp/cloudflare-chain.pem
-    
-    # Split certificates
-    awk 'BEGIN {certnum=0} 
-         /BEGIN CERTIFICATE/ {certnum++; file="/tmp/cloudflare-cert-"certnum".pem"} 
-         {print > file}' /tmp/cloudflare-chain.pem
-    
-    # Find the root CA (self-signed certificate where subject == issuer)
-    local CERT_FILE_PATH
-    for CERT_FILE_PATH in /tmp/cloudflare-cert-*.pem; do
-        if [[ -f "${CERT_FILE_PATH}" ]]; then
-            local SUBJECT
-            local ISSUER
-            SUBJECT=$(openssl x509 -in "${CERT_FILE_PATH}" -noout -subject 2>/dev/null || echo)
-            ISSUER=$(openssl x509 -in "${CERT_FILE_PATH}" -noout -issuer 2>/dev/null || echo)
-            
-            if [[ "${SUBJECT}" == "${ISSUER}" ]] && [[ "${SUBJECT}" == *"Cloudflare"* ]]; then
-                cp "${CERT_FILE_PATH}" "${CERT_FILE}"
-                success "Found Cloudflare Gateway Root CA"
-                info "Subject: ${SUBJECT}"
-                break
-            fi
-        fi
-    done
-    
-    if [[ ! -f "${CERT_FILE}" ]]; then
-        error "Failed to extract Cloudflare root CA certificate"
-        info "Are you connected to Cloudflare WARP?"
-        exit 1
-    fi
-}
-
 function find_java_installations() {
-    title "Step 3: Finding all Java installations"
+    title "Step 2: Finding all Java installations"
     
     local JAVA_HOMES
     JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk -F'"' '{print $4}')
@@ -134,25 +93,25 @@ function find_java_installations() {
 
 function import_certificates() {
     local JAVA_HOMES="$1"
-    
-    title "Step 4: Importing certificate into Java keystores"
-    
+
+    title "Step 3: Importing certificate into Java keystores"
+
     local SUCCESS_COUNT=0
     local FAIL_COUNT=0
-    
+
     local JAVA_HOME_PATH
     while IFS= read -r JAVA_HOME_PATH; do
         if [[ -z "${JAVA_HOME_PATH}" ]]; then
             continue
         fi
-        
+
         # Get Java version for display
         local VERSION
         VERSION=$("${JAVA_HOME_PATH}/bin/java" -version 2>&1 | head -n 1 | awk -F'"' '{print $2}')
         echo
         info "Processing: Java ${VERSION}"
         info "Location: ${JAVA_HOME_PATH}"
-        
+
         # Determine keystore location (Java 8 has a different path)
         local KEYSTORE
         if [[ -f "${JAVA_HOME_PATH}/lib/security/cacerts" ]]; then
@@ -164,7 +123,7 @@ function import_certificates() {
             ((FAIL_COUNT++))
             continue
         fi
-        
+
         # Check if certificate already exists
         if keytool -list -keystore "${KEYSTORE}" -storepass "${KEYSTORE_PASSWORD}" \
            -alias "${CERT_ALIAS}" &>/dev/null; then
@@ -174,7 +133,7 @@ function import_certificates() {
                     -storepass "${KEYSTORE_PASSWORD}" \
                     &>/dev/null || true
         fi
-        
+
         # Import the certificate
         if keytool -import -trustcacerts \
                    -alias "${CERT_ALIAS}" \
@@ -189,7 +148,7 @@ function import_certificates() {
             ((FAIL_COUNT++))
         fi
     done <<< "${JAVA_HOMES}"
-    
+
     echo "${SUCCESS_COUNT}"
     echo "${FAIL_COUNT}"
 }
@@ -197,14 +156,14 @@ function import_certificates() {
 function print_summary() {
     local SUCCESS_COUNT="$1"
     local FAIL_COUNT="$2"
-    
+
     title "Summary"
-    
+
     success "Successfully imported: ${SUCCESS_COUNT}"
     if [[ "${FAIL_COUNT}" -gt 0 ]]; then
         error "Failed: ${FAIL_COUNT}"
     fi
-    
+
     echo
     if [[ "${SUCCESS_COUNT}" -gt 0 ]]; then
         success "Certificate import complete!"
@@ -242,8 +201,14 @@ function main() {
     # At this point, we're running with sudo and certs need to be imported
     title "Cloudflare WARP Certificate Importer"
 
+    # Verify certificate file exists
+    if [[ ! -f "${CERT_FILE}" ]]; then
+        error "Cloudflare certificate not found at: ${CERT_FILE}"
+        error "Make sure you have the Expensidev repository cloned."
+        exit 1
+    fi
+
     stop_gradle_daemons
-    extract_cloudflare_certificate
 
     local JAVA_HOMES
     JAVA_HOMES=$(find_java_installations)
