@@ -214,7 +214,7 @@ function getOnyxLoadingData(
     offset?: number,
     isOffline?: boolean,
 ): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -234,7 +234,7 @@ function getOnyxLoadingData(
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -246,7 +246,7 @@ function getOnyxLoadingData(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -270,7 +270,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?:
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -284,7 +284,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?:
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -294,7 +294,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?:
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -309,7 +309,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?:
 }
 
 function deleteSavedSearch(hash: number) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -320,7 +320,7 @@ function deleteSavedSearch(hash: number) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -329,7 +329,7 @@ function deleteSavedSearch(hash: number) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
@@ -454,7 +454,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: Policy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false): OnyxUpdate[] => {
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false) => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         let data: Partial<SearchTransaction> | Partial<SearchReport> | undefined;
 
@@ -465,7 +465,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
             data = Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null])) as Partial<SearchReport>;
         }
 
-        const optimisticData: OnyxUpdate[] = [
+        const optimisticData = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -487,10 +487,10 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         return optimisticData;
     };
 
-    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
+    const optimisticData = createOnyxData({isActionLoading: true});
+    const failureData = createOnyxData({isActionLoading: false});
     // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
+    const successData = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const report = (reportList.at(0) ?? {}) as SearchReport;
@@ -507,7 +507,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false): OnyxUpdate[] => {
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false) => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         let data: Partial<SearchTransaction> | Partial<SearchReport> | undefined;
 
@@ -518,7 +518,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
             data = Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])) as Partial<SearchReport>;
         }
 
-        const optimisticData: OnyxUpdate[] = [
+        const optimisticData = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -540,13 +540,13 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
         return optimisticData;
     };
 
-    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const optimisticData = createOnyxData({isActionLoading: true});
+    const failureData = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
 
     // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
     const approveActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
 
-    const successData: OnyxUpdate[] = approveActionSuggestedSearches.includes(currentSearchKey) ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
+    const successData = approveActionSuggestedSearches.includes(currentSearchKey) ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
@@ -557,8 +557,8 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
     const successAction: OptimisticExportIntegrationAction = {...optimisticAction, pendingAction: null};
     const optimisticReportActionID = optimisticAction.reportActionID;
 
-    const createOnyxData = (update: Partial<ReportMetadata> | null, reportAction?: OptimisticExportIntegrationAction | null, shouldRemoveReportFromView = false): OnyxUpdate[] => {
-        const optimisticData: OnyxUpdate[] = [
+    const createOnyxData = (update: Partial<ReportMetadata> | null, reportAction?: OptimisticExportIntegrationAction | null, shouldRemoveReportFromView = false) => {
+        const optimisticData = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -588,10 +588,10 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
         return optimisticData;
     };
 
-    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true}, optimisticAction);
-    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isActionLoading: false}, null);
+    const optimisticData = createOnyxData({isActionLoading: true}, optimisticAction);
+    const failureData = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isActionLoading: false}, null);
     // If we are on the 'Export' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const successData: OnyxUpdate[] =
+    const successData =
         currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT ? createOnyxData({isActionLoading: false}, successAction, true) : createOnyxData({isActionLoading: false}, successAction);
 
     const params = {
@@ -608,7 +608,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
 
 function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false): OnyxUpdate[] => {
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false) => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         let data: Partial<SearchTransaction> | Partial<SearchReport> | undefined;
 
@@ -619,7 +619,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
             data = Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, null])) as Partial<SearchReport>;
         }
 
-        const optimisticData: OnyxUpdate[] = [
+        const optimisticData = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -642,10 +642,10 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
         return optimisticData;
     };
 
-    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const optimisticData = createOnyxData({isActionLoading: true});
+    const failureData = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     // If we are on the 'Pay' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
+    const successData = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY ? createOnyxData({isActionLoading: false}, true) : createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
@@ -678,7 +678,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         ...loadingOptimisticData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -695,7 +695,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -1022,7 +1022,7 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
 function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
     const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
-    const onyxUpdates: OnyxUpdate[] = [];
+    const onyxUpdates = [];
 
     // Set optimistic parent report
     if (!hasParentReport) {

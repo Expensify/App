@@ -234,7 +234,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     });
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -242,7 +242,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

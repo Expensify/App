@@ -264,7 +264,7 @@ describe('ReportUtils', () => {
             requiresTag: true,
         };
 
-        const onyxData: OnyxData = {
+        const onyxData = {
             optimisticData: [],
             failureData: [],
             successData: [],

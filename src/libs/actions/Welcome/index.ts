@@ -161,7 +161,7 @@ function completeHybridAppOnboarding() {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -233,7 +233,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,

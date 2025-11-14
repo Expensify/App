@@ -5,7 +5,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function fetchUnreportedExpenses(offset: number) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,
@@ -13,7 +13,7 @@ function fetchUnreportedExpenses(offset: number) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,
@@ -21,7 +21,7 @@ function fetchUnreportedExpenses(offset: number) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,

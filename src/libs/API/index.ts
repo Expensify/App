@@ -73,7 +73,7 @@ function prepareRequest<TCommand extends ApiCommand>(
     command: TCommand,
     type: ApiRequestType,
     params: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData = {},
     conflictResolver: RequestConflictResolver = {},
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
@@ -170,7 +170,7 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 function write<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData = {},
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
@@ -185,7 +185,7 @@ function write<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData = {},
     requestMatcher: RequestMatcher = (request) => request.command === command,
 ): Promise<void | Response> {
     const conflictResolver = {
@@ -202,7 +202,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
 function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData = {},
 ): Promise<void | Response> {
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
@@ -222,7 +222,7 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
+    onyxData = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
@@ -246,7 +246,7 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  */
-function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
     // Apply optimistic updates of read requests immediately

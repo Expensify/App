@@ -290,7 +290,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         updatesCount: updates.length,
     });
 
-    const additionalUpdates: OnyxUpdate[] = [];
+    const additionalUpdates = [];
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);

@@ -10,7 +10,7 @@ import type {VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false, currentDelegate?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
@@ -24,7 +24,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
@@ -36,7 +36,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -64,7 +64,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
     }
 
     const {creator, delegate} = vacationDelegate;
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
@@ -77,7 +77,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
@@ -88,7 +88,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,

@@ -48,7 +48,7 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
     const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
 
     const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -125,7 +125,7 @@ function openPolicyPerDiemPage(policyID?: string) {
 }
 
 function updateImportSpreadsheetData(ratesLength: number) {
-    const onyxData: OnyxData = {
+    const onyxData = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -240,7 +240,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         return;
     }
     const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -270,7 +270,7 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].name = newDestination;
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -305,7 +305,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -340,7 +340,7 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -370,7 +370,7 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].currency = newCurrency;
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

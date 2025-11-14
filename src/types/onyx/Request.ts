@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate, OnyxUpdateFor} from 'react-native-onyx';
 import type Response from './Response';
 
 /** Model of onyx requests sent to the API */
@@ -17,6 +17,24 @@ type OnyxData = {
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
     queueFlushedData?: OnyxUpdate[];
+};
+
+/** Model of onyx requests sent to the API */
+type OnyxDataFor<TKey extends OnyxKey> = {
+    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
+    successData?: OnyxUpdateFor<TKey>[];
+
+    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
+    failureData?: OnyxUpdateFor<TKey>[];
+
+    /** Onyx instructions that are executed after getting any response from server */
+    finallyData?: OnyxUpdateFor<TKey>[];
+
+    /** Onyx instructions that are executed before request is made to the server */
+    optimisticData?: OnyxUpdateFor<TKey>[];
+
+    /** Onyx instructions that are executed when Onyx queue is flushed */
+    queueFlushedData?: OnyxUpdateFor<TKey>[];
 };
 
 /** HTTP request method names */

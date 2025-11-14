@@ -10006,9 +10006,9 @@ function getTaskAssigneeChatOnyxData(
     let optimisticChatCreatedReportAction: OptimisticCreatedReportAction | undefined;
     const assigneeChatReportMetadata = getReportMetadata(assigneeChatReportID);
     const currentTime = DateUtils.getDBTime();
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
 
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
@@ -11436,7 +11436,7 @@ function prepareOnboardingOnyxData(
         return acc;
     }, []);
 
-    const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    const optimisticData = [...tasksForOptimisticData];
     const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
@@ -11477,7 +11477,7 @@ function prepareOnboardingOnyxData(
         });
     }
 
-    const successData: OnyxUpdate[] = [...tasksForSuccessData];
+    const successData = [...tasksForSuccessData];
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
@@ -11509,7 +11509,7 @@ function prepareOnboardingOnyxData(
         };
     }
 
-    const failureData: OnyxUpdate[] = [...tasksForFailureData];
+    const failureData = [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,

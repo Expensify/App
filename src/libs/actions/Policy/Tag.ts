@@ -89,7 +89,7 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
 }
 
 function updateImportSpreadsheetData(tagsLength: number): OnyxData {
-    const onyxData: OnyxData = {
+    const onyxData = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -129,7 +129,7 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -225,7 +225,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
             return acc;
         }, {}),
     };
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -338,7 +338,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
         }, {}),
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -420,7 +420,7 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -618,7 +618,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -695,7 +695,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -828,7 +828,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         return;
     }
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -894,7 +894,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -951,7 +951,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1033,7 +1033,7 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1092,7 +1092,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
     const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1189,7 +1189,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
 
     const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : [...filteredApprovalRules, updatedApproverRule];
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

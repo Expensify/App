@@ -115,7 +115,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
         return;
     }
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -224,7 +224,7 @@ function setPolicyTaxesEnabled(policy: OnyxEntry<Policy>, taxesIDsToUpdate: stri
 
     const originalTaxes = {...policy.taxRates?.taxes};
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -341,7 +341,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
         };
     });
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
@@ -426,7 +426,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
 function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate) {
     const stringTaxValue = `${taxValue}%`;
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -488,7 +488,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number,
 }
 
 function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate) {
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -578,7 +578,7 @@ function setPolicyTaxCode(
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -80,7 +80,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
-let queueFlushedDataToStore: OnyxUpdate[] = [];
+let queueFlushedDataToStore = [];
 
 // Use connectWithoutView since this is for network queue and don't affect to any UI
 Onyx.connectWithoutView({

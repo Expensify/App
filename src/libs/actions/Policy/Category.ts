@@ -77,7 +77,7 @@ function buildOptimisticPolicyWithExistingCategories(policyID: string, categorie
         return acc;
     }, {});
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -135,7 +135,7 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
         return acc;
     }, {});
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -251,7 +251,7 @@ function buildOptimisticMccGroup() {
 }
 
 function updateImportSpreadsheetData(categoriesLength: number) {
-    const onyxData: OnyxData = {
+    const onyxData = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -337,7 +337,7 @@ function setWorkspaceCategoryEnabled(
         }, {}),
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -405,7 +405,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     // When areCommentsRequired is set to false, commentHint has to be reset
     const updatedCommentHint = areCommentsRequired ? policyCategories?.[categoryName]?.commentHint : '';
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -479,7 +479,7 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -544,7 +544,7 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -695,7 +695,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -778,7 +778,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
 function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string, policyCategories: PolicyCategories = {}) {
     const policyCategoryToUpdate = policyCategories?.[categoryName] ?? {};
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -846,7 +846,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
 function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string, policyCategories: PolicyCategories = {}) {
     const policyCategoryToUpdate = policyCategories?.[categoryName] ?? {};
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -923,7 +923,7 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         },
     };
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1014,7 +1014,7 @@ function deleteWorkspaceCategories(
           }
         : {};
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1067,7 +1067,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
             areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1131,7 +1131,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
 }
 
 function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1146,7 +1146,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1160,7 +1160,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1203,7 +1203,7 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string, policyCategories: PolicyCategories = {}) {
     const originalCommentHint = policyCategories?.[categoryName]?.commentHint;
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1273,7 +1273,7 @@ function setPolicyCategoryMaxAmount(
     const originalExpenseLimitType = policyCategoryToUpdate?.expenseLimitType;
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? null : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1366,7 +1366,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
         }
     }
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1434,7 +1434,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
         }
     }
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
