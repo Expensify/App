@@ -14,12 +14,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import PersonalInfoPage from './settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo';
 
 function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
@@ -45,23 +46,9 @@ function AddPersonalBankAccountPage() {
         }
     }, [topmostFullScreenRoute?.name]);
 
-    const submitBankAccountForm = useCallback(() => {
-        const bankAccounts = plaidData?.bankAccounts ?? [];
-        const policyID = personalBankAccount?.policyID;
-        const source = personalBankAccount?.source;
-
-        const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
-
-        if (selectedPlaidBankAccount) {
-            const bankAccountWithToken = selectedPlaidBankAccount.plaidAccessToken
-                ? selectedPlaidBankAccount
-                : {
-                      ...selectedPlaidBankAccount,
-                      plaidAccessToken: plaidData?.plaidAccessToken ?? '',
-                  };
-            addPersonalBankAccount(bankAccountWithToken, policyID, source);
-        }
-    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
+    const moveToPersonalStep = useCallback(() => {
+        // Add navigation to Personal info screens
+    }, []);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -110,7 +97,7 @@ function AddPersonalBankAccountPage() {
                         isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
                         submitButtonText={translate('common.saveAndContinue')}
                         scrollContextEnabled
-                        onSubmit={submitBankAccountForm}
+                        onSubmit={moveToPersonalStep}
                         validate={validatePlaidSelection}
                         style={[styles.mh5, styles.flex1]}
                         shouldHideFixErrorsAlert

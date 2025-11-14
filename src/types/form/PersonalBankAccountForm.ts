@@ -12,6 +12,13 @@ const INPUT_IDS = {
         PLAID_ACCOUNT_ID: 'plaidAccountID',
         PLAID_ACCESS_TOKEN: 'plaidAccessToken',
         SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID',
+        FIRST_NAME: 'legalFirstName',
+        LAST_NAME: 'legalLastName',
+        STREET: 'addressStreet',
+        CITY: 'addressCity',
+        STATE: 'addressState',
+        ZIP_CODE: 'addressZipCode',
+        PHONE_NUMBER: 'phoneNumber',
     },
 } as const;
 
@@ -23,6 +30,13 @@ type BankAccountStepProps = {
     [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCOUNT_ID]: string;
     [INPUT_IDS.BANK_INFO_STEP.PLAID_MASK]: string;
     [INPUT_IDS.BANK_INFO_STEP.SETUP_TYPE]: string;
+    [INPUT_IDS.BANK_INFO_STEP.FIRST_NAME]: string;
+    [INPUT_IDS.BANK_INFO_STEP.LAST_NAME]: string;
+    [INPUT_IDS.BANK_INFO_STEP.STREET]: string;
+    [INPUT_IDS.BANK_INFO_STEP.CITY]: string;
+    [INPUT_IDS.BANK_INFO_STEP.STATE]: string;
+    [INPUT_IDS.BANK_INFO_STEP.ZIP_CODE]: string;
+    [INPUT_IDS.BANK_INFO_STEP.PHONE_NUMBER]: string;
 };
 
 type PlaidAccountProps = {
@@ -35,7 +49,6 @@ type PlaidAccountProps = {
 type OnfidoStepProps = {
     isOnfidoSetupComplete: boolean;
 };
-
 type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps;
 
 export type {PersonalBankAccountForm};
