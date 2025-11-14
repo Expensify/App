@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6004,6 +6005,30 @@ ${merchant}的${amount} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `将税项 "${oldValue}" 重命名为 "${newValue}"`;
+                }
+                case 'code': {
+                    return `将税项 "${taxName}" 的代码从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'rate': {
+                    return `将税项 "${taxName}" 的税率从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7360,6 +7385,16 @@ ${merchant}的${amount} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML 单点登录 (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> 是一项安全功能，可让您更好地控制使用 <strong>${domainName}</strong> 邮箱的成员如何登录 Expensify。要启用它，您需要验证自己是授权的公司管理员。</muted-text>`,
+            fasterAndEasierLogin: '更快、更简单的登录',
+            moreSecurityAndControl: '更强的安全性与控制',
+            onePasswordForAnything: '一个密码搞定一切',
+        },
+        goToDomain: '前往域',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

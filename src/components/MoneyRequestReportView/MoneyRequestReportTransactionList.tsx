@@ -92,6 +92,12 @@ type MoneyRequestReportTransactionListProps = {
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
+
+    /** Whether the report that these transactions belong to has any chat comments */
+    hasComments: boolean;
+
+    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
+    isLoadingInitialReportActions?: boolean;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -147,6 +153,8 @@ function MoneyRequestReportTransactionList({
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
     policy,
+    hasComments,
+    isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -349,6 +357,8 @@ function MoneyRequestReportTransactionList({
                     totalDisplaySpend={totalDisplaySpend}
                     report={report}
                     hasPendingAction={hasPendingAction}
+                    hasComments={hasComments}
+                    isLoadingReportActions={isLoadingInitialReportActions}
                 />
             </>
         );
