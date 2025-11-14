@@ -1,10 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -50,9 +48,6 @@ function IOURequestStepAttendees({
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -61,37 +56,12 @@ function IOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(
-                    transactionID,
-                    reportID,
-                    attendees,
-                    policy,
-                    policyTags,
-                    policyCategories,
-                    transactionViolations ?? undefined,
-                    currentUserPersonalDetails.accountID,
-                    currentUserPersonalDetails.login ?? '',
-                    isASAPSubmitBetaEnabled,
-                );
+                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
             }
         }
 
         Navigation.goBack(backTo);
-    }, [
-        attendees,
-        backTo,
-        isEditing,
-        policy,
-        policyCategories,
-        policyTags,
-        previousAttendees,
-        reportID,
-        transactionID,
-        transactionViolations,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.login,
-        isASAPSubmitBetaEnabled,
-    ]);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
