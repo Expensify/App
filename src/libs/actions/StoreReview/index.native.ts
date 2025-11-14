@@ -44,6 +44,8 @@ async function requestReview(): Promise<void> {
                 if (typeof candidate === 'function') {
                     return (candidate as () => Promise<void>)();
                 }
+
+                Log.hmmm('[StoreReview] No requestNativeReview function found');
             };
 
             await performRequestReview();
@@ -59,5 +61,3 @@ async function requestReview(): Promise<void> {
 }
 
 export default requestReview;
-
-
