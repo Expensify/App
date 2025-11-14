@@ -654,7 +654,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, currentSearchResults);
             clearSelectedTransactions();
         });
     };
