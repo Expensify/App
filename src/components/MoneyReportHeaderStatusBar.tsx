@@ -6,15 +6,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    /** The next step for the report */
-    nextStep: ReportNextStep | undefined;
+    /** The next step for the report (deprecated old format) */
+    nextStep: ReportNextStepDeprecated | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
