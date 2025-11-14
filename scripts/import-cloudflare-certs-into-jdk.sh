@@ -25,8 +25,23 @@ readonly KEYSTORE_PASSWORD="changeit"
 
 # Global variables
 JAVA_HOMES=""
+JAVA_HOME_PATH=""
+KEYSTORE=""
 SUCCESS_COUNT=0
 FAIL_COUNT=0
+
+# Function to set the KEYSTORE global variable for the current JAVA_HOME_PATH
+# Returns 0 if found, 1 if not found
+function get_keystore_path() {
+    if [[ -f "${JAVA_HOME_PATH}/lib/security/cacerts" ]]; then
+        KEYSTORE="${JAVA_HOME_PATH}/lib/security/cacerts"
+        return 0
+    elif [[ -f "${JAVA_HOME_PATH}/jre/lib/security/cacerts" ]]; then
+        KEYSTORE="${JAVA_HOME_PATH}/jre/lib/security/cacerts"
+        return 0
+    fi
+    return 1
+}
 
 # Function to check if Cloudflare WARP certificate is imported into default JDK
 # Returns 0 if certificate is imported, 1 otherwise
@@ -35,10 +50,13 @@ function is_cloudflare_cert_imported() {
         return 1
     fi
 
-    local JAVA_HOME_PATH
     JAVA_HOME_PATH=$(/usr/libexec/java_home 2>/dev/null) || return 1
 
-    keytool -list -keystore "${JAVA_HOME_PATH}/lib/security/cacerts" \
+    if ! get_keystore_path; then
+        return 1
+    fi
+
+    keytool -list -keystore "${KEYSTORE}" \
         -storepass "${KEYSTORE_PASSWORD}" -alias "${CERT_ALIAS}" &>/dev/null
 }
 
@@ -70,7 +88,6 @@ function find_java_installations() {
 function import_certificates() {
     title "Step 3: Importing certificate into Java keystores"
 
-    local JAVA_HOME_PATH
     while IFS= read -r JAVA_HOME_PATH; do
         if [[ -z "${JAVA_HOME_PATH}" ]]; then
             continue
@@ -83,13 +100,8 @@ function import_certificates() {
         echo "Processing: Java ${VERSION}"
         echo "  Location: ${JAVA_HOME_PATH}"
 
-        # Determine keystore location (Java 8 has a different path)
-        local KEYSTORE
-        if [[ -f "${JAVA_HOME_PATH}/lib/security/cacerts" ]]; then
-            KEYSTORE="${JAVA_HOME_PATH}/lib/security/cacerts"
-        elif [[ -f "${JAVA_HOME_PATH}/jre/lib/security/cacerts" ]]; then
-            KEYSTORE="${JAVA_HOME_PATH}/jre/lib/security/cacerts"
-        else
+        # Get keystore location
+        if ! get_keystore_path; then
             error "Could not find cacerts file\n  Tried: ${JAVA_HOME_PATH}/lib/security/cacerts\n  Tried: ${JAVA_HOME_PATH}/jre/lib/security/cacerts"
             ((FAIL_COUNT++))
             continue
@@ -99,17 +111,15 @@ function import_certificates() {
         if keytool -list -keystore "${KEYSTORE}" -storepass "${KEYSTORE_PASSWORD}" \
            -alias "${CERT_ALIAS}" &>/dev/null; then
             echo "  Certificate already exists, removing old one..."
-            keytool -delete -alias "${CERT_ALIAS}" \
-                    -keystore "${KEYSTORE}" \
+            keytool -delete -keystore "${KEYSTORE}" -alias "${CERT_ALIAS}" \
                     -storepass "${KEYSTORE_PASSWORD}" \
                     &>/dev/null || true
         fi
 
         # Import the certificate
-        if keytool -import -trustcacerts \
+        if keytool -import -trustcacerts -keystore "${KEYSTORE}" \
                    -alias "${CERT_ALIAS}" \
                    -file "${CERT_FILE}" \
-                   -keystore "${KEYSTORE}" \
                    -storepass "${KEYSTORE_PASSWORD}" \
                    -noprompt &>/dev/null; then
             success "Certificate imported successfully"
@@ -139,11 +149,7 @@ function print_summary() {
         echo "The Cloudflare WARP certificate has been imported into your"
         echo "Java keystores. You can now build Android apps with WARP enabled."
         echo
-        info "Note: Gradle daemon will automatically use the updated certificates when it restarts on your next build."
-        echo
-        echo "To verify the certificate was imported, run:"
-        echo "  keytool -list -keystore \$JAVA_HOME/lib/security/cacerts \\"
-        echo "    -storepass changeit -alias ${CERT_ALIAS}"
+        info "Gradle daemon will automatically use the updated certificates when it restarts on your next build."
         exit 0
     else
         error "No certificates were imported successfully"
