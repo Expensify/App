@@ -139,7 +139,7 @@ function generateArchivedReportName(reportName: string): string {
 const buildReportNameFromParticipantNames = ({report, personalDetailsList: personalDetailsData}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((id) => id !== report?.ownerAccountID)
+        .filter((id) => id !== currentUserAccountID)
         .slice(0, 5)
         .map((accountID) => ({
             accountID,
@@ -278,10 +278,16 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumber(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? undefined));
+        const personalDetail = invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID];
+        return formatPhoneNumber(getDisplayNameOrDefault(personalDetail ?? undefined));
     }
 
-    return getPolicyName({report, policy: invoiceReceiverPolicy});
+    let policyToUse = invoiceReceiverPolicy;
+    if (!policyToUse && invoiceReceiver?.policyID) {
+        policyToUse = getPolicy(invoiceReceiver.policyID);
+    }
+
+    return getPolicyName({report, policy: policyToUse});
 }
 
 /**
