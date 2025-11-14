@@ -88,7 +88,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RecentlyUsedCategories} from '@src/types/onyx';
+import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
@@ -269,6 +269,8 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
@@ -521,8 +523,9 @@ function IOURequestStepConfirmation({
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
-            const optimisticIOUReportID = generateReportID();
             const optimisticReportPreviewActionID = rand64();
+
+            let existingIOUReport: Report | undefined;
 
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
@@ -535,11 +538,11 @@ function IOURequestStepConfirmation({
                     completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
                 }
 
-                requestMoneyIOUActions({
+                const {iouReport} = requestMoneyIOUActions({
                     report,
+                    existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
-                    optimisticIOUReportID,
                     optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -581,7 +584,9 @@ function IOURequestStepConfirmation({
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
                     backToReport,
+                    isASAPSubmitBetaEnabled,
                 });
+                existingIOUReport = iouReport;
             });
         },
         [
@@ -603,6 +608,7 @@ function IOURequestStepConfirmation({
             backToReport,
             viewTourTaskReport,
             viewTourTaskParentReport,
+            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
         ],
     );
@@ -644,9 +650,20 @@ function IOURequestStepConfirmation({
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
+                isASAPSubmitBetaEnabled,
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
+        [
+            report,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            recentlyUsedDestinations,
+            isASAPSubmitBetaEnabled,
+        ],
     );
 
     const trackExpense = useCallback(
@@ -703,6 +720,7 @@ function IOURequestStepConfirmation({
                         accountant: item.accountant,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    isASAPSubmitBetaEnabled,
                 });
             });
         },
@@ -722,6 +740,7 @@ function IOURequestStepConfirmation({
             isDraftPolicy,
             isManualDistanceRequest,
             archivedReportsIdSet,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
@@ -763,6 +782,7 @@ function IOURequestStepConfirmation({
                     receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 },
                 backToReport,
+                isASAPSubmitBetaEnabled,
             });
         },
         [
@@ -781,6 +801,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             receiptFiles,
             backToReport,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
@@ -874,6 +895,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 return;
@@ -900,6 +922,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 return;
@@ -1037,6 +1060,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             existingInvoiceReport,
             isUnreported,
+            isASAPSubmitBetaEnabled,
         ],
     );
 
