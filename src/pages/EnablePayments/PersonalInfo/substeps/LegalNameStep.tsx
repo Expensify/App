@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,10 +14,13 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
 
-    const defaultValues = {
-        firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
-        lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
-    };
+    const defaultValues = useMemo(
+        () => ({
+            firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
+            lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
+        }),
+        [walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME], walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME]],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
