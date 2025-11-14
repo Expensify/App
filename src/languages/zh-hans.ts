@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6006,6 +6007,30 @@ ${merchant}的${amount} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `将税项 "${oldValue}" 重命名为 "${newValue}"`;
+                }
+                case 'code': {
+                    return `将税项 "${taxName}" 的代码从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'rate': {
+                    return `将税项 "${taxName}" 的税率从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7213,7 +7238,7 @@ ${merchant}的${amount} - ${date}`,
         },
         modal: {
             title: '试用我们吧',
-            description: '快速浏览产品，迅速上手。无需中途停留！',
+            description: '进行一次简短的产品导览，快速上手。',
             confirmText: '开始试用',
             helpText: 'Skip',
             employee: {

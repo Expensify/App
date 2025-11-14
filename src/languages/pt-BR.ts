@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6145,6 +6146,30 @@ ${amount} para ${merchant} - ${date}`,
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `renomeou o imposto de "${oldValue}" para "${newValue}"`;
+                }
+                case 'code': {
+                    return `alterou o código do imposto "${taxName}" de "${oldValue}" para "${newValue}"`;
+                }
+                case 'rate': {
+                    return `alterou a taxa do imposto "${taxName}" de "${oldValue}" para "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'desativou' : 'ativou'} o imposto "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7376,7 +7401,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         modal: {
             title: 'Faça um test drive conosco',
-            description: 'Faça um rápido tour pelo produto para se atualizar rapidamente. Sem paradas necessárias!',
+            description: 'Faça um tour rápido pelo produto para começar rapidamente.',
             confirmText: 'Iniciar test drive',
             helpText: 'Pular',
             employee: {

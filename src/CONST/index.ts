@@ -708,7 +708,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        PAYMENT_BUTTONS: 'paymentButtons',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
     },
     BUTTON_STATES: {
@@ -1269,6 +1268,9 @@ const CONST = {
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    ADD_TAX: 'POLICYCHANGELOG_ADD_TAX',
+                    DELETE_TAX: 'POLICYCHANGELOG_DELETE_TAX',
+                    UPDATE_TAX: 'POLICYCHANGELOG_UPDATE_TAX',
                     DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
@@ -1651,6 +1653,7 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
+        SPAN_APP_STARTUP: 'ManualAppStartup',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3351,6 +3354,7 @@ const CONST = {
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
         },
+        FEED_KEY_SEPARATOR: '#',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',

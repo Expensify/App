@@ -36,6 +36,6 @@ function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModal
         />
     );
 }
-ShareDetailsAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
+ShareDetailsAttachmentModalContent.displayName = 'ShareDetailsAttachmentModalContent';
 
 export default ShareDetailsAttachmentModalContent;

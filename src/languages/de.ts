@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6148,6 +6149,30 @@ ${amount} für ${merchant} - ${date}`,
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" hinzugefügt`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" entfernt`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `hat die Steuer "${oldValue}" in "${newValue}" umbenannt`;
+                }
+                case 'code': {
+                    return `hat den Steuercode für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'rate': {
+                    return `hat den Steuersatz für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `hat die Steuer "${taxName}" deaktiviert` : `hat die Steuer "${taxName}" aktiviert`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7387,8 +7412,8 @@ ${amount} für ${merchant} - ${date}`,
         },
         modal: {
             title: 'Probieren Sie uns aus',
-            description: 'Machen Sie eine schnelle Produkttour, um schnell auf den neuesten Stand zu kommen. Keine Zwischenstopps erforderlich!',
-            confirmText: 'Testfahrt starten',
+            description: 'Machen Sie eine kurze Tour durch das Produkt, um schnell auf den neuesten Stand zu kommen.',
+            confirmText: 'Testversion starten',
             helpText: 'Überspringen',
             employee: {
                 description:

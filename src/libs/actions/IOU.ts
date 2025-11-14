@@ -482,6 +482,7 @@ type PerDiemExpenseInformationParams = {
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     gpsPoint?: GPSPoint;
@@ -501,6 +502,7 @@ type RequestMoneyInformation = {
 
 type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -3383,6 +3385,7 @@ function getSendInvoiceInformation(
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
     const {
         parentChatReport,
+        existingIOUReport,
         transactionParams,
         participantParams,
         policyParams = {},
@@ -3454,10 +3457,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         });
     }
 
-    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // STEP 2: Get the Expense/IOU report. If the existingIOUReport or moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
-    if (moneyRequestReportID) {
+    if (existingIOUReport) {
+        iouReport = existingIOUReport;
+    } else if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
@@ -5868,9 +5873,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
     const {
         report,
+        existingIOUReport,
         participantParams,
         policyParams = {},
         transactionParams,
@@ -5957,6 +5963,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         onyxData,
     } = getMoneyRequestInformation({
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        existingIOUReport,
         participantParams,
         policyParams,
         transactionParams,
@@ -5982,7 +5989,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
-                return;
+                return {};
             }
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
@@ -6102,6 +6109,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
         );
     }
+
+    return {iouReport};
 }
 
 /**
@@ -8011,10 +8020,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
-    const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric as ReceiptSource,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
-    };
+    const optimisticReceipt: Receipt | undefined = !isManualDistanceRequest
+        ? {
+              source: ReceiptGeneric as ReceiptSource,
+              state: CONST.IOU.RECEIPT_STATE.OPEN,
+          }
+        : receipt;
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
@@ -8107,7 +8118,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 comment,
                 created,
                 merchant,
-                receipt: receipt ?? optimisticReceipt,
+                receipt: optimisticReceipt,
                 category,
                 tag,
                 taxCode,
