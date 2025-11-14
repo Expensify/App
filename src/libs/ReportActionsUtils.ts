@@ -32,7 +32,7 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -151,6 +151,10 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction) || isActionableCardFraudAlert(reportAction)) {
+        return false;
+    }
+
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return false;
     }
 
@@ -842,8 +846,7 @@ function isActionableWhisper(
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-// eslint-disable-next-line unicorn/prefer-set-has
-const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)]);
 
 /**
  * Checks whether an action is actionable track expense and resolved.
@@ -878,7 +881,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Filter out any unsupported reportAction types
-    if (!supportedActionTypes.includes(reportAction.actionName)) {
+    if (!supportedActionTypes.has(reportAction.actionName)) {
         return false;
     }
 
@@ -3116,13 +3119,7 @@ function isCardIssuedAction(
 }
 
 function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    const missingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        isEmptyObject(privatePersonalDetails?.addresses) ||
-        privatePersonalDetails.addresses.length === 0;
+    const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
 }

@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -826,7 +827,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
+            title: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihre Team.',
             subtitleText: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
     },
@@ -1131,6 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
         addSplit: 'Split hinzufügen',
+        makeSplitsEven: 'Aufteilungen angleichen',
         editSplits: 'Splits bearbeiten',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} höher als die ursprüngliche Ausgabe.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} weniger als die ursprüngliche Ausgabe.`,
@@ -1413,11 +1415,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Nur bezahlen',
         approveOnly: 'Nur genehmigen',
-        holdEducationalTitle: 'Diese Anfrage ist an',
-        holdEducationalText: 'halten',
-        whatIsHoldExplain: 'Halten ist wie das Drücken der „Pause“-Taste bei einer Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
-        holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden nach Genehmigung oder Zahlung in einen anderen Bericht verschoben.',
-        unholdWhenReady: 'Genehmiger können Ausgaben freigeben, wenn sie zur Genehmigung oder Zahlung bereit sind.',
+        holdEducationalTitle: 'Sollten Sie diese Ausgabe zurückhalten?',
+        whatIsHoldExplain: 'Zurückhalten bedeutet, dass Sie eine Ausgabe sozusagen „pausieren”, bis Sie bereit sind, sie einzureichen.',
+        holdIsLeftBehind: 'Zurückgehaltene Ausgaben bleiben auch dann zurück, wenn Sie einen gesamten Bericht einreichen.',
+        unholdWhenReady: 'Heben Sie die Zurückhaltung von Ausgaben auf, wenn Sie bereit sind, sie einzureichen.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfen Sie diese Punkte, die sich beim Verschieben von Berichten in einen neuen Arbeitsbereich ändern können.',
@@ -1598,12 +1599,11 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Suchen, um Optionen zu sehen',
     },
     contacts: {
-        contactMethod: 'Kontaktmethode',
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
-        helpTextBeforeEmail: 'Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an',
-        helpTextAfterEmail: 'oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).',
+        helpText: ({email}: {email: string}) =>
+            `Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an <copy-text text="${email}"/> oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).`,
         pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode',
         getInTouch: 'Wann immer wir mit Ihnen in Kontakt treten müssen, werden wir diese Kontaktmethode verwenden.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
@@ -4186,6 +4186,8 @@ ${amount} für ${merchant} - ${date}`,
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Wenn Sie die Exporteinstellung für Firmenkarten auf Spesenabrechnungen umstellen, werden NetSuite-Lieferanten und Buchungskonten für einzelne Karten deaktiviert.\n\nKeine Sorge, wir speichern Ihre vorherigen Auswahlen trotzdem, falls Sie später wieder wechseln möchten.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify wird jeden Tag automatisch mit NetSuite synchronisiert.',
@@ -6736,9 +6738,9 @@ ${amount} für ${merchant} - ${date}`,
             body: 'Möchten Sie, dass Ihre Freunde auch Expensify nutzen? Starten Sie einfach einen Chat mit ihnen und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihren Chef</strong></success>.',
-            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihren Chef.',
-            body: 'Möchten Sie, dass Ihr Chef auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
+            buttonText: 'Reichen Sie eine Ausgabe ein, <success><strong>empfehlen Sie Ihr Team</strong></success>.',
+            header: 'Reichen Sie eine Ausgabe ein, verweisen Sie auf Ihr Team.',
+            body: 'Möchten Sie, dass Ihr Team auch Expensify nutzt? Reichen Sie einfach eine Ausgabe bei ihnen ein und wir kümmern uns um den Rest.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Einen Freund empfehlen',
@@ -6807,33 +6809,45 @@ ${amount} für ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Verbotene Ausgabe:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} Alkohol`;
-                case 'gambling':
-                    return `${preMessage} Glücksspiel`;
-                case 'tobacco':
-                    return `${preMessage} Tabak`;
-                case 'adultEntertainment':
-                    return `${preMessage} Erwachsenenunterhaltung`;
-                case 'hotelIncidentals':
-                    return `${preMessage} Hotelnebenkosten`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Verbotene Ausgaben:';
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `Alkohol`;
+                    case 'gambling':
+                        return `Glücksspiel`;
+                    case 'tobacco':
+                        return `Tabak`;
+                    case 'adultEntertainment':
+                        return `Erwachsenenunterhaltung`;
+                    case 'hotelIncidentals':
+                        return `Hotelnebenkosten`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
-                    : 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
+                    ? `Bankverbindung unterbrochen. <a href="${companyCardPageURL}">Jetzt wieder verbinden, um den Beleg zuzuordnen</a>`
+                    : 'Bankverbindung unterbrochen. Bitte einen Admin bitten, sie wieder zu verbinden, um den Beleg zuzuordnen.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
@@ -7408,6 +7422,109 @@ ${amount} für ${merchant} - ${date}`,
         subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und untersuchen das Problem. Wenn das weiterhin besteht, wenden Sie sich bitte an`,
         refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
     },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warte darauf, dass <strong>du</strong> Ausgaben hinzufügst.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> Ausgaben hinzufügt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten auf einen Admin, der Ausgaben hinzufügt.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Keine weiteren Maßnahmen erforderlich!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Es wird darauf gewartet, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> ein Bankkonto hinzufügt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten, bis ein Admin ein Bankkonto hinzufügt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta}` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warten, bis <strong>Ihre</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten auf die automatische Einreichung der Ausgaben von <strong>${actor}</strong>${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass die Ausgaben eines Administrators automatisch eingereicht werden${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warten darauf, dass <strong>Sie</strong> die Problem(e) beheben.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten auf <strong>${actor}</strong>, um das/die Problem(e) zu beheben.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten auf einen Admin, um das/die Problem(e) zu beheben.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Es wird darauf gewartet, dass <strong>du</strong> Ausgaben genehmigst.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Admin die Ausgaben genehmigt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warten darauf, dass <strong>Sie</strong> Ausgaben begleichen.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> die Ausgaben bezahlt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten, bis ein Administrator die Ausgaben bezahlt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warten darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Firmenbankkontos abschließt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Admin die Einrichtung eines Firmenbankkontos abschließt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
+                }
+                return `Warten auf Abschluss der Zahlung${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'in Kürze',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'später heute',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'am Sonntag',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'am 1. und 16. jedes Monats',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'am letzten Werktag des Monats',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'am letzten Tag des Monats',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'am Ende Ihrer Reise',
+        },
+    },
     domain: {
         notVerified: 'Nicht verifiziert',
         retry: 'Erneut versuchen',
@@ -7429,6 +7546,16 @@ ${amount} für ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Die Domain <strong>${domainName}</strong> wurde erfolgreich verifiziert und Sie können jetzt SAML und andere Sicherheitsfunktionen einrichten.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML-Einmalanmeldung (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> ist eine Sicherheitsfunktion, die Ihnen mehr Kontrolle darüber gibt, wie sich Mitglieder mit E-Mail-Adressen unter <strong>${domainName}</strong> bei Expensify anmelden. Um sie zu aktivieren, müssen Sie sich als autorisierte/r Unternehmensadministrator/in verifizieren.</muted-text>`,
+            fasterAndEasierLogin: 'Schnelleres und einfacheres Anmelden',
+            moreSecurityAndControl: 'Mehr Sicherheit und Kontrolle',
+            onePasswordForAnything: 'Ein Passwort für alles',
+        },
+        goToDomain: 'Zur Domain wechseln',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

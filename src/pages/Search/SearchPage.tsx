@@ -437,6 +437,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowSubmitOption =
             !isOffline &&
+            areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
@@ -653,7 +654,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, currentSearchResults);
             clearSelectedTransactions();
         });
     };
@@ -666,6 +667,7 @@ function SearchPage({route}: SearchPageProps) {
             report: newReport,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
