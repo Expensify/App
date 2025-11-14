@@ -1,9 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -151,6 +152,17 @@ function SearchPageNarrow({
         }
     }, []);
 
+    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    useEffect(() => {
+        if (!searchRouterListVisible) {
+            return;
+        }
+
+        addRouteKey(route.key);
+
+        return () => removeRouteKey(route.key);
+    }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
+
     if (!queryJSON) {
         return (
             <ScreenWrapper
@@ -258,7 +270,7 @@ function SearchPageNarrow({
                         />
                     </View>
                 )}
-                {shouldShowFooter && (
+                {shouldShowFooter && !searchRouterListVisible && (
                     <SearchPageFooter
                         count={footerData.count}
                         total={footerData.total}
