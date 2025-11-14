@@ -298,6 +298,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportActions: unfilteredReportActions,
         linkedAction,
         sortedAllReportActions,
+        oldestUnreadReportAction,
         hasNewerActions,
         hasOlderActions,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToOldestUnreadReportAction: true});
@@ -885,9 +886,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
 
+    const isLinkedMessagePageLoading = !!reportActionIDFromRoute && !linkedAction;
+    const isUnreadMessagePageLoading = !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction;
+
+    const shouldWaitForOpenReportResult = isLinkedMessagePageLoading || isUnreadMessagePageLoading;
+
+    // console.log({isLinkedMessageLoading: isLinkedMessagePageLoading, isUnreadMessageLoading: isUnreadMessagePageLoading, shouldWaitForOpenReportResult});
+
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1);
+    const isInitiallyLoadingReport = (isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1)) || shouldWaitForOpenReportResult;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
