@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1595,7 +1596,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'オプションを表示するために検索',
     },
     contacts: {
-        contactMethod: '連絡方法',
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
@@ -6101,6 +6101,30 @@ ${date} - ${merchant}に${amount}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `税 "${oldValue}" の名前を "${newValue}" に変更しました`;
+                }
+                case 'code': {
+                    return `税 "${taxName}" のコードを "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'rate': {
+                    return `税 "${taxName}" の税率を "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `税 "${taxName}" を無効にしました` : `税 "${taxName}" を有効にしました`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7331,7 +7355,7 @@ ${date} - ${merchant}に${amount}`,
         },
         modal: {
             title: '私たちを試してみてください',
-            description: '製品ツアーをすばやく見て、すぐに追いつきましょう。途中で止まる必要はありません！',
+            description: '短いプロダクトツアーで、すぐに使い方を把握しましょう。',
             confirmText: 'テストドライブを開始',
             helpText: 'Skip',
             employee: {
@@ -7490,6 +7514,16 @@ ${date} - ${merchant}に${amount}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML シングルサインオン (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> は、<strong>${domainName}</strong> のメールアドレスを持つメンバーのExpensifyへのログイン方法をより細かく管理できるセキュリティ機能です。有効にするには、権限のある会社の管理者であることを確認する必要があります。</muted-text>`,
+            fasterAndEasierLogin: 'より速く、より簡単なログイン',
+            moreSecurityAndControl: 'さらなるセキュリティと管理',
+            onePasswordForAnything: 'すべてを1つのパスワードで',
+        },
+        goToDomain: 'ドメインに移動',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
