@@ -1654,6 +1654,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
+        ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_ROUTE_FROM: 'route_from',
+        ATTRIBUTE_ROUTE_TO: 'route_to',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

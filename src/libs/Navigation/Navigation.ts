@@ -34,6 +34,7 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import {Str} from 'expensify-common';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -207,6 +208,8 @@ function navigate(route: Route, options?: LinkToOptions) {
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
                 attributes: {
                     reportID,
+                    [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+                    [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route,'?')
                 },
             });
         }
