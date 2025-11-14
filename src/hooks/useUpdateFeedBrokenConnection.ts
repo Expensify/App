@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getDomainOrWorkspaceAccountID, getFeedConnectionBrokenCard, getOriginalFeed} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getFeedConnectionBrokenCard} from '@libs/CardUtils';
 import {updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -23,7 +23,7 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
         if (!brokenCardId || !feed) {
             return;
         }
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, getOriginalFeed(feed), brokenCard?.lastScrapeResult);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, getCompanyCardFeed(feed), brokenCard?.lastScrapeResult);
     }, [brokenCard?.lastScrapeResult, brokenCardId, domainOrWorkspaceAccountID, feed]);
 
     return {updateBrokenConnection, isFeedConnectionBroken};

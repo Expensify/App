@@ -23,7 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getOriginalFeed, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,7 +48,7 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank) as CompanyCardFeedWithDomainID;
-    const originalFeed = getOriginalFeed(bank);
+    const feed = getCompanyCardFeed(bank);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
@@ -81,13 +81,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
-            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, originalFeed, card);
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, feed, card);
         }
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, originalFeed, card?.lastScrapeResult);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, feed, card?.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     <MenuItemWithTopDescription
                         numberOfLinesTitle={3}
                         description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', originalFeed, true)}
+                        title={maskCardNumber(card?.cardName ?? '', feed, true)}
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
@@ -163,7 +163,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, 'cardTitle')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, 'cardTitle')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -182,7 +182,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 if (!exportMenuItem.exportType) {
                                     return;
                                 }
-                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, exportMenuItem.exportType);
+                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, exportMenuItem.exportType);
                             }}
                         >
                             <MenuItemWithTopDescription
@@ -221,7 +221,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.pendingFields?.lastScrape}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, originalFeed, 'lastScrape', true)}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, 'lastScrape', true)}
                     >
                         <MenuItem
                             icon={Expensicons.Sync}

@@ -14,10 +14,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
+    getCompanyCardFeed,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
-    getOriginalFeed,
     getPlaidCountry,
     getPlaidInstitutionId,
     getSelectedFeed,
@@ -59,7 +59,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const originalFeed = selectedFeed ? getOriginalFeed(selectedFeed) : undefined;
+    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const [cardsList] = useCardsList(selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -96,12 +96,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [fetchCompanyCards]);
 
     useEffect(() => {
-        if (isLoading || !originalFeed || isPending) {
+        if (isLoading || !feed || isPending) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, originalFeed);
-    }, [originalFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, feed);
+    }, [feed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
@@ -122,7 +122,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         const data: Partial<AssignCardData> = {
-            bankName: originalFeed,
+            bankName: feed,
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;

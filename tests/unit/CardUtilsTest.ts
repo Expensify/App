@@ -25,7 +25,7 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
-    getOriginalFeed,
+    getCompanyCardFeed,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
@@ -1291,11 +1291,11 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('getOriginalFeed', () => {
+    describe('getCompanyCardFeed', () => {
         it('should extract the original feed from a combined feed key', () => {
             const combinedKey: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
-            const originalFeed = getOriginalFeed(combinedKey);
-            expect(originalFeed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
+            const feed = getCompanyCardFeed(combinedKey);
+            expect(feed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
         });
     });
 

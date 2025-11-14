@@ -628,7 +628,7 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
             .filter((str) => str.includes(feedKey))
-            .map((str) => getOriginalFeed(str as CompanyCardFeedWithDomainID));
+            .map((str) => getCompanyCardFeed(str as CompanyCardFeedWithDomainID));
 
         const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
         feedNumbers.sort((a, b) => a - b);
@@ -736,8 +736,8 @@ function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined
 }
 
 /** Extract feed from feed with domainID */
-function getOriginalFeed(feedKey: CompanyCardFeedWithDomainID): CompanyCardFeed {
-    const [feed] = feedKey.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+function getCompanyCardFeed(feedWithDomainID: CompanyCardFeedWithDomainID): CompanyCardFeed {
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
     return feed as CompanyCardFeed;
 }
 
@@ -795,7 +795,7 @@ export {
     getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     getOriginalCompanyFeeds,
-    getOriginalFeed,
+    getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
 };

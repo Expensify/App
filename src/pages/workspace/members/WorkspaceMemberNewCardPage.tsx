@@ -17,11 +17,11 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getCardFeedIcon,
+    getCompanyCardFeed,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
-    getOriginalFeed,
     getPlaidInstitutionIconUrl,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -104,7 +104,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         } else {
             const data: Partial<AssignCardData> = {
                 email: memberLogin,
-                bankName: getOriginalFeed(selectedFeed as CompanyCardFeedWithDomainID),
+                bankName: getCompanyCardFeed(selectedFeed as CompanyCardFeedWithDomainID),
                 cardName: `${memberName}'s card`,
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
