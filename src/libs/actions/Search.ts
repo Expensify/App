@@ -680,6 +680,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const optimisticData: OnyxUpdate[] = [
+            ...loadingOptimisticData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
