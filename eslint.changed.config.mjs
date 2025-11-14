@@ -48,6 +48,13 @@ const config = defineConfig([
                     message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
                 },
             ],
+        },
+    },
+
+    {
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['**/libs/**/*.{ts,tsx}'],
+        rules: {
             'no-restricted-imports': [
                 'error',
                 {
@@ -58,13 +65,6 @@ const config = defineConfig([
         },
     },
 
-    // Allow direct icon imports (from Expensicons and Illustrations) in lib files
-    {
-        files: ['**/libs/**/*.{ts,tsx}'],
-        rules: {
-            'no-restricted-imports': 'off',
-        },
-    },
 
     {
         files: ['**/libs/**/*.{ts,tsx}'],
