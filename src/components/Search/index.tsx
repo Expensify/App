@@ -64,6 +64,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -257,6 +258,7 @@ function Search({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -405,9 +407,21 @@ function Search({
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, email ?? '', formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections({
+            type,
+            data: searchResults.data,
+            currentAccountID: accountID,
+            currentUserEmail: email ?? '',
+            formatPhoneNumber,
+            groupBy: validGroupBy,
+            reportActions: exportReportActions,
+            currentSearch: searchKey,
+            archivedReportsIDList: archivedReportsIdSet,
+            queryJSON,
+            isActionLoadingSet,
+        });
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email]);
+    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -719,7 +733,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [accountID, searchResults?.data, searchResults?.search?.type]);
@@ -897,10 +911,10 @@ function Search({
         navigation.setParams({q: newQuery});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
 
     return (

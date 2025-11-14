@@ -2945,7 +2945,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: iouAction,
                 isASAPSubmitBetaEnabled: false,
             });
@@ -3048,7 +3047,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
             });
@@ -3164,7 +3162,6 @@ describe('actions/IOU', () => {
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
-                chatReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
             });
@@ -8000,7 +7997,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                 });
@@ -8144,7 +8140,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                 });
@@ -8302,7 +8297,6 @@ describe('actions/IOU', () => {
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
                     iouReport: expenseReport,
-                    chatReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                 });
