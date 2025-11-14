@@ -61,7 +61,6 @@ function is_cloudflare_cert_imported() {
 }
 
 function stop_gradle_daemons() {
-    title "Step 1: Stopping Gradle daemons"
     if pgrep -f "GradleDaemon" &>/dev/null; then
         pkill -f "GradleDaemon" &>/dev/null || true
         success "Gradle daemons stopped"
@@ -71,8 +70,6 @@ function stop_gradle_daemons() {
 }
 
 function find_java_installations() {
-    title "Step 2: Finding all Java installations"
-
     JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk '{print $NF}')
 
     if [[ -z "${JAVA_HOMES}" ]]; then
@@ -86,8 +83,6 @@ function find_java_installations() {
 }
 
 function import_certificates() {
-    title "Step 3: Importing certificate into Java keystores"
-
     while IFS= read -r JAVA_HOME_PATH; do
         if [[ -z "${JAVA_HOME_PATH}" ]]; then
             continue
@@ -132,8 +127,7 @@ function import_certificates() {
 }
 
 function print_summary() {
-    title "Summary"
-
+    echo
     success "Successfully imported: ${SUCCESS_COUNT}"
     if [[ "${FAIL_COUNT}" -gt 0 ]]; then
         error "Failed: ${FAIL_COUNT}"
@@ -177,9 +171,15 @@ function main() {
         exit 1
     fi
 
+    title "Step 1: Stopping Gradle daemons"
     stop_gradle_daemons
+
+    title "Step 2: Finding all Java installations"
     find_java_installations
+
+    title "Step 3: Importing certificate into Java keystores"
     import_certificates
+
     print_summary
 }
 
