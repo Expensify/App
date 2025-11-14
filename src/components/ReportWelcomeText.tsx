@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {
-    getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportName,
@@ -66,12 +65,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSystemChat = isSystemChatReportUtils(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
-        isMultipleParticipant,
-        localeCompare,
-    );
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report});
 
