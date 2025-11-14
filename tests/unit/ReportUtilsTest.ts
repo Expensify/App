@@ -2345,6 +2345,33 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
         });
+
+        it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
+            // Given a policy with reimbursement enabled
+            const policyID = '1';
+            // And an expense report that is already approved
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                policyID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                id: policyID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            });
+            await waitForBatchedUpdates();
+
+            // When we evaluate if the report requires attention from the current user
+            const requiresAttention = requiresAttentionFromCurrentUser(report);
+
+            // Then it should return false because the report is already approved and reimbursement is enabled
+            expect(requiresAttention).toBe(false);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
