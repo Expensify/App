@@ -53,6 +53,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const isPending = !!selectedFeedData?.pending;
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -79,9 +80,10 @@ function WorkspaceCompanyCardsSettingsPage({
         if (selectedFeed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
-            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
-                .filter((feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                .at(0);
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).find(
+                (feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, selectedFeed, cardIDs, feedToOpen);
             });
@@ -141,6 +143,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
+                                disabled={isPending}
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>

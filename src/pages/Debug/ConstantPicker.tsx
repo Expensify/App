@@ -1,8 +1,8 @@
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {DebugForms} from './const';
@@ -51,7 +51,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                 }),
         [fieldName, fieldValue, formType, searchValue],
     );
-    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => sections.find((option) => option.searchText === fieldValue)?.keyForList, [sections, fieldValue]);
 
     return (
         <SelectionList

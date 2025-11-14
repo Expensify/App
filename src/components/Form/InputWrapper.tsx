@@ -6,12 +6,13 @@ import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
-type TextInputBasedComponents = [ComponentType<BaseTextInputProps>, ComponentType<RoomNameInputProps>];
+type TextInputBasedComponents = Set<ComponentType<BaseTextInputProps> | ComponentType<RoomNameInputProps>>;
 
-const textInputBasedComponents: TextInputBasedComponents = [TextInput, RoomNameInput];
+const textInputBasedComponents: TextInputBasedComponents = new Set([TextInput, RoomNameInput]);
 
 type ComputedComponentSpecificRegistrationParams = {
     shouldSubmitForm: boolean;
@@ -26,7 +27,7 @@ function computeComponentSpecificRegistrationParams({
     autoGrowHeight,
     blurOnSubmit,
 }: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
-    if (textInputBasedComponents.includes(InputComponent)) {
+    if (textInputBasedComponents.has(InputComponent)) {
         const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
@@ -59,7 +60,8 @@ function computeComponentSpecificRegistrationParams({
 }
 
 type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
-    InputComponentValueProps<TValue> & {
+    InputComponentValueProps<TValue> &
+    ForwardedFSClassProps & {
         InputComponent: TInput;
         inputID: string;
         isFocused?: boolean;

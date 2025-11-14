@@ -78,6 +78,7 @@ function addNewCompanyCardsFeed(
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
@@ -121,6 +122,7 @@ function addNewCompanyCardsFeed(
     ];
 
     const successData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
@@ -320,7 +322,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID);
 
@@ -448,7 +450,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
+function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -458,6 +460,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             value: {
                 [cardID]: {
                     isLoadingLastUpdated: true,
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     pendingFields: {
                         lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -472,6 +475,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: true,
                     pendingFields: {
                         lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -490,6 +494,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -502,6 +507,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -517,6 +523,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
+                    lastScrapeResult,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -532,6 +539,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,

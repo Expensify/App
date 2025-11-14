@@ -91,7 +91,7 @@ Connect your Expensify Workspace to NetSuite to streamline expense syncing, repo
 
 1. Go to **Customization > Forms > Transaction Forms**
 2. Edit the **Standard Expense Report** form:
-   - Under **Main** tab: 
+   - Under **Main** tab:
      - **Created From** should be shown
    - Under **Expenses** subtab:
      - **Receipt URL** should be shown
@@ -129,8 +129,8 @@ Connect your Expensify Workspace to NetSuite to streamline expense syncing, repo
 
 **Things to note about tax:**
 
-- Expensify supports **Tax Groups**, not individual Tax Codes  
-- Set **Tax Code Lists Include** to “Tax Groups And Tax Codes” or “Tax Groups Only” under **Setup > Accounting > Set Up Taxes**  
+- Expensify supports Tax Groups, not individual Tax Codes (except when using SuiteTax)
+- Set **Tax Code Lists Include** to “Tax Groups And Tax Codes” or “Tax Groups Only” under **Setup > Accounting > Set Up Taxes**
 - UK and Ireland: ensure each Tax Group contains only one Tax Code
 
 To create a Tax Group:
@@ -145,11 +145,12 @@ To create a Tax Group:
 
 # Step 12: Connect Expensify to NetSuite
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Connect** next to **NetSuite**
 3. Click **Next** through setup steps 1–4
 4. On **Step 5**, enter:
    - **NetSuite Account ID**
+   - Note: If connecting to a Sandbox environment, in the Account ID, ensure the "s" and "b" are always capitalized and the hyphen "-" is replaced by an underscore "_". So "123456-sb1" would be "123456_SB1".
    - **Token ID**
    - **Token Secret**
 5. Click **Confirm**
@@ -166,7 +167,7 @@ You can find your **Account ID** in NetSuite under **Setup > Integration > Web S
 
 - The NetSuite connection syncs within 1–2 minutes
 - Newly approved and paid reports will export to NetSuite via SOAP Web Services
-- Continue with configuring settings by visiting:  
+- Continue with configuring settings by visiting:
   [Configure NetSuite in Expensify](https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite)
 
 ---

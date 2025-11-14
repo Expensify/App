@@ -34,4 +34,5 @@ Which action do you wish to take for this team member (select one):
 
 ### Ring0 Tasks
 
-- [ ] Add to / remove from the appropriate GitHub child team of [external-expert-contributors](https://github.com/orgs/Expensify/teams/external-expert-contributors/teams) (each agency must have its own child team)
+- [ ] If adding, add to the appropriate GitHub child team of [external-expert-contributors](https://github.com/orgs/Expensify/teams/external-expert-contributors/teams) (each agency must have its own child team)
+- [ ] If removing, remove from our organization [here](https://github.com/orgs/Expensify/people)

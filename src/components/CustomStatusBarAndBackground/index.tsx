@@ -1,3 +1,4 @@
+import {isClosingReactNativeAppSelector} from '@selectors/HybridApp';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +22,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
-    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.closingReactNativeApp, canBeMissing: true});
+    const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isClosingReactNativeAppSelector, canBeMissing: true});
 
     // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
     // preventing unexpected status bar blinking during the transition

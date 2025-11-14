@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -85,17 +85,17 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
-            const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
+            if (acceptedFileTypes.every((element) => !filesExtensions.has(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
         }
 
-        const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
+        const uploadedFilesNames = new Set(uploadedFiles.map((uploadedFile) => uploadedFile.name));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));
+        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
 
         onInputChange(newFilesToUpload);
         onUpload(newFilesToUpload);

@@ -1,9 +1,11 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -11,6 +13,7 @@ import {
 } from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
@@ -91,6 +94,7 @@ Onyx.connectWithoutView({
 });
 
 function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
@@ -173,6 +177,13 @@ function process(): Promise<void> {
                 sequentialQueueRequestThrottle.clear();
                 return process();
             }
+            // For rate limiting errors (429) on ResendValidateCode, don't retry to prevent spam
+            if (error.message === CONST.ERROR.THROTTLED && requestToProcess.command === WRITE_COMMANDS.RESEND_VALIDATE_CODE) {
+                Onyx.update(requestToProcess.failureData ?? []);
+                endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                sequentialQueueRequestThrottle.clear();
+                return process();
+            }
             rollbackOngoingPersistedRequest();
             return sequentialQueueRequestThrottle
                 .sleep(error, requestToProcess.command)
@@ -182,6 +193,9 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
+                    if (requestToProcess.command === WRITE_COMMANDS.OPEN_APP) {
+                        setIsOpenAppFailureModalOpen(true);
+                    }
                     return process();
                 });
         });
@@ -297,8 +311,15 @@ function isPaused(): boolean {
     return isQueuePaused;
 }
 
+function getShouldFailAllRequests(): boolean {
+    return shouldFailAllRequests;
+}
+
 // Flush the queue when the connection resumes
 onReconnection(flush);
+
+// Flush the queue when the persisted requests are initialized
+onPersistedRequestsInitialization(flush);
 
 function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
     if (conflictAction.type === 'push') {
@@ -380,6 +401,7 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
+    getShouldFailAllRequests,
     isPaused,
     isRunning,
     pause,

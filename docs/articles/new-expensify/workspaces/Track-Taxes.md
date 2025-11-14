@@ -15,7 +15,7 @@ Workspaces on the **Collect** and **Control** plans can add tax rates to track V
 
 To enable tax tracking in a workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Spend** section, toggle on **Taxes**.

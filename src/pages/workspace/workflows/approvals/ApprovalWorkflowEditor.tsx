@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
@@ -34,9 +34,12 @@ type ApprovalWorkflowEditorProps = {
 
     /** The policy ID */
     policyID: string;
+
+    /** Forwarded ref to pass to the ScrollView */
+    ref: ForwardedRef<ScrollViewRN>;
 };
 
-function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
+function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
@@ -74,7 +77,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
+            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
             if (!error) {
@@ -198,4 +201,4 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
 ApprovalWorkflowEditor.displayName = 'ApprovalWorkflowEditor';
 
-export default forwardRef(ApprovalWorkflowEditor);
+export default ApprovalWorkflowEditor;

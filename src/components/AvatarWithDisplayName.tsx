@@ -1,6 +1,7 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +18,7 @@ import {
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
     getReportName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
@@ -37,7 +39,7 @@ import type DisplayNamesProps from './DisplayNames/types';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -70,6 +72,15 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** The style of the custom display name text */
+    customDisplayNameStyle?: TextStyle;
+
+    /** The style of the parent navigation subtitle text */
+    parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
+
+    /** The style of the parent navigation status container */
+    parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function getCustomDisplayName(
@@ -159,30 +170,35 @@ function AvatarWithDisplayName({
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
+    customDisplayNameStyle = {},
+    parentNavigationSubtitleTextStyles,
+    parentNavigationStatusContainerStyles = {},
 }: AvatarWithDisplayNameProps) {
     const {localeCompare} = useLocalize();
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
     );
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
-    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
-    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
+    const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -266,7 +282,7 @@ function AvatarWithDisplayName({
                             displayNamesWithTooltips,
                             transactions,
                             shouldUseFullTitle,
-                            [styles.headerText, styles.pre],
+                            [styles.headerText, styles.pre, customDisplayNameStyle],
                             [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
                             isAnonymous,
                             isMoneyRequestOrReport,
@@ -279,6 +295,10 @@ function AvatarWithDisplayName({
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
+                                textStyles={parentNavigationSubtitleTextStyles}
+                                statusTextContainerStyles={parentNavigationStatusContainerStyles}
+                                statusTextColor={reportStatusColorStyle?.textColor}
+                                statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
                             />
                         )}
                         {!!subtitle && (

@@ -13,13 +13,28 @@ Expensify allows you to personalize your experience by customizing your profile,
 You can update the following profile settings:
 
 - **Profile Photo** – Upload or change your photo.
+- **Customized Avatar** – Select an avatar or letter instead of a profile photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Update your account to your preferred language. 
+- **Language** – Update your account to your preferred language.
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings.
 - **Notifications** – Customize how and when you receive email and app notifications.
 - **Personal Information** – Add or update your legal name, birth date, and address.
+
+---
+# Supported Languages
+
+   - English
+   - German (Deutsch)
+   - Spanish (Español)
+   - French (Français)
+   - Italian (Italiano)
+   - Dutch (Nederlands)
+   - Polish (Polski)
+   - Portuguese (Português – Brasil)
+   - Japanese (日本語)
+   - Chinese (中文 (简体))
 
 ---
 
@@ -28,9 +43,18 @@ You can update the following profile settings:
 ## Profile Photo
 
 To upload or update your photo:
-1. In the left-hand menu, click **Account > Profile**.
+1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Select **Upload Image** and choose a new photo.
+
+## Customized Avatar  
+
+To choose an avatar instead of a photo:
+1. In the navigation tabs, click **Account > Profile**.
+2. Click the pencil icon next to your profile image.
+3. Scroll down to **Or choose a custom avatar**.
+4. Select an avatar or letter in your desired colored palette.
+5. Click **Save**.
 
 ## Timezone
 
@@ -39,25 +63,8 @@ To update your timezone:
 2. Click **Timezone** and select the correct time zone from the list.
 
 ## Language
-
-Expensify supports multiple languages, making it easier for members across the globe to use the app in their preferred language.
-
-**You can update your Expensify account to display in any of the following languages:**
-
-- English
-- Español (Spanish)
-- Deutsch (German)
-- Français (French)
-- Italiano (Italian)
-- 日本語 (Japanese)
-- Nederlands (Dutch)
-- Polski (Polish)
-- Português (BR) (Brazilian Portuguese)
-- 中文 (简体) (Simplified Chinese)
-
-**How to change your language setting:**
-
-1. In the left-hand menu, select **Account > Preferences**.
+To change your language:
+1. In the navigation tabs, select **Account > Preferences**.
 2. Tap or click on **Language**.
 3. Choose your preferred language from the list.
 4. The checkmark will confirm the selected language.
@@ -68,7 +75,7 @@ Expensify supports multiple languages, making it easier for members across the g
 ## Notifications
 
 To manage notification settings:
-1. Go to **Account > Preferences**.
+1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
@@ -122,7 +129,7 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify notifications?
-Yes. From the left-hand menu, go to **Account > Preferences** and toggle off both update and sound notifications.
+Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
 
 ## Will theme preferences sync across devices?
 Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.

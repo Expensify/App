@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
-import {mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createExpenseReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -48,6 +48,8 @@ describe('mergeTransactionRequest', () => {
         // - Merge transaction containing the final values to keep
         const targetTransaction = {
             ...createRandomTransaction(1),
+            amount: 100,
+            currency: 'USD',
             transactionID: 'target123',
             merchant: 'Original Merchant',
             category: 'Original Category',
@@ -64,6 +66,8 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
+            amount: 200,
+            currency: 'USD',
             targetTransactionID: 'target123',
             sourceTransactionID: 'source456',
             merchant: 'Updated Merchant',
@@ -82,7 +86,15 @@ describe('mergeTransactionRequest', () => {
 
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -129,7 +141,8 @@ describe('mergeTransactionRequest', () => {
         });
 
         // Verify target transaction is updated with merged values
-        expect(updatedTargetTransaction?.merchant).toBe(mergeTransaction.merchant);
+        expect(updatedTargetTransaction?.modifiedAmount).toBe(mergeTransaction.amount);
+        expect(updatedTargetTransaction?.modifiedMerchant).toBe(mergeTransaction.merchant);
         expect(updatedTargetTransaction?.category).toBe(mergeTransaction.category);
         expect(updatedTargetTransaction?.tag).toBe(mergeTransaction.tag);
         expect(updatedTargetTransaction?.comment?.comment).toBe(mergeTransaction.description);
@@ -192,7 +205,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed but the API will return an error
         mockFetch?.fail?.();
 
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -278,7 +299,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed, which should handle violation updates
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -346,7 +375,15 @@ describe('mergeTransactionRequest', () => {
             mockFetch?.pause?.();
 
             // When: The merge request is executed
-            mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+            });
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -441,6 +478,150 @@ describe('setMergeTransactionKey', () => {
             amount: 1000, // Preserved
             category: 'New Category', // Added
             description: 'New Description', // Added
+        });
+    });
+});
+
+describe('areTransactionsEligibleForMerge', () => {
+    describe('Card Transaction Rules', () => {
+        it('should return false when both transactions are card transactions', () => {
+            // Given two card transactions
+            const cardTransaction1 = {
+                ...createRandomTransaction(0),
+                managedCard: true,
+                amount: 1000,
+            };
+            const cardTransaction2 = {
+                ...createRandomTransaction(1),
+                managedCard: true,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cardTransaction1, cardTransaction2);
+
+            // Then it should return false because both are card transactions
+            expect(result).toBe(false);
+        });
+
+        it('should return true when one is card and one is cash transaction', () => {
+            // Given one card transaction and one cash transaction
+            const cardTransaction = {
+                ...createRandomTransaction(0),
+                managedCard: true,
+                amount: 1000,
+            };
+            const cashTransaction = {
+                ...createRandomTransaction(1),
+                managedCard: false,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cardTransaction, cashTransaction);
+
+            // Then it should return true because one is card and one is cash
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Zero Amount Rules', () => {
+        it('should return false when both transactions have $0 amount', () => {
+            // Given two transactions with $0 amount
+            const zeroTransaction1 = {
+                ...createRandomTransaction(0),
+                amount: 0,
+                managedCard: false,
+            };
+            const zeroTransaction2 = {
+                ...createRandomTransaction(1),
+                amount: 0,
+                managedCard: false,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(zeroTransaction1, zeroTransaction2);
+
+            // Then it should return false because both have $0 amount
+            expect(result).toBe(false);
+        });
+
+        it('should return true when only one transaction has $0 amount', () => {
+            // Given one transaction with $0 amount and one with non-zero amount
+            const zeroTransaction = {
+                ...createRandomTransaction(0),
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                managedCard: false,
+            };
+            const nonZeroTransaction = {
+                ...createRandomTransaction(1),
+                amount: -1000, // Negative amount as stored in database
+                currency: CONST.CURRENCY.USD,
+                managedCard: false,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(zeroTransaction, nonZeroTransaction);
+
+            // Then it should return true because only one has $0 amount
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Distance Request Rules', () => {
+        it('should return false when one is distance request and other is not', () => {
+            // Given one distance request and one regular transaction
+            const distanceTransaction = createRandomDistanceRequestTransaction(0);
+            const regularTransaction = createRandomTransaction(1);
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(distanceTransaction, regularTransaction);
+
+            // Then it should return false because one is distance request and other is not
+            expect(result).toBe(false);
+        });
+
+        it('should return true when both are distance requests with valid amounts', () => {
+            // Given two distance request transactions with non-zero amounts
+            const distanceTransaction1 = {
+                ...createRandomDistanceRequestTransaction(0),
+                amount: 1000,
+                managedCard: false,
+            };
+            const distanceTransaction2 = {
+                ...createRandomDistanceRequestTransaction(1),
+                amount: 2000,
+                managedCard: false,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(distanceTransaction1, distanceTransaction2);
+
+            // Then it should return true because both are distance requests
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Valid Merge Cases', () => {
+        it('should return true when both are cash transactions with non-zero amounts', () => {
+            // Given two cash transactions with non-zero amounts
+            const cashTransaction1 = {
+                ...createRandomTransaction(0),
+                managedCard: false,
+                amount: 1000,
+            };
+            const cashTransaction2 = {
+                ...createRandomTransaction(1),
+                managedCard: false,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cashTransaction1, cashTransaction2);
+
+            // Then it should return true because both are cash transactions with non-zero amounts
+            expect(result).toBe(true);
         });
     });
 });

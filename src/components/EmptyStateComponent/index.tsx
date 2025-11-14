@@ -1,8 +1,9 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {SourceLoadEventPayload} from 'expo-video';
 import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import Text from '@components/Text';
@@ -12,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
-import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
+import type {EmptyStateComponentProps} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
@@ -39,16 +40,14 @@ function EmptyStateComponent({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!event) {
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
             return;
         }
 
-        if ('naturalSize' in event) {
-            setVideoAspectRatio(event.naturalSize.width / event.naturalSize.height);
-        } else {
-            setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
-        }
+        setVideoAspectRatio(track.size.width / track.size.height);
     };
 
     const HeaderComponent = useMemo(() => {
@@ -57,9 +56,8 @@ function EmptyStateComponent({
                 return (
                     <VideoPlayer
                         url={headerMedia}
-                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
-                        videoStyle={styles.emptyStateVideo}
-                        onVideoLoaded={setAspectRatio}
+                        videoPlayerStyle={[headerContentStyles, styles.emptyStateVideo, {aspectRatio: videoAspectRatio}]}
+                        onSourceLoaded={setAspectRatio}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
@@ -100,7 +98,7 @@ function EmptyStateComponent({
             )}
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
-                    <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {subtitleText ??
@@ -114,19 +112,31 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
-                                    <Button
-                                        key={buttonText}
-                                        success={success}
-                                        onPress={buttonAction}
-                                        text={buttonText}
-                                        icon={icon}
-                                        large
-                                        isDisabled={isDisabled}
-                                        style={[styles.flex1, style]}
-                                    />
-                                ))}
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.justifyContentCenter]}>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
+                                    dropDownOptions ? (
+                                        <ButtonWithDropdownMenu
+                                            key={buttonText}
+                                            onPress={() => {}}
+                                            shouldAlwaysShowDropdownMenu
+                                            customText={buttonText}
+                                            options={dropDownOptions}
+                                            isSplitButton={false}
+                                            style={[styles.flex1, style]}
+                                        />
+                                    ) : (
+                                        <Button
+                                            key={buttonText}
+                                            success={success}
+                                            onPress={buttonAction}
+                                            text={buttonText}
+                                            icon={icon}
+                                            large
+                                            isDisabled={isDisabled}
+                                            style={[styles.flex1, style]}
+                                        />
+                                    ),
+                                )}
                             </View>
                         )}
                     </View>

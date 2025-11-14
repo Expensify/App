@@ -11,9 +11,9 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -60,6 +60,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             categories,
             localeCompare,
             recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+            translate,
         });
 
         const categoryData = categoryOptions?.at(0)?.data ?? [];
@@ -69,9 +70,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft, localeCompare]);
+    }, [policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, localeCompare, translate]);
 
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((category) => category.searchText === selectedCategory)?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList

@@ -44,7 +44,7 @@ Within the Expense Chat, you can:
 
 You can also find tracked expenses this way:
 
-1. From the left-hand menu, go to **Reports > Expenses**.
+1. From the navigation tabs, go to **Reports > Expenses**.
 2. Use filters to narrow your search by date, amount, or category.
 
 ---
@@ -57,5 +57,5 @@ Yes! Open the expense from your expense chat or **Reports > Expenses**, then cli
 
 ## Why can’t I find my expense?
 
-Make sure you’re filtering by the correct date or amount. You can easily find unsubmitted expenses in an **Expense Chat** in your Inbox in the left-hand menu.
+Make sure you’re filtering by the correct date or amount. You can easily find unsubmitted expenses in an **Expense Chat** in your Inbox in the navigation tabs.
 

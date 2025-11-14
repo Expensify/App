@@ -10,10 +10,11 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
@@ -28,18 +29,24 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+
+    /** Optional custom header title */
+    headerTitle?: string;
+
+    /** Optional custom completion handler */
+    onComplete?: (values: PersonalDetailsForm, validateCode: string) => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
@@ -47,8 +54,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
+        if (!onComplete) {
+            Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+            return;
+        }
         setIsValidateCodeActionModalVisible(true);
-    }, [values]);
+    }, [onComplete, values]);
 
     const {
         componentToRender: SubStep,
@@ -81,9 +92,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
+            if (!onComplete) {
+                return;
+            }
+            onComplete(values, validateCode);
         },
-        [values],
+        [values, onComplete],
     );
 
     const handleNextScreen = useCallback(() => {
@@ -111,7 +125,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             testID={MissingPersonalDetailsContent.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
@@ -128,7 +142,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />
-
             <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}

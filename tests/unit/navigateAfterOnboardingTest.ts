@@ -34,7 +34,6 @@ jest.mock('@libs/ReportUtils', () => ({
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
     isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
-    generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
     generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
@@ -43,6 +42,7 @@ jest.mock('@libs/ReportUtils', () => ({
     shouldDisplayViolationsRBRInLHN: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').shouldDisplayViolationsRBRInLHN,
     generateIsEmptyReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateIsEmptyReport,
     isExpenseReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isExpenseReport,
+    isSelfDM: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isSelfDM,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
@@ -98,6 +98,15 @@ describe('navigateAfterOnboarding', () => {
 
     it('should not navigate to last accessed report if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
+        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
+        mockShouldOpenOnAdminRoom.mockReturnValue(false);
+
+        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should not navigate to last accessed report if it is selfDM chat on small screens', () => {
+        const lastAccessedReport = {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 

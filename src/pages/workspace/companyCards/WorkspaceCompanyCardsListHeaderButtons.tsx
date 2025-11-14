@@ -5,14 +5,14 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
@@ -57,7 +58,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -75,10 +75,15 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(selectedFeed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+    const hasFeedError = !!cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed]?.errors;
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
+    const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
+        const data: Partial<AssignCardData> = {
+            bankName: selectedFeed,
+        };
         if (institutionId) {
             const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
             setAddNewCompanyCardStepAndData({
@@ -87,13 +92,15 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 },
             });
             setAssignCardStepAndData({
+                data,
                 currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION,
             });
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, bankName, Navigation.getActiveRoute()));
+        setAssignCardStepAndData({data, currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
     };
 
     const secondaryActions = useMemo(
@@ -124,7 +131,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     {!!shouldShowAssignCardButton && (
                         <Button
                             success
-                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken}
+                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard}
                             onPress={handleAssignCard}
                             icon={Expensicons.Plus}
                             text={translate('workspace.companyCards.assignCard')}
@@ -149,15 +156,11 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />
-                    <Text style={[styles.offlineFeedback.text, styles.pr5]}>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={openBankConnection}
-                        >
-                            {translate('workspace.companyCards.brokenConnectionErrorLink')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
+                    <Text style={[styles.offlineFeedbackText, styles.pr5]}>
+                        <RenderHTML
+                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            onLinkPress={openBankConnection}
+                        />
                     </Text>
                 </View>
             )}

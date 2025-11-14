@@ -1,8 +1,9 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -46,12 +47,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
-
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -62,12 +64,15 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            draftComments,
+            nvpDismissedProductTraining,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
+            countryCode,
         );
-    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

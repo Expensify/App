@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -21,7 +21,7 @@ import {isTransactionPendingDelete} from './TransactionUtils';
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
  * at the top
  */
-const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+const IOU_ACTIONS_TO_FILTER_OUT = new Set<OriginalMessageIOU['type']>([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK]);
 
 /**
  * Returns whether a specific action should be displayed in the feed/message list on MoneyRequestReportView.
@@ -33,7 +33,7 @@ const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.
 function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
     if (isMoneyRequestAction(action)) {
         const originalMessage = getOriginalMessage(action);
-        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.includes(originalMessage.type) : false;
+        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.has(originalMessage.type) : false;
     }
 
     return action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -71,12 +71,20 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
+            return true;
+        }
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
@@ -108,13 +116,12 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
 function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
-        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        (!isTransactionDataReady || isStillLoadingData) &&
         !isTransactionThreadView &&
-        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
     );
 }
 

@@ -13,15 +13,15 @@ Connecting QuickBooks Online to Expensify helps streamline expense tracking and 
 
 To choose how data is imported from QuickBooks Online to Expensify:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Import** under the QuickBooks Online connection
 3. Review and adjust each of the following:
 
 - **Chart of accounts**: Automatically imported as categories. This setting cannot be changed.
 - **Classes**: Import as tags to allow expense-level coding.
 - **Customers/Projects**: Import as tags for expense-level coding.
-- **Locations**: Import as tags.  
-  - Note: If you import locations, you won’t be able to export as vendor bills or checks unless you upgrade to the **Control** plan.
+- **Locations**: Import as tags.
+  - Note: If you export using the Vendor Bill or Check options, then locations must be configured as report fields, which are only available on the [**Control** plan](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan).
 - **Taxes**: Import tax rates and defaults.
 
 ## How to Turn Imported Accounts and Tags Off
@@ -35,11 +35,11 @@ To choose how data is imported from QuickBooks Online to Expensify:
 
 To choose how data is exported from Expensify to QuickBooks Online:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Export** under the QuickBooks Online connection
 3. Configure the following settings:
 
-- **Preferred exporter**: Select a workspace admin for automatic exports  
+- **Preferred exporter**: Select a workspace admin for automatic exports
   - Note: If card exports are controlled by domain settings, the preferred exporter must be a **Domain Admin**
 - **Export date**: Choose from:
   - Date of last expense
@@ -48,14 +48,14 @@ To choose how data is exported from Expensify to QuickBooks Online:
 - **Export out-of-pocket expenses as**:
   - Check
   - Vendor bill
-  - Journal entry  
+  - Journal entry
     - If **tax is not enabled**, you must select an **Accounts Payable (AP)** account
     - If **tax is enabled**, journal entry exports will not be allowed. You must use check or vendor bill
 - **Invoices**: Choose the QuickBooks invoice account to use
 - **Export company card expenses as**:
   - Credit card (default)
   - Debit card
-  - Vendor bill  
+  - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
 
 ---
@@ -64,7 +64,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
 
 To manage automation and other connection preferences:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Advanced** under the QuickBooks Online connection
 3. Configure the following:
 
@@ -82,7 +82,7 @@ To manage automation and other connection preferences:
 
 # How do I know if a report is exported successfully?
 
-A message confirming the export will be posted in the chat for the corresponding report. 
+A message confirming the export will be posted in the chat for the corresponding report.
 
 # What if I manually export a report that was already exported?
 
@@ -100,6 +100,6 @@ No. Only newly approved reports will auto-export. Any old reports must be manual
 # Why can't I export reports as vendor bills or checks?
 
 This is likely due to the **Locations** import setting. Locations can only be used as tags. To unlock vendor bill and check exports:
-- Turn off location imports  
+- Turn off location imports
 - Or upgrade to the **Control** plan
 

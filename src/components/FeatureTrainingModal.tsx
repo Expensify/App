@@ -1,5 +1,5 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
+import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -40,13 +40,6 @@ import VideoPlayer from './VideoPlayer';
 const VIDEO_ASPECT_RATIO = 1280 / 960;
 
 const MODAL_PADDING = variables.spacing2;
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
 
 type VideoStatus = 'video' | 'animation';
 
@@ -220,6 +213,7 @@ function FeatureTrainingModal({
     const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!isModalDisabled) {
                 setIsModalVisible(false);
@@ -242,16 +236,14 @@ function FeatureTrainingModal({
         }
     }, [isOffline, isVideoStatusLocked]);
 
-    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!event) {
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
             return;
         }
 
-        if ('naturalSize' in event) {
-            setIllustrationAspectRatio(event.naturalSize.width / event.naturalSize.height);
-        } else {
-            setIllustrationAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
-        }
+        setIllustrationAspectRatio(track.size.width / track.size.height);
     };
 
     const renderIllustration = useCallback(() => {
@@ -291,7 +283,7 @@ function FeatureTrainingModal({
                         <VideoPlayer
                             url={videoURL}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                            onVideoLoaded={setAspectRatio}
+                            onSourceLoaded={setAspectRatio}
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                             shouldUseControlsBottomMargin={false}
                             shouldPlay
@@ -347,6 +339,7 @@ function FeatureTrainingModal({
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
@@ -431,6 +424,8 @@ function FeatureTrainingModal({
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
                 onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+                // Wrapper is either a View or ScrollView, which is also a View.
+                // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>

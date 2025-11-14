@@ -14,7 +14,7 @@ Report Fields let workspace admins collect additional header-level information o
 
 To enable Report Fields in a workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Toggle on **Report Fields**.

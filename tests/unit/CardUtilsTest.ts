@@ -224,6 +224,7 @@ const customFeedCardsList = {
     },
 } as unknown as WorkspaceCardsList;
 const customFeedName = 'Custom feed name';
+const unknownFeed = 'ofx.chase.com' as CompanyCardFeed;
 
 const policyWithCardsEnabled = {
     areExpensifyCardsEnabled: true,
@@ -282,6 +283,14 @@ const cardFeedsCollection: OnyxCollection<CardFeeds> = {
     FAKE_ID_6: {
         settings: {
             companyCards: companyCardsSettingsWithOnePendingFeed,
+        },
+    },
+    // Policy with unknown feed
+    FAKE_ID_7: {
+        settings: {
+            companyCardNicknames: {
+                [unknownFeed]: '',
+            },
         },
     },
 };
@@ -505,6 +514,12 @@ describe('CardUtils', () => {
             const feedName = getCustomOrFormattedFeedName(feed, companyCardNicknames);
             expect(feedName).toBe(undefined);
         });
+
+        it('Should return feed key name for unknown feed', () => {
+            const companyCardNicknames = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames;
+            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNicknames);
+            expect(feedName).toBe(unknownFeed);
+        });
     });
 
     describe('lastFourNumbersFromCardName', () => {
@@ -588,6 +603,12 @@ describe('CardUtils', () => {
         it('Should return empty string if invalid feed was provided', () => {
             const feed = 'vvcf' as CompanyCardFeed;
             const feedName = getBankName(feed);
+            expect(feedName).toBe('');
+        });
+
+        it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
+            const feed = undefined;
+            const feedName = getBankName(feed as unknown as CompanyCardFeed);
             expect(feedName).toBe('');
         });
     });

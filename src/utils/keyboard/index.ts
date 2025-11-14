@@ -1,5 +1,9 @@
 import {Keyboard} from 'react-native';
 
+type SimplifiedKeyboardEvent = {
+    height?: number;
+};
+
 let isVisible = false;
 
 Keyboard.addListener('keyboardDidHide', () => {
@@ -10,6 +14,11 @@ Keyboard.addListener('keyboardDidShow', () => {
     isVisible = true;
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => {
+    return () => {};
+};
+
 const dismiss = (): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
@@ -19,7 +28,7 @@ const dismiss = (): Promise<void> => {
         }
 
         const subscription = Keyboard.addListener('keyboardDidHide', () => {
-            resolve(undefined);
+            resolve();
             subscription.remove();
         });
 
@@ -27,6 +36,15 @@ const dismiss = (): Promise<void> => {
     });
 };
 
-const utils = {dismiss};
+const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
+    return new Promise((resolve) => {
+        // For iOS and other platforms, execute callback immediately
+        cb();
+        resolve();
+    });
+};
 
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
+
+export type {SimplifiedKeyboardEvent};
 export default utils;

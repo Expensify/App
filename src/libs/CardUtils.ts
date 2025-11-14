@@ -14,6 +14,7 @@ import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -64,6 +65,7 @@ function getCardDescription(card?: Card) {
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
     return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
@@ -376,9 +378,9 @@ function getBankName(feedType: CompanyCardFeed): string {
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType?.startsWith(feed));
 
-    if (feedType.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
+    if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
         return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
     }
 
@@ -416,11 +418,13 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     }
 
     const feedName = getBankName(feed);
-    const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const formattedFeedName = feedName && shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
+    // Fallback to feed key name for unknown feeds
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return customFeedName || formattedFeedName;
+    return customFeedName || formattedFeedName || feed;
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -526,7 +530,7 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
-    const assignedCards = Object.values(cards).map((card) => card.cardName);
+    const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
     // Get cards assigned across all workspaces
     const allWorkspaceAssignedCards = new Set<string>();
@@ -544,11 +548,11 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: D
     });
 
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -573,8 +577,8 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 }
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
-    const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
-    return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
+    return filterObject(cards ?? {}, (key, card) => !closedStates.has(card.state));
 }
 
 function getAllCardsForWorkspace(
@@ -702,6 +706,20 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+/**
+ * Get card which has a broken connection
+ *
+ * @param feedCards the list of the cards, related to one or several feeds
+ * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ */
+function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined, feedToExclude?: string): Card | undefined {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return undefined;
+    }
+
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -753,6 +771,7 @@ export {
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
+    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     getEligibleBankAccountsForUkEuCard,
 };

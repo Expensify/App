@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
+import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagForDisplay} from '@libs/TransactionUtils';
