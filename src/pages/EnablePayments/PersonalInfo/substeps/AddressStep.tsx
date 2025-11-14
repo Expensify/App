@@ -30,12 +30,7 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
             zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
         }),
-        [
-            walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET],
-            walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY],
-            walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE],
-            walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE],
-        ],
+        [walletAdditionalDetails],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({

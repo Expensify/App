@@ -19,7 +19,7 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
             lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
         }),
-        [walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME], walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME]],
+        [walletAdditionalDetails],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
