@@ -1907,14 +1907,17 @@ function handlePreexistingReport(report: Report) {
             callback = () => {
                 currCallback();
                 if (!parentReportActionID || !isParentOneTransactionReport) {
-                    // We are either in a DM/group-DM,
-                    // a transaction thread report that its parent is not a one expense report,
-                    // or a thread under any comment
-                    // navigate to the preexisting report chat
+                    // We are either in a DM/group-DM that do not have a parent report,
+                    // a thread under any comment,
+                    // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
+                    // we need to navigate to the preexisting report chat
+                    // because we cleared the optimistically created report in the callback
                     Navigation.setParams({reportID: preexistingReportID.toString()});
                 } else {
                     // We are in a transaction thread report under a one expense report,
                     // We need to navigate to the one expense report screen instead of the preexisting report chat
+                    // because we cleared the optimistically created transaction thread report in the callback
+                    // and the one transaction should be accessed via the one expense report screen
                     Navigation.setParams({reportID: parentReportID});
                 }
             };
