@@ -273,6 +273,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1600,7 +1601,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Suchen, um Optionen zu sehen',
     },
     contacts: {
-        contactMethod: 'Kontaktmethode',
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
@@ -6149,6 +6149,30 @@ ${amount} für ${merchant} - ${date}`,
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" hinzugefügt`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" entfernt`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `hat die Steuer "${oldValue}" in "${newValue}" umbenannt`;
+                }
+                case 'code': {
+                    return `hat den Steuercode für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'rate': {
+                    return `hat den Steuersatz für "${taxName}" von "${oldValue}" auf "${newValue}" geändert`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `hat die Steuer "${taxName}" deaktiviert` : `hat die Steuer "${taxName}" aktiviert`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7549,6 +7573,16 @@ ${amount} für ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Die Domain <strong>${domainName}</strong> wurde erfolgreich verifiziert und Sie können jetzt SAML und andere Sicherheitsfunktionen einrichten.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML-Einmalanmeldung (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> ist eine Sicherheitsfunktion, die Ihnen mehr Kontrolle darüber gibt, wie sich Mitglieder mit E-Mail-Adressen unter <strong>${domainName}</strong> bei Expensify anmelden. Um sie zu aktivieren, müssen Sie sich als autorisierte/r Unternehmensadministrator/in verifizieren.</muted-text>`,
+            fasterAndEasierLogin: 'Schnelleres und einfacheres Anmelden',
+            moreSecurityAndControl: 'Mehr Sicherheit und Kontrolle',
+            onePasswordForAnything: 'Ein Passwort für alles',
+        },
+        goToDomain: 'Zur Domain wechseln',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
