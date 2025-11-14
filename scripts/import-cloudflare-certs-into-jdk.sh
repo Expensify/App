@@ -48,19 +48,19 @@ function stop_gradle_daemons() {
 
 function find_java_installations() {
     title "Step 2: Finding all Java installations"
-    
+
     local JAVA_HOMES
     JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk -F'"' '{print $4}')
-    
+
     if [[ -z "${JAVA_HOMES}" ]]; then
         error "No Java installations found"
         exit 1
     fi
-    
+
     local JDK_COUNT
     JDK_COUNT=$(echo "${JAVA_HOMES}" | wc -l | tr -d ' ')
     success "Found ${JDK_COUNT} Java installation(s)"
-    
+
     echo "${JAVA_HOMES}"
 }
 
