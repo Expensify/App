@@ -155,7 +155,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
 				{shouldShowHelpLinks && (
 					<>
 						<HelpLinks />
-						{showPatriotActLink && <PatriotActLink />}
+						{showPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
 					</>
 				)}
             </View>
