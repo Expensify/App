@@ -53,11 +53,13 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
             isScrollingRef.current = scrolling;
-            if (scrolling && isHovered) {
+            if (scrolling && isHoveredRef.current) {
                 setIsHovered(false);
+                isHoveredRef.current = false;
                 onHoverOut?.();
             } else if (!scrolling && elementRef.current?.matches(':hover')) {
                 setIsHovered(true);
+                isHoveredRef.current = true;
                 onHoverIn?.();
             }
         });
