@@ -880,28 +880,27 @@ function SearchPage({route}: SearchPageProps) {
                         shouldShowFooter={shouldShowFooter}
                     />
                 )}
-                {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
-                    <SearchModalsWrapper
-                        isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
-                        handleDeleteExpenses={handleDeleteExpenses}
-                        setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
-                        selectedTransactionsKeys={selectedTransactionsKeys}
-                        setIsOfflineModalVisible={setIsOfflineModalVisible}
-                        isOfflineModalVisible={isOfflineModalVisible}
-                        setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
-                        isDownloadErrorModalVisible={isDownloadErrorModalVisible}
-                        isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
-                        setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
-                        clearSelectedTransactions={clearSelectedTransactions}
-                        isDEWModalVisible={isDEWModalVisible}
-                        setIsDEWModalVisible={setIsDEWModalVisible}
-                        isDownloadExportModalVisible={isDownloadExportModalVisible}
-                        createExportAll={createExportAll}
-                        setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
-                    />
-                )}
             </Animated.View>
-            )
+            {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
+                <SearchModalsWrapper
+                    isDeleteExpensesConfirmModalVisible={isDeleteExpensesConfirmModalVisible}
+                    handleDeleteExpenses={handleDeleteExpenses}
+                    setIsDeleteExpensesConfirmModalVisible={setIsDeleteExpensesConfirmModalVisible}
+                    selectedTransactionsKeys={selectedTransactionsKeys}
+                    setIsOfflineModalVisible={setIsOfflineModalVisible}
+                    isOfflineModalVisible={isOfflineModalVisible}
+                    setIsDownloadErrorModalVisible={setIsDownloadErrorModalVisible}
+                    isDownloadErrorModalVisible={isDownloadErrorModalVisible}
+                    isExportWithTemplateModalVisible={isExportWithTemplateModalVisible}
+                    setIsExportWithTemplateModalVisible={setIsExportWithTemplateModalVisible}
+                    clearSelectedTransactions={clearSelectedTransactions}
+                    isDEWModalVisible={isDEWModalVisible}
+                    setIsDEWModalVisible={setIsDEWModalVisible}
+                    isDownloadExportModalVisible={isDownloadExportModalVisible}
+                    createExportAll={createExportAll}
+                    setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
+                />
+            )}
         </FullPageNotFoundView>
     );
 }
