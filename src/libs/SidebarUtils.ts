@@ -159,10 +159,6 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
-function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
-}
-
 function shouldDisplayReportInLHN(
     report: Report,
     reports: OnyxCollection<Report>,
@@ -1036,31 +1032,29 @@ function getWelcomeMessage(
         welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
         return welcomeMessage;
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
-    const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName}, index) => {
-            if (index === displayNamesWithTooltips.length - 1) {
-                return `${displayName}.`;
-            }
-            if (index === displayNamesWithTooltips.length - 2) {
-                if (displayNamesWithTooltips.length > 2) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return `${displayName}, ${translateLocal('common.and')}`;
-                }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return `${displayName} ${translateLocal('common.and')}`;
-            }
-            if (index < displayNamesWithTooltips.length - 2) {
-                return `${displayName},`;
-            }
-            return '';
-        })
-        .join(' ');
 
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
+    // Build HTML string with user-details tags and proper grammar
+    const usersHtml = displayNamesWithTooltips
+        .map(({displayName, accountID}, index) => {
+            const participantCount = displayNamesWithTooltips.length;
+            const userTag = `<user-details accountid="${accountID}">${displayName ?? ''}</user-details>`;
+
+            // Add grammar (commas, "and", period)
+            if (index === participantCount - 1) {
+                return userTag;
+            }
+            if (index === participantCount - 2) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return `${userTag}${participantCount > 2 ? ',' : ''} ${translateLocal('common.and')} `;
+            }
+            return `${userTag}, `;
+        })
+        .join('');
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    welcomeMessage.messageHtml = displayNamesWithTooltips.length ? translateLocal('reportActionsView.beginningOfChatHistory', {users: usersHtml}) : '';
     return welcomeMessage;
 }
 

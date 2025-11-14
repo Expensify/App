@@ -15,6 +15,7 @@ import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
+import UserDetailsRenderer from './UserDetailsRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -37,6 +38,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
     'mention-short': ShortMentionRenderer,
+    'user-details': UserDetailsRenderer,
     'copy-text': CopyTextRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,

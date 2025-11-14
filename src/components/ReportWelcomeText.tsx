@@ -18,7 +18,6 @@ import {
     isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
-    isOptimisticPersonalDetail,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
     isSystemChat as isSystemChatReportUtils,
@@ -32,7 +31,6 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
-import UserDetailsTooltip from './UserDetailsTooltip';
 
 type ReportWelcomeTextProps = {
     /** The report currently being looked at */
@@ -159,32 +157,11 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <Text>{welcomeMessage.messageText}</Text>
                     </Text>
                 )}
-                {isDefault && displayNamesWithTooltips.length > 0 && (
+                {isDefault && !!welcomeMessage.messageHtml && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
-                        {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
-                            // eslint-disable-next-line react/no-array-index-key
-                            <Text key={`${displayName}${index}`}>
-                                <UserDetailsTooltip accountID={accountID}>
-                                    {isOptimisticPersonalDetail(accountID) ? (
-                                        <Text style={[styles.textStrong]}>{displayName}</Text>
-                                    ) : (
-                                        <Text
-                                            style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
-                                            suppressHighlighting
-                                        >
-                                            {displayName}
-                                        </Text>
-                                    )}
-                                </UserDetailsTooltip>
-                                {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
-                                {index === displayNamesWithTooltips.length - 2 && <Text>{`${displayNamesWithTooltips.length > 2 ? ',' : ''} ${translate('common.and')} `}</Text>}
-                                {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
-                            </Text>
-                        ))}
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                        {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
+                        <RenderHTML html={welcomeMessage.messageHtml} />
+                        {shouldShowUsePlusButtonText && <Text>{` ${translate('reportActionsView.usePlusButton', {additionalText}).trim()}`}</Text>}
+                        {isConciergeChatReport(report) && <Text>{` ${translate('reportActionsView.askConcierge').trim()}`}</Text>}
                     </Text>
                 )}
             </View>

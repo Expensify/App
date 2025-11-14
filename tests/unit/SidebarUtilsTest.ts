@@ -771,7 +771,10 @@ describe('SidebarUtils', () => {
                     )
                     .then(() => {
                         const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
-                        expect(result.messageText).toBe('This chat is with One and Two.');
+                        expect(result.messageHtml).toContain('This chat is with');
+                        expect(result.messageHtml).toContain('<user-details accountid="1">');
+                        expect(result.messageHtml).toContain('<user-details accountid="2">');
+                        expect(result.messageHtml).toContain('</user-details> and');
                     })
             );
         });
