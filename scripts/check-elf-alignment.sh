@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Original source https://cs.android.com/android/platform/superproject/main/+/main:system/extras/tools/check_elf_alignment.sh
+
 set -o pipefail
 
 progname="${0##*/}"
