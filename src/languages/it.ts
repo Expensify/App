@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6160,6 +6161,30 @@ ${amount} per ${merchant} - ${date}`,
             `ha cambiato la percentuale di rapporti instradati casualmente per l'approvazione manuale a ${Math.round(newAuditRate * 100)}% (precedentemente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `ha cambiato il limite di approvazione manuale per tutte le spese a ${newLimit} (precedentemente ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l'imposta "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `ha rinominato l'imposta da "${oldValue}" a "${newValue}"`;
+                }
+                case 'code': {
+                    return `ha modificato il codice dell'imposta "${taxName}" da "${oldValue}" a "${newValue}"`;
+                }
+                case 'rate': {
+                    return `ha modificato l'aliquota dell'imposta "${taxName}" da "${oldValue}" a "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'ha disattivato' : 'ha attivato'} l'imposta "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -7394,8 +7419,8 @@ ${amount} per ${merchant} - ${date}`,
         },
         modal: {
             title: 'Mettici alla prova',
-            description: 'Fai un rapido tour del prodotto per metterti al passo velocemente. Nessuna sosta necessaria!',
-            confirmText: 'Inizia la prova',
+            description: 'Fai un breve tour del prodotto per metterti subito al passo.',
+            confirmText: 'Avvia il test drive',
             helpText: 'Salta',
             employee: {
                 description:
