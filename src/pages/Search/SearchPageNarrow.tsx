@@ -199,9 +199,7 @@ function SearchPageNarrow({
                                     !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle,
                                     styles.flex1,
                                     styles.bgTransparent,
-                                    {
-                                        zIndex: variables.searchTopBarZIndex,
-                                    },
+                                    styles.searchTopBarZIndexStyle,
                                 ]}
                             >
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
