@@ -92,7 +92,7 @@ import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
-import type ReportNextStep from './ReportNextStep';
+import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
@@ -208,7 +208,7 @@ export type {
     ReportActionsDraft,
     ReportActionsDrafts,
     ReportMetadata,
-    ReportNextStep,
+    ReportNextStepDeprecated,
     ReportViolationName,
     ReportViolations,
     ReportFieldsViolations,
