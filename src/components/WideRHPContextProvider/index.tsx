@@ -173,6 +173,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return !!focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
     }, [focusedRouteKey, wideRHPRouteKeys]);
 
+    const isSuperWideRHPFocused = useMemo(() => {
+        return !!focusedRouteKey && superWideRHPRouteKeys.includes(focusedRouteKey);
+    }, [focusedRouteKey, superWideRHPRouteKeys]);
+
     /**
      * Determines whether the secondary overlay should be displayed.
      * Shows second overlay when RHP is open and there is a wide RHP route open but there is another regular route on the top.
@@ -452,6 +456,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
         }),
@@ -467,6 +472,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
         ],

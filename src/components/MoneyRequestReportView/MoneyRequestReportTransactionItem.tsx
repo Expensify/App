@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,6 +6,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -90,6 +91,7 @@ function MoneyRequestReportTransactionItem({
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
+    const {isSuperWideRHPFocused} = useContext(WideRHPContext);
 
     const viewRef = useRef<View>(null);
 
@@ -154,7 +156,7 @@ function MoneyRequestReportTransactionItem({
                     columns={columns}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
-                    style={[styles.p3, isLargeScreenWidth && styles.pr0]}
+                    style={[styles.p3, isLargeScreenWidth && !isSuperWideRHPFocused && styles.pr0]}
                     onButtonPress={() => {
                         handleOnPress(transaction.transactionID);
                     }}

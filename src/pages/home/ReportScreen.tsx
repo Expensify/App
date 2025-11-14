@@ -412,7 +412,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => {
+                    onBackButtonPress(true);
+                }}
             />
         );
     }
