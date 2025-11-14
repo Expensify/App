@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -215,6 +215,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the description is required */
     isDescriptionRequired: boolean;
+
+    /** Whether to show more fields */
+    showMoreFields: boolean;
+
+    /** Function to set the show more fields */
+    setShowMoreFields: (showMoreFields: boolean) => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -269,13 +275,13 @@ function MoneyRequestConfirmationListFooter({
     onToggleReimbursable,
     isReceiptEditable = false,
     isDescriptionRequired = false,
+    showMoreFields,
+    setShowMoreFields,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
-
-    const [showMoreFields, setShowMoreFields] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -899,9 +905,11 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays]);
 
+    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall, !showMoreFields && isScan ? styles.moneyRequestImageLarge : styles.receiptPreviewAspectRatio]}>
+            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? [styles.flex1, {minHeight: 200}] : styles.receiptPreviewAspectRatio]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -964,14 +972,11 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
-            styles.expenseViewImageSmall,
-            styles.moneyRequestImageLarge,
             styles.receiptPreviewAspectRatio,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
-            showMoreFields,
-            isScan,
+            shouldRestrictHeight,
             isLocalFile,
             receiptFilename,
             translate,
@@ -1067,7 +1072,7 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {(!shouldShowMap || isManualDistanceRequest) && (
-                <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
+                <View style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, styles.flex1]}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
                         : showReceiptEmptyState && (
@@ -1079,7 +1084,7 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={[styles.expenseViewImageSmall, (showMoreFields || !isScan) && styles.receiptPreviewAspectRatio]}
+                                  style={[styles.expenseViewImageSmall, !shouldRestrictHeight && styles.receiptPreviewAspectRatio]}
                               />
                           )}
                 </View>
@@ -1100,9 +1105,9 @@ function MoneyRequestConfirmationListFooter({
 
                 {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
 
-                {(showMoreFields || !isScan) && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+                {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
 
-                {!showMoreFields && isScan && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
@@ -1164,5 +1169,6 @@ export default memo(
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
         deepEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit,
+        prevProps.unit === nextProps.unit &&
+        prevProps.showMoreFields === nextProps.showMoreFields,
 );

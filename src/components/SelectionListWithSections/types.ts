@@ -968,6 +968,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles to apply to the list footer component */
+    ListFooterComponentStyle?: StyleProp<ViewStyle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
