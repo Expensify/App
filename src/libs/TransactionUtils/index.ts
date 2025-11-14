@@ -640,6 +640,10 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            attendees: transactionChanges.attendees,
+        };
         updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
     }
 
