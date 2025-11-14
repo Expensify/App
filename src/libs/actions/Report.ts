@@ -1937,12 +1937,15 @@ function handlePreexistingReport(report: Report) {
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
         // after that clear the optimistically created report
         const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+
+        // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
+        const reportToCopyDraftTo = (parentReportID && isParentOneTransactionReport) ? parentReportID : preexistingReportID;
         if (!draftReportComment) {
             callback();
             return;
         }
 
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        saveReportDraftComment(reportToCopyDraftTo, draftReportComment, callback);
     });
 }
 
