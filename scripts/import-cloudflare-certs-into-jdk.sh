@@ -38,38 +38,11 @@ function is_cloudflare_cert_imported() {
 
 function stop_gradle_daemons() {
     title "Step 1: Stopping Gradle daemons"
-
-    # Method 1: Use gradle/gradlew globally if available
-    if command -v gradle &>/dev/null; then
-        info "Stopping Gradle daemons globally..."
-        gradle --stop &>/dev/null || true
-    fi
-
-    # Method 2: Find all gradlew files and stop their daemons
-    local -a SEARCH_DIRS=(
-        "${HOME}/Expensidev"
-        "${HOME}/dev"
-        "${HOME}/projects"
-        "${HOME}/workspace"
-    )
-
-    local SEARCH_DIR
-    for SEARCH_DIR in "${SEARCH_DIRS[@]}"; do
-        if [[ -d "${SEARCH_DIR}" ]]; then
-            local GRADLEW_PATH
-            while IFS= read -r GRADLEW_PATH; do
-                local GRADLE_DIR
-                GRADLE_DIR=$(dirname "${GRADLEW_PATH}")
-                info "Stopping Gradle daemon in ${GRADLE_DIR}..."
-                (cd "${GRADLE_DIR}" && ./gradlew --stop &>/dev/null) || true
-            done < <(find "${SEARCH_DIR}" -name gradlew -type f 2>/dev/null | head -10)
-        fi
-    done
-
-    # Method 3: Kill any remaining Gradle daemon processes
     if pgrep -f "GradleDaemon" &>/dev/null; then
-        info "Terminating remaining Gradle daemon processes..."
         pkill -f "GradleDaemon" &>/dev/null || true
+        success "Gradle daemons stopped"
+    else
+        info "No Gradle daemons running"
     fi
 }
 
