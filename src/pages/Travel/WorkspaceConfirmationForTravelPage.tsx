@@ -1,4 +1,4 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
@@ -6,10 +6,10 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {TravelNavigatorParamList} from '@libs/Navigation/types';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_CONFIRMATION>;
 
