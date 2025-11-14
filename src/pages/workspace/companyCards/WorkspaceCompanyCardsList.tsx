@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getCombinedFeedKey, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyCardFeedWithDomainID, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -75,7 +75,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                             if (!cardID || !item?.accountID || !item.fundID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, getCombinedFeedKey(item.bank as CompanyCardFeed, item.fundID)));
+                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, getCompanyCardFeedWithDomainID(item.bank as CompanyCardFeed, item.fundID)));
                         }}
                     >
                         {({hovered}) => (

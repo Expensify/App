@@ -8,7 +8,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import type {CombinedFeedKey} from '@hooks/useCardFeeds';
+import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +48,7 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
     policyID: string;
 
     /** Currently selected feed */
-    selectedFeed: CombinedFeedKey;
+    selectedFeed: CompanyCardFeedWithDomainID;
 
     /** Whether to show assign card button */
     shouldShowAssignCardButton?: boolean;

@@ -17,8 +17,8 @@ import {
     getCardDescription,
     getCardFeedIcon,
     getCardsByCardholderName,
-    getCombinedFeedKey,
     getCompanyCardDescription,
+    getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -36,7 +36,7 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {Card, CardFeeds, CardList, CombinedFeedKey, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -490,13 +490,13 @@ describe('CardUtils', () => {
 
     describe('getSelectedFeed', () => {
         it('Should return last selected custom feed', () => {
-            const lastSelectedCustomFeed: CombinedFeedKey = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
+            const lastSelectedCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
             const selectedFeed = getSelectedFeed(lastSelectedCustomFeed, combinedCardFeeds);
             expect(selectedFeed).toBe(lastSelectedCustomFeed);
         });
 
         it('Should return last selected direct feed', () => {
-            const lastSelectedDirectFeed: CombinedFeedKey = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`;
+            const lastSelectedDirectFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`;
             const selectedFeed = getSelectedFeed(lastSelectedDirectFeed, combinedCardFeeds);
             expect(selectedFeed).toBe(lastSelectedDirectFeed);
         });
@@ -1293,17 +1293,17 @@ describe('CardUtils', () => {
 
     describe('getOriginalFeed', () => {
         it('should extract the original feed from a combined feed key', () => {
-            const combinedKey: CombinedFeedKey = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
+            const combinedKey: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
             const originalFeed = getOriginalFeed(combinedKey);
             expect(originalFeed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
         });
     });
 
-    describe('getCombinedFeedKey', () => {
+    describe('getCompanyCardFeedWithDomainID', () => {
         it('should combine feed name domain ID', () => {
             const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const domainID = 11111111;
-            const combinedKey = getCombinedFeedKey(feedName, domainID);
+            const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
         });
     });

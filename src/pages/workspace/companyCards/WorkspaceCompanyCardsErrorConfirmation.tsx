@@ -14,11 +14,11 @@ import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {CombinedFeedKey} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
-    newFeed?: CombinedFeedKey;
+    newFeed?: CompanyCardFeedWithDomainID;
 };
 
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
@@ -39,7 +39,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         }
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
-        const feedToOpen = (Object.keys(companyFeeds) as CombinedFeedKey[]).find(
+        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
             (feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getOriginalFeed(newFeed), cardIDs, feedToOpen);

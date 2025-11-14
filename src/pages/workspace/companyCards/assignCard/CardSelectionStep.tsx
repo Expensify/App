@@ -25,11 +25,11 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CombinedFeedKey} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
     /** Selected feed */
-    feed: CombinedFeedKey;
+    feed: CompanyCardFeedWithDomainID;
 
     /** Current policy id */
     policyID: string | undefined;

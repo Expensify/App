@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {CombinedFeedKey, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -34,7 +34,7 @@ type ConfirmationStepProps = {
     backTo?: Route;
 
     /** Selected feed */
-    feed: CombinedFeedKey;
+    feed: CompanyCardFeedWithDomainID;
 };
 
 function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {

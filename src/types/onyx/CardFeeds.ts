@@ -7,11 +7,11 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
-/** Combined feed key */
-type CombinedFeedKey = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+/** Company card feed with domain ID */
+type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
 /** Custom card feed with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CombinedFeedKey;
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
 
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
@@ -228,7 +228,7 @@ export type {
     CardFeedProvider,
     CardFeedData,
     CompanyFeeds,
-    CombinedFeedKey,
+    CompanyCardFeedWithDomainID,
     CustomCardFeedData,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,

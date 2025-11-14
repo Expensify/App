@@ -34,7 +34,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected feed */
-    feed: OnyxTypes.CombinedFeedKey;
+    feed: OnyxTypes.CompanyCardFeedWithDomainID;
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {

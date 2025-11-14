@@ -28,8 +28,8 @@ import type {
     AddNewCardFeedStep,
     CardFeedData,
     CardFeedDetails,
-    CombinedFeedKey,
     CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -76,7 +76,7 @@ function addNewCompanyCardsFeed(
     cardFeeds: OnyxEntry<CombinedCardFeeds>,
     statementPeriodEnd: StatementPeriodEnd | undefined,
     statementPeriodEndDay: StatementPeriodEndDay | undefined,
-    lastSelectedFeed?: CombinedFeedKey,
+    lastSelectedFeed?: CompanyCardFeedWithDomainID,
 ) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
@@ -220,7 +220,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
 
-function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, cardIDs: string[], feedToOpen?: CombinedFeedKey) {
+function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, cardIDs: string[], feedToOpen?: CompanyCardFeedWithDomainID) {
     const authToken = NetworkStore.getAuthToken();
     const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};

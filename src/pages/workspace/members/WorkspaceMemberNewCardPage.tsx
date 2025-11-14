@@ -42,12 +42,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CombinedFeedKey, CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
-    value: CombinedFeedKey;
+    value: CompanyCardFeedWithDomainID;
 
     /** Card feed value */
     feed: CompanyCardFeed;
@@ -76,11 +76,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
     const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
-    const currentFeed = selectedFeed ? cardFeeds?.[selectedFeed as CombinedFeedKey] : undefined;
+    const currentFeed = selectedFeed ? cardFeeds?.[selectedFeed as CompanyCardFeedWithDomainID] : undefined;
     const isFeedExpired = isSelectedFeedExpired(currentFeed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeed);
 
-    const [list] = useCardsList(selectedFeed as CombinedFeedKey);
+    const [list] = useCardsList(selectedFeed as CompanyCardFeedWithDomainID);
     const filteredCardList = getFilteredCardList(list, currentFeed?.accountList, workspaceCardFeeds);
 
     const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
@@ -104,7 +104,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         } else {
             const data: Partial<AssignCardData> = {
                 email: memberLogin,
-                bankName: getOriginalFeed(selectedFeed as CombinedFeedKey),
+                bankName: getOriginalFeed(selectedFeed as CompanyCardFeedWithDomainID),
                 cardName: `${memberName}'s card`,
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
@@ -138,7 +138,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CombinedFeedKey, CombinedCardFeed]>).map(([key, value]) => {
+    const companyCardFeeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, value]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(value.feed);
 
         return {
@@ -170,7 +170,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         ? [
               ...companyCardFeeds,
               {
-                  value: CONST.EXPENSIFY_CARD.NAME as CombinedFeedKey,
+                  value: CONST.EXPENSIFY_CARD.NAME as CompanyCardFeedWithDomainID,
                   feed: CONST.EXPENSIFY_CARD.NAME as CompanyCardFeed,
                   text: translate('workspace.common.expensifyCard'),
                   keyForList: CONST.EXPENSIFY_CARD.NAME,

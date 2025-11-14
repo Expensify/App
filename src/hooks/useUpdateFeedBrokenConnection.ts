@@ -2,12 +2,12 @@ import {useCallback} from 'react';
 import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getDomainOrWorkspaceAccountID, getFeedConnectionBrokenCard, getOriginalFeed} from '@libs/CardUtils';
 import {updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
-import type {CombinedFeedKey} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
 import usePolicy from './usePolicy';
 
-export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CombinedFeedKey}) {
+export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CompanyCardFeedWithDomainID}) {
     const [cardsList] = useCardsList(feed);
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);

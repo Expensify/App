@@ -30,7 +30,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
-    getCombinedFeedKey,
+    getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
     isExpensifyCardFullySetUp,
@@ -289,7 +289,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 return;
             }
             Navigation.navigate(
-                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), getCombinedFeedKey(card.bank as CompanyCardFeed, card.fundID), Navigation.getActiveRoute()),
+                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                    policyID,
+                    card.cardID.toString(),
+                    getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                    Navigation.getActiveRoute(),
+                ),
             );
         },
         [policyID],

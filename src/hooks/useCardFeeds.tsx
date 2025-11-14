@@ -1,8 +1,8 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getCombinedFeedKey} from '@libs/CardUtils';
+import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CombinedFeedKey, CompanyCardFeed} from '@src/types/onyx';
+import type {CardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
@@ -16,7 +16,7 @@ type CombinedCardFeed = CustomCardFeedData &
         feed: CompanyCardFeed;
     };
 
-type CombinedCardFeeds = Record<CombinedFeedKey, CombinedCardFeed>;
+type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
 
 /**
  * This is a custom hook that combines workspace and domain card feeds for a given policy.
@@ -59,7 +59,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                     return;
                 }
 
-                const combinedFeedKey = getCombinedFeedKey(feedName, domainID);
+                const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
 
                 acc[combinedFeedKey] = {
                     ...feedSettings,
@@ -78,4 +78,4 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
 };
 
 export default useCardFeeds;
-export type {CombinedCardFeeds, CombinedFeedKey, CombinedCardFeed};
+export type {CombinedCardFeeds, CompanyCardFeedWithDomainID, CombinedCardFeed};
