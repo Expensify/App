@@ -1934,7 +1934,9 @@ function handlePreexistingReport(report: Report) {
 
         if (isParentOneTransactionReport && (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`))) {
             // We are already on the parent one expense report, so just call the API to fetch report data
+            callback();
             openReport(parentReportID);
+            return;
         }
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
@@ -1942,7 +1944,7 @@ function handlePreexistingReport(report: Report) {
         const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
 
         // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
-        const reportToCopyDraftTo = parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
+        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
         if (!draftReportComment) {
             callback();
             return;
