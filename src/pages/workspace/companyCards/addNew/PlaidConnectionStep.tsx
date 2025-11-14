@@ -108,7 +108,11 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     }, [addNewCard?.data?.selectedCountry, domain, feed, isAuthenticatedWithPlaid, isOffline]);
 
     const handleBackButtonPress = (showingExitModal = false) => {
-        if (feed && !showingExitModal) {
+        if (showingExitModal) {
+            return;
+        }
+
+        if (feed) {
             Navigation.dismissModal();
             return;
         }
