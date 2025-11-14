@@ -838,6 +838,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
+        ancestors,
         caseID,
         requestParentReportAction,
         report,
