@@ -16,13 +16,6 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-// TODO
-// 1. See if Linking.addEventListener is needed (according to the Expo docs it might be if we don't use expo-router) to dismiss the browser
-// 2. In handleNavigationStateChange parse incoming JSON instead of URLSearchParams
-// 3. Explore better solutions for handling the incoming SAMLUrl (does the effect run too many times?)
-// 4. Test the signout flow
-// 5. Add error handling for openAuthSessionAsync
-
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
@@ -88,10 +81,6 @@ function SAMLSignInPage() {
         if (!SAMLUrl || hasOpenedAuthSession.current) {
             return;
         }
-        // const subscription = Linking.addEventListener('url', (url) => {
-        //     console.log('triggered', url);
-        //     // dismissBrowser();
-        // });
         hasOpenedAuthSession.current = true
         openAuthSessionAsync(SAMLUrl, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
             if (response.type !== 'success') {
