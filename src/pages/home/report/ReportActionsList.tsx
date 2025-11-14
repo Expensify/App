@@ -849,7 +849,6 @@ function ReportActionsList({
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && !isScreenFilled;
 
-
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
             return;
