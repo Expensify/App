@@ -891,8 +891,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const shouldWaitForOpenReportResult = isLinkedMessagePageLoading || isUnreadMessagePageLoading;
 
-    // console.log({isLinkedMessageLoading: isLinkedMessagePageLoading, isUnreadMessageLoading: isUnreadMessagePageLoading, shouldWaitForOpenReportResult});
-
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
     const isInitiallyLoadingReport = (isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1)) || shouldWaitForOpenReportResult;
