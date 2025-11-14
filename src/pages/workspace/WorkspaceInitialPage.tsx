@@ -387,6 +387,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             const newFeatureStates = {} as PolicyFeatureStates;
             let newlyEnabledFeature: PolicyFeatureName | null = null;
             (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
+                if (!(key in currentFeatureStates)) {
+                    return;
+                }
+
                 const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
                 // Determine if this feature is newly enabled (wasn't enabled before but is now)
                 if (isFeatureEnabled && !currentFeatureStates[key]) {
