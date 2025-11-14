@@ -52,7 +52,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             right: 0,
             position: 'absolute',
             overflow: 'hidden',
-            width: shouldUseNarrowLayout ? '100%' : (animatedWidth as unknown as number),
+            width: shouldUseNarrowLayout ? '100%' : animatedWidth,
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
 

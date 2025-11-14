@@ -15,13 +15,13 @@ type WideRHPContextType = {
     // Progress of the secondary overlay, the one covering wider RHP screen
     secondOverlayProgress: Animated.Value;
 
-    // Progress of the secondary overlay, the one covering wider RHP screen
+    // Progress of the tertiary overlay, the one covering wider RHP screen
     thirdOverlayProgress: Animated.Value;
 
     // If the secondary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderSecondaryOverlay: boolean;
 
-    // If the secondary overlay should be rendered. This value takes into account the delay of closing transition.
+    // If the tertiary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderThirdOverlay: boolean;
 
     // Show given route as in wide format
