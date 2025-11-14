@@ -2449,13 +2449,6 @@ const ROUTES = {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
     },
-
-    PROCESS_MONEY_REQUEST_HOLD: {
-        route: 'hold-expense-educational',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
-    },
     CHANGE_POLICY_EDUCATIONAL: {
         route: 'change-workspace-educational',
 
@@ -3372,6 +3365,22 @@ const ROUTES = {
     WORKSPACES_DOMAIN_VERIFIED: {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
+    DOMAIN_INITIAL: {
+        route: 'domain/:accountID',
+        getRoute: (accountID: number) => `domain/${accountID}` as const,
+    },
+    DOMAIN_SAML: {
+        route: 'domain/:accountID/saml',
+        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+    },
+    DOMAIN_VERIFY: {
+        route: 'domain/:accountID/verify',
+        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+    },
+    DOMAIN_VERIFIED: {
+        route: 'domain/:accountID/verified',
+        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
     },
 } as const;
 
