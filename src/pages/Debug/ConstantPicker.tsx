@@ -59,7 +59,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
             textInputOptions={{value: searchValue, label: translate('common.search'), onChangeText: setSearchValue}}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
+            initiallyFocusedItemKey={selectedOptionKey}
             isRowMultilineSupported
         />
     );
