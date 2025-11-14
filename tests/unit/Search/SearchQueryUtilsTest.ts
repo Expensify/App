@@ -306,6 +306,10 @@ describe('SearchQueryUtils', () => {
             expect(shouldHighlight('Take a 2-minute tour', 'Take')).toBe(true);
         });
 
+        it('matches word with accent', () => {
+            expect(shouldHighlight('f200é', 'f200e')).toBe(true);
+        });
+
         it('matches exact word in middle', () => {
             expect(shouldHighlight('Take a 2-minute tour', '2-minute')).toBe(true);
         });
