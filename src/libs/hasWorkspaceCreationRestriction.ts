@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SecurityGroup} from '@src/types/onyx';
-import * as LoginUtils from './LoginUtils';
+import {getEmailDomain} from './LoginUtils';
 
 /**
  * Check if the current user's domain has workspace creation restrictions
@@ -15,7 +15,7 @@ function hasWorkspaceCreationRestriction(
         return false;
     }
 
-    const domain = LoginUtils.getEmailDomain(userEmail);
+    const domain = getEmailDomain(userEmail);
 
     if (!domain) {
         return false;
