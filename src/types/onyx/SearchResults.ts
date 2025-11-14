@@ -9,9 +9,10 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
-import type ReportActionName from './ReportActionName';
+import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
 
@@ -63,21 +64,6 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
-};
-
-/** Model of personal details search result */
-type SearchPersonalDetails = {
-    /** ID of user account */
-    accountID: number;
-
-    /** User's avatar URL */
-    avatar: string;
-
-    /** User's display name */
-    displayName?: string;
-
-    /** User's email */
-    login?: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -139,9 +125,6 @@ type SearchReport = {
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
@@ -171,42 +154,6 @@ type SearchReport = {
 
     /** Pending action for the report */
     pendingAction?: OnyxCommon.PendingAction;
-};
-
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
-    accountID: number;
-
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
-
-    /** The report action created date */
-    created: string;
-
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
-
-        /** The text content of the fragment. */
-        text: string;
-
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-
-    /** The name of the report */
-    reportName: string;
 };
 
 /** Model of transaction search result */
@@ -443,8 +390,8 @@ type SearchResults = {
 
     /** Search results data */
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
@@ -468,11 +415,9 @@ export type {
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
-    SearchPersonalDetails,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
-    SearchReportAction,
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,
