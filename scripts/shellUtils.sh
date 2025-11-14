@@ -26,15 +26,15 @@ if [ -z "${RESET+x}" ]; then
 fi
 
 function success {
-  echo "🎉 $GREEN$1$RESET"
+  echo -e "🎉 $GREEN$1$RESET"
 }
 
 function error {
-  echo "💥 $RED$1$RESET"
+  echo -e "💥 $RED$1$RESET"
 }
 
 function info {
-  echo "$BLUE$1$RESET"
+  echo -e "$BLUE$1$RESET"
 }
 
 function title {

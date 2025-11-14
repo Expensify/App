@@ -90,9 +90,7 @@ function import_certificates() {
         elif [[ -f "${JAVA_HOME_PATH}/jre/lib/security/cacerts" ]]; then
             KEYSTORE="${JAVA_HOME_PATH}/jre/lib/security/cacerts"
         else
-            error "Could not find cacerts file"
-            echo "  Tried: ${JAVA_HOME_PATH}/lib/security/cacerts"
-            echo "  Tried: ${JAVA_HOME_PATH}/jre/lib/security/cacerts"
+            error "Could not find cacerts file\n  Tried: ${JAVA_HOME_PATH}/lib/security/cacerts\n  Tried: ${JAVA_HOME_PATH}/jre/lib/security/cacerts"
             ((FAIL_COUNT++))
             continue
         fi
@@ -172,9 +170,7 @@ function main() {
 
     # Verify certificate file exists
     if [[ ! -f "${CERT_FILE}" ]]; then
-        error "Cloudflare certificate not found at: ${CERT_FILE}"
-        error "Make sure you have the Expensidev repository cloned and that App is a child of Expensidev."
-        error "Alternatively, manually follow this stackoverflow: https://stackoverflowteams.com/c/expensify/questions/18506"
+        error "Cloudflare certificate not found at: ${CERT_FILE}\nMake sure you have the Expensidev repository cloned and that App is a child of Expensidev.\nAlternatively, manually follow this stackoverflow: https://stackoverflowteams.com/c/expensify/questions/18506"
         exit 1
     fi
 
