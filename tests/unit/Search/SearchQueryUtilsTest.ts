@@ -92,6 +92,18 @@ describe('SearchQueryUtils', () => {
 
             expect(result?.canonicalQuery).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
+
+        test('deduplicates conflicting type filters keeping the last occurrence', () => {
+            const userQuery = 'type:expense-report action:submit from:me type:expense';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+            expect(result?.canonicalQuery).toEqual(`${defaultQuery} action:submit from:me`);
+            expect(result?.rawFilterList).toEqual([
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'submit', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'me', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATA_TYPES.EXPENSE, isDefault: true},
+            ]);
+        });
     });
 
     describe('buildQueryStringFromFilterFormValues', () => {

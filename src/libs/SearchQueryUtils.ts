@@ -405,8 +405,8 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     try {
         const rawResult = parseSearchQuery(rawQuery) as SearchQueryJSON;
-        const rawFilters = rawResult.rawFilterList;
-        return Array.isArray(rawFilters) ? rawFilters : undefined;
+        const sanitizedFilters = getSanitizedRawFilters(rawResult);
+        return sanitizedFilters;
     } catch (error) {
         Log.warn('[Search] Failed to parse raw query for raw filters', {error, rawQuery});
     }

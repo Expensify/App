@@ -799,7 +799,8 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
+                const cannedQuery = buildCannedSearchQuery();
+                Navigation.setParams({q: cannedQuery, rawQuery: cannedQuery});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -908,7 +909,7 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
-        navigation.setParams({q: newQuery});
+        navigation.setParams({q: newQuery, rawQuery: newQuery});
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);

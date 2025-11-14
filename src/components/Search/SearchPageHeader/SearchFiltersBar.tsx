@@ -256,7 +256,7 @@ function SearchFiltersBar({
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
-                Navigation.setParams({q: queryString});
+                Navigation.setParams({q: queryString, rawQuery: queryString});
             });
         },
         [filterFormValues],
