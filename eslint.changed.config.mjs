@@ -48,13 +48,6 @@ const config = defineConfig([
                     message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
                 },
             ],
-            'no-restricted-imports': [
-                'error',
-                {
-                    paths: restrictedIconImportPaths,
-                    patterns: restrictedIconImportPatterns,
-                },
-            ],
         },
     },
 
