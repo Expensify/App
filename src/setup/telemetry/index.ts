@@ -2,7 +2,7 @@ import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
-import processBeforeSendTransactions from '@libs/Telemetry/middlewares';
+import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
 
