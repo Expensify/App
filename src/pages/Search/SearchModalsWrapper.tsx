@@ -45,6 +45,9 @@ function SearchModalsWrapper({
     setIsDownloadExportModalVisible,
 }: SearchModalsWrapperProps) {
     const {translate} = useLocalize();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const isPossibleToShowDownloadExportModal = !shouldUseNarrowLayout && !!isDownloadExportModalVisible && !!createExportAll && !!setIsDownloadExportModalVisible;
