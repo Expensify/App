@@ -28,8 +28,6 @@ function cleanup_temp_files() {
 }
 trap cleanup_temp_files EXIT
 
-# Functions
-
 function stop_gradle_daemons() {
     title "Step 1: Stopping Gradle daemons"
     

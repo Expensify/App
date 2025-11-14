@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source shellUtils for helper functions
+source "${SCRIPT_DIR}/shellUtils.sh"
+
 if [ -f .env ]; then
     set -a
     source .env
@@ -12,13 +18,9 @@ ANDROID_MODE="developmentDebug"
 SCHEME="New Expensify Dev"
 APP_ID="com.expensify.chat.dev"
 
-GREEN='\033[1;32m'
-RED='\033[1;31m'
-NC='\033[0m'
-
 # Function to print error message and exit
 function print_error_and_exit {
-    echo -e "${RED}Error: Invalid invocation. Please use one of: [ios, ipad, ipad-sm, android].${NC}"
+    error "Invalid invocation. Please use one of: [ios, ipad, ipad-sm, android]."
     exit 1
 }
 
@@ -45,11 +47,13 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Build Yapl JS
     cd Mobile-Expensify && npm run grunt:build:shared && cd ..
 
-    echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
+    echo
+    success "Starting a HybridApp build!"
     export CUSTOM_APK_NAME="Expensify-debug.apk"
     export IS_HYBRID_APP="true"
 else
-    echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
+    echo
+    success "Starting a standalone NewDot build!"
     echo $ANDROID_MODE
     unset CUSTOM_APK_NAME
 fi
@@ -67,6 +71,24 @@ case "$BUILD" in
         RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server
         ;;
     --android)
+        # Check if Cloudflare WARP is active and certificates need to be imported
+        if is_warp_active; then
+            if ! is_cloudflare_cert_imported; then
+                error "Cloudflare WARP is active but certificates are not imported into JDK."
+                error "This will cause Gradle to fail with SSL errors."
+                echo
+                info "Please run: sudo ${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
+                echo
+                read -p "Would you like to run it now? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    sudo "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
+                else
+                    error "Continuing without importing certificates. Build may fail."
+                fi
+            fi
+        fi
+
         npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server
         ;;
     *)

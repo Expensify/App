@@ -55,6 +55,41 @@ check_sudo() {
   fi
 }
 
+# Function to check if Cloudflare WARP is installed and running
+# Returns 0 if WARP is active, 1 otherwise
+is_warp_active() {
+  if ! command -v warp-cli &>/dev/null; then
+    return 1
+  fi
+
+  local WARP_STATUS
+  WARP_STATUS=$(warp-cli status 2>/dev/null | grep -i "status update" || echo "")
+
+  if [[ "${WARP_STATUS}" == *"Connected"* ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to check if Cloudflare WARP certificate is imported into default JDK
+# Returns 0 if certificate is imported, 1 otherwise
+is_cloudflare_cert_imported() {
+  if ! command -v keytool &>/dev/null; then
+    return 1
+  fi
+
+  local JAVA_HOME_PATH
+  JAVA_HOME_PATH=$(/usr/libexec/java_home 2>/dev/null) || return 1
+
+  if keytool -list -keystore "${JAVA_HOME_PATH}/lib/security/cacerts" \
+     -storepass changeit -alias cloudflare-gateway-root &>/dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 function assert_equal {
   if [[ "$1" != "$2" ]]; then
     error "Assertion failed: $1 is not equal to $2"
