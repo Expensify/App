@@ -249,7 +249,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 6. **Each comment must reference exactly one Rule ID.**
 7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
 8. **If no violations are found, add a reaction to the PR**:
-   Add a 👍 (+1) reaction to the PR body using the `.github/scripts/addPrReaction.sh` script.
+   Add a 👍 (+1) reaction to the PR using the `addPrReaction` script (available in PATH from `.claude/scripts/`). The script takes ONLY the PR number as argument - it always adds a "+1" reaction, so do NOT pass any reaction type or emoji.
 9. **Add reaction if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules
@@ -276,10 +276,10 @@ mcp__github_inline_comment__create_inline_comment:
 If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
 
 ```bash
-.github/scripts/addPrReaction.sh <PR_NUMBER>
+addPrReaction.sh <PR_NUMBER>
 ```
 
-**IMPORTANT**: Always use the `.github/scripts/addPrReaction.sh` script instead of calling `gh api` directly. This script provides a secure, restricted interface that only allows adding +1 reactions to PRs, preventing arbitrary GitHub API calls.
+**IMPORTANT**: Always use the `addPrReaction.sh` script (available in PATH from `.claude/scripts/`) instead of calling `gh api` directly. 
 
 ## Comment Format
 

@@ -272,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1595,7 +1596,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Zoek om opties te zien',
     },
     contacts: {
-        contactMethod: 'Contactmethode',
         contactMethods: 'Contactmethoden',
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',
@@ -6144,6 +6144,30 @@ ${amount} voor ${merchant} - ${date}`,
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `heeft de handmatige goedkeuringslimiet voor alle uitgaven gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" toegevoegd`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" verwijderd`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `heeft de belasting "${oldValue}" hernoemd naar "${newValue}"`;
+                }
+                case 'code': {
+                    return `heeft de belastingcode voor "${taxName}" gewijzigd van "${oldValue}" naar "${newValue}"`;
+                }
+                case 'rate': {
+                    return `heeft het belastingtarief voor "${taxName}" gewijzigd van "${oldValue}" naar "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `heeft de belasting "${taxName}" uitgeschakeld` : `heeft de belasting "${taxName}" ingeschakeld`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -7528,6 +7552,16 @@ ${amount} voor ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Het domein <strong>${domainName}</strong> is succesvol geverifieerd en je kunt nu SAML en andere beveiligingsfuncties instellen.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML eenmalige aanmelding (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is een beveiligingsfunctie die je meer controle geeft over hoe leden met e-mailadressen van <strong>${domainName}</strong> inloggen bij Expensify. Om dit in te schakelen, moet je bevestigen dat je een geautoriseerde bedrijfsbeheerder bent.</muted-text>`,
+            fasterAndEasierLogin: 'Sneller en makkelijker inloggen',
+            moreSecurityAndControl: 'Meer beveiliging en controle',
+            onePasswordForAnything: 'Eén wachtwoord voor alles',
+        },
+        goToDomain: 'Ga naar het domein',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
