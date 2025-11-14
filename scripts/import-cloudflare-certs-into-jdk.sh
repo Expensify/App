@@ -12,15 +12,15 @@ set -eu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 
-source "${SCRIPT_DIR}/shellUtils.sh"
-
-readonly CERT_ALIAS="cloudflare-gateway-root"
-readonly KEYSTORE_PASSWORD="changeit"
-
 # Certificate is in the Expensidev repo (assumed to betwo levels up from scripts directory)
 EXPENSIDEV_DIR="$(dirname "$(dirname "${SCRIPT_DIR}")")"
 readonly EXPENSIDEV_DIR
 readonly CERT_FILE="${EXPENSIDEV_DIR}/config/ssl/cloudflare-ca.pem"
+
+source "${SCRIPT_DIR}/shellUtils.sh"
+
+readonly CERT_ALIAS="cloudflare-gateway-root"
+readonly KEYSTORE_PASSWORD="changeit"
 
 # Function to check if Cloudflare WARP certificate is imported into default JDK
 # Returns 0 if certificate is imported, 1 otherwise
