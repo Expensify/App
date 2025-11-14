@@ -199,7 +199,6 @@ function getContinuousChain<TResource>(
     let resourceItem: ResourceItemResult<TResource> | undefined;
     if (itemFound) {
         const item = sortedItems.at(index);
-        console.log({item});
         if (item) {
             resourceItem = {
                 index,
