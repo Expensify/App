@@ -52,8 +52,8 @@ const config = defineConfig([
     },
 
     {
-    files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['**/libs/**/*.{ts,tsx}'],
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/libs/**/*.{ts,tsx}'],
         rules: {
             'no-restricted-imports': [
                 'error',
@@ -64,7 +64,6 @@ const config = defineConfig([
             ],
         },
     },
-
 
     {
         files: ['**/libs/**/*.{ts,tsx}'],
