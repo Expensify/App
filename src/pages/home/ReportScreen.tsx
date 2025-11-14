@@ -885,15 +885,27 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     useShowWideRHPVersion(shouldShowWideRHP);
 
     const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    const isReportUnreadInitially = useRef(isReportUnread);
 
-    const isLinkedMessagePageLoading = !!reportActionIDFromRoute && !linkedAction;
-    const isUnreadMessagePageLoading = !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction;
+    // When we first open a report with a linked report aciton,
+    // we need to wait for the results from the OpenReport api call,
+    // if the linked report action is not stored in Onyx.
+    const isLinkedMessagePageLoadingInitially = !!reportActionIDFromRoute && !linkedAction;
 
-    const shouldWaitForOpenReportResult = isLinkedMessagePageLoading || isUnreadMessagePageLoading;
+    // Same for unread messages, we need to wait for the results from the OpenReport api call,
+    // if the oldest unread report action is not stored in Onyx.
+    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnreadInitially.current && !oldestUnreadReportAction;
+
+    const shouldWaitForOpenReportResultInitially = isLinkedMessagePageLoadingInitially || isUnreadMessagePageLoadingInitially;
+
+    // console.log({isLinkedMessageLoading: isLinkedMessagePageLoading, isUnreadMessageLoading: isUnreadMessagePageLoading, shouldWaitForOpenReportResult});
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = (isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1)) || shouldWaitForOpenReportResult;
+    const isInitiallyLoadingReport = isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1);
+
+    // Once all the above conditions are met, we can consider the report ready.
+    const isReportReady = !isInitiallyLoadingReport && !shouldWaitForOpenReportResultInitially;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -962,8 +974,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                     testID="report-actions-view-wrapper"
                                 >
-                                    {(!report || !!isInitiallyLoadingReport || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                    {!!report && !isInitiallyLoadingReport && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                    {(!report || !isReportReady || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                    {!!report && isReportReady && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                         <ReportActionsView
                                             report={report}
                                             reportActions={reportActions}
@@ -975,7 +987,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             isReportTransactionThread={isTransactionThreadView}
                                         />
                                     ) : null}
-                                    {!!report && !isInitiallyLoadingReport && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                    {!!report && isReportReady && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                         <MoneyRequestReportActionsList
                                             report={report}
                                             hasPendingDeletionTransaction={hasPendingDeletionTransaction}
