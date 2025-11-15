@@ -281,7 +281,7 @@ function IOURequestStepAmount({
 
             if (isReturningFromConfirmationPage) {
                 const firstParticipant = transaction?.participants?.at(0);
-                const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
+                const isP2PChat = isParticipantP2P(firstParticipant);
                 const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
 
                 // If negative amount with P2P user, reset to default workspace
@@ -389,6 +389,13 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
+/**
+ * Check if the participant is a P2P chat
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+}
+
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
@@ -396,3 +403,4 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
+export {isParticipantP2P};
