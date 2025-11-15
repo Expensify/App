@@ -1,5 +1,5 @@
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
-import type {AndroidConfig} from '@invertase/react-native-apple-authentication'
+import type {AndroidConfig} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,7 @@ const config: AndroidConfig = {
     redirectUri: CONFIG.APPLE_SIGN_IN.REDIRECT_URI,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
-    fullScreen: false
+    fullScreen: false,
 };
 
 /**
