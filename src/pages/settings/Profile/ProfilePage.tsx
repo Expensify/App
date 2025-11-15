@@ -193,6 +193,7 @@ function ProfilePage() {
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                             editIconStyle={styles.profilePageAvatar}
+                                            originalFileName={currentUserPersonalDetails?.originalFileName}
                                         />
                                     </MenuItemGroup>
                                 )}

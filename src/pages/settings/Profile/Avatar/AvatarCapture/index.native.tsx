@@ -1,5 +1,6 @@
 import React, {forwardRef, useImperativeHandle, useRef} from 'react';
 import ViewShot from 'react-native-view-shot';
+import variables from '@styles/variables';
 import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
 
 /**
@@ -28,7 +29,7 @@ function AvatarCapture({children, fileName}: AvatarCaptureProps, ref: React.Forw
     return (
         <ViewShot
             ref={viewShotRef}
-            options={{fileName, format: 'png'}}
+            options={{fileName, format: 'png', width: variables.avatarSizeXXLarge, height: variables.avatarSizeXXLarge}}
         >
             {children}
         </ViewShot>

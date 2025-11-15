@@ -248,6 +248,7 @@ function WorkspacesListRow({
                                     type={CONST.ICON_TYPE_AVATAR}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                     containerStyles={styles.workspaceOwnerAvatarWrapper}
+                                    originalFileName={ownerDetails.originalFileName}
                                 />
                                 <View style={styles.flex1}>
                                     <WorkspacesListRowDisplayName

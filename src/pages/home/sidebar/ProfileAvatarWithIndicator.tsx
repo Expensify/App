@@ -37,6 +37,7 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
                     accountID={currentUserPersonalDetails.accountID}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     isLoading={!!(isLoading && !currentUserPersonalDetails.avatar)}
+                    originalFileName={currentUserPersonalDetails?.originalFileName}
                 />
             </View>
         </OfflineWithFeedback>

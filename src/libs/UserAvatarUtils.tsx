@@ -1,8 +1,18 @@
 import {md5} from 'expensify-common';
+import React from 'react';
+import type {SvgProps} from 'react-native-svg';
+import ColoredLetterAvatar from '@components/ColoredLetterAvatar';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getAvatarLocal as avatarCatalogGetAvatarLocal, getAvatarURL as avatarCatalogGetAvatarURL, DEFAULT_AVATAR_PREFIX, PRESET_AVATAR_CATALOG} from './Avatars/PresetAvatarCatalog';
+import {
+    getAvatarLocal as avatarCatalogGetAvatarLocal,
+    getAvatarURL as avatarCatalogGetAvatarURL,
+    getLetterAvatar as avatarCatalogGetLetterAvatar,
+    DEFAULT_AVATAR_PREFIX,
+    PRESET_AVATAR_CATALOG,
+} from './Avatars/PresetAvatarCatalog';
 import type {DefaultAvatarIDs, PresetAvatarID} from './Avatars/PresetAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -39,6 +49,12 @@ type DefaultAvatarArgsType = CommonAvatarArgsType & {
 type GetAvatarArgsType = CommonAvatarArgsType & {
     /** The avatar source - can be a URL string or SVG component */
     avatarSource?: AvatarSource;
+
+    /** Name of the original file - used for recognizing letter avatars */
+    originalFileName?: string;
+
+    /** Desired avatar size for letter avatars */
+    size?: AvatarSizeName;
 };
 
 /**
@@ -193,6 +209,33 @@ function isLetterAvatar(originalFileName?: string): boolean {
 }
 
 /**
+ * Extracts the letter and colors from a letter avatar filename.
+ * Letter avatars follow the pattern: letter-avatar-#RRGGBB-#RRGGBB-X.png
+ * where the first RRGGBB is the background color, second is the text color, and X is the letter.
+ *
+ * @param originalFileName - The original filename of the avatar
+ * @returns An object containing the letter and colors, or undefined if not a valid letter avatar
+ */
+function extractLetterAvatarData(originalFileName?: string): {letter: string; backgroundColor: string; textColor: string} | undefined {
+    if (!isLetterAvatar(originalFileName)) {
+        return undefined;
+    }
+
+    // Extract components using regex groups
+    const match = originalFileName?.match(/^letter-avatar-(#[0-9A-F]{6})-(#[0-9A-F]{6})-([A-Z])\.png$/);
+
+    if (!match) {
+        return undefined;
+    }
+
+    return {
+        backgroundColor: match[1],
+        textColor: match[2],
+        letter: match[3],
+    };
+}
+
+/**
  * Returns the appropriate avatar source (SVG asset or URL) for rendering in React components.
  *
  * **This is the primary function for getting avatar sources throughout the application.**
@@ -209,12 +252,42 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarSource - The avatar source (URL or SVG component)
+ * @param args.originalFileName - The original filename of the avatar (used to identify letter avatars)
+ * @param args.size - Desired avatar size (used for letter avatars)
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
-function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
+function getAvatar({
+    avatarSource,
+    accountID = CONST.DEFAULT_NUMBER_ID,
+    accountEmail,
+    originalFileName,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+}: GetAvatarArgsType): AvatarSource | React.FC<SvgProps> | undefined {
     if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource});
+    }
+    if (isLetterAvatar(originalFileName)) {
+        function StyledLetterAvatar() {
+            const letterAvatarData = extractLetterAvatarData(originalFileName);
+            if (!letterAvatarData) {
+                return null;
+            }
+            const avatarComponent = avatarCatalogGetLetterAvatar(letterAvatarData.letter);
+            if (!avatarComponent) {
+                return null;
+            }
+
+            return (
+                <ColoredLetterAvatar
+                    fillColor={letterAvatarData.textColor}
+                    backgroundColor={letterAvatarData.backgroundColor}
+                    component={avatarComponent}
+                    size={size}
+                />
+            );
+        }
+        return StyledLetterAvatar ?? avatarSource;
     }
 
     const maybePresetAvatarName = getPresetAvatarNameFromURL(avatarSource);
@@ -259,7 +332,7 @@ function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
  * @returns The full-size avatar source
  */
 function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
-    const source = getAvatar(args);
+    const source = getAvatar({...args, size: CONST.AVATAR_SIZE.X_X_LARGE});
     if (typeof source !== 'string') {
         return source;
     }
@@ -306,5 +379,6 @@ export {
     isPresetAvatar,
     isDefaultAvatar,
     isLetterAvatar,
+    extractLetterAvatarData,
 };
 export type {AvatarSource};

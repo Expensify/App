@@ -260,6 +260,9 @@ type MenuItemBaseProps = {
 
     iconAccountID?: number;
 
+    /** Used for display optimization of letter avatars. */
+    iconFileName?: string;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -440,6 +443,7 @@ function MenuItem({
     errorTextStyle,
     shouldShowRedDotIndicator,
     hintText,
+    iconFileName,
     success = false,
     iconReportID,
     focused = false,
@@ -654,7 +658,6 @@ function MenuItem({
     };
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
-
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -799,6 +802,7 @@ function MenuItem({
                                                                     fallbackIcon={fallbackIcon}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
+                                                                    originalFileName={iconFileName}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}

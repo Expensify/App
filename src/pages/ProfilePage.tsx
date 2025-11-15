@@ -198,6 +198,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.X_LARGE}
                                         fallbackIcon={fallbackIcon}
+                                        originalFileName={details?.originalFileName}
                                     />
                                 </OfflineWithFeedback>
                             </PressableWithoutFocus>

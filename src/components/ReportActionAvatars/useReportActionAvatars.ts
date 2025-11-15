@@ -119,6 +119,7 @@ function useReportActionAvatars({
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
             fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
+            originalFileName: personalDetails?.[id]?.originalFileName,
         };
     });
 
@@ -221,6 +222,7 @@ function useReportActionAvatars({
               type: CONST.ICON_TYPE_AVATAR,
               fill: undefined,
               fallbackIcon,
+              originalFileName: delegatePersonalDetails.displayName,
           }
         : undefined;
 
