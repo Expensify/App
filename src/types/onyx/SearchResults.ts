@@ -156,7 +156,10 @@ type SearchReport = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
