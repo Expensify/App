@@ -206,6 +206,12 @@ type SetWorkspaceReimbursementActionParams = {
     shouldUpdateLastPaymentMethod?: boolean;
 };
 
+type SetWorkspaceApprovalModeAdditionalData = {
+    reportNextSteps?: OnyxCollection<ReportNextStep>;
+    transactionViolations?: OnyxCollection<TransactionViolations>;
+    betas?: Beta[];
+};
+
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -237,32 +243,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (actions) => {
         allReportActions = actions;
-    },
-});
-
-let allNextSteps: OnyxCollection<ReportNextStep> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.NEXT_STEP,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allNextSteps = value ?? {};
-    },
-});
-
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allTransactionViolations = value ?? {};
-    },
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        allBetas = value;
     },
 });
 
@@ -781,7 +761,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, additionalData: SetWorkspaceApprovalModeAdditionalData = {}) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -797,8 +777,11 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
     const nextStepOptimisticData: OnyxUpdate[] = [];
     const nextStepFailureData: OnyxUpdate[] = [];
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const transactionViolations = allTransactionViolations ?? {};
+    const {reportNextSteps, transactionViolations, betas} = additionalData;
+    const resolvedNextSteps = reportNextSteps ?? {};
+    const resolvedTransactionViolations = transactionViolations ?? {};
+    const resolvedBetas = betas ?? [];
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
     const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
         (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
     );
@@ -811,8 +794,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         }
 
         const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
-        const currentNextStep: OnyxEntry<ReportNextStep> | null = allNextSteps?.[nextStepKey] ?? null;
-        const hasViolations = ReportUtils.hasViolations(reportID, transactionViolations);
+        const currentNextStep: OnyxEntry<ReportNextStep> | null = resolvedNextSteps[nextStepKey] ?? null;
+        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations);
         const optimisticNextStep = buildNextStepNew({
             report,
             policy: updatedPolicy,
