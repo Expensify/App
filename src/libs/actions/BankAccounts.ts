@@ -35,6 +35,7 @@ import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, Personal
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
@@ -367,7 +368,13 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
+function deletePaymentBankAccount(
+    bankAccountID: number,
+    lastUsedPaymentMethods?: LastPaymentMethod,
+    bankAccount?: OnyxEntry<PersonalBankAccount>,
+    newBankAccountID?: number,
+    newFundID?: number,
+) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const bankAccountFailureData = {
@@ -407,6 +414,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
             },
         ],
     };
+
+    if (newBankAccountID && newFundID) {
+        const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID, newFundID);
+        onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
+    }
 
     Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;

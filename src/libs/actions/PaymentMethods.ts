@@ -573,6 +573,7 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
+    getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,
