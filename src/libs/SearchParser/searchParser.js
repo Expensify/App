@@ -431,7 +431,7 @@ function peg$parse(input, options) {
       return buildFilter(operator, key, values);
     };
   var peg$f5 = function(rest) {
-      const suffix = rest.replace(/^-+/g, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     };
   var peg$f6 = function(k) {
