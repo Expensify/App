@@ -112,6 +112,7 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type TransactionMetadata from './TransactionMetadata';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
@@ -286,4 +287,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    TransactionMetadata,
 };
