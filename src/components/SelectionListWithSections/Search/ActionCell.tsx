@@ -50,6 +50,7 @@ type ActionCellProps = {
     hash?: number;
     amount?: number;
     extraSmall?: boolean;
+    shouldDisablePointerEvents?: boolean;
 };
 
 function ActionCell({
@@ -65,6 +66,7 @@ function ActionCell({
     hash,
     amount,
     extraSmall = false,
+    shouldDisablePointerEvents,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -94,7 +96,11 @@ function ActionCell({
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
-            <View style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter]}>
+            <View
+                style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter, shouldDisablePointerEvents && styles.pointerEventsNone]}
+                accessible={!shouldDisablePointerEvents}
+                accessibilityState={{disabled: shouldDisablePointerEvents}}
+            >
                 <Badge
                     text={text}
                     icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
@@ -126,7 +132,9 @@ function ActionCell({
                 onPress={goToItem}
                 small={!extraSmall}
                 extraSmall={extraSmall}
-                style={[styles.w100]}
+                style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
+                isDisabled={shouldDisablePointerEvents}
+                shouldStayNormalOnDisable={shouldDisablePointerEvents}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
@@ -152,10 +160,11 @@ function ActionCell({
                     chatReportID={iouReport?.chatReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
-                    style={[styles.w100]}
+                    style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                     wrapperStyle={[styles.w100]}
                     shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
-                    isDisabled={isOffline}
+                    isDisabled={isOffline || shouldDisablePointerEvents}
+                    shouldStayNormalOnDisable={shouldDisablePointerEvents}
                     isLoading={isLoading}
                     onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 />
@@ -169,10 +178,11 @@ function ActionCell({
             onPress={goToItem}
             small={!extraSmall}
             extraSmall={extraSmall}
-            style={[styles.w100]}
+            style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success
-            isDisabled={isOffline}
+            isDisabled={isOffline || shouldDisablePointerEvents}
+            shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
         />
     );
