@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import PercentageForm from '@components/PercentageForm';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,7 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -56,7 +58,6 @@ function SplitListItem<TItem extends ListItem>({
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
-    const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
@@ -84,13 +85,12 @@ function SplitListItem<TItem extends ListItem>({
                     submitBehavior="blurAndSubmit"
                     formatAmountOnBlur
                     onAmountChange={onSplitExpenseAmountChange}
-                    prefixContainerStyle={[styles.pv0, styles.h100]}
+                    prefixContainerStyle={[styles.pl1, styles.pv0, styles.h100]}
                     prefixStyle={styles.lineHeightUndefined}
-                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                    inputStyle={styles.optionRowAmountInputContainer}
+                    containerStyle={[StyleUtils.splitAmountInputStyles(styles, isSmallScreenWidth), styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     maxLength={formattedOriginalAmount.length + 1}
-                    contentWidth={contentWidth}
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
                     shouldWrapInputInContainer={false}
@@ -113,7 +113,7 @@ function SplitListItem<TItem extends ListItem>({
                     {splitItem.currencySymbol}
                 </Text>
                 <Text
-                    style={[styles.optionRowAmountInput, styles.pl3, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
+                    style={[styles.getSplitListItemAmountStyle(prefixCharacterMargin, contentWidth), styles.textAlignLeft]}
                     numberOfLines={1}
                 >
                     {convertToDisplayStringWithoutCurrency(splitItem.amount, splitItem.currency)}
@@ -123,7 +123,7 @@ function SplitListItem<TItem extends ListItem>({
     }, [
         styles,
         contentWidth,
-        inputMarginLeft,
+        prefixCharacterMargin,
         splitItem.isEditable,
         splitItem.amount,
         splitItem.currency,
@@ -135,20 +135,20 @@ function SplitListItem<TItem extends ListItem>({
     ]);
 
     const SplitPercentageComponent = useMemo(() => {
-        if (!splitItem.isEditable) {
-            return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
+        if (splitItem.isEditable) {
+            return (
+                <PercentageForm
+                    onInputChange={onSplitExpensePercentageChange}
+                    value={String(splitItem.percentage ?? 0)}
+                    textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
+                    containerStyles={styles.optionRowPercentInputContainer}
+                    inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
+                    onFocus={focusHandler}
+                    onBlur={onInputBlur}
+                />
+            );
         }
-        return (
-            <PercentageForm
-                onInputChange={onSplitExpensePercentageChange}
-                value={String(splitItem.percentage ?? 0)}
-                textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
-                containerStyles={styles.optionRowPercentInputContainer}
-                inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
-                onFocus={focusHandler}
-                onBlur={onInputBlur}
-            />
-        );
+        return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
     }, [styles, splitItem.isEditable, splitItem.percentage, onSplitExpensePercentageChange, focusHandler, onInputBlur]);
 
     return (

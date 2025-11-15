@@ -103,6 +103,41 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
 }
 
 /**
+ * Given a list of split amounts (in backend cents) and the original total amount,
+ * calculate display percentages for each split so that:
+ * - Each row is a whole-number percentage (0–100)
+ * - Percentages are proportional to the absolute amounts
+ * - Any rounding remainder is added to the last row so the sum is always exactly 100
+ */
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
+
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
+    }
+
+    const rawPercentages = amountsInCents.map((amountInCents) => {
+        const absoluteItemAmount = Math.abs(amountInCents ?? 0);
+        return totalAbs > 0 ? Math.round((absoluteItemAmount / totalAbs) * 100) : 0;
+    });
+
+    const sumOfPercentages = rawPercentages.reduce((sum, current) => sum + current, 0);
+    const percentageRemainder = 100 - sumOfPercentages;
+
+    if (percentageRemainder === 0) {
+        return rawPercentages;
+    }
+
+    return rawPercentages.map((percentage, index) => {
+        if (index !== rawPercentages.length - 1) {
+            return percentage;
+        }
+        const updatedPercentage = percentage + percentageRemainder;
+        return Math.max(0, updatedPercentage);
+    });
+}
+
+/**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
@@ -254,6 +289,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
+    calculateSplitPercentagesFromAmounts,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,

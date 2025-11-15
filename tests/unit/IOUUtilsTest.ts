@@ -186,6 +186,32 @@ describe('IOUUtils', () => {
         });
     });
 
+    describe('calculateSplitPercentagesFromAmounts', () => {
+        test('Distributes percentages proportionally and adjusts remainder on last item', () => {
+            // 23.00 split as 7.66, 7.66, 7.68 → 3x ~33% but must sum to 100
+            const totalInCents = 2300;
+            const amounts = [766, 766, 768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            expect(percentages).toEqual([33, 33, 34]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+
+        test('Handles zero or empty totals by returning zeros', () => {
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([], 0)).toEqual([]);
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
+        });
+
+        test('Uses absolute values of amounts and total', () => {
+            const totalInCents = -2300;
+            const amounts = [-766, -766, -768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            expect(percentages).toEqual([33, 33, 34]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+    });
+
     describe('insertTagIntoTransactionTagsString', () => {
         test('Inserting a tag into tag string should update the tag', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2, true)).toBe(':NY:California');

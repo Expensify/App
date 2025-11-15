@@ -1120,6 +1120,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Montant',
+        percent: 'Pourcentage',
         taxAmount: 'Montant de la taxe',
         taxRate: "Taux d'imposition",
         approve: ({
@@ -1134,6 +1135,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Diviser',
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Répartir par pourcentage',
         addSplit: 'Ajouter une répartition',
         makeSplitsEven: 'Uniformiser les répartitions',
         editSplits: 'Modifier les répartitions',
@@ -1507,8 +1509,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisissez un espace de travail',
-        percent: 'Pourcentage',
-        splitByPercentage: 'Répartir par pourcentage',
     },
     transactionMerge: {
         listPage: {

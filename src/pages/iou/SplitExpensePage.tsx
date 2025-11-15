@@ -43,7 +43,7 @@ import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {calculateSplitAmountFromPercentage} from '@libs/IOUUtils';
+import {calculateSplitAmountFromPercentage, calculateSplitPercentagesFromAmounts} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -284,17 +284,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
-        const totalAbs = Math.abs(transactionDetailsAmount);
+        const splitExpensesArray = draftTransaction?.comment?.splitExpenses ?? [];
 
-        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
+        const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
+        const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
+
+        const items: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
             const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
             const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
             const currentReport = getReportOrDraftReport(currentTransaction?.reportID);
             const isApproved = isReportApproved({report: currentReport});
             const isSettled = isSettledReportUtils(currentReport?.reportID);
             const isCancelled = currentReport && currentReport?.isCancelledIOU;
-            const absoluteItemAmount = Math.abs(Number(item.amount ?? 0));
-            const percentage = totalAbs > 0 ? Math.round((absoluteItemAmount / totalAbs) * 100) : 0;
+            const percentage = adjustedPercentages.at(index) ?? 0;
 
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,

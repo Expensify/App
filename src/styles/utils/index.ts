@@ -37,6 +37,7 @@ import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitAmountInputStyles from './splitAmountInputStyles';
 import splitPercentageInputStyles from './splitPercentageInputStyles';
 import type {
     AllStyles,
@@ -1334,6 +1335,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitAmountInputStyles,
     splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
