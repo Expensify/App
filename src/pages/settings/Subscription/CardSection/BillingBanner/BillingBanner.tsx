@@ -107,7 +107,7 @@ function BillingBanner({
 
             <View style={[styles.flex1, styles.justifyContentCenter]}>
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
-                {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
+                {!!subtitle && (typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle)}
             </View>
             {shouldUseNarrowLayout ? (
                 <>
