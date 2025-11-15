@@ -1708,6 +1708,10 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
+            if (!withdrawalIDGroup.accountNumber) {
+                continue;
+            }
+
             withdrawalIDSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 transactions: [],
