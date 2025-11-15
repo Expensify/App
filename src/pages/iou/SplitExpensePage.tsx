@@ -2,14 +2,12 @@ import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
-import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -20,6 +18,7 @@ import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -64,7 +63,6 @@ type TabType = {
     key: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
     testID: string;
     titleKey: TranslationPaths;
-    icon: React.FC<SvgProps>;
 };
 
 const tabs: TabType[] = [
@@ -72,19 +70,18 @@ const tabs: TabType[] = [
         key: CONST.IOU.SPLIT_TYPE.AMOUNT,
         testID: `split-expense-tab-${CONST.IOU.SPLIT_TYPE.AMOUNT}`,
         titleKey: 'iou.amount',
-        icon: Expensicons.MoneyCircle,
     },
     {
         key: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
         testID: `split-expense-tab-${CONST.IOU.SPLIT_TYPE.PERCENTAGE}`,
         titleKey: 'iou.percent',
-        icon: Expensicons.Percent,
     },
 ];
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {ArrowsLeftRight, MoneyCircle, Percent, Plus} = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight', 'MoneyCircle', 'Percent'] as const);
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -361,20 +358,33 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={Expensicons.Plus}
+                    icon={Plus}
                     style={[styles.ph4]}
                 />
                 {shouldShowMakeSplitsEven && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={Expensicons.ArrowsLeftRight}
+                        icon={ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, shouldShowMakeSplitsEven, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        onAddSplitExpense,
+        onMakeSplitsEven,
+        translate,
+        shouldShowMakeSplitsEven,
+        shouldUseNarrowLayout,
+        styles.w100,
+        styles.ph4,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        ArrowsLeftRight,
+        Plus,
+    ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
@@ -428,7 +438,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         <TabSelectorItem
                             key={tab.key}
                             testID={tab.testID}
-                            icon={tab.icon}
+                            icon={tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? MoneyCircle : Percent}
                             title={translate(tab.titleKey)}
                             isActive={isActive}
                             onPress={() => {
@@ -449,7 +459,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 })}
             </View>
         );
-    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, shouldShowMakeSplitsEven, translate]);
+    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, shouldShowMakeSplitsEven, translate, MoneyCircle, Percent]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {

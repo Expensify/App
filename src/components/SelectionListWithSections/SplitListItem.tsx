@@ -1,11 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import PercentageForm from '@components/PercentageForm';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -34,7 +33,9 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {Folder, Tag, ArrowRight} = useMemoizedLazyExpensifyIcons(['Folder', 'Tag', 'ArrowRight'] as const);
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -44,7 +45,7 @@ function SplitListItem<TItem extends ListItem>({
         (amount: string) => {
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
         },
-        [splitItem.transactionID, splitItem.onSplitExpenseAmountChange],
+        [splitItem],
     );
 
     const onSplitExpensePercentageChange = useCallback(
@@ -52,7 +53,7 @@ function SplitListItem<TItem extends ListItem>({
             const percentageNumber = Number(value || 0);
             splitItem.onSplitExpensePercentageChange?.(splitItem.transactionID, Number.isNaN(percentageNumber) ? 0 : percentageNumber);
         },
-        [splitItem.transactionID, splitItem.onSplitExpensePercentageChange],
+        [splitItem],
     );
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
@@ -121,6 +122,8 @@ function SplitListItem<TItem extends ListItem>({
             </View>
         );
     }, [
+        StyleUtils,
+        isSmallScreenWidth,
         styles,
         contentWidth,
         prefixCharacterMargin,
@@ -149,7 +152,7 @@ function SplitListItem<TItem extends ListItem>({
             );
         }
         return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
-    }, [styles, splitItem.isEditable, splitItem.percentage, onSplitExpensePercentageChange, focusHandler, onInputBlur]);
+    }, [StyleUtils, styles, splitItem.isEditable, splitItem.percentage, onSplitExpensePercentageChange, focusHandler, onInputBlur]);
 
     return (
         <BaseListItem
@@ -235,7 +238,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>

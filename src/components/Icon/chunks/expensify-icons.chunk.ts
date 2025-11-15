@@ -158,6 +158,7 @@ import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
+import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
@@ -355,6 +356,7 @@ const Expensicons = {
     Paperclip,
     Pause,
     Pencil,
+    Percent,
     Phone,
     Pin,
     Play,
