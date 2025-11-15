@@ -7,8 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
@@ -100,8 +98,7 @@ const getOptionRows = () => {
 };
 
 const getDisplayNames = () => {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+    const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
     return screen.queryAllByLabelText(hintText);
 };
 
@@ -699,6 +696,30 @@ describe('SidebarLinksData', () => {
             // Then the report should not be displayed in the sidebar
             expect(getOptionRows()).toHaveLength(0);
             expect(getDisplayNames()).toHaveLength(0);
+        });
+    });
+
+    describe('Inbox - GBR', () => {
+        it('should display the report with GBR when the report has outstanding child task', async () => {
+            // Given SidebarLinks are rendered initially.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const reportWithOutstandingChildTask: Report = {
+                ...createReport(false, [1, 2], 0),
+                hasOutstandingChildTask: true,
+            };
+
+            // When Onyx state is initialized with a draft report.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithOutstandingChildTask.reportID}`]: reportWithOutstandingChildTask,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sidebar should display the outstanding report.
+            expect(getDisplayNames()).toHaveLength(1);
+
+            // And the GBR icon should be shown, indicating there is require action from current user.
+            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
         });
     });
 });

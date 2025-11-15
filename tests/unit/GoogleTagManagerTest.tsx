@@ -7,6 +7,7 @@ import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentM
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,17 +132,17 @@ describe('GoogleTagManagerTest', () => {
     test('sign_up', async () => {
         // When we render the OnboardingModal a few times
         const {rerender} = render(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
@@ -190,6 +191,7 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
+            isASAPSubmitBetaEnabled: false,
         });
 
         await waitForBatchedUpdatesWithAct();

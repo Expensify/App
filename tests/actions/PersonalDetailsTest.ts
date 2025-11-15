@@ -1,15 +1,15 @@
 /* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as UserUtils from '@libs/UserUtils';
+import * as UserAvatarUtils from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -23,8 +23,8 @@ const mockNavigation = Navigation as jest.Mocked<typeof Navigation>;
 jest.mock('@libs/PersonalDetailsUtils');
 const mockPersonalDetailsUtils = PersonalDetailsUtils as jest.Mocked<typeof PersonalDetailsUtils>;
 
-jest.mock('@libs/UserUtils');
-const mockUserUtils = UserUtils as jest.Mocked<typeof UserUtils>;
+jest.mock('@libs/UserAvatarUtils');
+const mockUserAvatarUtils = UserAvatarUtils as jest.Mocked<typeof UserAvatarUtils>;
 
 describe('actions/PersonalDetails', () => {
     beforeAll(() => {
@@ -705,19 +705,20 @@ describe('actions/PersonalDetails', () => {
 
     describe('deleteAvatar', () => {
         it('should call API.write with correct parameters and optimistic data', async () => {
-            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
                 accountID: 123,
+                email: 'test@test.te',
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(123);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith({accountID: currentUserPersonalDetail.accountID, accountEmail: currentUserPersonalDetail.email});
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
                 optimisticData: [
                     {
@@ -756,7 +757,7 @@ describe('actions/PersonalDetails', () => {
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
@@ -793,7 +794,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserUtils.getDefaultAvatarURL).not.toHaveBeenCalled();
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).not.toHaveBeenCalled();
             expect(mockAPI.write).not.toHaveBeenCalled();
         });
 
@@ -807,12 +808,12 @@ describe('actions/PersonalDetails', () => {
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
-            mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
+            mockUserAvatarUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(456);
+            expect(mockUserAvatarUtils.getDefaultAvatarURL).toHaveBeenCalledWith({accountID: 456});
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_USER_AVATAR,
                 null,

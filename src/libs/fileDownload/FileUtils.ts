@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -172,13 +173,39 @@ function cleanFileName(fileName: string): string {
 
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
+
+    const fileNameWithoutExtension = file.fileName;
+    const fileExtension = file.fileExtension;
+
+    const time = DateUtils.getDBTime();
+    const timeSuffix = `-${time}`;
+
+    const lengthSafeFileNameWithoutExtension =
+        Platform.OS === 'android' ? truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength: timeSuffix.length}) : fileNameWithoutExtension;
+
+    let newFileName = `${lengthSafeFileNameWithoutExtension}${timeSuffix}`;
+
     // Replace illegal characters before trying to download the attachment.
     newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
-    if (file.fileExtension) {
-        newFileName += `.${file.fileExtension}`;
+    if (fileExtension) {
+        newFileName += `.${fileExtension}`;
     }
     return newFileName;
+}
+
+const ANDROID_SAFE_FILE_NAME_LENGTH = 70;
+
+/**
+ * Truncates the file name to a safe length on Android
+ * @param params - An object containing:
+ *   @param params.fileNameWithoutExtension - The file name without the extension
+ *   @param params.fileSuffixLength - The length of the file suffix
+ * @returns The truncated file name
+ */
+function truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength}: {fileNameWithoutExtension: string; fileSuffixLength: number}): string {
+    const safeFileNameLengthWithoutSuffix = ANDROID_SAFE_FILE_NAME_LENGTH - fileSuffixLength;
+
+    return fileNameWithoutExtension.substring(0, safeFileNameLengthWithoutSuffix);
 }
 
 /**
@@ -560,18 +587,23 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
         });
 };
 
-const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+type ValidateAttachmentOptions = {
+    isValidatingReceipts?: boolean;
+    isValidatingMultipleFiles?: boolean;
+};
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
+    const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
-    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
@@ -766,6 +798,8 @@ export {
     getFileType,
     cleanFileName,
     appendTimeToFileName,
+    ANDROID_SAFE_FILE_NAME_LENGTH,
+    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     isLocalFile,
@@ -789,3 +823,5 @@ export {
     cleanFileObject,
     cleanFileObjectName,
 };
+
+export type {ValidateAttachmentOptions};

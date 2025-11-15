@@ -1,12 +1,13 @@
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
     getMergeFieldTranslationKey,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
+    getRateFromMerchant,
+    getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -15,7 +16,8 @@ import {
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
@@ -101,6 +103,23 @@ describe('MergeTransactionUtils', () => {
             // Then it should return true because all transactions have valid receipts
             expect(result).toBe(true);
         });
+
+        it('should return false when both transactions are distance requests', () => {
+            // Given two distance request transactions (with or without receipts)
+            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
+            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
+
+            distanceTransaction1.receipt = {receiptID: 333};
+            distanceTransaction2.receipt = {receiptID: 444};
+
+            const transactions = [distanceTransaction1, distanceTransaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return false because distance requests skip receipt review
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeFieldValue', () => {
@@ -139,18 +158,6 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the category value from the transaction
             expect(result).toBe('Food');
-        });
-
-        it('should return currency value from transaction', () => {
-            // Given a transaction with a currency value
-            const transaction = createRandomTransaction(0);
-            transaction.currency = CONST.CURRENCY.EUR;
-
-            // When we get the currency field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'currency');
-
-            // Then it should return the currency value from the transaction
-            expect(result).toBe(CONST.CURRENCY.EUR);
         });
 
         it('should handle amount field for unreported expense correctly', () => {
@@ -509,6 +516,8 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                waypoints: {waypoint0: {name: 'Selected waypoint'}},
+                customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -526,6 +535,8 @@ describe('MergeTransactionUtils', () => {
                 comment: {
                     ...targetTransaction.comment,
                     comment: 'Merged description',
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
+                    waypoints: {waypoint0: {name: 'Selected waypoint'}},
                 },
                 reimbursable: false,
                 billable: true,
@@ -609,6 +620,30 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
+    describe('getReceiptFileName', () => {
+        it('should return filename from source when source is a string', () => {
+            const receipt = {
+                source: 'https://example.com/receipts/receipt123.jpg',
+                filename: 'backup-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt123.jpg');
+        });
+
+        it('should return filename when source is not a string', () => {
+            const receipt = {
+                source: 12345,
+                filename: 'receipt-from-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt-from-filename.jpg');
+        });
+    });
+
     describe('getDisplayValue', () => {
         it('should return empty string for empty values', () => {
             // Given a transaction with empty merchant
@@ -619,7 +654,6 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('merchant', transaction, translateLocal);
 
             // Then it should return empty string
@@ -635,9 +669,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const billableResult = getDisplayValue('billable', transaction, translateLocal);
 
             // Then it should return translated Yes/No values
@@ -654,7 +686,6 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('amount', transaction, translateLocal);
 
             // Then it should return formatted currency string
@@ -671,7 +702,6 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('description', transaction, translateLocal);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
@@ -686,7 +716,6 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('tag', transaction, translateLocal);
 
             // Then it should return sanitized tag names separated by commas
@@ -700,7 +729,6 @@ describe('MergeTransactionUtils', () => {
                 {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
             ];
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getDisplayValue('attendees', transaction, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
@@ -716,14 +744,90 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const categoryResult = getDisplayValue('category', transaction, translateLocal);
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldUpdatedValues', () => {
+        it('should return updated values with the field value for non-special fields', () => {
+            // Given a transaction and a basic field like merchant
+            const transaction = createRandomTransaction(0);
+            const fieldValue = 'New Merchant Name';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should return an object with the field value
+            expect(result).toEqual({
+                merchant: 'New Merchant Name',
+            });
+        });
+
+        it('should include currency when field is amount', () => {
+            // Given a transaction with EUR currency
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.EUR,
+            };
+            const fieldValue = 2500;
+
+            // When we get updated values for amount field
+            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+
+            // Then it should include both amount and currency
+            expect(result).toEqual({
+                amount: 2500,
+                currency: CONST.CURRENCY.EUR,
+            });
+        });
+
+        it('should include additional fields when merchant field is selected for distance request', () => {
+            // Given a distance request transaction
+            const transaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: 2500,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'unit123',
+                        quantity: 25.5,
+                    },
+                    waypoints: {
+                        waypoint0: {name: 'Start Location', address: '123 Start St'},
+                        waypoint1: {name: 'End Location', address: '456 End Ave'},
+                    },
+                },
+            };
+            const fieldValue = 'New Distance Merchant';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should include merchant plus all distance-specific fields
+            expect(result).toEqual({
+                merchant: 'New Distance Merchant',
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'unit123',
+                    quantity: 25.5,
+                },
+                waypoints: {
+                    waypoint0: {name: 'Start Location', address: '123 Start St'},
+                    waypoint1: {name: 'End Location', address: '456 End Ave'},
+                },
+                routes: null,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
         });
     });
 
@@ -737,11 +841,9 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the error text for attendees field
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getMergeFieldErrorText(translateLocal, mergeField);
 
             // Then it should return the specific attendees error message
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectAttendees'));
         });
 
@@ -754,12 +856,34 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the error text for merchant field
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const result = getMergeFieldErrorText(translateLocal, mergeField);
 
             // Then it should return the generic error message with lowercase field name
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('getRateFromMerchant', () => {
+        it('should return empty string for undefined merchant', () => {
+            // Given an undefined merchant
+            const merchant = undefined;
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return empty string
+            expect(result).toBe('');
+        });
+
+        it('should extract rate from distance merchant string', () => {
+            // Given a distance merchant string with rate
+            const merchant = '5.2 mi @ $0.50 / mi';
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return the rate portion
+            expect(result).toBe('$0.50 / mi');
         });
     });
 });

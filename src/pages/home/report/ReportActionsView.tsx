@@ -32,7 +32,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -111,7 +111,7 @@ function ReportActionsView({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
+    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -270,8 +270,8 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd();
-    }, []);
+        markOpenReportEnd(reportID);
+    }, [reportID]);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
@@ -279,9 +279,8 @@ function ReportActionsView({
     useEffect(() => {
         let timerID: NodeJS.Timeout;
 
-        if (isTheFirstReportActionIsLinked) {
+        if (!isTheFirstReportActionIsLinked && reportActionID) {
             setNavigatingToLinkedMessage(true);
-        } else {
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -289,6 +288,8 @@ function ReportActionsView({
                 // Using a short delay to ensure the view is updated after interactions
                 timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
             });
+        } else {
+            setNavigatingToLinkedMessage(false);
         }
 
         return () => {
@@ -297,7 +298,7 @@ function ReportActionsView({
             }
             clearTimeout(timerID);
         };
-    }, [isTheFirstReportActionIsLinked]);
+    }, [isTheFirstReportActionIsLinked, reportActionID]);
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;

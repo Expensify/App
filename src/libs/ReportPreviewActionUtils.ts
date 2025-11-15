@@ -11,8 +11,6 @@ import {
     getReportTransactions,
     hasAnyViolations as hasAnyViolationsUtil,
     hasMissingSmartscanFields,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -25,7 +23,7 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
-    requiresManualSubmission,
+    shouldBlockSubmitDueToStrictPolicyRules,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -41,7 +39,6 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -56,14 +53,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
-
-    // If a report has been retracted, we allow submission regardless of the auto reporting frequency.
-    if (baseCanSubmit && hasBeenRetracted) {
-        return true;
-    }
-
-    return baseCanSubmit && requiresManualSubmission(report, policy);
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
@@ -121,7 +111,7 @@ function canPay(
 
     const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations);
 
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend > 0) {
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend !== 0) {
         return true;
     }
 
@@ -214,6 +204,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     return true;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
@@ -225,6 +216,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
+    areStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -242,6 +234,13 @@ function getReportPreviewAction(
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
+
+    // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
+    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
+    }
+
     if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
