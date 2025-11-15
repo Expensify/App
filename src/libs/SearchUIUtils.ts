@@ -1379,14 +1379,71 @@ function getTaskSections(
     );
 }
 
+/**
+ * @private
+ *
+ * Extracts the core Transaction fields from a TransactionListItemType
+ * This removes UI-specific fields like formattedFrom, hash, violations, etc.
+ */
+function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
+    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {
+        // Remove UI-specific fields
+        keyForList,
+        action,
+        allActions,
+        report,
+        from,
+        to,
+        formattedFrom,
+        formattedTo,
+        formattedTotal,
+        formattedMerchant,
+        date,
+        shouldShowMerchant,
+        shouldShowYear: shouldTransactionShowYear,
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        violations,
+        hash,
+        moneyRequestReportActionID,
+        canDelete,
+        canHold,
+        canUnhold,
+        convertedAmount,
+        convertedCurrency,
+        transactionThreadReportID,
+        isFromOneTransactionReport,
+        accountID,
+        policyID,
+        transactionType,
+        // Keep all other fields (core Transaction fields)
+        ...transaction
+    } = item;
+
+    return transaction as OnyxTypes.Transaction;
+}
+
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
-    const previewData = transactionPreviewData
-        ? {...transactionPreviewData, hasTransactionThreadReport: true}
-        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
+    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
 
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
+    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
+    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
+    if (reportActionID) {
+        const previewData = transactionPreviewData
+            ? {...transactionPreviewData, hasTransactionThreadReport: true}
+            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+        setOptimisticDataForTransactionThreadPreview(item, previewData);
+    }
+
+    // For legacy transactions without an IOU action in the backend, pass transaction data
+    // This allows OpenReport to create the IOU action and transaction thread on the backend
+    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
+    const transactionViolations = !reportActionID ? item.violations : undefined;
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
