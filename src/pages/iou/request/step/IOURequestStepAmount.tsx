@@ -281,7 +281,7 @@ function IOURequestStepAmount({
 
             if (isReturningFromConfirmationPage) {
                 const firstParticipant = transaction?.participants?.at(0);
-                const isP2PChat = hasManuallySelectedParticipant(firstParticipant, activePolicyExpenseChat?.reportID);
+                const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
                 const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
 
                 // If negative amount with P2P user, reset to default workspace
@@ -389,20 +389,6 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-/**
- * Determines if user has manually selected a participant different from the default workspace
- */
-function hasManuallySelectedParticipant(
-    firstParticipant: {reportID?: string; accountID?: number; isPolicyExpenseChat?: boolean} | undefined,
-    activePolicyExpenseChatReportID: string | undefined,
-): {hasDifferentWorkspace: boolean; isP2PChat: boolean; hasManualSelection: boolean} {
-    const hasDifferentWorkspace = !!(firstParticipant?.reportID && firstParticipant.reportID !== activePolicyExpenseChatReportID);
-    const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
-    const hasManualSelection = hasDifferentWorkspace || isP2PChat;
-
-    return {hasDifferentWorkspace, isP2PChat, hasManualSelection};
-}
-
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
@@ -410,4 +396,3 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
-export {hasManuallySelectedParticipant};
