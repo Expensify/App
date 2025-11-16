@@ -633,6 +633,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
+        expensifyIcons,
     ]);
 
     const handleDeleteExpenses = () => {
