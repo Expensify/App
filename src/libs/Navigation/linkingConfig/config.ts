@@ -58,7 +58,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.TRACK_TRAINING_MODAL,
                     exact: true,
                 },
-                [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
@@ -226,6 +225,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
@@ -1087,6 +1090,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
                         },
+                        [SCREENS.DOMAIN.VERIFY]: {
+                            path: ROUTES.DOMAIN_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.VERIFIED]: {
+                            path: ROUTES.DOMAIN_VERIFIED.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1558,6 +1567,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR.route,
                         [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
                         [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.route,
+                        [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION,
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
@@ -1630,6 +1640,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
                         [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
+                        [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
@@ -1867,6 +1878,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.DOMAIN.INITIAL]: {
+                    path: ROUTES.DOMAIN_INITIAL.route,
+                },
+                [SCREENS.DOMAIN.SAML]: {
+                    path: ROUTES.DOMAIN_SAML.route,
+                },
+            },
+        },
+
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
             screens: {
                 [SCREENS.SEARCH.ROOT]: {
@@ -1894,6 +1916,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     },
                 },
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
+                [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: {path: ROUTES.SHARE_DETAILS_ATTACHMENT},
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },

@@ -59,6 +59,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        shouldStayNormalOnDisable = false,
     } = props;
 
     const theme = useTheme();
@@ -169,6 +170,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
                         isDisabled={isDisabled || areAllOptionsDisabled}
+                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
@@ -192,6 +194,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
+                            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
@@ -232,6 +235,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled || !!options.at(0)?.disabled}
+                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}

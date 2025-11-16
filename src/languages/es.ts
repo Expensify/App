@@ -1,6 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
+import type {ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -142,7 +144,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
-            phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Por favor, introduce un número de teléfono completo\n(ej. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro',
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
@@ -498,8 +500,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Presenta un gasto, recomienda a tu jefe',
-            subtitleText: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
+            title: 'Presenta un gasto, recomienda a tu equipo',
+            subtitleText: '¿Quieres que tu equipo también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -796,6 +798,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpense: 'Dividir gasto',
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
         addSplit: 'Añadir división',
+        makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',
         totalAmountGreaterThanOriginal: ({amount}) => `El importe total es ${amount} mayor que el gasto original.`,
         totalAmountLessThanOriginal: ({amount}) => `El importe total es ${amount} menor que el gasto original.`,
@@ -1070,11 +1073,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
         unhold: 'Desbloquear',
-        holdEducationalTitle: 'Esta solicitud está',
-        holdEducationalText: 'retenida',
-        whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
-        holdIsLeftBehind: 'Los gastos retenidos se trasladan a otro informe tras su aprobación o pago.',
-        unholdWhenReady: 'Los aprobadores pueden desbloquear los gastos cuando estén listos para su aprobación o pago.',
+        holdEducationalTitle: '¿Deberías retener este gasto?',
+        whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
+        holdIsLeftBehind: 'Los gastos retenidos se quedan fuera incluso si envías un informe completo.',
+        unholdWhenReady: 'Desbloquea los gastos cuando estés listo para enviarlos.',
         changePolicyEducational: {
             title: '¡Has movido este informe!',
             description: 'Revisa cuidadosamente estos elementos, que tienden a cambiar al trasladar informes a un nuevo espacio de trabajo.',
@@ -1227,6 +1229,112 @@ const translations: TranslationDeepObject<typeof en> = {
     modal: {
         backdropLabel: 'Fondo del Modal',
     },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> añadas gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> añada gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador añada gastos.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_) => `¡No se requiere ninguna acción adicional!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> añadas una cuenta bancaria.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> añada una cuenta bancaria.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador añada una cuenta bancaria.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` el ${eta}` : ` ${eta}`;
+                }
+
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que tus gastos se envíen automáticamente${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que los gastos de <strong>${actor}</strong> se envíen automáticamente${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que los gastos de un administrador se envíen automáticamente${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> soluciones el(los) problema(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> solucione el(los) problema(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador solucione el(los) problema(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> apruebes los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador apruebe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> pagues los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> pague los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador pague los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> termines de configurar una cuenta bancaria de empresa.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> termine de configurar una cuenta bancaria de empresa.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador termine de configurar una cuenta bancaria de empresa.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` para el ${eta}` : ` ${eta}`;
+                }
+
+                return `Esperando a que se complete el pago${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'más tarde hoy',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'el domingo',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'el 1 y el 16 de cada mes',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'el último día hábil del mes',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'el último día del mes',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'al final de tu viaje',
+        },
+    },
+
     profilePage: {
         profile: 'Perfil',
         preferredPronouns: 'Pronombres preferidos',
@@ -1265,12 +1373,11 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
-        contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
-        helpTextBeforeEmail: 'Añade más formas de enviar recibos. Reenvíalos a ',
-        helpTextAfterEmail: ' o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).',
+        helpText: ({email}: {email: string}) =>
+            `Añade más formas de enviar recibos. Reenvíalos a <copy-text text="${email}"/> o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).`,
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
@@ -1705,6 +1812,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterMagicCode: ({contactMethod}) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Por favor, <a href="${missingDetailsLink}">agrega tus datos personales</a> y vuelve a intentarlo.`,
+        unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
             reportFraudButtonText: 'No, no fui yo',
@@ -2061,19 +2170,21 @@ ${amount} para ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Añadir aprobaciones de gastos',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Añade aprobaciones de gastos* para revisar los gastos de tu equipo y mantenerlos bajo control.\n` +
-                    '\n' +
-                    `Así es como puedes añadir aprobaciones de gastos:\n` +
-                    '\n' +
-                    '1. Ve a *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Más funciones*.\n' +
-                    '4. Activa *Flujos de trabajo*.\n' +
-                    '5. Navega a *Flujos de trabajo* en el editor del espacio de trabajo.\n' +
-                    '6. Activa *Añadir aprobaciones*.\n' +
-                    `7. Serás asignado como aprobador de gastos. Podrás cambiarlo a cualquier administrador una vez que lo invites a tu equipo.\n` +
-                    '\n' +
-                    `[Llévame a más funciones](${workspaceMoreFeaturesLink}).`,
+                    dedent(`
+                        *Añade aprobaciones de gastos* para revisar los gastos de tu equipo y mantenerlos bajo control.
+
+                        Así es como puedes añadir aprobaciones de gastos:
+
+                        1. Ve a *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Más funciones*.
+                        4. Activa *Flujos de trabajo*.
+                        5. Navega a *Flujos de trabajo* en el editor del espacio de trabajo.
+                        6. Activa *Añadir aprobaciones*.
+                        7. Serás asignado como aprobador de gastos. Podrás cambiarlo a cualquier administrador una vez que lo invites a tu equipo.
+
+                        [Llévame a más funciones](${workspaceMoreFeaturesLink}).
+                    `),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) un espacio de trabajo`,
@@ -2082,169 +2193,218 @@ ${amount} para ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crea un [espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*Crea un espacio de trabajo* para organizar gastos, escanear recibos, chatear y más.\n\n' +
-                    '1. Haz clic en *Espacios de trabajo* > *Nuevo espacio de trabajo*.\n\n' +
-                    `*¡Tu nuevo espacio de trabajo está listo!* [Échale un vistazo](${workspaceSettingsLink}).`,
+                    dedent(`
+                        *Crea un espacio de trabajo* para organizar gastos, escanear recibos, chatear y más.
+
+                        1. Haz clic en *Espacios de trabajo* > *Nuevo espacio de trabajo*.
+
+                        *¡Tu nuevo espacio de trabajo está listo!* [Échale un vistazo](${workspaceSettingsLink}).
+                    `),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configura [categorías](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*Configura categorías* para que tu equipo pueda clasificar los gastos y facilitar los informes.\n\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Categorías*.\n' +
-                    '4. Desactiva cualquier categoría que no necesites.\n' +
-                    '5. Añade tus propias categorías en la esquina superior derecha.\n\n' +
-                    `[Ir a la configuración de categorías del espacio de trabajo](${workspaceCategoriesLink}).\n\n` +
-                    `![Configura categorías](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *Configura categorías* para que tu equipo pueda clasificar los gastos y facilitar los informes.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Categorías*.
+                        4. Desactiva cualquier categoría que no necesites.
+                        5. Añade tus propias categorías en la esquina superior derecha.
+
+                        [Ir a la configuración de categorías del espacio de trabajo](${workspaceCategoriesLink}).
+
+                        ![Configura categorías](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Envía un gasto',
-                description:
-                    '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Crear gasto*.\n' +
-                    '3. Introduce una cantidad o escanea un recibo.\n' +
-                    '4. Añade el correo o teléfono de tu jefe.\n' +
-                    '5. Haz clic en *Crear*.\n\n' +
-                    '¡Y listo!',
+                description: dedent(`
+                    *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Crear gasto*.
+                    3. Introduce una cantidad o escanea un recibo.
+                    4. Añade el correo o teléfono de tu jefe.
+                    5. Haz clic en *Crear*.
+
+                    ¡Y listo!
+                `),
             },
             adminSubmitExpenseTask: {
                 title: 'Envía un gasto',
-                description:
-                    '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Crear gasto*.\n' +
-                    '3. Introduce una cantidad o escanea un recibo.\n' +
-                    '4. Confirma los detalles.\n' +
-                    '5. Haz clic en *Crear*.\n\n' +
-                    '¡Y listo!',
+                description: dedent(`
+                    *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Crear gasto*.
+                    3. Introduce una cantidad o escanea un recibo.
+                    4. Confirma los detalles.
+                    5. Haz clic en *Crear*.
+
+                    ¡Y listo!
+                `),
             },
             trackExpenseTask: {
                 title: 'Organiza un gasto',
-                description:
-                    '*Organiza un gasto* en cualquier moneda, tengas recibo o no.\n\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Crear gasto*.\n' +
-                    '3. Introduce una cantidad o escanea un recibo.\n' +
-                    '4. Elige tu espacio *personal*.\n' +
-                    '5. Haz clic en *Crear*.\n\n' +
-                    '¡Y listo! Sí, así de fácil.',
+                description: dedent(`
+                    *Organiza un gasto* en cualquier moneda, tengas recibo o no.
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Crear gasto*.
+                    3. Introduce una cantidad o escanea un recibo.
+                    4. Elige tu espacio *personal*.
+                    5. Haz clic en *Crear*.
+
+                    ¡Y listo! Sí, así de fácil.
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Conéctate${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : ''} ${integrationName}](${workspaceAccountingLink})`,
 
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Conéctate ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : 'a'} ${integrationName} para la clasificación y sincronización automática de gastos, lo que facilita el cierre de fin de mes.\n` +
-                    '\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Contabilidad*.\n' +
-                    `4. Busca ${integrationName}.\n` +
-                    '5. Haz clic en *Conectar*.\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Ir a contabilidad](${workspaceAccountingLink}).\n\n![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Ir a contabilidad](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+                        Conéctate ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : 'a'} ${integrationName} para la clasificación y sincronización automática de gastos, lo que facilita el cierre de fin de mes.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Contabilidad*.
+                        4. Busca ${integrationName}.
+                        5. Haz clic en *Conectar*.
+
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Ir a contabilidad](${workspaceAccountingLink}).\n\n![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Ir a contabilidad](${workspaceAccountingLink}).`
+                        }
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    'Conecta tu tarjeta corporativa para importar y clasificar gastos automáticamente.\n\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Tarjetas corporativas*.\n' +
-                    '4. Sigue las instrucciones para conectar tu tarjeta.\n\n' +
-                    `[Ir a conectar mis tarjetas corporativas](${corporateCardLink}).`,
+                    dedent(`
+                        Conecta tu tarjeta corporativa para importar y clasificar gastos automáticamente.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Tarjetas corporativas*.
+                        4. Sigue las instrucciones para conectar tu tarjeta.
+
+                        [Ir a conectar mis tarjetas corporativas](${corporateCardLink}).
+                    `),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invita a [tu equipo](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invita a tu equipo* a Expensify para que empiecen a organizar gastos hoy mismo.\n\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Miembros* > *Invitar miembro*.\n' +
-                    '4. Introduce correos o teléfonos.\n' +
-                    '5. Añade un mensaje personalizado si lo deseas.\n\n' +
-                    `[Ir a miembros del espacio de trabajo](${workspaceMembersLink}).\n\n` +
-                    `![Invita a tu equipo](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *Invita a tu equipo* a Expensify para que empiecen a organizar gastos hoy mismo.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Miembros* > *Invitar miembro*.
+                        4. Introduce correos o teléfonos.
+                        5. Añade un mensaje personalizado si lo deseas.
+
+                        [Ir a miembros del espacio de trabajo](${workspaceMembersLink}).
+
+                        ![Invita a tu equipo](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
+                    `),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorías](${workspaceCategoriesLink}) y [etiquetas](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*Configura categorías y etiquetas* para que tu equipo pueda clasificar los gastos fácilmente.\n\n' +
-                    `Impórtalas automáticamente al [conectarte con tu software contable](${workspaceAccountingLink}), o configúralas manualmente en tu [configuración del espacio de trabajo](${workspaceCategoriesLink}).`,
+                    dedent(`
+                        *Configura categorías y etiquetas* para que tu equipo pueda clasificar los gastos fácilmente.
+
+                        Impórtalas automáticamente al [conectarte con tu software contable](${workspaceAccountingLink}), o configúralas manualmente en tu [configuración del espacio de trabajo](${workspaceCategoriesLink}).
+                    `),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configura [etiquetas](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Usa etiquetas para añadir detalles como proyectos, clientes, ubicaciones y departamentos. Si necesitas múltiples niveles, puedes mejorar al plan Controlar.\n\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Más funciones*.\n' +
-                    '4. Habilita *Etiquetas*.\n' +
-                    '5. Navega a *Etiquetas* en el editor del espacio.\n' +
-                    '6. Haz clic en *+ Añadir etiqueta* para crear la tuya.\n\n' +
-                    `[Ir a más funciones](${workspaceMoreFeaturesLink}).\n\n` +
-                    `![Configura etiquetas](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        Usa etiquetas para añadir detalles como proyectos, clientes, ubicaciones y departamentos. Si necesitas múltiples niveles, puedes mejorar al plan Controlar.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Más funciones*.
+                        4. Habilita *Etiquetas*.
+                        5. Navega a *Etiquetas* en el editor del espacio.
+                        6. Haz clic en *+ Añadir etiqueta* para crear la tuya.
+
+                        [Ir a más funciones](${workspaceMoreFeaturesLink}).
+
+                        ![Configura etiquetas](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
+                    `),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invita a tu [contador](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invita a tu contador* para que colabore en tu espacio de trabajo y gestione los gastos de tu negocio.\n' +
-                    '\n' +
-                    '1. Haz clic en *Espacios de trabajo*.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Haz clic en *Miembros*.\n' +
-                    '4. Haz clic en *Invitar miembro*.\n' +
-                    '5. Introduce la dirección de correo electrónico de tu contador.\n' +
-                    '\n' +
-                    `[Invita a tu contador ahora](${workspaceMembersLink}).`,
+                    dedent(`
+                        *Invita a tu contador* para que colabore en tu espacio de trabajo y gestione los gastos de tu negocio.
+
+                        1. Haz clic en *Espacios de trabajo*.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Haz clic en *Miembros*.
+                        4. Haz clic en *Invitar miembro*.
+                        5. Introduce la dirección de correo electrónico de tu contador.
+
+                        [Invita a tu contador ahora](${workspaceMembersLink}).
+                    `),
             },
             startChatTask: {
                 title: 'Inicia un chat',
-                description:
-                    '*Inicia un chat* con cualquier persona usando su correo o número.\n\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Iniciar chat*.\n' +
-                    '3. Introduce un correo o teléfono.\n\n' +
-                    'Si aún no usan Expensify, se les invitará automáticamente.\n\n' +
-                    'Cada chat también se convierte en un correo o mensaje de texto al que pueden responder directamente.',
+                description: dedent(`
+                    *Inicia un chat* con cualquier persona usando su correo o número.
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Iniciar chat*.
+                    3. Introduce un correo o teléfono.
+
+                    Si aún no usan Expensify, se les invitará automáticamente.
+
+                    Cada chat también se convierte en un correo o mensaje de texto al que pueden responder directamente.
+                `),
             },
             splitExpenseTask: {
                 title: 'Divide un gasto',
-                description:
-                    '*Divide gastos* con una o más personas.\n\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Iniciar chat*.\n' +
-                    '3. Introduce correos o teléfonos.\n' +
-                    '4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.\n' +
-                    '5. Crea el gasto seleccionando *Manual*, *Escanear* o *Distancia*.\n\n' +
-                    'Puedes añadir más detalles si quieres, o simplemente enviarlo. ¡Vamos a que te reembolsen!',
+                description: dedent(`
+                    *Divide gastos* con una o más personas.
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Iniciar chat*.
+                    3. Introduce correos o teléfonos.
+                    4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.
+                    5. Crea el gasto seleccionando *Manual*, *Escanear* o *Distancia*.
+
+                    Puedes añadir más detalles si quieres, o simplemente enviarlo. ¡Vamos a que te reembolsen!
+                `),
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Revisa tu [configuración del espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Aquí te mostramos cómo revisar y actualizar la configuración de tu espacio de trabajo:\n' +
-                    '1. Haz clic en Espacios de trabajo.\n' +
-                    '2. Selecciona tu espacio de trabajo.\n' +
-                    '3. Revisa y actualiza tu configuración.\n' +
-                    `[Ir a tu espacio de trabajo.](${workspaceSettingsLink})`,
+                    dedent(`
+                        Aquí te mostramos cómo revisar y actualizar la configuración de tu espacio de trabajo:
+                        1. Haz clic en Espacios de trabajo.
+                        2. Selecciona tu espacio de trabajo.
+                        3. Revisa y actualiza tu configuración.
+                        [Ir a tu espacio de trabajo.](${workspaceSettingsLink})
+                    `),
             },
             createReportTask: {
                 title: 'Crea tu primer informe',
-                description:
-                    'Así es como puedes crear un informe:\n' +
-                    '\n' +
-                    `1. Haz clic en el botón +.\n` +
-                    '2. Elige *Crear informe*.\n' +
-                    '3. Haz clic en *Añadir gasto*.\n' +
-                    '4. Añade tu primer gasto.\n' +
-                    '\n' +
-                    '¡Y listo!',
+                description: dedent(`
+                    Así es como puedes crear un informe:
+
+                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Elige *Crear informe*.
+                    3. Haz clic en *Añadir gasto*.
+                    4. Añade tu primer gasto.
+
+                    ¡Y listo!
+                `),
             },
         },
         testDrive: {
@@ -2656,9 +2816,9 @@ ${amount} para ${merchant} - ${date}`,
             electronicFundsStandardDetails:
                 "'No hay cargo por transferir fondos desde tu Billetera Expensify a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en 1-3 días laborables.",
             electronicFundsInstantDetails: ({percentage, amount}) =>
-                'Hay una tarifa para transferir fondos desde tu Billetera Expensify a la tarjeta de débito vinculada utilizando la opción de transferencia instantánea.' +
-                ' Esta transferencia generalmente se completa dentro de varios minutos.' +
-                ` La tarifa es el ${percentage}% del importe de la transferencia (con una tarifa mínima de ${amount}).`,
+                dedent(`
+                    Hay una tarifa para transferir fondos desde tu Billetera Expensify a la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la transferencia (con una tarifa mínima de ${amount}).
+                `),
             fdicInsuranceBancorp: ({amount}) =>
                 `Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC.` +
                 ` Una vez allí, tus fondos están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre, ` +
@@ -3820,27 +3980,33 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Facturas de proveedores',
-                        reimbursableDescription:
-                            'Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
-                            '\n' +
-                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
-                        nonReimbursableDescription:
-                            'Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
-                            '\n' +
-                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        reimbursableDescription: dedent(`
+                            Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.
+
+                            Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.
+
+                            Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Asientos contables',
-                        reimbursableDescription:
-                            'Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
-                            '\n' +
-                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
-                        nonReimbursableDescription:
-                            'Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
-                            '\n' +
-                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        reimbursableDescription: dedent(`
+                            Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.
+
+                            Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.
+
+                            Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.
+                        `),
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    'Si cambias la configuración de exportación de tarjetas de empresa a informes de gastos, los proveedores de NetSuite y las cuentas de publicación para tarjetas individuales se deshabilitarán.\n\nNo te preocupes, aún guardaremos tus selecciones previas en caso de que quieras volver a cambiar más tarde.',
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con NetSuite todos los días.',
@@ -5794,6 +5960,30 @@ ${amount} para ${merchant} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
+        deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `cambió el nombre del impuesto de "${oldValue}" a "${newValue}"`;
+                }
+                case 'code': {
+                    return `cambió el código del impuesto "${taxName}" de "${oldValue}" a "${newValue}"`;
+                }
+                case 'rate': {
+                    return `cambió la tasa del impuesto "${taxName}" de "${oldValue}" a "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'deshabilitó' : 'habilitó'} el impuesto "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -6845,9 +7035,9 @@ ${amount} para ${merchant} - ${date}`,
             body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Presenta un gasto y <success><strong>recomienda a tu jefe</strong></success>',
-            header: 'Envía un gasto, recomienda a tu jefe',
-            body: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
+            buttonText: 'Presenta un gasto y <success><strong>recomienda a tu equipo</strong></success>',
+            header: 'Envía un gasto, recomienda a tu equipo',
+            body: '¿Quieres que tu equipo también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Recomienda a un amigo',
@@ -6903,46 +7093,60 @@ ${amount} para ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Detalles del recibo y del gasto añadidos manualmente.',
         receiptRequired: ({formattedLimit, category}) => {
-            let message = 'Recibo obligatorio';
-            if (formattedLimit ?? category) {
-                message += ' para importes sobre';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += ' el límite de la categoría';
-                }
+            if (formattedLimit && category) {
+                return `Recibo obligatorio para importes sobre ${formattedLimit} el límite de la categoría`;
             }
-            return message;
+
+            if (formattedLimit) {
+                return `Recibo obligatorio para importes sobre ${formattedLimit}`;
+            }
+
+            if (category) {
+                return 'Recibo obligatorio para importes sobre el límite de la categoría';
+            }
+
+            return 'Recibo obligatorio';
         },
         itemizedReceiptRequired: ({formattedLimit}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseType}) => {
-            const preMessage = 'Gasto prohibido:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcohol`;
-                case 'gambling':
-                    return `${preMessage} juegos de apuestas`;
-                case 'tobacco':
-                    return `${preMessage} tabaco`;
-                case 'adultEntertainment':
-                    return `${preMessage} entretenimiento para adultos`;
-                case 'hotelIncidentals':
-                    return `${preMessage} gastos adicionales de hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+        prohibitedExpense: ({prohibitedExpenseTypes}) => {
+            const preMessage = 'Gastos prohibidos:';
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcohol`;
+                    case 'gambling':
+                        return `juegos de apuestas`;
+                    case 'tobacco':
+                        return `tabaco`;
+                    case 'adultEntertainment':
+                        return `entretenimiento para adultos`;
+                    case 'hotelIncidentals':
+                        return `gastos adicionales de hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
+                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
+                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
@@ -7472,7 +7676,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         modal: {
             title: 'Haz una prueba con nosotros',
-            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
+            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente.',
             confirmText: 'Iniciar prueba',
             helpText: 'Saltar',
             employee: {
@@ -7524,6 +7728,16 @@ ${amount} para ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>El dominio <strong>${domainName}</strong> se ha verificado correctamente y ahora puedes configurar SAML y otras funciones de seguridad.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Inicio de sesión único SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> es una función de seguridad que te da más control sobre cómo los miembros con correos <strong>${domainName}</strong> inician sesión en Expensify. Para habilitarla, deberás verificarte como administrador autorizado de la empresa.</muted-text>`,
+            fasterAndEasierLogin: 'Inicio de sesión más rápido y sencillo',
+            moreSecurityAndControl: 'Más seguridad y control',
+            onePasswordForAnything: 'Una sola contraseña para todo',
+        },
+        goToDomain: 'Ir al dominio',
     },
 };
 
