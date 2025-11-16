@@ -199,29 +199,29 @@ function parsePart(definition: string): FormulaPart {
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
-    const formulaValues = extract(fieldValue);
-    if (formulaValues.length === 0 || isEmptyObject(fieldList)) {
+    const formulaPartDefinitions = extract(fieldValue);
+    if (formulaPartDefinitions.length === 0 || isEmptyObject(fieldList)) {
         return false;
     }
 
-    const visitedLists = new Set<string>();
+    const visitedFields = new Set<string>();
     const fieldsByName = new Map<string, {name: string; defaultValue: string}>(Object.values(fieldList).map((field) => [field.name, field]));
 
     // Helper function to check if a field has circular references
     const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
         // If we've already visited this field in the current path, return true
-        if (visitedLists.has(currentFieldName)) {
+        if (visitedFields.has(currentFieldName)) {
             return true;
         }
 
         // Add current field to the visited lists
-        visitedLists.add(currentFieldName);
+        visitedFields.add(currentFieldName);
 
-        // Extract all formula values from the current field
-        const currentFormulaValues = extract(currentFieldValue);
+        // Extract all formula part definitions
+        const currentFormulaPartDefinitions = extract(currentFieldValue);
 
-        for (const formula of currentFormulaValues) {
-            const part = parsePart(formula);
+        for (const formulaPartDefinition of currentFormulaPartDefinitions) {
+            const part = parsePart(formulaPartDefinition);
 
             // Only check field references (skip report, user, or freetext)
             if (part.type !== FORMULA_PART_TYPES.FIELD) {
@@ -235,8 +235,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
             }
 
             // Check if this reference creates a cycle
-            if (referencedFieldName === fieldName || visitedLists.has(referencedFieldName)) {
-                visitedLists.delete(currentFieldName);
+            if (referencedFieldName === fieldName || visitedFields.has(referencedFieldName)) {
                 return true;
             }
 
@@ -245,14 +244,13 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
             if (referencedField?.defaultValue) {
                 // Recursively check the referenced field
                 if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
-                    visitedLists.delete(currentFieldName);
                     return true;
                 }
             }
         }
 
         // Remove current field from visited lists
-        visitedLists.delete(currentFieldName);
+        visitedFields.delete(currentFieldName);
         return false;
     };
 
