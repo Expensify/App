@@ -822,8 +822,7 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        queueMicrotask(() => {
             textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
         });
     }, []);
