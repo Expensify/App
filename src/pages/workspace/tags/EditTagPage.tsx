@@ -30,7 +30,7 @@ type EditTagPageProps =
 function EditTagPage({route}: EditTagPageProps) {
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
-    const {tags: policyTags} = policyData;
+    const {tagLists: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
