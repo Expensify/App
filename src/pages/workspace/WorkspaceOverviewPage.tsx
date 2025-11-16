@@ -214,6 +214,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const continueDeleteWorkspace = useCallback(() => {
         setIsDeleteModalOpen(true);
     }, []);
+    const shouldActOnDeleteModalHideRef = useRef(false);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -280,12 +281,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
+        shouldActOnDeleteModalHideRef.current = true;
         setIsDeleteModalOpen(false);
-        if (!policyLastErrorMessage) {
-            goBackFromInvalidPolicy();
-            return;
-        }
-        setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
@@ -467,247 +464,263 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
 
     return (
-        <WorkspacePageWithSections
-            headerText={translate('workspace.common.profile')}
-            route={route}
-            // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-            shouldShowLoading={policy === undefined}
-            shouldUseScrollView
-            shouldShowOfflineIndicatorInWideScreen
-            shouldShowNonAdmin
-            icon={illustrationIcons.Building}
-            shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={handleBackButtonPress}
-            addBottomSafeAreaPadding
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
-        >
-            {(hasVBA?: boolean) => (
-                <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
-                    <WorkspaceReceiptPartnersPromotionBanner
-                        policy={policy}
-                        readOnly={readOnly}
-                    />
-                    <Section
-                        isCentralPane
-                        title=""
-                    >
-                        <Image
-                            style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                            source={illustrations.WorkspaceProfile}
-                            resizeMode="cover"
+        <>
+            <WorkspacePageWithSections
+                headerText={translate('workspace.common.profile')}
+                route={route}
+                // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+                shouldShowLoading={policy === undefined}
+                shouldUseScrollView
+                shouldShowOfflineIndicatorInWideScreen
+                shouldShowNonAdmin
+                icon={illustrationIcons.Building}
+                shouldShowNotFoundPage={policy === undefined}
+                onBackButtonPress={handleBackButtonPress}
+                addBottomSafeAreaPadding
+                headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            >
+                {(hasVBA?: boolean) => (
+                    <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
+                        <WorkspaceReceiptPartnersPromotionBanner
+                            policy={policy}
+                            readOnly={readOnly}
                         />
-                        <AvatarWithImagePicker
-                            onViewPhotoPress={() => {
-                                if (!policy?.id) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id));
-                            }}
-                            source={policy?.avatarURL ?? ''}
-                            avatarID={policy?.id}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            name={policyName}
-                            avatarStyle={styles.avatarXLarge}
-                            enablePreview
-                            DefaultAvatar={DefaultAvatar}
-                            type={CONST.ICON_TYPE_WORKSPACE}
-                            fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                            style={[
-                                (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
-                                shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
-                                styles.alignItemsStart,
-                                styles.sectionMenuItemTopDescription,
-                            ]}
-                            editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatarURL}
-                            onImageSelected={(file) => {
-                                if (!policy?.id) {
-                                    return;
-                                }
-                                updateWorkspaceAvatar(policy.id, file as File);
-                            }}
-                            onImageRemoved={() => {
-                                if (!policy?.id) {
-                                    return;
-                                }
-                                deleteWorkspaceAvatar(policy.id);
-                            }}
-                            editorMaskImage={expensifyIcons.ImageCropSquareMask}
-                            pendingAction={policy?.pendingFields?.avatarURL}
-                            errors={policy?.errorFields?.avatarURL}
-                            onErrorClose={() => {
-                                if (!policy?.id) {
-                                    return;
-                                }
-                                clearAvatarErrors(policy.id);
-                            }}
-                            disabled={readOnly}
-                            disabledStyle={styles.cursorDefault}
-                            errorRowStyles={styles.mt3}
-                        />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
-                            <MenuItemWithTopDescription
-                                title={policyName}
-                                titleStyle={styles.workspaceTitleStyle}
-                                description={translate('workspace.common.workspaceName')}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
-                                onPress={onPressName}
-                                shouldBreakWord
-                                numberOfLinesTitle={0}
+                        <Section
+                            isCentralPane
+                            title=""
+                        >
+                            <Image
+                                style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
+                                source={illustrations.WorkspaceProfile}
+                                resizeMode="cover"
                             />
-                        </OfflineWithFeedback>
-                        {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
+                            <AvatarWithImagePicker
+                                onViewPhotoPress={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id));
+                                }}
+                                source={policy?.avatarURL ?? ''}
+                                avatarID={policy?.id}
+                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                name={policyName}
+                                avatarStyle={styles.avatarXLarge}
+                                enablePreview
+                                DefaultAvatar={DefaultAvatar}
+                                type={CONST.ICON_TYPE_WORKSPACE}
+                                fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
+                                style={[
+                                    (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
+                                    shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
+                                    styles.alignItemsStart,
+                                    styles.sectionMenuItemTopDescription,
+                                ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
+                                isUsingDefaultAvatar={!policy?.avatarURL}
+                                onImageSelected={(file) => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    updateWorkspaceAvatar(policy.id, file as File);
+                                }}
+                                onImageRemoved={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    deleteWorkspaceAvatar(policy.id);
+                                }}
+                                editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                                pendingAction={policy?.pendingFields?.avatarURL}
+                                errors={policy?.errorFields?.avatarURL}
+                                onErrorClose={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    clearAvatarErrors(policy.id);
+                                }}
+                                disabled={readOnly}
+                                disabledStyle={styles.cursorDefault}
+                                errorRowStyles={styles.mt3}
+                            />
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
+                                <MenuItemWithTopDescription
+                                    title={policyName}
+                                    titleStyle={styles.workspaceTitleStyle}
+                                    description={translate('workspace.common.workspaceName')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
+                                    onPress={onPressName}
+                                    shouldBreakWord
+                                    numberOfLinesTitle={0}
+                                />
+                            </OfflineWithFeedback>
+                            {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
+                                <OfflineWithFeedback
+                                    pendingAction={policy?.pendingFields?.description}
+                                    errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                    onClose={() => {
+                                        if (!policy?.id) {
+                                            return;
+                                        }
+                                        clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
+                                    }}
+                                >
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        shouldShowRightIcon={!readOnly}
+                                        interactive={!readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldRenderAsHTML
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.description}
-                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                pendingAction={policy?.pendingFields?.outputCurrency}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                                 onClose={() => {
                                     if (!policy?.id) {
                                         return;
                                     }
-                                    clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
+                                    clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS);
                                 }}
+                                errorRowStyles={[styles.mt2]}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                        <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.outputCurrency}
-                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
-                            onClose={() => {
-                                if (!policy?.id) {
-                                    return;
-                                }
-                                clearPolicyErrorField(policy.id, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS);
-                            }}
-                            errorRowStyles={[styles.mt2]}
-                        >
-                            <View>
-                                <MenuItemWithTopDescription
-                                    title={formattedCurrency}
-                                    description={translate('workspace.editor.currencyInputLabel')}
-                                    shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
-                                    interactive={hasVBA ? false : !currencyReadOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressCurrency}
-                                    hintText={
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        hasVBA || isBankAccountVerified
-                                            ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency})
-                                            : translate('workspace.editor.currencyInputHelpText')
-                                    }
-                                />
-                            </View>
-                        </OfflineWithFeedback>
-                        {shouldShowAddress && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
-                                        title={formattedAddress}
-                                        description={translate('common.companyAddress')}
+                                        title={formattedCurrency}
+                                        description={translate('workspace.editor.currencyInputLabel')}
+                                        shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
+                                        interactive={hasVBA ? false : !currencyReadOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressCurrency}
+                                        hintText={
+                                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                            hasVBA || isBankAccountVerified
+                                                ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency})
+                                                : translate('workspace.editor.currencyInputHelpText')
+                                        }
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                            {shouldShowAddress && (
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
+                                    <View>
+                                        <MenuItemWithTopDescription
+                                            title={formattedAddress}
+                                            description={translate('common.companyAddress')}
+                                            shouldShowRightIcon={!readOnly}
+                                            interactive={!readOnly}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={onPressAddress}
+                                            copyValue={readOnly ? formattedAddress : undefined}
+                                            copyable={readOnly && !!formattedAddress}
+                                        />
+                                    </View>
+                                </OfflineWithFeedback>
+                            )}
+
+                            {!readOnly && !!policy?.type && (
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
+                                    <View>
+                                        <MenuItemWithTopDescription
+                                            title={getUserFriendlyWorkspaceType(policy.type, translate)}
+                                            description={translate('workspace.common.planType')}
+                                            shouldShowRightIcon
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={onPressPlanType}
+                                        />
+                                    </View>
+                                </OfflineWithFeedback>
+                            )}
+                        </Section>
+                        {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                            <Section
+                                isCentralPane
+                                title={translate('workspace.editor.policy')}
+                                titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
+                                subtitle={translate('workspace.rules.customRules.cardSubtitle')}
+                                subtitleStyles={[styles.mb6]}
+                                subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
+                                containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            >
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
+                                    <MenuItemWithTopDescription
+                                        title={policy?.customRules ?? ''}
+                                        description={translate('workspace.editor.policy')}
                                         shouldShowRightIcon={!readOnly}
                                         interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={onPressAddress}
-                                        copyValue={readOnly ? formattedAddress : undefined}
-                                        copyable={readOnly && !!formattedAddress}
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                        shouldRenderAsHTML
                                     />
-                                </View>
-                            </OfflineWithFeedback>
-                        )}
-
-                        {!readOnly && !!policy?.type && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
-                                <View>
-                                    <MenuItemWithTopDescription
-                                        title={getUserFriendlyWorkspaceType(policy.type, translate)}
-                                        description={translate('workspace.common.planType')}
-                                        shouldShowRightIcon
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={onPressPlanType}
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
-                        )}
-                    </Section>
-                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
-                        <Section
-                            isCentralPane
-                            title={translate('workspace.editor.policy')}
-                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
-                            subtitle={translate('workspace.rules.customRules.cardSubtitle')}
-                            subtitleStyles={[styles.mb6]}
-                            subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                        >
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                                <MenuItemWithTopDescription
-                                    title={policy?.customRules ?? ''}
-                                    description={translate('workspace.editor.policy')}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                    shouldRenderAsHTML
-                                />
-                            </OfflineWithFeedback>
-                        </Section>
-                    ) : null}
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDelete}
-                        onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        isConfirmLoading={isPendingDeletePolicy(policy)}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('common.leaveWorkspace')}
-                        isVisible={isLeaveModalOpen}
-                        onConfirm={handleLeaveWorkspace}
-                        onCancel={() => setIsLeaveModalOpen(false)}
-                        prompt={confirmModalPrompt()}
-                        confirmText={translate('common.leave')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('common.leaveWorkspace')}
-                        isVisible={isCannotLeaveWorkspaceModalOpen}
-                        onConfirm={() => {
-                            setIsCannotLeaveWorkspaceModalOpen(false);
-                        }}
-                        prompt={confirmModalPrompt()}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        success
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteWorkspaceErrorModalOpen}
-                        onConfirm={hideDeleteWorkspaceErrorModal}
-                        onCancel={hideDeleteWorkspaceErrorModal}
-                        prompt={policyLastErrorMessage}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        success={false}
-                    />
-                </View>
-            )}
-        </WorkspacePageWithSections>
+                                </OfflineWithFeedback>
+                            </Section>
+                        ) : null}
+                    </View>
+                )}
+            </WorkspacePageWithSections>
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isDeleteModalOpen}
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setIsDeleteModalOpen(false);
+                }}
+                onModalHide={() => {
+                    if (!shouldActOnDeleteModalHideRef.current) {
+                        return;
+                    }
+                    // Reset flags so subsequent hides don't trigger
+                    shouldActOnDeleteModalHideRef.current = false;
+                    if (!policyLastErrorMessage) {
+                        goBackFromInvalidPolicy();
+                        return;
+                    }
+                    setIsDeleteWorkspaceErrorModalOpen(true);
+                }}
+                prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                isConfirmLoading={isPendingDeletePolicy(policy)}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isLeaveModalOpen}
+                onConfirm={handleLeaveWorkspace}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.leave')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
+                onConfirm={() => {
+                    setIsCannotLeaveWorkspaceModalOpen(false);
+                }}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isDeleteWorkspaceErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceErrorModal}
+                onCancel={hideDeleteWorkspaceErrorModal}
+                prompt={policyLastErrorMessage}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success={false}
+            />
+        </>
     );
 }
 
