@@ -24,6 +24,12 @@ type ProcessedUpdates = {
     failureData?: OnyxUpdate[];
 };
 
+type AdditionalUpdates = {
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+};
+
 /**
  * Get the title field from report name value pairs
  */
@@ -302,6 +308,37 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 }
 
 /**
+ * Add computed report name updates to the provided update buckets.
+ * Appends optimistic data and clears pending fields on success/failure if needed.
+ */
+function addAdditionalUpdates(reportID: string, reportNameUpdate: ReportNameUpdate, additionalUpdates: AdditionalUpdates) {
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    additionalUpdates.optimisticData.push({
+        key: getReportKey(reportID),
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            reportName: reportNameUpdate.name,
+            ...(reportNameUpdate.isPending && {
+                pendingFields: {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            }),
+        },
+    });
+
+    // If there's a pending field, add updates to clear it in success/failure data
+    if (reportNameUpdate.isPending) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        const clearPendingUpdate: OnyxUpdate = {
+            key: getReportKey(reportID),
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {pendingFields: {reportName: null}},
+        };
+
+        additionalUpdates.successData.push(clearPendingUpdate);
+        additionalUpdates.failureData.push(clearPendingUpdate);
+    }
+}
+
+/**
  * Update optimistic report names based on incoming updates
  * This is the main middleware function that processes optimistic data
  */
@@ -321,38 +358,11 @@ function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], co
         updatesCount: optimisticData.length,
     });
 
-    const additionalOptimisticUpdates: OnyxUpdate[] = [];
-    const additionalSuccessUpdates: OnyxUpdate[] = [];
-    const additionalFailureUpdates: OnyxUpdate[] = [];
-
-    /**
-     * Helper function to add report name updates to the appropriate arrays
-     */
-    function addUpdates(reportID: string, reportNameUpdate: ReportNameUpdate) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        additionalOptimisticUpdates.push({
-            key: getReportKey(reportID),
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                reportName: reportNameUpdate.name,
-                ...(reportNameUpdate.isPending && {
-                    pendingFields: {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                }),
-            },
-        });
-
-        // If there's a pending field, add updates to clear it in success/failure data
-        if (reportNameUpdate.isPending) {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            const clearPendingUpdate: OnyxUpdate = {
-                key: getReportKey(reportID),
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {pendingFields: {reportName: null}},
-            };
-            additionalSuccessUpdates.push(clearPendingUpdate);
-            additionalFailureUpdates.push(clearPendingUpdate);
-        }
-    }
+    const additionalUpdates: AdditionalUpdates = {
+        optimisticData: [],
+        successData: [],
+        failureData: [],
+    };
 
     for (const update of optimisticData) {
         const objectType = determineObjectTypeByKey(update.key);
@@ -366,7 +376,7 @@ function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], co
                 const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
-                    addUpdates(reportID, reportNameUpdate);
+                    addAdditionalUpdates(reportID, reportNameUpdate, additionalUpdates);
                 }
                 break;
             }
@@ -378,7 +388,7 @@ function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], co
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        addUpdates(report.reportID, reportNameUpdate);
+                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
                     }
                 }
                 break;
@@ -397,7 +407,7 @@ function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], co
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        addUpdates(report.reportID, reportNameUpdate);
+                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
                     }
                 }
                 break;
@@ -409,15 +419,15 @@ function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], co
     }
 
     Log.info('[OptimisticReportNames] Processing completed', false, {
-        additionalOptimisticUpdatesCount: additionalOptimisticUpdates.length,
-        additionalSuccessUpdatesCount: additionalSuccessUpdates.length,
-        additionalFailureUpdatesCount: additionalFailureUpdates.length,
+        additionalOptimisticUpdatesCount: additionalUpdates.optimisticData.length,
+        additionalSuccessUpdatesCount: additionalUpdates.successData.length,
+        additionalFailureUpdatesCount: additionalUpdates.failureData.length,
     });
 
     return {
-        optimisticData: optimisticData.concat(additionalOptimisticUpdates),
-        successData: successData ? successData.concat(additionalSuccessUpdates) : undefined,
-        failureData: failureData ? failureData.concat(additionalFailureUpdates) : undefined,
+        optimisticData: optimisticData.concat(additionalUpdates.optimisticData),
+        successData: successData ? successData.concat(additionalUpdates.successData) : additionalUpdates.successData,
+        failureData: failureData ? failureData.concat(additionalUpdates.failureData) : additionalUpdates.failureData,
     };
 }
 
