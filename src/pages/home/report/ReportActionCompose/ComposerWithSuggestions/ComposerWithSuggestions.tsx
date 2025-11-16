@@ -749,7 +749,7 @@ function ComposerWithSuggestions({
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('');
+            updateComment('', true);
         },
         [onCleared, updateComment],
     );
@@ -812,6 +812,22 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
+    // When using the suggestions box we need to imperatively set the cursor
+    // to the end of the suggestion after it's selected to follow the expected behavior.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (typeof endOfSuggestionSelection === 'undefined') {
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -827,7 +843,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={updateComment}
+                    onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
@@ -865,7 +881,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={setSelection}
+                setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
             />
 
