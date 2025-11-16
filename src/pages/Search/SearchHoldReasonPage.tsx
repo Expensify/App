@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
@@ -24,21 +25,24 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const ancestors = useAncestors(report);
+
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID);
+                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
                 context.clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
+                holdMoneyRequestOnSearch(context.currentSearchHash, context.selectedTransactionIDs, comment, allTransactions, allReportActions);
                 context.clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, allTransactions, allReportActions],
+        [route.name, context.clearSelectedTransactions, context.currentSearchHash, context.selectedTransactionIDs, reportID, allTransactions, ancestors, allReportActions],
     );
 
     const validate = useCallback(
