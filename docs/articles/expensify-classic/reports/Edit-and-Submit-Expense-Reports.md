@@ -307,10 +307,10 @@ They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 
 Yes! Report states have changed to make it clearer where the report is currently in your approval workflow. 
 
-| Old name | New name |
-| -- | -- |
-| Open | Draft |  
-| Processing | Outstanding |  
-| Approved | Approved (no change) |
-| Reimbursed | Paid |  
-| Closed | Done |  
+| Old name | New name 
+| -- | --
+| Open | Draft
+| Processing | Outstanding
+| Approved | Approved (no change)
+| Reimbursed | Paid
+| Closed | Done
