@@ -12,8 +12,8 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -66,6 +66,7 @@ function AttachmentModalBaseContent({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
 
     // This logic is used to ensure that the source is updated when the source changes and
     // that the initially provided source is always used as a fallback.
@@ -307,7 +308,7 @@ function AttachmentModalBaseContent({
                 {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
+                        icon={illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate('notFound.notHere')}
