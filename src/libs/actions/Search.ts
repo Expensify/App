@@ -41,7 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -80,7 +80,7 @@ function handleActionButtonPress(
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
-    const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
@@ -418,6 +418,7 @@ function search({
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
 function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -456,7 +457,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+            value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {isActionLoading: true}])),
         },
     ];
 
@@ -464,7 +465,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {isActionLoading: false}])),
         },
     ];
 
@@ -474,7 +475,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: Object.fromEntries(reportList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])),
+                data: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, null])),
             },
         });
     }
@@ -483,7 +484,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {isActionLoading: false}])),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -717,6 +718,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
             value: {
                 data: Object.fromEntries(
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ) as Partial<SearchTransaction>,
                 search: {
                     ...(currentMetadata ?? {}),
@@ -733,6 +735,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
             value: {
                 data: Object.fromEntries(
                     transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}]),
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ) as Partial<SearchTransaction>,
                 search: currentMetadata,
             },
