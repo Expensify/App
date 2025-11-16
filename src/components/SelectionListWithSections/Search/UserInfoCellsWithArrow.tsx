@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
@@ -27,9 +26,9 @@ function UserInfoCellsWithArrow({
     shouldUseArrowIcon = true,
 }: {
     shouldShowToRecipient: boolean;
-    participantFrom: SearchPersonalDetails | PersonalDetails;
+    participantFrom: PersonalDetails;
     participantFromDisplayName: string;
-    participantTo: SearchPersonalDetails | PersonalDetails;
+    participantTo: PersonalDetails;
     participantToDisplayName: string;
     style?: StyleProp<ViewStyle>;
     avatarSize?: AvatarSizeName;

@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getRateFromMerchant, getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -43,6 +45,7 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportName,
+    getReportOrDraftReport,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -127,6 +130,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {environmentURL} = useEnvironment();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -244,6 +248,7 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
     const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
@@ -275,8 +280,9 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
-    const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowBillable =
+        (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
@@ -298,11 +304,11 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
-    const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
-    const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    let rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
@@ -370,6 +376,13 @@ function MoneyRequestView({
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
 
+    if (isFromMergeTransaction) {
+        // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
+        // We need to extract the rate from the merchant string
+        // See https://github.com/Expensify/App/pull/71675#issuecomment-3425488228 for more information
+        rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
+    }
+
     const hasErrors = hasMissingSmartscanFields(transaction);
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -412,11 +425,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                const firstViolation = violations.at(0);
-
-                if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                }
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
             }
 
             return '';
@@ -438,6 +447,7 @@ function MoneyRequestView({
             canEditMerchant,
             canEdit,
             isCustomUnitOutOfPolicy,
+            companyCardPageURL,
         ],
     );
 
@@ -548,7 +558,7 @@ function MoneyRequestView({
 
     const getAttendeesTitle = useMemo(() => {
         return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [transactionAttendees]);
+    }, [actualAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
@@ -615,9 +625,9 @@ function MoneyRequestView({
         );
     });
 
-    const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
-    const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
-    const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
+    const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
+    const shouldShowReport = !!parentReportID || !!actualParentReport;
+    const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -629,7 +639,7 @@ function MoneyRequestView({
     }
 
     return (
-        <View style={styles.pRelative}>
+        <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
@@ -899,6 +909,7 @@ function MoneyRequestView({
                                     textStyle={[styles.ph0]}
                                     isLast
                                     canEdit={canEdit}
+                                    companyCardPageURL={companyCardPageURL}
                                 />
                             )}
                         </View>
@@ -914,7 +925,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={reportNameToDisplay}
+                            title={getReportName(actualParentReport) || actualParentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
