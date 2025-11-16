@@ -3712,7 +3712,7 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
         const rate = subRate.rate ?? 0;
         const rateComment = subRate.name ?? '';
         const quantity = subRate.quantity ?? 0;
-        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
+        return `${quantity}x ${rateComment} @ ${convertToDisplayString(rate, currency, true)}`;
     });
     return subRateComments.join(', ');
 }
