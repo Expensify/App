@@ -2915,8 +2915,6 @@ describe('SearchUIUtils', () => {
                 hash: itemHash,
                 moneyRequestReportActionID,
                 canDelete,
-                canHold,
-                canUnhold,
                 convertedAmount,
                 convertedCurrency,
                 transactionThreadReportID,

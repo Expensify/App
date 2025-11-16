@@ -1409,8 +1409,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         hash,
         moneyRequestReportActionID,
         canDelete,
-        canHold,
-        canUnhold,
         convertedAmount,
         convertedCurrency,
         transactionThreadReportID,
