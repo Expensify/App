@@ -56,6 +56,7 @@ import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmploye
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -384,23 +385,23 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 rightElement:
                     !shouldUseNarrowLayout && isControlPolicy(policy) ? (
                         <>
-                            <View style={StyleUtils.getMinimumWidth(120)}>
+                            <View style={[styles.flex1, styles.pr3]}>
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.textSupporting, styles.label, styles.textAlignCenter]}
+                                    style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
                                 >
                                     {policyEmployee.employeeUserID ?? ''}
                                 </Text>
                             </View>
-                            <View style={StyleUtils.getMinimumWidth(120)}>
+                            <View style={[styles.flex1, styles.pr3]}>
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.textSupporting, styles.label, styles.textAlignCenter]}
+                                    style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
                                 >
                                     {policyEmployee.employeePayrollID ?? ''}
                                 </Text>
                             </View>
-                            <View style={StyleUtils.getMinimumWidth(100)}>
+                            <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
                                 <MemberRightIcon
                                     role={policyEmployee.role}
                                     owner={policy?.owner}
@@ -431,22 +432,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
         return result;
     }, [
-        isOffline,
-        currentUserLogin,
-        formatPhoneNumber,
-        invitedPrimaryToSecondaryLogins,
-        personalDetails,
         policy,
         policyMemberEmailsToAccountIDs,
-        policyOwner,
+        isOffline,
+        personalDetails,
+        isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
+        styles.flex1,
+        styles.pr3,
         styles.textSupporting,
         styles.label,
-        styles.textAlignCenter,
-        StyleUtils,
+        styles.alignSelfStart,
+        formatPhoneNumber,
         shouldUseNarrowLayout,
-        isPolicyAdmin,
+        StyleUtils,
+        invitedPrimaryToSecondaryLogins,
+        policyOwner,
+        currentUserLogin,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -518,18 +521,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // Show 4 columns only on wide screens for control policies
         if (!shouldUseNarrowLayout && isControlPolicy(policy)) {
             const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.mr6]}>
-                    <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
                     </View>
-                    <View style={StyleUtils.getMinimumWidth(120)}>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.common.customField1')}</Text>
+                    <View style={[styles.flex1, styles.pr3]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField1')}</Text>
                     </View>
-                    <View style={StyleUtils.getMinimumWidth(120)}>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.common.customField2')}</Text>
+                    <View style={[styles.flex1, styles.pr3]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
                     </View>
-                    <View style={StyleUtils.getMinimumWidth(100)}>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.pr2]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('common.role')}</Text>
                     </View>
                 </View>
             );
@@ -546,7 +549,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
-                shouldShowRightCaret
             />
         );
     };
@@ -814,9 +816,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowListEmptyContent={false}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
-                        shouldShowRightCaret
                     />
                 </>
             )}
