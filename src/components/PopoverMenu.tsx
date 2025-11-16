@@ -73,6 +73,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
+
+    /** Additional data for the menu item */
+    additionalData?: Record<string, unknown>;
 };
 
 type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
@@ -447,9 +450,7 @@ function BasePopoverMenu({
     // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
     // We use useLayoutEffect so the reset happens before the repaint
     useLayoutEffect(() => {
-        // We add a check here using JSON.stringify, because elements may contain fields that are functions (functions or components)
-        // which, when compared using deepEqual, will differ even though they are actually the same and have not changed
-        if (menuItems.length === 0 || JSON.stringify(menuItems) === JSON.stringify(prevMenuItems)) {
+        if (menuItems.length === 0 || deepEqual(menuItems, prevMenuItems)) {
             return;
         }
 
