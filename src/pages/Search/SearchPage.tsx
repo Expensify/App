@@ -285,7 +285,7 @@ function SearchPage({route}: SearchPageProps) {
                       }))
             ) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            payMoneyRequestOnSearch(hash, paymentData);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -419,11 +419,10 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -456,10 +455,7 @@ function SearchPage({route}: SearchPageProps) {
                     itemList.forEach((item) => {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            const reportTransactionIDs = selectedReports.length
-                                ? undefined
-                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
-                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
+                            submitMoneyRequestOnSearch(hash, [item], [policy]);
                         }
                     });
                     clearSelectedTransactions();
