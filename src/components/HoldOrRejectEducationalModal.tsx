@@ -12,7 +12,21 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';
 
-const illustrationNames = ['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject'] as const;
+const ILLUSTRATION_NAMES = {
+    STOPWATCH: 'Stopwatch',
+    RULES: 'Rules',
+    REALTIME_REPORT: 'RealtimeReport',
+    THUMBS_DOWN: 'ThumbsDown',
+    MODAL_HOLD_OR_REJECT: 'ModalHoldOrReject',
+} as const;
+
+const illustrationNames = [
+    ILLUSTRATION_NAMES.STOPWATCH,
+    ILLUSTRATION_NAMES.RULES,
+    ILLUSTRATION_NAMES.REALTIME_REPORT,
+    ILLUSTRATION_NAMES.THUMBS_DOWN,
+    ILLUSTRATION_NAMES.MODAL_HOLD_OR_REJECT,
+] as const;
 type IllustrationName = TupleToUnion<typeof illustrationNames>;
 
 type SectionMenuItem = {
@@ -33,19 +47,19 @@ type HoldOrRejectEducationalModalProps = {
 
 const menuSections: SectionMenuItem[] = [
     {
-        iconName: 'Stopwatch',
+        iconName: ILLUSTRATION_NAMES.STOPWATCH,
         titleTranslationKey: 'iou.reject.holdExpenseTitle',
     },
     {
-        iconName: 'Rules',
+        iconName: ILLUSTRATION_NAMES.RULES,
         titleTranslationKey: 'iou.reject.approveExpenseTitle',
     },
     {
-        iconName: 'RealtimeReport',
+        iconName: ILLUSTRATION_NAMES.REALTIME_REPORT,
         titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
     },
     {
-        iconName: 'ThumbsDown',
+        iconName: ILLUSTRATION_NAMES.THUMBS_DOWN,
         titleTranslationKey: 'iou.reject.rejectExpenseTitle',
     },
 ];
@@ -62,7 +76,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={illustrations.ModalHoldOrReject}
+            image={illustrations[ILLUSTRATION_NAMES.MODAL_HOLD_OR_REJECT]}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
