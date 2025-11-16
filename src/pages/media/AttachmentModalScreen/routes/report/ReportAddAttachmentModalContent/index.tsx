@@ -48,7 +48,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         canBeMissing: false,
     });
     const isReportArchived = useReportIsArchived(reportID);
-    const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
@@ -67,11 +67,11 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {
-        if (canPerformWriteAction) {
+        if (canPerformWriteAction || !report || isEmptyObject(report)) {
             return;
         }
         Navigation.dismissModal();
-    }, [canPerformWriteAction]);
+    }, [canPerformWriteAction, report]);
 
     useEffect(() => {
         if (!reportID || !shouldFetchReport) {
