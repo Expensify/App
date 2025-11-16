@@ -1,6 +1,6 @@
 # `expo-video` patches
 
-### [expo-video+3.0.11+001+prevent_double_pause.patch](expo-video+3.0.11+001+prevent_double_pause.patch)
+### [expo-video+3.0.12+001+prevent_double_pause.patch](expo-video+3.0.12+001+prevent_double_pause.patch)
 
 - Reason:
 
