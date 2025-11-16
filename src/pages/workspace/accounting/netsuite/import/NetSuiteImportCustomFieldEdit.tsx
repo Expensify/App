@@ -91,7 +91,7 @@ function NetSuiteImportCustomFieldEdit({
                 }
             }
 
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
         },
         [allRecords, customField, fieldName, importCustomField, policyID, valueIndex],
     );

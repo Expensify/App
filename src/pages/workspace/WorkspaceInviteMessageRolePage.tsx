@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +14,7 @@ import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -23,12 +24,11 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type ListItemType = {
+type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;
     text: string;
     alternateText: string;
     isSelected: boolean;
-    keyForList: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
 type WorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE>;
@@ -42,8 +42,8 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
     const viewportOffsetTop = useViewportOffsetTop();
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
 
-    const roleItems: ListItemType[] = useMemo(
-        () => [
+    const roleItems: ListItemType[] = useMemo(() => {
+        const items: ListItemType[] = [
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
@@ -65,9 +65,13 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                 isSelected: role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
             },
-        ],
-        [role, translate],
-    );
+        ];
+
+        if (!isControlPolicy(policy)) {
+            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
+        }
+        return items;
+    }, [role, translate, policy]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -88,7 +92,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                 {!isOnyxLoading && (
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         <SelectionList
-                            sections={[{data: roleItems}]}
+                            data={roleItems}
                             ListItem={RadioListItem}
                             onSelectRow={({value}: ListItemType) => {
                                 setWorkspaceInviteRoleDraft(route.params.policyID, value);
@@ -96,9 +100,8 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                                     Navigation.goBack(route.params.backTo);
                                 });
                             }}
-                            isAlternateTextMultilineSupported
                             shouldSingleExecuteRowSelect
-                            initiallyFocusedOptionKey={roleItems.find((item) => item.isSelected)?.keyForList}
+                            initiallyFocusedItemKey={roleItems.find((item) => item.isSelected)?.keyForList}
                             addBottomSafeAreaPadding
                         />
                     </View>

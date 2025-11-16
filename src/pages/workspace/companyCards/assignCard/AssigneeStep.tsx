@@ -34,7 +34,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
+    feed: OnyxTypes.CompanyCardFeedWithDomainID;
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
@@ -44,9 +44,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policy?.id, feed);
+    const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
 
