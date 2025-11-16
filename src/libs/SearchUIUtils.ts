@@ -993,6 +993,7 @@ function getTransactionsSections(
     currentAccountID: number | undefined,
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isActionLoadingSet: ReadonlySet<string> | undefined,
 ): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -1018,8 +1019,8 @@ function getTransactionsSections(
 
         let shouldShow = true;
 
-        // isActionLoading is coming from onyx, should we move this to transactions_metadata?
-        if (queryJSON && !transactionItem.isActionLoading) {
+        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
+        if (queryJSON && !isActionLoading) {
             if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = queryJSON.status;
                 if (Array.isArray(status)) {
@@ -1538,7 +1539,9 @@ function getReportSections(
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
             let shouldShow = true;
-            if (queryJSON && isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`)) {
+
+            const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`);
+            if (queryJSON && !isActionLoading) {
                 if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = queryJSON.status;
 
@@ -1789,7 +1792,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet);
 }
 
 /**
