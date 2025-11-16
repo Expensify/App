@@ -374,8 +374,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
-                customField1: policyEmployee.employeeUserID ?? '',
-                customField2: policyEmployee.employeePayrollID ?? '',
+                customField1: policyEmployee.employeeUserID,
+                customField2: policyEmployee.employeePayrollID,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
@@ -390,7 +390,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                     numberOfLines={1}
                                     style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
                                 >
-                                    {policyEmployee.employeeUserID ?? ''}
+                                    {policyEmployee.employeeUserID}
                                 </Text>
                             </View>
                             <View style={[styles.flex1, styles.pr3]}>
@@ -398,7 +398,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                     numberOfLines={1}
                                     style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
                                 >
-                                    {policyEmployee.employeePayrollID ?? ''}
+                                    {policyEmployee.employeePayrollID}
                                 </Text>
                             </View>
                             <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
