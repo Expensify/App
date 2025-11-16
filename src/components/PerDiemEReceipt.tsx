@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type PerDiemEReceiptProps = {
@@ -55,6 +55,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
 
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
