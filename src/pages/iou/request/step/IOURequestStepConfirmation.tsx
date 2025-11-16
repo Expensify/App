@@ -8,7 +8,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
@@ -102,6 +102,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
@@ -156,6 +157,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan'] as const);
 
     /*
      * We want to use a report from the transaction if it exists
@@ -1249,7 +1251,7 @@ function IOURequestStepConfirmation({
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI
-                            icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            icon={isEditingReceipt ? expensifyIcons.ReplaceReceipt : expensifyIcons.SmartScan}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
