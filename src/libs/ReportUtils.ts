@@ -71,7 +71,7 @@ import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/Ony
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
-import type {InvoiceReceiver, NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1657,14 +1657,8 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
  * Used to validate that an invoice chat report corresponds to the correct recipient
  * when the recipient may have been changed (e.g., while offline).
  */
-function isReportReceiverMatches(report: OnyxEntry<Report>, receiverParticipant: Participant | InvoiceReceiver | undefined): boolean {
-    return !!(
-        report?.invoiceReceiver &&
-        receiverParticipant &&
-        'accountID' in receiverParticipant &&
-        'accountID' in report.invoiceReceiver &&
-        report.invoiceReceiver.accountID === receiverParticipant.accountID
-    );
+function isReportReceiverMatches(report: OnyxEntry<Report>, receiverParticipantAccountID: number | undefined): boolean {
+    return !!(report?.invoiceReceiver && receiverParticipantAccountID && 'accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverParticipantAccountID);
 }
 
 /**

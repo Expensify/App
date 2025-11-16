@@ -201,6 +201,7 @@ function IOURequestStepConfirmation({
 
     const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverParticipantAccountID = receiverParticipant && 'accountID' in receiverParticipant ? receiverParticipant.accountID : undefined;
     const receiverType = getReceiverType(receiverParticipant);
     const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
 
@@ -930,7 +931,7 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const invoiceChatReport = !isEmptyObject(report) && report?.reportID && isReportReceiverMatches(report, receiverParticipant) ? report : existingInvoiceReport;
+                const invoiceChatReport = !isEmptyObject(report) && report?.reportID && isReportReceiverMatches(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
 
                 sendInvoice(
                     currentUserPersonalDetails.accountID,
@@ -1063,7 +1064,7 @@ function IOURequestStepConfirmation({
             existingInvoiceReport,
             isUnreported,
             isASAPSubmitBetaEnabled,
-            receiverParticipant,
+            receiverParticipantAccountID,
         ],
     );
 

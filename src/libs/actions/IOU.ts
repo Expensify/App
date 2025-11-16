@@ -3258,7 +3258,7 @@ function getSendInvoiceInformation(
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceChatReportReceiverMatches = isReportReceiverMatches(invoiceChatReport, receiverParticipant);
+    const invoiceChatReportReceiverMatches = isReportReceiverMatches(invoiceChatReport, receiverAccountID);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
