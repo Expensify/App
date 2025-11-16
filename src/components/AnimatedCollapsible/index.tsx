@@ -2,7 +2,8 @@ import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
@@ -41,9 +42,28 @@ type AnimatedCollapsibleProps = {
 
     /** Callback for when the toggle button is pressed */
     onPress: () => void;
+
+    /** Whether to show the toggle button */
+    shouldShowToggleButton?: boolean;
+
+    /** Style for the border bottom */
+    borderBottomStyle?: StyleProp<ViewStyle>;
 };
 
-function AnimatedCollapsible({isExpanded, children, header, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
+function AnimatedCollapsible({
+    isExpanded,
+    children,
+    header,
+    duration = 300,
+    style,
+    headerStyle,
+    contentStyle,
+    expandButtonStyle,
+    onPress,
+    disabled = false,
+    shouldShowToggleButton = true,
+    borderBottomStyle,
+}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
@@ -68,7 +88,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
             if (!finished || target) {
                 return;
             }
-            runOnJS(setIsRendered)(false);
+            scheduleOnRN(setIsRendered, false);
         });
     }, []);
 
@@ -91,21 +111,24 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
-                <PressableWithFeedback
-                    onPress={onPress}
-                    disabled={disabled}
-                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
-                >
-                    {({hovered}) => (
-                        <Icon
-                            src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                            fill={hovered ? theme.textSupporting : theme.icon}
-                            small
-                        />
-                    )}
-                </PressableWithFeedback>
+                {shouldShowToggleButton && (
+                    <PressableWithFeedback
+                        onPress={onPress}
+                        disabled={disabled}
+                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                    >
+                        {({hovered}) => (
+                            <Icon
+                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                fill={theme.icon}
+                                additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                small
+                            />
+                        )}
+                    </PressableWithFeedback>
+                )}
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 {isExpanded || isRendered ? (
@@ -119,8 +142,8 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
                             }
                         }}
                     >
-                        <View style={[styles.pv2, styles.ph3]}>
-                            <View style={[styles.borderBottom]} />
+                        <View style={[styles.pv2, styles.ph3, styles.pb1]}>
+                            <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}
                     </Animated.View>

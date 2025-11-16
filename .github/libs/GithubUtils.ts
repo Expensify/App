@@ -334,7 +334,7 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
@@ -361,7 +361,7 @@ class GithubUtils {
                     if (sortedPRList.length > 0) {
                         issueBody += '**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
                         });
                         issueBody += '\r\n\r\n';
@@ -371,7 +371,7 @@ class GithubUtils {
                     if (sortedPRListMobileExpensify.length > 0) {
                         issueBody += '**Mobile-Expensify PRs:**\r\n';
                         sortedPRListMobileExpensify.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
                         });
                         issueBody += '\r\n\r\n';
@@ -658,7 +658,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
