@@ -17,6 +17,7 @@ import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUn
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -92,11 +93,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
-    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
+    const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
+
+    const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -108,7 +111,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     useEffect(() => {
         setErrorMessage('');
-    }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
+    }, [sumOfSplitExpenses, splitExpenses]);
 
     const onAddSplitExpense = useCallback(() => {
         if (draftTransaction?.errors) {
@@ -182,9 +185,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
             iouReport,
-            chatReport,
             firstIOU: iouActions.at(0),
-            isChatReportArchived: isChatIOUReportArchived,
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
         });
     }, [
         splitExpenses,
@@ -206,13 +208,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         expenseReportPolicy,
         policyRecentlyUsedCategories,
         iouReport,
-        chatReport,
         iouActions,
-        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
+        isBetaEnabled,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
