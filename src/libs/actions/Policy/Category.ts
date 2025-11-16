@@ -321,7 +321,11 @@ function setWorkspaceCategoryEnabled(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ) {
-    const {policyID} = policyData;
+    const {policyID, categories} = policyData;
+    if (!categories) {
+        Log.warn('setWorkspaceCategoryEnabled invalid params', {categories});
+        return;
+    }
     const categoriesOptimisticData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
@@ -371,7 +375,7 @@ function setWorkspaceCategoryEnabled(
                 value: {
                     ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
                         acc[key] = {
-                            ...policyData.categories[key],
+                            ...categories[key],
                             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
@@ -468,7 +472,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
 
 function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number) {
     const {policyID, categories} = policyData;
-    const originalMaxAmountNoReceipt = categories[categoryName]?.maxAmountNoReceipt;
+    const originalMaxAmountNoReceipt = categories?.[categoryName]?.maxAmountNoReceipt;
     const categoriesOptimisticData = {
         [categoryName]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -532,8 +536,8 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
 }
 
 function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string) {
-    const {policyID} = policyData;
-    const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
+    const {policyID, categories} = policyData;
+    const originalMaxAmountNoReceipt = categories?.[categoryName]?.maxAmountNoReceipt;
     const categoriesOptimisticData = {
         [categoryName]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -998,14 +1002,14 @@ function deleteWorkspaceCategories(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ) {
-    const {policyID} = policyData;
+    const {policyID, categories} = policyData;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
 
     const shouldDisableRequiresCategory = !hasEnabledOptions(
-        Object.values(policyData.categories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        Object.values(categories ?? {}).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
     const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory
         ? {
@@ -1059,7 +1063,7 @@ function deleteWorkspaceCategories(
 }
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, shouldGoBack = true) {
-    const {policyID} = policyData;
+    const {policyID, categories} = policyData;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
         pendingFields: {
@@ -1103,7 +1107,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
 
     if (!enabled) {
         policyCategoriesUpdate = Object.fromEntries(
-            Object.entries(policyData.categories).map(([categoryName]) => [
+            Object.entries(categories ?? {}).map(([categoryName]) => [
                 categoryName,
                 {
                     enabled: false,

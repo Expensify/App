@@ -20,6 +20,7 @@ import {
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
+import {getTagList} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -28,8 +29,6 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import { getTagList } from '@libs/PolicyUtils';
-import PolicyData from '@hooks/usePolicyData/types';
 
 OnyxUpdateManager();
 
@@ -330,7 +329,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                
+
             mockFetch.pause();
             await waitForBatchedUpdates();
             mockFetch.fail();
@@ -406,7 +405,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
 
-            const {result : policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             await waitFor(() => {
                 expect(getTagList(policyData?.current?.tagLists, 0)).toBeDefined();
             });
@@ -748,7 +747,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            
+
             // When the tag is renamed
             renamePolicyTag(
                 policyData.current,
@@ -758,9 +757,9 @@ describe('actions/Policy', () => {
                 },
                 0,
             );
-            
+
             await waitForBatchedUpdates();
-            
+
             // Then the approval rule should be updated with the new tag name
             rerender(fakePolicy.id);
             expect(policyData.current.policy?.rules?.approvalRules).toHaveLength(1);

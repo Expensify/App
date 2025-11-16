@@ -190,7 +190,6 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
 
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
 
-
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
@@ -367,7 +366,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    ...Object.entries(tagLists ?? {}).reduce<PolicyTagLists>((acc, [key, value]) => {
+                    ...Object.keys(tagLists ?? {}).reduce<PolicyTagLists>((acc, key) => {
                         acc[key] = {
                             ...acc[key],
                             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -974,7 +973,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     };
 
     const getUpdatedTagsData = (required: boolean): PolicyTagLists => ({
-        ...Object.entries(tagLists ?? {}).reduce<PolicyTagLists>((acc, [key, value]) => {
+        ...Object.keys(tagLists ?? {}).reduce<PolicyTagLists>((acc, key) => {
             acc[key] = {
                 ...acc[key],
                 required,

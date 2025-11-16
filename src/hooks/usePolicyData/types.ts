@@ -6,7 +6,7 @@ type PolicyData = {
     policyID: string;
     policy: OnyxEntry<Policy>;
     tagLists: OnyxEntry<PolicyTagLists>;
-    categories: PolicyCategories;
+    categories: OnyxEntry<PolicyCategories>;
     reports: Array<OnyxEntry<Report>>;
     transactionsAndViolations: ReportTransactionsAndViolationsDerivedValue;
 };
