@@ -27,6 +27,7 @@ import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSp
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
@@ -51,6 +52,11 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+
+type SyncSelection = {
+    position: number;
+    value: string;
+};
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
@@ -153,6 +159,8 @@ type ComposerRef = {
 };
 
 const {RNTextInputReset} = NativeModules;
+
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -262,6 +270,8 @@ function ComposerWithSuggestions({
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
+
+    const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -405,6 +415,10 @@ function ComposerWithSuggestions({
             if (commentValue !== newComment) {
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
+                if (commentWithSpaceInserted !== newComment && isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                }
+
                 setSelection((prevSelection) => ({
                     start: position,
                     end: position,
@@ -508,6 +522,26 @@ function ComposerWithSuggestions({
             }
         },
         [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
+    );
+
+    const onChangeText = useCallback(
+        (commentValue: string) => {
+            updateComment(commentValue, true);
+
+            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+                syncSelectionWithOnChangeTextRef.current = null;
+
+                // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
+                });
+            }
+        },
+        [updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -761,24 +795,6 @@ function ComposerWithSuggestions({
 
     const debouncedUpdateComment = useCallback((newComment: string) => updateComment(newComment, true), [updateComment]);
 
-    // When using the suggestions box we need to imperatively set the cursor
-    // to the end of the suggestion after it's selected to follow the expected behavior.
-    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
-        const endOfSuggestionSelection = suggestionSelection.end;
-        setSelection(suggestionSelection);
-
-        if (endOfSuggestionSelection === undefined) {
-            return;
-        }
-
-        // Ensure that selection is set imperatively after all state changes are effective.
-        // Note: this implementation is only available on non-web RN
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
-        });
-    }, []);
-
     const isTouchEndedRef = useRef(false);
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
@@ -852,7 +868,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={onSuggestionSelected}
+                setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
 
