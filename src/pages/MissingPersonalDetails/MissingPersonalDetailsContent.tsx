@@ -7,15 +7,14 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
@@ -44,7 +43,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -56,8 +54,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         if (!values) {
             return;
         }
+        if (!onComplete) {
+            Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+            return;
+        }
         setIsValidateCodeActionModalVisible(true);
-    }, [values]);
+    }, [onComplete, values]);
 
     const {
         componentToRender: SubStep,
@@ -90,13 +92,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            if (onComplete) {
-                onComplete(values, validateCode);
+            if (!onComplete) {
                 return;
             }
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
+            onComplete(values, validateCode);
         },
-        [countryCode, values, onComplete],
+        [values, onComplete],
     );
 
     const handleNextScreen = useCallback(() => {
@@ -122,7 +123,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetailsContent.displayName}
-            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
@@ -142,7 +142,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />
-
             <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
