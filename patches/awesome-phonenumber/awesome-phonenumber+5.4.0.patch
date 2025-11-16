@@ -1,3 +1,16 @@
+diff --git a/node_modules/awesome-phonenumber/index-esm.mjs b/node_modules/awesome-phonenumber/index-esm.mjs
+index 803ef1a..880a73b 100644
+--- a/node_modules/awesome-phonenumber/index-esm.mjs
++++ b/node_modules/awesome-phonenumber/index-esm.mjs
+@@ -623,6 +623,8 @@ const {
+ 
+ const parsePhoneNumber = ( ...args ) =>
+ {
++	'worklet';
++
+ 	try
+ 	{
+ 		const ret = index( ...args ).toJSON( );
 diff --git a/node_modules/awesome-phonenumber/index.js b/node_modules/awesome-phonenumber/index.js
 index a677e9e..a5d9ae9 100644
 --- a/node_modules/awesome-phonenumber/index.js
