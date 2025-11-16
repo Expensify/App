@@ -9357,7 +9357,7 @@ describe('actions/IOU', () => {
 
             // Verify receiver information
             expect(result.receiver).toBeDefined();
-            expect(result.receiver.accountID).toBe(123);
+            expect(result.receiver.accountID).toBe(456);
 
             // Verify invoice room (chat report)
             expect(result.invoiceRoom).toBeDefined();
@@ -10162,7 +10162,7 @@ describe('actions/IOU', () => {
         let userAInvoiceReport: Report;
 
         beforeEach(async () => {
-            await initOnyxDerivedValues();
+            initOnyxDerivedValues();
             await Onyx.clear();
             await waitForBatchedUpdates();
 
@@ -10262,13 +10262,6 @@ describe('actions/IOU', () => {
                 updatedTransaction,
                 senderAccountID,
                 userAInvoiceReport, // Passing stale report for User A
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
             );
 
             // Step 5: Verify that the invoice is created for User B, not User A

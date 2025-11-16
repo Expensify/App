@@ -3255,7 +3255,8 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
-    const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverParticipant: Participant | InvoiceReceiver | undefined =
+        participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     const invoiceChatReportReceiverMatches = isReportReceiverMatches(invoiceChatReport, receiverParticipant);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
