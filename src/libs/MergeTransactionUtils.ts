@@ -16,12 +16,12 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getAttendeesListDisplayString, getCurrency, getReimbursable, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getAttendeesListDisplayString, getCurrency, getReimbursable, getWaypoints, isDistanceRequest, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -35,9 +35,11 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
+/** Type for merge transaction values that can be null to clear existing values in Onyx */
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
-    currency: 'iou.currency',
     merchant: 'common.merchant',
     category: 'common.category',
     tag: 'common.tag',
@@ -126,7 +128,8 @@ const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+    // Distance request's amount/currency/receipt depend on merchant selection
+    return transactions.every((transaction) => !isDistanceRequest(transaction) && transaction?.receipt?.receiptID);
 }
 
 // Check if whether merge value is truly "empty" (null, undefined, empty string, or empty array)
@@ -172,6 +175,17 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELD_TRANSLATION_KEYS[field];
 }
 
+function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
+    const excludeFields: MergeFieldKey[] = [];
+
+    // Distance request's amount/currency/receipt depend on merchant selection
+    if (isDistanceRequest(targetTransaction)) {
+        excludeFields.push('amount');
+    }
+
+    return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
+}
+
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
@@ -185,12 +199,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
-    MERGE_FIELDS.forEach((field) => {
-        // Currency field is handled by the amount field
-        if (field === 'currency') {
-            return;
-        }
-
+    getMergeFields(targetTransaction).forEach((field) => {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
@@ -316,6 +325,8 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         comment: {
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
             attendees: mergeTransaction.attendees,
         },
         reimbursable: mergeTransaction.reimbursable,
@@ -325,6 +336,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        routes: mergeTransaction.routes,
     };
 }
 
@@ -429,6 +441,42 @@ function buildMergeFieldsData(
     });
 }
 
+/**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field, reportID and additional fields for distance requests
+ */
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
+    const updatedValues: MergeTransactionUpdateValues = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+    }
+
+    if (field === 'merchant' && isDistanceRequest(transaction)) {
+        const transactionDetails = getTransactionDetails(transaction);
+        updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
+        updatedValues.currency = getCurrency(transaction);
+        updatedValues.customUnit = transaction?.comment?.customUnit;
+        updatedValues.iouRequestType = transaction?.iouRequestType;
+        // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
+        updatedValues.receipt = transaction?.receipt ?? null;
+        updatedValues.waypoints = getWaypoints(transaction) ?? null;
+        updatedValues.routes = transaction?.routes ?? null;
+    }
+
+    return updatedValues;
+}
+
+function getRateFromMerchant(merchant: string | undefined): string {
+    if (!merchant) {
+        return '';
+    }
+
+    return merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(-1)?.trim() ?? '';
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -447,6 +495,8 @@ export {
     getReportIDForExpense,
     getMergeFieldErrorText,
     MERGE_FIELDS,
+    getRateFromMerchant,
+    getMergeFieldUpdatedValues,
 };
 
-export type {MergeFieldKey, MergeFieldData};
+export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
