@@ -421,7 +421,8 @@ const ViolationsUtils = {
 
         if (
             canCalculateAmountViolations &&
-            ((hasReceiptRequiredViolation && (!shouldShowReceiptRequiredViolation || hasItemizedReceiptViolation)) || (hasCategoryReceiptRequiredViolation && (!shouldShowCategoryReceiptRequiredViolation || hasItemizedReceiptViolation)))
+            ((hasReceiptRequiredViolation && (!shouldShowReceiptRequiredViolation || hasItemizedReceiptViolation)) ||
+                (hasCategoryReceiptRequiredViolation && (!shouldShowCategoryReceiptRequiredViolation || hasItemizedReceiptViolation)))
         ) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
         }
