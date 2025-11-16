@@ -48,6 +48,13 @@ const config = defineConfig([
                     message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
                 },
             ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/libs/**/*.{ts,tsx}'],
+        rules: {
             'no-restricted-imports': [
                 'error',
                 {
