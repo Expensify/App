@@ -1,7 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
 import type {FlatListProps, LayoutChangeEvent, ListRenderItem, FlatList as RNFlatList} from 'react-native';
-import {InteractionManager} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 import FlatList from '..';
 
@@ -28,6 +27,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         onLayout,
         onContentSizeChange,
         contentContainerStyle,
+        onViewableItemsChanged,
         ...rest
     } = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, handleRenderItem, listRef} = useFlatListScrollKey<T>({
@@ -66,7 +66,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // it means there is a gap at the bottom.
             // Then, once the render is complete (isInitialData === false), we will manually scroll to the bottom.
             if (shouldScrollToEndRef.current) {
-                InteractionManager.runAfterInteractions(() => {
+                requestAnimationFrame(() => {
                     listRef.current?.scrollToEnd();
                 });
                 shouldScrollToEndRef.current = false;
@@ -77,6 +77,18 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         },
         [onContentSizeChange, initialScrollKey, isInitialData, listRef],
     );
+
+    const isLoadingData = useRef(true);
+    const isInitialDataRef = useRef(isInitialData);
+    useEffect(() => {
+        isInitialDataRef.current = isInitialData;
+
+        if (!isLoadingData.current || data.length > displayedData.length) {
+            return;
+        }
+
+        isLoadingData.current = false;
+    }, [data.length, displayedData.length, isInitialData]);
 
     return (
         <FlatList
@@ -95,6 +107,14 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             onContentSizeChange={onContentSizeChangeInner}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
+            onViewableItemsChanged={(info) => {
+                onViewableItemsChanged?.(info);
+
+                if (info.viewableItems.length <= 0 || info.viewableItems.at(0)?.index !== 0 || isInitialDataRef.current || !isLoadingData.current) {
+                    return;
+                }
+                handleStartReached({distanceFromStart: 0});
+            }}
         />
     );
 }
