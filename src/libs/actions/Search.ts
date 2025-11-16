@@ -33,7 +33,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -490,7 +490,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT,
             value: Object.fromEntries(
-                reportList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}]),
+                reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}]),
             ),
         },
     ];
