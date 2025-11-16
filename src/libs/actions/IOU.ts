@@ -189,6 +189,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isReportManager,
+    isReportReceiverMatches,
     isSelectedManagerMcTest,
     isSelfDM,
     isSettled,
@@ -3256,11 +3257,13 @@ function getSendInvoiceInformation(
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const invoiceChatReportReceiverMatches = isReportReceiverMatches(invoiceChatReport, receiverParticipant);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
+
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches ? invoiceChatReport : null;
 
     if (!chatReport) {
         isNewChatReport = true;
