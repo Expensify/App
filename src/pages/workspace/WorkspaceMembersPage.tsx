@@ -29,6 +29,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -79,13 +80,19 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return Object.fromEntries(invertedEntries);
 }
 
-type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {accountID: number; login: string};
+type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
+    accountID: number;
+    login: string;
+    customField1?: string;
+    customField2?: string;
+};
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -366,19 +373,48 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
+                customField1: policyEmployee.employeeUserID ?? '',
+                customField2: policyEmployee.employeePayrollID ?? '',
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
-                rightElement: (
-                    <MemberRightIcon
-                        role={policyEmployee.role}
-                        owner={policy?.owner}
-                        login={details.login}
-                    />
-                ),
+                rightElement:
+                    !shouldUseNarrowLayout && isControlPolicy(policy) ? (
+                        <>
+                            <View style={StyleUtils.getMinimumWidth(120)}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textSupporting, styles.label, styles.textAlignCenter]}
+                                >
+                                    {policyEmployee.employeeUserID ?? ''}
+                                </Text>
+                            </View>
+                            <View style={StyleUtils.getMinimumWidth(120)}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textSupporting, styles.label, styles.textAlignCenter]}
+                                >
+                                    {policyEmployee.employeePayrollID ?? ''}
+                                </Text>
+                            </View>
+                            <View style={StyleUtils.getMinimumWidth(100)}>
+                                <MemberRightIcon
+                                    role={policyEmployee.role}
+                                    owner={policy?.owner}
+                                    login={details.login}
+                                />
+                            </View>
+                        </>
+                    ) : (
+                        <MemberRightIcon
+                            role={policyEmployee.role}
+                            owner={policy?.owner}
+                            login={details.login}
+                        />
+                    ),
                 icons: [
                     {
                         source: details.avatar ?? FallbackAvatar,
@@ -400,13 +436,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
         personalDetails,
-        policy?.owner,
-        policy?.ownerAccountID,
-        policy?.employeeList,
+        policy,
         policyMemberEmailsToAccountIDs,
         policyOwner,
         session?.accountID,
         styles.cursorDefault,
+        styles.textSupporting,
+        styles.label,
+        styles.textAlignCenter,
+        StyleUtils,
+        shouldUseNarrowLayout,
         isPolicyAdmin,
     ]);
 
@@ -475,6 +514,33 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (filteredData.length === 0) {
             return null;
         }
+
+        // Show 4 columns only on wide screens for control policies
+        if (!shouldUseNarrowLayout && isControlPolicy(policy)) {
+            const header = (
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.mr6]}>
+                    <View style={styles.flex1}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
+                    </View>
+                    <View style={StyleUtils.getMinimumWidth(120)}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.common.customField1')}</Text>
+                    </View>
+                    <View style={StyleUtils.getMinimumWidth(120)}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.common.customField2')}</Text>
+                    </View>
+                    <View style={StyleUtils.getMinimumWidth(100)}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                    </View>
+                </View>
+            );
+
+            if (canSelectMultiple) {
+                return header;
+            }
+            return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+        }
+
+        // Fall back to 2-column layout for narrow screens or non-control policies
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
