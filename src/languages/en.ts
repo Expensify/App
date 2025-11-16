@@ -1310,7 +1310,7 @@ const translations = {
         movedToPersonalSpace: 'moved expense to personal space',
         tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
             const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'an' : 'a';
-            const tag = policyTagListName || 'tag';
+            const tag = policyTagListName ?? 'tag';
             return `Select ${article} ${tag} to better organize your spend.`;
         },
         categorySelection: 'Select a category to better organize your spend.',
