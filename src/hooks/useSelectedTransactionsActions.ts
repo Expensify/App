@@ -347,6 +347,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         hasTransactionsFromMultipleOwners,
+        expensifyIcons,
     ]);
 
     return {
