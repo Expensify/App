@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type IconAsset from '@src/types/utils/IconAsset';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
@@ -58,7 +59,7 @@ type PopoverMenuItem = MenuItemProps & {
 
     pendingAction?: PendingAction;
 
-    rightIcon?: React.FC<SvgProps>;
+    rightIcon?: IconAsset;
 
     key?: string;
 
