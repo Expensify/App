@@ -14,7 +14,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
-import type {PartialDeep, SetRequired, TupleToUnion, ValueOf} from 'type-fest';
+import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -2011,14 +2011,20 @@ function pushTransactionViolationsOnyxData(
         ? (categories ?? {})
         : {
               ...Object.fromEntries(Object.entries(categories ?? {}).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
-              ...Object.entries(categoriesUpdate).reduce<PartialDeep<PolicyCategories>>((acc, [categoryName, categoryUpdate]) => {
+              ...Object.entries(categoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
                   if (!categoryUpdate) {
                       return acc;
                   }
-                  acc[categoryName] = categories?.[categoryName] !== undefined ? {
-                      ...categories[categoryName],
+                  const category = categories?.[categoryName];
+                  if (category === undefined) {
+                      acc[categoryName] = categoryUpdate as PolicyCategory;
+                      return acc;
+                  }
+
+                  acc[categoryName] = {
+                      ...category,
                       ...categoryUpdate,
-                  } : categoryUpdate;
+                  } as PolicyCategory;
                   return acc;
               }, {}),
           };
@@ -2028,29 +2034,42 @@ function pushTransactionViolationsOnyxData(
         ? (tagLists ?? {})
         : {
               ...Object.fromEntries(Object.entries(tagLists ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
-              ...Object.entries(tagListsUpdate).reduce<PartialDeep<PolicyTagLists>>((acc, [tagListName, tagListUpdate]) => {
+              ...Object.entries(tagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
                   if (!tagListName || !tagListUpdate) {
                       return acc;
                   }
 
-                  const tagList = tagLists?.[tagListName]
-                  const tags = tagList?.tags ?? {};
+                  const tagList = tagLists?.[tagListName];
+                  if (!tagList) {
+                      acc[tagListName] = tagListUpdate as PolicyTagList;
+                      return acc;
+                  }
+                  const tags = tagList?.tags;
+                  if (!tags) {
+                      acc[tagListName] = {...tagList, ...tagListUpdate} as PolicyTagList;
+                      return acc;
+                  }
                   const tagsUpdate = tagListUpdate?.tags ?? {};
-
                   acc[tagListName] = {
-                      ...(tagList ?? {}),
+                      ...tagList,
                       ...tagListUpdate,
                       tags: {
                           ...((): PolicyTags => {
-                              const optimisticTags: PolicyTags = Object.fromEntries(Object.entries(tags).filter(([tagName]) => !(tagName in tagsUpdate) || !!tagsUpdate[tagName]));
+                              const optimisticTags: PolicyTags = Object.fromEntries(
+                                  Object.entries(tags ?? {}).filter(([tagName, tag]) => !tag || !(tagName in tagsUpdate) || !!tagsUpdate[tagName]),
+                              );
                               for (const [tagName, tagUpdate] of Object.entries(tagsUpdate)) {
                                   if (!tagUpdate) {
                                       continue;
                                   }
-                                  optimisticTags[tagName] = {
-                                      ...(tags[tagName] ?? {}),
-                                      ...tagUpdate,
-                                  };
+                                  const tag = tags?.[tagName];
+                                  optimisticTags[tagName] =
+                                      tag !== undefined
+                                          ? {
+                                                ...tag,
+                                                ...tagUpdate,
+                                            }
+                                          : tagUpdate;
                               }
                               return optimisticTags;
                           })(),
