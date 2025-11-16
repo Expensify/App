@@ -14,7 +14,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
-import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
+import type {PartialDeep, SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -1972,9 +1972,13 @@ function pushTransactionViolationsOnyxData(
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
+    const {policy, tagLists, categories} = policyData;
+    if (policy === undefined) {
+        return;
+    }
     const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
         // Skipping invoice reports since they should not have any category or tag violations
-        if (isInvoiceReport(report)) {
+        if (report === undefined || isInvoiceReport(report)) {
             return acc;
         }
         const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
@@ -2000,41 +2004,41 @@ function pushTransactionViolationsOnyxData(
     }
 
     // Merge the existing policy with the optimistic updates
-    const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
+    const optimisticPolicy = isPolicyUpdateEmpty ? policy : {...policy, ...policyUpdate};
 
     // Merge the existing categories with the optimistic updates
     const optimisticCategories = isCategoriesUpdateEmpty
-        ? policyData.categories
+        ? (categories ?? {})
         : {
-              ...Object.fromEntries(Object.entries(policyData.categories).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
-              ...Object.entries(categoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+              ...Object.fromEntries(Object.entries(categories ?? {}).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
+              ...Object.entries(categoriesUpdate).reduce<PartialDeep<PolicyCategories>>((acc, [categoryName, categoryUpdate]) => {
                   if (!categoryUpdate) {
                       return acc;
                   }
-                  acc[categoryName] = {
-                      ...(policyData.categories?.[categoryName] ?? {}),
+                  acc[categoryName] = categories?.[categoryName] !== undefined ? {
+                      ...categories[categoryName],
                       ...categoryUpdate,
-                  };
+                  } : categoryUpdate;
                   return acc;
               }, {}),
           };
 
     // Merge the existing tag lists with the optimistic updates
     const optimisticTagLists = isTagListsUpdateEmpty
-        ? policyData.tags
+        ? (tagLists ?? {})
         : {
-              ...Object.fromEntries(Object.entries(policyData.tags ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
-              ...Object.entries(tagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
-                  if (!tagListUpdate) {
+              ...Object.fromEntries(Object.entries(tagLists ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
+              ...Object.entries(tagListsUpdate).reduce<PartialDeep<PolicyTagLists>>((acc, [tagListName, tagListUpdate]) => {
+                  if (!tagListName || !tagListUpdate) {
                       return acc;
                   }
 
-                  const tagList = policyData.tags?.[tagListName];
-                  const tags = tagList.tags ?? {};
+                  const tagList = tagLists?.[tagListName]
+                  const tags = tagList?.tags ?? {};
                   const tagsUpdate = tagListUpdate?.tags ?? {};
 
                   acc[tagListName] = {
-                      ...tagList,
+                      ...(tagList ?? {}),
                       ...tagListUpdate,
                       tags: {
                           ...((): PolicyTags => {
