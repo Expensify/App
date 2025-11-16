@@ -812,8 +812,8 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
-    // When using the suggestions box we need to imperatively set the cursor
-    // to the end of the suggestion after it's selected to follow the expected behavior.
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
     const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
         const endOfSuggestionSelection = suggestionSelection.end;
         setSelection(suggestionSelection);
