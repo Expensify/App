@@ -88,7 +88,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RecentlyUsedCategories} from '@src/types/onyx';
+import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
@@ -523,8 +523,9 @@ function IOURequestStepConfirmation({
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
-            const optimisticIOUReportID = generateReportID();
             const optimisticReportPreviewActionID = rand64();
+
+            let existingIOUReport: Report | undefined;
 
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
@@ -537,11 +538,11 @@ function IOURequestStepConfirmation({
                     completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
                 }
 
-                requestMoneyIOUActions({
+                const {iouReport} = requestMoneyIOUActions({
                     report,
+                    existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
-                    optimisticIOUReportID,
                     optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -585,6 +586,7 @@ function IOURequestStepConfirmation({
                     backToReport,
                     isASAPSubmitBetaEnabled,
                 });
+                existingIOUReport = iouReport;
             });
         },
         [
