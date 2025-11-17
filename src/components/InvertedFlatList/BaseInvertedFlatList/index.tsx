@@ -135,7 +135,7 @@ function BaseInvertedFlatList<T>({
             didScroll.current = true;
             renderQueue.start();
         }, INITIAL_SCROLL_DELAY);
-    }, [currentDataIndex, data.length, displayedData.length, didInitialContentRender, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue, listRef]);
+    }, [currentDataIndex, data.length, displayedData.length, didInitialContentRender, initialNumToRender, isMessageOnFirstPage, renderQueue, listRef]);
 
     renderQueue.setHandler((info: RenderInfo) => {
         if (!isLoadingData) {
