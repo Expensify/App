@@ -17,7 +17,6 @@ import {
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
-    isThread,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import type {IOUType} from '@src/CONST';
