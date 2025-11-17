@@ -8,6 +8,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import type {TranslationPaths} from '@src/languages/types';
@@ -75,6 +76,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
         /** Indicates if zip code format should be validated */
         shouldValidateZipCodeFormat?: boolean;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
     };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -97,6 +101,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
+    shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -158,7 +163,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                     forwardedFSClass={forwardedFSClass}
                 />
-                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt6]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

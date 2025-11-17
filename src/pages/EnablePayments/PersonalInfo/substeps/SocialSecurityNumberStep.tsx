@@ -16,7 +16,7 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -58,6 +58,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            shouldShowPatriotActLink
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

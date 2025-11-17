@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -65,6 +66,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
         /** Whether to delay autoFocus to avoid conflicts with navigation animations */
         shouldDelayAutoFocus?: boolean;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
     };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -85,6 +89,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
+    shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -126,7 +131,12 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         forwardedFSClass={forwardedFSClass}
                     />
                 </View>
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt5]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

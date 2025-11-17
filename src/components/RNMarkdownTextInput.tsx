@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
-import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
+import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -66,11 +66,11 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     );
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             mentionsSharedVal.set(availableLoginsList);
-        })();
+        });
     }, [availableLoginsList, mentionsSharedVal]);
 
     return (

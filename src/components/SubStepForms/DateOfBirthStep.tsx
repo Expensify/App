@@ -10,6 +10,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -38,6 +39,9 @@ type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
         /** Optional footer component */
         footerComponent?: React.ReactNode;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
     };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -50,6 +54,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     dobDefaultValue,
     isEditing,
     footerComponent,
+    shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -103,6 +108,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 forwardedFSClass={forwardedFSClass}
             />
             {footerComponent}
+            {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
         </FormProvider>
     );
 }
