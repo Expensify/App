@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import SplitListItemFocus from '@components/SelectionList/ListItem/SplitListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
-import SplitListItemFocus from '@components/SelectionListWithSections/SplitListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import type UseDisplayFocusedInputUnderKeyboardType from './types';
 
