@@ -317,8 +317,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </Stack.Navigator>
                 </Animated.View>
-                {/* The second overlay is here to cover the wide rhp screen underneath */}
-                {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
+                {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
+                {/* Clicking on these overlays redirects you to the RHP screen below them. */}
+                {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRHPFocused && !isWideRHPClosing && (
                     <Overlay
                         progress={secondOverlayProgress}
