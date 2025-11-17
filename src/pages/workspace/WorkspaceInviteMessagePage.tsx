@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -139,11 +139,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
-            });
+            Navigation.dismissModal({eventType: CONST.RHP_EVENTS.CLOSED, callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID))});
         });
     };
 

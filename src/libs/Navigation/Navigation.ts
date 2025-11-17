@@ -3,7 +3,7 @@ import type {EventArg, NavigationAction, NavigationContainerEventMap, Navigation
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -33,7 +33,15 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {
+    NavigationPartialRoute,
+    NavigationRef,
+    NavigationRoute,
+    NavigationStateRoute,
+    ReportsSplitNavigatorParamList,
+    RootNavigatorParamList,
+    State,
+} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -563,14 +571,16 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = (ref = navigationRef) => {
+const dismissModal = ({ref = navigationRef, eventType, callback}: {ref?: NavigationRef, eventType?: string, callback?: () => void} = {}) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        // Let React Navigation finish modal transition
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            fireModalDismissed();
-        });
+        if (!eventType) {
+            return;
+        }
+        const subscription = DeviceEventEmitter.addListener(eventType, () => {
+            subscription.remove();
+            callback?.();
+        })
     });
 };
 
@@ -593,11 +603,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             navigate(reportRoute, {forceReplace: true});
             return;
         }
-        dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            navigate(reportRoute);
-        });
+        dismissModal({eventType: CONST.RHP_EVENTS.CLOSED, callback: () => navigate(reportRoute)});
     });
 };
 
