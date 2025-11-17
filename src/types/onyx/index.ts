@@ -29,7 +29,7 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
 import type DomainSettings from './DomainSettings';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './DomainSettings';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, FundID} from './DomainSettings';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -166,6 +166,7 @@ export type {
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,
