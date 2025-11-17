@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
@@ -693,6 +694,42 @@ describe('actions/Policy', () => {
                 },
             });
         });
+
+        it('should pass areDistanceRatesEnabled as true when creating workspace with distance rates feature enabled', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with distance rates feature enabled
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: false,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                currency: 'USD',
+                featuresMap: [
+                    {
+                        id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                        enabled: true,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command and areDistanceRatesEnabled set to true
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    areDistanceRatesEnabled: true,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('createDraftInitialWorkspace', () => {
@@ -1023,7 +1060,18 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {}, {});
+            Policy.deleteWorkspace({
+                policyID: fakePolicy.id,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: {},
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1102,22 +1150,24 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(
+            Policy.deleteWorkspace({
                 policyID,
-                'test',
-                undefined,
-                undefined,
-                [expenseChatReport],
-                {
+                activePolicyID: undefined,
+                policyName: 'test',
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [expenseChatReport],
+                transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactionViolations_3: [
                         {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
                         {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
                     ],
                 },
-                undefined,
-                {},
-            );
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1142,7 +1192,18 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: teamPolicy.id,
+                activePolicyID: teamPolicy.id,
+                policyName: teamPolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1166,7 +1227,18 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1192,7 +1264,18 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined, {});
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {

@@ -198,10 +198,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const state = accountData.state ?? '';
-        const shouldShowBankAccount =
-            (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO && policy?.achAccount?.reimburser === currentUserLogin;
-
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
+
+        const shouldShowBankAccount = bankAccountID
+            ? policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO && (policy?.achAccount?.reimburser === currentUserLogin || !isAccountInSetupState)
+            : !!bankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
