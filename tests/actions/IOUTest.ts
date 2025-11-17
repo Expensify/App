@@ -10265,7 +10265,7 @@ describe('actions/IOU', () => {
             );
 
             // Step 5: Verify that the invoice is created for User B, not User A
-            // The isReportReceiverMatches utility should detect the mismatch
+            // The doesReportReceiverMatchParticipant utility should detect the mismatch
             // and create a new chat report for User B instead of using the stale User A report
             expect(invoiceInfo.receiver.accountID).toBe(userBAccountID);
             expect(invoiceInfo.invoiceRoom.reportID).not.toBe(userAInvoiceReport.reportID);
