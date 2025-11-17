@@ -537,7 +537,11 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             });
-            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const policy: Policy = {
+                ...createRandomPolicy(10),
+                role: CONST.POLICY.ROLE.ADMIN,
+                customUnits: {},
+            };
             const merchant = TransactionUtils.getMerchant(transaction, policy);
             expect(merchant).toBe('Pending...');
         });
