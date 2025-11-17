@@ -114,16 +114,6 @@ export default function useFlatListScrollKey<T>({
     }, []);
 
     const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);
-
-    // For a non-inverted FlatList, `onViewableItemsChanged` is used to detect the first item in the viewport and trigger `handleStartReached`.
-    // Therefore, if the screen height is large enough, the first item may be visible immediately on initial render,
-    // causing the entire list to render and the highlighted item to be pushed out of the viewport.
-    // Therefore, we calculate the index of `initialScrollKey` within `displayedData` to determine `maintainVisibleContentPosition.minIndexForVisible`.
-    const currentDisplayedDataIndex = useMemo(
-        () => (inverted || displayedData.length === 0 || !initialScrollKey ? 0 : displayedData.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey)),
-        [displayedData, initialScrollKey, inverted, keyExtractor],
-    );
-
     const maintainVisibleContentPosition = useMemo(() => {
         if ((!initialScrollKey && (!isInitialData || !isQueueRendering)) || !shouldPreserveVisibleContentPosition) {
             return undefined;
@@ -131,7 +121,7 @@ export default function useFlatListScrollKey<T>({
 
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: data.length && inverted ? Math.min(1, data.length - 1) : Math.min(getInitialPaginationSize, currentDisplayedDataIndex),
+            minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
@@ -139,18 +129,7 @@ export default function useFlatListScrollKey<T>({
         }
 
         return config;
-    }, [
-        initialScrollKey,
-        isInitialData,
-        isQueueRendering,
-        shouldPreserveVisibleContentPosition,
-        data.length,
-        inverted,
-        shouldEnableAutoScrollToTopThreshold,
-        isLoadingData,
-        wasLoadingData,
-        currentDisplayedDataIndex,
-    ]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, shouldPreserveVisibleContentPosition, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
@@ -175,12 +154,9 @@ export default function useFlatListScrollKey<T>({
         // it can lead to a crash due to inconsistent rendering behavior.
         // Additionally, keeping `minIndexForVisible` at 1 may cause the scroll offset to shift
         // when the height of the ListHeaderComponent changes, as FlatList tries to keep items within the visible viewport.
-        const handle = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
             setShouldPreserveVisibleContentPosition(false);
         });
-        return () => {
-            cancelAnimationFrame(handle);
-        };
     }, [inverted, isInitialData, isQueueRendering]);
 
     const listRef = useRef<RNFlatList | null>(null);
