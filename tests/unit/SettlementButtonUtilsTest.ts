@@ -1,4 +1,5 @@
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+// eslint-disable-next-line no-restricted-imports
+import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSettlementButtonPaymentMethods, handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
@@ -109,7 +110,6 @@ describe('handleUnvalidatedUserNavigation', () => {
 
 describe('getSettlementButtonPaymentMethods', () => {
     const {translate} = useLocalize();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const); 
 
     beforeEach(() => {
         jest.clearAllMocks();
