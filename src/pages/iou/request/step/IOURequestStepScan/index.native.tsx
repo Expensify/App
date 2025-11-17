@@ -650,8 +650,6 @@ function IOURequestStepScan({
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
 
-    const submitMultiScanReceipts = useCallback(() => submitReceipts(receiptFiles), [receiptFiles, submitReceipts]);
-
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
     const capturePhoto = useCallback(() => {
@@ -966,7 +964,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitMultiScanReceipts}
+                        submit={submitReceipts}
                     />
                 )}
 
