@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
@@ -197,23 +197,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }, [createSavedSearchMenuItem, savedSearches]);
 
     const renderSavedSearchesSection = useCallback(
-        (menuItems: MenuItemWithLink[]) => {
-            const menuItemsWithIconSpacing = menuItems.map((menuItem) => ({
-                ...menuItem,
-                iconStyles: [menuItem.iconStyles, styles.mr3],
-            }));
-
-            return (
-                <MenuItemList
-                    menuItems={menuItemsWithIconSpacing}
-                    wrapperStyle={styles.sectionMenuItem}
-                    icon={Expensicons.Bookmark}
-                    iconWidth={variables.iconSizeNormal}
-                    iconHeight={variables.iconSizeNormal}
-                    shouldUseSingleExecution
-                />
-            );
-        },
+        (menuItems: MenuItemWithLink[]) => (
+            <MenuItemList
+                menuItems={menuItems}
+                wrapperStyle={styles.sectionMenuItem}
+                icon={Expensicons.Bookmark}
+                iconWidth={variables.iconSizeNormal}
+                iconHeight={variables.iconSizeNormal}
+                shouldUseSingleExecution
+            />
+        ),
         [styles],
     );
 
@@ -280,7 +273,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                         icon={item.icon}
                                                         iconWidth={variables.iconSizeNormal}
                                                         iconHeight={variables.iconSizeNormal}
-                                                        iconStyles={styles.mr3}
                                                         wrapperStyle={styles.sectionMenuItem}
                                                         focused={focused}
                                                         onPress={onPress}
