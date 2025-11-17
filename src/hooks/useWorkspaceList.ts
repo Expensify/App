@@ -54,7 +54,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                         id: policy?.id,
                     },
                 ],
-                keyForList: policy?.id,
+                keyForList: policy?.id ?? '',
                 isPolicyAdmin: isPolicyAdmin(policy),
                 isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             }));
@@ -83,6 +83,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return {
+        usersWorkspaces,
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,

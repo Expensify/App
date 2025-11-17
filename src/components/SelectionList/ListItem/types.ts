@@ -286,6 +286,13 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
     sectionIndex?: number;
 };
 
+type WorkspaceListItemType = {
+    text: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+    brickRoadIndicator?: BrickRoad;
+} & ListItem;
+
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
         /** Value of the domain */
@@ -310,4 +317,5 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    WorkspaceListItemType,
 };
