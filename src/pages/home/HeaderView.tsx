@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
+// eslint-disable-next-line no-restricted-imports
 import Icon from '@components/Icon';
 import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
