@@ -2,12 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +28,7 @@ type EmptyCardViewProps = {
 function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {CompanyCardsPendingState, EmptyCardState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState', 'EmptyCardState'] as const);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
@@ -43,7 +44,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                    headerMedia={isBankAccountVerified ? Illustrations.EmptyCardState : Illustrations.CompanyCardsPendingState}
+                    headerMedia={isBankAccountVerified ? EmptyCardState : CompanyCardsPendingState}
                     headerStyles={
                         isBankAccountVerified
                             ? [

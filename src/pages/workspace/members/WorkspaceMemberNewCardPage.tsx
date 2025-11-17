@@ -13,6 +13,7 @@ import useCardsList from '@hooks/useCardsList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -66,6 +67,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -157,7 +159,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(value.feed, illustrations)}
+                    src={getCardFeedIcon(value.feed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}

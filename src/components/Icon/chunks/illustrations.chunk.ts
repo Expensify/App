@@ -1,10 +1,35 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
+import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
+import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
+import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
+import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
+import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
+import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
+import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
+import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
+import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
+import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
+import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
+import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
+import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
+import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
+import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import PendingBank from '@assets/images/companyCards/pending-bank.svg';
+import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -37,7 +62,32 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
+    AmexCardCompanyCardDetail,
+    BankOfAmericaCompanyCardDetail,
+    BrexCompanyCardDetail,
+    CapitalOneCompanyCardDetail,
+    ChaseCompanyCardDetail,
+    CitibankCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    PlaidCompanyCardDetail,
+    StripeCompanyCardDetail,
+    VisaCompanyCardDetail,
+    WellsFargoCompanyCardDetail,
+    AmexCardCompanyCardDetailLarge,
+    BankOfAmericaCompanyCardDetailLarge,
+    BrexCompanyCardDetailLarge,
+    CapitalOneCompanyCardDetailLarge,
+    ChaseCompanyCardDetailLarge,
+    CitibankCompanyCardDetailLarge,
+    MasterCardCompanyCardDetailLarge,
+    PlaidCompanyCardDetailLarge,
+    StripeCompanyCardDetailLarge,
+    VisaCompanyCardDetailLarge,
+    WellsFargoCompanyCardDetailLarge,
     CompanyCardsEmptyState,
+    EmptyCardState,
+    PendingBank,
+    CompanyCardsPendingState,
 
     // Other assets
     Computer,

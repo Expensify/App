@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,6 +63,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const {translate} = useLocalize();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
@@ -133,7 +135,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 <FeedSelector
                     plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    cardIcon={getCardFeedIcon(feed, illustrations)}
+                    cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={supportingText}

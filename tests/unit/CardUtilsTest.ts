@@ -357,6 +357,32 @@ const mockIllustrations = {
     GenericCSVCompanyCardLarge: 'GenericCSVCompanyCardLarge',
     GenericCompanyCardLarge: 'GenericCompanyCardLarge',
 };
+const mockCompanyCardFeedIcons = {
+    VisaCompanyCardDetailLarge: 'VisaCompanyCardDetailLarge',
+    AmexCardCompanyCardDetailLarge: 'AmexCardCompanyCardDetailLarge',
+    MasterCardCompanyCardDetailLarge: 'MasterCardCompanyCardDetailLarge',
+    BankOfAmericaCompanyCardDetailLarge: 'BankOfAmericaCompanyCardDetailLarge',
+    CapitalOneCompanyCardDetailLarge: 'CapitalOneCompanyCardDetailLarge',
+    ChaseCompanyCardDetailLarge: 'ChaseCompanyCardDetailLarge',
+    CitibankCompanyCardDetailLarge: 'CitibankCompanyCardDetailLarge',
+    WellsFargoCompanyCardDetailLarge: 'WellsFargoCompanyCardDetailLarge',
+    BrexCompanyCardDetailLarge: 'BrexCompanyCardDetailLarge',
+    StripeCompanyCardDetailLarge: 'StripeCompanyCardDetailLarge',
+    PlaidCompanyCardDetailLarge: 'PlaidCompanyCardDetailLarge',
+};
+const mockCompanyCardBankIcons = {
+    AmexCardCompanyCardDetail: 'AmexCardCompanyCardDetail',
+    BankOfAmericaCompanyCardDetail: 'BankOfAmericaCompanyCardDetail',
+    CapitalOneCompanyCardDetail: 'CapitalOneCompanyCardDetail',
+    ChaseCompanyCardDetail: 'ChaseCompanyCardDetail',
+    CitibankCompanyCardDetail: 'CitibankCompanyCardDetail',
+    WellsFargoCompanyCardDetail: 'WellsFargoCompanyCardDetail',
+    BrexCompanyCardDetail: 'BrexCompanyCardDetail',
+    StripeCompanyCardDetail: 'StripeCompanyCardDetail',
+    MasterCardCompanyCardDetail: 'MasterCardCompanyCardDetail',
+    VisaCompanyCardDetail: 'VisaCompanyCardDetail',
+    PlaidCompanyCardDetail: 'PlaidCompanyCardDetail',
+};
 
 jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
@@ -640,25 +666,25 @@ describe('CardUtils', () => {
     describe('getCardFeedIcon', () => {
         it('Should return a valid illustration if a valid feed was provided', () => {
             const feed = 'vcf';
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('VisaCompanyCardDetailLarge');
         });
 
         it('Should return a valid illustration if an OldDot feed variation was provided', () => {
             const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('AmexCardCompanyCardDetailLarge');
         });
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCSVCompanyCardLarge');
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCompanyCardLarge');
         });
     });
@@ -666,13 +692,13 @@ describe('CardUtils', () => {
     describe('getBankCardDetailsImage', () => {
         it('Should return a valid illustration if a valid bank name was provided', () => {
             const bank = 'American Express';
-            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType, mockCompanyCardBankIcons);
             expect(illustration).toBe('AmexCardCompanyCardDetail');
         });
 
         it('Should return a valid illustration if Other bank name was provided', () => {
             const bank = 'Other';
-            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType, mockCompanyCardBankIcons);
             expect(illustration).toBe('GenericCompanyCard');
         });
     });

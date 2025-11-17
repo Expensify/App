@@ -17,6 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {getCardFeedIcon} from '@libs/CardUtils';
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -187,6 +188,7 @@ function ReportActionAvatarSubscript({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const containerStyle = StyleUtils.getContainerStyles(size);
@@ -285,7 +287,7 @@ function ReportActionAvatarSubscript({
                     dataSet={{dragArea: false}}
                 >
                     <Icon
-                        src={getCardFeedIcon(subscriptCardFeed, illustrations)}
+                        src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
                         width={variables.cardAvatarWidth}
                         height={variables.cardAvatarHeight}
                         additionalStyles={styles.alignSelfCenter}
