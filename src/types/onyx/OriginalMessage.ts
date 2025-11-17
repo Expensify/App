@@ -321,6 +321,24 @@ type OriginalMessageReportPreview = {
     whisperedTo?: number[];
 };
 
+/** Possible values of policy budget frequency */
+type PolicyBudgetFrequencyValues = 'yearly' | 'monthly';
+
+/** Model of policy budget frequency action data */
+type PolicyBudgetFrequency = {
+    /** Values of policy budget frequency */
+    frequency: PolicyBudgetFrequencyValues;
+
+    /** Shared value of the entity budget */
+    shared?: number;
+
+    /** Individual value of the entity budget */
+    individual?: number;
+
+    /** Notification threshold */
+    notificationThreshold: number;
+};
+
 /** Model of change log */
 type OriginalMessageChangeLog = {
     /** Account IDs of users that either got invited or removed from the room */
@@ -476,6 +494,12 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate name of the custom unit */
     customUnitRateName?: string;
 
+    /** Name of the custom unit sub rate */
+    customUnitSubRateName?: string;
+
+    /** Name of the removed sub rate */
+    removedSubRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
 
@@ -491,8 +515,14 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag list name */
     tagListName?: string;
 
+    /** Updated tag lists name */
+    tagListsName?: string;
+
+    /** Is tag list is required */
+    isRequired?: boolean;
+
     /** Count of elements updated */
-    count?: string;
+    count?: string | number;
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
@@ -507,10 +537,13 @@ type OriginalMessagePolicyChangeLog = {
     updateType?: string;
 
     /** New role of user or new value of the category/tag field */
-    newValue?: boolean | string;
+    newValue?: boolean | string | number | PolicyBudgetFrequency;
 
     /** Old role of user or old value of the category/tag field */
-    oldValue?: boolean | string;
+    oldValue?: boolean | string | number | PolicyBudgetFrequency;
+
+    /** category/tag field */
+    entityType?: string;
 
     /** Old approval audit rate */
     oldAuditRate?: number;
@@ -565,6 +598,72 @@ type OriginalMessagePolicyChangeLog = {
 
     /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
+
+    /** Old rate of the time enabled */
+    oldRate?: number;
+
+    /** New rate of the time enabled */
+    newRate?: number;
+
+    /** Old prohibited expenses */
+    oldProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** New prohibited expenses */
+    newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** Old reimbursement choice */
+    oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** New reimbursement choice */
+    newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** Old default title */
+    oldDefaultTitle?: string;
+
+    /** New default title */
+    newDefaultTitle?: string;
+
+    /** Old owner email */
+    oldOwnerEmail?: string;
+
+    /** Old owner name */
+    oldOwnerName?: string;
+
+    /** Budget amount */
+    budgetAmount?: string;
+
+    /** Budget frequency */
+    budgetFrequency?: string;
+
+    /** Budget name */
+    budgetName?: string;
+
+    /** Budget type for notification message */
+    budgetTypeForNotificationMessage?: string;
+
+    /** Is new DOT */
+    isNewDot?: boolean;
+
+    /** Summary link message */
+    summaryLinkMessage?: string;
+
+    /** Threshold percentage */
+    thresholdPercentage?: number;
+
+    /** Total spend */
+    totalSpend?: number;
+
+    /** Unsubmitted spend */
+    unsubmittedSpend?: number;
+
+    /** User email */
+    userEmail?: string;
+
+    /** Approved reimbursed closed spend */
+    approvedReimbursedClosedSpend?: number;
+
+    /** Awaiting approval spend */
+    awaitingApprovalSpend?: number;
 };
 
 /** Model of `join policy` report action */
@@ -1111,6 +1210,7 @@ export type {
     OriginalMessageSource,
     Decision,
     OriginalMessageChangeLog,
+    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
@@ -1118,6 +1218,8 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    PolicyBudgetFrequencyValues,
+    PolicyBudgetFrequency,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageReimbursementDirectorInformationRequired,
 };
