@@ -364,25 +364,25 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: n
 function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-    Object.keys(members).forEach((email) => {
+    for (const email of Object.keys(members)) {
         if (!includeMemberWithErrors) {
             const member = members?.[email];
             if (Object.keys(member?.errors ?? {})?.length > 0) {
-                return;
+                continue;
             }
         }
         if (!includeMemberWithPendingDelete) {
             const member = members?.[email];
             if (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
+                continue;
             }
         }
         const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
-            return;
+            continue;
         }
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
-    });
+    }
     return memberEmailsToAccountIDs;
 }
 
@@ -392,17 +392,17 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
 function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     const policyEmployeeList = employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(policyEmployeeList).forEach((email) => {
+    for (const email of Object.keys(policyEmployeeList)) {
         const policyEmployee = policyEmployeeList?.[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (policyEmployee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyEmployee?.errors ?? {}).length > 0) {
-            return;
+            continue;
         }
         if (!email) {
-            return;
+            continue;
         }
         memberEmailsToExclude.push(email);
-    });
+    }
 
     return memberEmailsToExclude;
 }
@@ -676,16 +676,16 @@ function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
         if (!policy?.taxRates?.taxes) {
             return;
         }
-        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
-                return;
+                continue;
             }
             if (allTaxRates[taxRate.name].includes(taxRateKey)) {
-                return;
+                continue;
             }
             allTaxRates[taxRate.name].push(taxRateKey);
-        });
+        }
     });
     return allTaxRates;
 }
@@ -1503,22 +1503,21 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
         return undefined;
     }
     const domainOccurrences = {} as Record<string, number>;
-    Object.keys(policy.employeeList ?? {})
+    for (const memberDomain of Object.keys(policy.employeeList ?? {})
         .concat(policy.owner)
-        .map((email) => Str.extractEmailDomain(email).toLowerCase())
-        .forEach((memberDomain) => {
-            if (!acceptedDomains.includes(memberDomain)) {
-                return;
-            }
-            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
-        });
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())) {
+        if (!acceptedDomains.includes(memberDomain)) {
+            continue;
+        }
+        domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+    }
     let mostFrequent = {domain: '', count: 0};
-    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+    for (const [domain, count] of Object.entries(domainOccurrences)) {
         if (count <= mostFrequent.count) {
-            return;
+            continue;
         }
         mostFrequent = {domain, count};
-    });
+    }
     if (mostFrequent.count === 0) {
         return undefined;
     }

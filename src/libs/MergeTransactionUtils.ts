@@ -208,7 +208,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
-    getMergeFields(targetTransaction).forEach((field) => {
+    for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
@@ -226,27 +226,27 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
                 if (isExpenseSplit) {
                     mergeableData.originalTransactionID = targetTransaction?.comment?.originalTransactionID;
                 }
-                return;
+                continue;
             }
 
             // When one of the selected expenses has a $0 amount, we should automatically select the non-zero amount.
             if (targetValue === 0 || sourceValue === 0) {
                 mergeableData[field] = sourceValue === 0 ? targetValue : sourceValue;
                 mergeableData.currency = sourceValue === 0 ? getCurrency(targetTransaction) : getCurrency(sourceTransaction);
-                return;
+                continue;
             }
 
             // Check for currency differences when values equal
             if (targetValue === sourceValue && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
                 conflictFields.push(field);
-                return;
+                continue;
             }
 
             // When the values are the same and the currencies are the same, we should merge the values
             if (targetValue === sourceValue && getCurrency(targetTransaction) === getCurrency(sourceTransaction)) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                return;
+                continue;
             }
         }
 
@@ -257,14 +257,14 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             } else {
                 conflictFields.push(field);
             }
-            return;
+            continue;
         }
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
         if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction)) {
             mergeableData[field] = targetValue;
-            return;
+            continue;
         }
 
         if (field === 'attendees') {
@@ -276,7 +276,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             } else {
                 conflictFields.push(field);
             }
-            return;
+            continue;
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
@@ -287,7 +287,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         } else {
             conflictFields.push(field);
         }
-    });
+    }
 
     return {mergeableData, conflictFields};
 }
