@@ -504,7 +504,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused, isVisible]);
+    }, [isFocused, isVisible, isListInitiallyLoaded]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
     const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
