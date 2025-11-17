@@ -68,8 +68,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`, {canBeMissing: false});
 
     const fetchData = useCallback(() => {
-        openPolicyCategoriesPage(currentReport?.policyID ?? '');
-        openPolicyTagsPage(currentReport?.policyID ?? '');
+        openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+        openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
     }, [currentReport?.policyID]);
 
     useEffect(() => {
