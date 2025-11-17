@@ -78,7 +78,7 @@ function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRen
     const CellRendererComponent = React.useMemo(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         () => createCellRendererComponent<any>(props.CellRendererComponent, itemLayoutAnimationRef),
-        [itemLayoutAnimationRef, props.CellRendererComponent],
+        [props.CellRendererComponent],
     );
 
     const animatedFlatList = (
