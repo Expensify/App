@@ -139,7 +139,7 @@ function ApproverSelectionList({
                 contentFitImage="contain"
             />
         ),
-        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10],
+        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations],
     );
 
     return (
