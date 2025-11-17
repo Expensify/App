@@ -463,7 +463,7 @@ function Search({
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     continue;
                 }
-              
+
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
                 const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
