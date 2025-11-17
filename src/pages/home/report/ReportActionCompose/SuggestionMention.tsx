@@ -441,7 +441,7 @@ function SuggestionMention({
 
     useEffect(() => {
         debouncedCalculateMentionSuggestion(value, selection.start, selection.end);
-    }, [value, selection, debouncedCalculateMentionSuggestion]);
+    }, [value, selection.start, selection.end, debouncedCalculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
