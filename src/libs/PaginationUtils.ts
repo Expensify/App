@@ -176,25 +176,18 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
  *
  * Note: sortedItems should be sorted in descending order.
  */
-function getContinuousChain<TResource>(
-    sortedItems: TResource[],
-    pages: Pages,
-    getID: (item: TResource) => string,
-    resourceIdOrPredicate?: string | ((item: TResource) => boolean),
-): ContinuousPageChainResult<TResource> {
+function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string, id?: string): ContinuousPageChainResult<TResource> {
     // If an id is provided, find the index of the item with that id
     let index = -1;
-    if (typeof resourceIdOrPredicate === 'string') {
-        index = sortedItems.findIndex((item) => getID(item) === resourceIdOrPredicate);
-    } else if (resourceIdOrPredicate instanceof Function) {
-        // Otherwise, if a predicate function is provided, find the index of the first item that matches the predicate
-        index = sortedItems.findLastIndex(resourceIdOrPredicate);
+
+    if (id) {
+        index = sortedItems.findIndex((item) => getID(item) === id);
     }
-    const itemFound = index !== -1;
+    const didFindItem = index !== -1;
 
     // If we found an item, return it as the resource item
     let resourceItem: ResourceItemResult<TResource> | undefined;
-    if (itemFound) {
+    if (didFindItem) {
         const item = sortedItems.at(index);
         if (item) {
             resourceItem = {
@@ -206,7 +199,7 @@ function getContinuousChain<TResource>(
     }
 
     if (pages.length === 0) {
-        return {data: itemFound ? [] : [], hasNextPage: false, hasPreviousPage: false, resourceItem};
+        return {data: !!id && !didFindItem ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false, resourceItem};
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
@@ -220,18 +213,17 @@ function getContinuousChain<TResource>(
     };
 
     // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
-    if (itemFound || typeof resourceIdOrPredicate !== 'function') {
+    if (id) {
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
-        if (!itemFound) {
+        if (!didFindItem) {
             return {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem};
         }
 
         const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
 
-        const item = sortedItems.at(index);
         // If we are linked to an action in a gap return it by itself
-        if (!linkedPage && item) {
-            return {data: [item], hasNextPage: false, hasPreviousPage: false, resourceItem};
+        if (!linkedPage && resourceItem) {
+            return {data: [resourceItem.item], hasNextPage: false, hasPreviousPage: false, resourceItem};
         }
 
         if (linkedPage) {
