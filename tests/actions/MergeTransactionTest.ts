@@ -674,6 +674,7 @@ describe('areTransactionsEligibleForMerge', () => {
             const splitExpenseTransaction = {
                 ...createRandomTransaction(1),
                 amount: 1000,
+                managedCard: undefined,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-split-transaction',
