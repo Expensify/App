@@ -1,50 +1,54 @@
 #!/bin/bash
 
-# Secure proxy script to create an inline comment on a GitHub PR
+# Secure proxy script to create an inline comment on a GitHub PR.
 set -eu
 
-PATH_ARG="$1"
-BODY_ARG="$2"
-LINE_ARG="$3"
-
-REPO="${GITHUB_REPOSITORY}"
-PR_NUMBER="${PR_NUMBER}"
-
-if [[ -z "$PATH_ARG" || -z "$BODY_ARG" || -z "$LINE_ARG" ]]; then
-    echo "Usage: $0 <path> <body> <line>" >&2
-    exit 1
-fi
-
-# Check if comment body contains a reference to an allowed rule
 ALLOWED_RULES_FILE="${GITHUB_WORKSPACE}/.claude/allowed-rules.txt"
 
-if [[ -f "$ALLOWED_RULES_FILE" ]]; then
-    # Extract rule IDs from comment body (format: [CAPS-NUMBER] e.g., [PERF-1], [SEC-1], [STYLE-1])
-    COMMENT_RULE=$(echo "$BODY_ARG" | grep -oE '\[[A-Z]+-\d+\]' | head -1)
-    
-    if [[ -z "$COMMENT_RULE" ]]; then
-        echo "Error: Comment body must contain a reference to an allowed rule (e.g., [PERF-1])" >&2
-        echo "Allowed rules:" >&2
-        cat "$ALLOWED_RULES_FILE" >&2
-        exit 1
-    fi
-    
-    # Check if the rule is in the allowed list
-    if ! grep -qF "$COMMENT_RULE" "$ALLOWED_RULES_FILE"; then
-        echo "Error: Rule $COMMENT_RULE is not in the allowed rules list" >&2
-        echo "Allowed rules:" >&2
-        cat "$ALLOWED_RULES_FILE" >&2
-        exit 1
-    fi
-else
-    echo "Warning: Allowed rules file not found at $ALLOWED_RULES_FILE. Skipping rule validation." >&2
-fi
+# Print error and exit.
+die() {
+    echo "Error: $*" >&2
+    exit 1
+}
 
-# Get commit ID from PR head
-COMMIT_ID=$(gh api "/repos/$REPO/pulls/$PR_NUMBER" --jq '.head.sha')
+# Usage helper to avoid repeated text.
+usage() {
+    die "Usage: $0 <path> <body> <line>"
+}
 
-# Build JSON payload with proper types (line must be integer, not string)
-# Using jq with --arg automatically escapes special characters safely
+COMMENT_STATUS_REASON=""
+
+# Ensure the comment body references an allowed rule tag.
+validate_rule() {
+    local body="$1"
+    local rule
+
+    [[ -f "$ALLOWED_RULES_FILE" ]] || die "Comment rejected: allowed rules file missing at $ALLOWED_RULES_FILE"
+
+    rule=$(echo "$body" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)
+    [[ -n "$rule" ]] || die "Comment rejected: missing allowed rule reference (e.g. PERF-1)"
+
+    if grep -qF "$rule" "$ALLOWED_RULES_FILE"; then
+        COMMENT_STATUS_REASON="rule $rule validated"
+        return 0
+    fi
+
+    die "Comment rejected: rule $rule not present in allowed list"
+}
+
+PATH_ARG="${1:-}"
+BODY_ARG="${2:-}"
+LINE_ARG="${3:-}"
+
+[[ -z "$PR_NUMBER" ]] && die "Environment variable PR_NUMBER is required"
+[[ -z "$GITHUB_REPOSITORY" ]] && die "Environment variable GITHUB_REPOSITORY is required"
+[[ -z "$PATH_ARG" || -z "$BODY_ARG" || -z "$LINE_ARG" ]] && usage
+
+validate_rule "$BODY_ARG"
+echo "Comment approved: $COMMENT_STATUS_REASON"
+
+COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
+
 PAYLOAD=$(jq -n \
     --arg body "$BODY_ARG" \
     --arg path "$PATH_ARG" \
@@ -52,5 +56,5 @@ PAYLOAD=$(jq -n \
     --arg commit_id "$COMMIT_ID" \
     '{body: $body, path: $path, line: $line, side: "RIGHT", commit_id: $commit_id}')
 
-gh api -X POST "/repos/$REPO/pulls/$PR_NUMBER/comments" \
-    --input - <<< "$PAYLOAD"
+gh api -X POST "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/comments" \
+    --input - <<< "$PAYLOAD" || exit 1
