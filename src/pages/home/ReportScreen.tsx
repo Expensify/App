@@ -891,7 +891,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
     const isReportUnreadInitially = useRef(isReportUnread);
 
-    // When we first open a report with a linked report aciton,
+    // When we first open a report with a linked report action,
     // we need to wait for the results from the OpenReport api call,
     // if the linked report action is not stored in Onyx.
     const isLinkedMessagePageLoadingInitially = !!reportActionIDFromRoute && !linkedAction;

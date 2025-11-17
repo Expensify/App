@@ -845,10 +845,7 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    // const shouldFillScreenDuringIntialListRender = !isListInitiallyLoaded && sortedVisibleReportActions.length < initialNumToRender;
-    const shouldFillScreenDuringIntialListRender = false;
-
-    const shouldShowSkeleton = (isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)) || shouldFillScreenDuringIntialListRender;
+    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
