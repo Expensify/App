@@ -6,17 +6,43 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 
 const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
 const NAV_ITEM_HEIGHT = 52;
+const SECTION_MENU_ITEM_HORIZONTAL_PADDING = 16;
+const SECTION_HEADER_HEIGHT = 32;
+const SECTION_HEADER_RECT_HEIGHT = 4;
+const ICON_LABEL_GAP = 12;
+const ICON_CONTAINER_SIZE = 20;
+const LOADING_ICON_SIZE = variables.iconSizeSmall;
+const ICON_CONTAINER_VERTICAL_OFFSET = (NAV_ITEM_HEIGHT - ICON_CONTAINER_SIZE) / 2;
+const ICON_INNER_OFFSET = (ICON_CONTAINER_SIZE - LOADING_ICON_SIZE) / 2;
+const ICON_VERTICAL_OFFSET = ICON_CONTAINER_VERTICAL_OFFSET + ICON_INNER_OFFSET;
+const LABEL_VERTICAL_OFFSET = 4;
 
 /** ---- Relative layout tokens ---- */
 const LHN = {
-    icon: {xVal: 18, yVal: 8, w: 16, h: 16, r: 4},
-    // label is positioned relative to icon
-    label: {dx: 30, dy: 4, w: 104, h: 8},
+    icon: {
+        xVal: SECTION_MENU_ITEM_HORIZONTAL_PADDING + ICON_INNER_OFFSET,
+        yVal: ICON_VERTICAL_OFFSET,
+        w: LOADING_ICON_SIZE,
+        h: LOADING_ICON_SIZE,
+        r: 4,
+    },
+    label: {
+        xVal: SECTION_MENU_ITEM_HORIZONTAL_PADDING + ICON_CONTAINER_SIZE + ICON_LABEL_GAP,
+        yVal: ICON_VERTICAL_OFFSET + LABEL_VERTICAL_OFFSET,
+        w: 104,
+        h: 8,
+    },
     // header bar in the small loader above each group
-    header: {xVal: 8, yVal: 0, w: 36, h: 4},
+    header: {
+        xVal: 8,
+        yVal: (SECTION_HEADER_HEIGHT - SECTION_HEADER_RECT_HEIGHT) / 2,
+        w: 36,
+        h: SECTION_HEADER_RECT_HEIGHT,
+    },
 };
 
 function SuggestedSearchSkeleton() {
@@ -26,8 +52,6 @@ function SuggestedSearchSkeleton() {
 
     const renderNavigationItem = () => {
         const {icon, label} = LHN;
-        const labelX = icon.xVal + label.dx;
-        const labelY = icon.yVal + label.dy;
 
         return (
             <>
@@ -41,7 +65,7 @@ function SuggestedSearchSkeleton() {
                 <Rect
                     width={label.w}
                     height={label.h}
-                    transform={[{translateX: labelX}, {translateY: labelY}]}
+                    transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
                 />
             </>
         );
@@ -53,7 +77,7 @@ function SuggestedSearchSkeleton() {
         <>
             <SkeletonViewContentLoader
                 animate
-                height={24}
+                height={SECTION_HEADER_HEIGHT}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
@@ -92,7 +116,7 @@ function SuggestedSearchSkeleton() {
     return (
         <View
             testID={SUGGESTED_SEARCH_SKELETON_TEST_ID}
-            style={[styles.flex1, styles.flexRow, styles.pb5, styles.pt5, styles.gap4, styles.pl4]}
+            style={[styles.flex1, styles.flexRow, styles.gap4]}
         >
             {navigationColumn}
         </View>
