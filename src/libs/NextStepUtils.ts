@@ -77,7 +77,7 @@ Onyx.connect({
 });
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']): string {
-    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID});
+    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
