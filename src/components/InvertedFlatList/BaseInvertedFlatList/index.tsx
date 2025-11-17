@@ -177,7 +177,7 @@ function BaseInvertedFlatList<T>({
 
         return {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: data.length ? 0 : 0,
+            minIndexForVisible: 0,
             autoscrollToTopThreshold: enableAutoScrollToTopThreshold ? AUTOSCROLL_TO_TOP_THRESHOLD : undefined,
         };
     }, [initialScrollKey, isInitialData, isQueueRendering, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData, data.length]);
