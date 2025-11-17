@@ -139,7 +139,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({eventType: CONST.RHP_EVENTS.CLOSED, callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID))});
+            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID))});
         });
     };
 

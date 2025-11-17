@@ -1,8 +1,8 @@
 import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, View} from 'react-native';
-import {LayoutAnimationConfig} from 'react-native-reanimated';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { NativeEventSubscription, ViewStyle } from 'react-native';
+import {BackHandler, DeviceEventEmitter, InteractionManager, Modal, View} from 'react-native';
+import { LayoutAnimationConfig } from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -129,6 +129,8 @@ function ReanimatedModal({
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
+
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const backdropStyle: ViewStyle = useMemo(() => {
         return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};

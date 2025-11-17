@@ -571,13 +571,10 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = ({ref = navigationRef, eventType, callback}: {ref?: NavigationRef, eventType?: string, callback?: () => void} = {}) => {
+const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef, callback?: () => void} = {}) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        if (!eventType) {
-            return;
-        }
-        const subscription = DeviceEventEmitter.addListener(eventType, () => {
+        const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
             subscription.remove();
             callback?.();
         })
@@ -603,7 +600,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             navigate(reportRoute, {forceReplace: true});
             return;
         }
-        dismissModal({eventType: CONST.RHP_EVENTS.CLOSED, callback: () => navigate(reportRoute)});
+        dismissModal({callback: () => navigate(reportRoute)});
     });
 };
 

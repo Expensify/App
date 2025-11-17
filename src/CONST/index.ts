@@ -7398,7 +7398,7 @@ const CONST = {
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
     },
 
-    RHP_EVENTS: {
+    MODAL_EVENTS: {
         CLOSED: 'rhpClosed',
     }
 } as const;
