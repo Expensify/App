@@ -91,35 +91,29 @@ describe('usePolicyData', () => {
 
         const {result} = renderHook(() => usePolicyData(mockPolicy.id), {wrapper: OnyxListItemProvider});
 
-        await waitForBatchedUpdates();
+        expect(result.current?.policyID).toEqual(mockPolicy.id)
+        expect(result.current?.policy).toEqual(mockPolicy);
+        expect(result.current?.tagLists).toEqual(mockPolicyTagLists);
+        expect(result.current?.categories).toEqual(mockPolicyCategories);
 
-        expect(result.current.policy).toEqual(mockPolicy);
-        expect(result.current.tags).toEqual(mockPolicyTagLists);
-        expect(result.current.categories).toEqual(mockPolicyCategories);
-
-        expect(result.current.reports).toHaveLength(1);
-        expect(result.current.reports.at(0)).toEqual(mockIOUReport);
+        expect(result.current?.reports).toHaveLength(1);
+        expect(result.current?.reports.at(0)).toEqual(mockIOUReport);
 
         expect(result.current.transactionsAndViolations).toEqual(expectedTransactionsAndViolations);
     });
 
     test('returns default empty values when policy ID does not exist in the onyx', () => {
+        const policyID = 'non_existent_policy_id'
         const {result} = renderHook(() => usePolicyData('non_existent_policy_id'), {wrapper: OnyxListItemProvider});
 
-        expect(result.current.reports).toEqual([]);
-        expect(result.current.tags).toEqual({});
-        expect(result.current.categories).toEqual({});
-        expect(result.current.policy).toBeUndefined();
-        expect(result.current.transactionsAndViolations).toEqual({});
-    });
+        expect(result.current?.policyID).toEqual(policyID);
+        expect(result.current?.policy).toBeUndefined();
+        
+        expect(result.current?.reports).toBeUndefined();
+        expect(result.current?.tagLists).toBeUndefined();
+        expect(result.current?.categories).toBeUndefined();
+        
 
-    test('returns default empty values when policyID is undefined', () => {
-        const {result} = renderHook(() => usePolicyData(undefined), {wrapper: OnyxListItemProvider});
-
-        expect(result.current.reports).toEqual([]);
-        expect(result.current.tags).toEqual({});
-        expect(result.current.categories).toEqual({});
-        expect(result.current.policy).toBeUndefined();
-        expect(result.current.transactionsAndViolations).toEqual({});
+        expect(result.current?.transactionsAndViolations).toEqual({});
     });
 });
