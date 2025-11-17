@@ -52,7 +52,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -634,8 +634,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd();
-    }, []);
+        markOpenReportEnd(reportID);
+    }, [reportID]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
@@ -753,6 +753,8 @@ function MoneyRequestReportActionsList({
                                     violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                     policy={policy}
+                                    hasComments={visibleReportActions.length > 0}
+                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                 />
                             </>
                         }

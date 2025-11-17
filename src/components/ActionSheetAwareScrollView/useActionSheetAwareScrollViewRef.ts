@@ -1,23 +1,24 @@
 import {useCallback} from 'react';
+import type {Ref} from 'react';
 import type Reanimated from 'react-native-reanimated';
 import {useAnimatedRef} from 'react-native-reanimated';
 import type {ActionSheetAwareScrollViewHandle} from './types';
 
-function useActionSheetAwareScrollViewRef(forwardedRef: React.ForwardedRef<ActionSheetAwareScrollViewHandle>) {
+function useActionSheetAwareScrollViewRef(ref: Ref<ActionSheetAwareScrollViewHandle> | undefined) {
     const animatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
         (assignedRef: Reanimated.ScrollView) => {
-            if (typeof forwardedRef === 'function') {
-                forwardedRef(assignedRef);
-            } else if (forwardedRef) {
+            if (typeof ref === 'function') {
+                ref(assignedRef);
+            } else if (ref) {
                 // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
-                forwardedRef.current = assignedRef;
+                ref.current = assignedRef;
             }
 
             animatedRef(assignedRef);
         },
-        [forwardedRef, animatedRef],
+        [ref, animatedRef],
     );
 
     return {onRef, animatedRef};
