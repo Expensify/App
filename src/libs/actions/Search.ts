@@ -41,7 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, ReportMetadata, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -452,7 +452,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
 }
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: Policy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], transactionIDList?: string[], currentSearchKey?: SearchKey) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<ReportMetadata> | null, shouldRemoveReportFromView = false): OnyxUpdate[] => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
