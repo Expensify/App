@@ -37,6 +37,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
 
+    const isEmpty = useMemo(() => reportItem.transactions.length === 0, [reportItem.transactions.length]);
+    const isDisabledOrEmpty = isEmpty || isDisabled;
+
     const snapshotReport = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
@@ -89,7 +92,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             wrapperStyle={listItemWrapperStyle}
             containerStyle={[styles.mb2]}
             isFocused={isFocused}
-            isDisabled={isDisabled}
+            isDisabled={isDisabledOrEmpty}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
@@ -114,7 +117,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
                     isIndeterminate={false}
-                    isDisabled={!!isDisabled}
+                    isDisabled={!!isDisabledOrEmpty}
                     isHovered={hovered}
                     isFocused={isFocused}
                 />
