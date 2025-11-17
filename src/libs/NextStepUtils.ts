@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportActions, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -15,7 +15,7 @@ import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getReportActions} from './ReportActionsUtils';
+import {isRetractedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -381,14 +381,23 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
  * All usages of this function should be replaced with useOnyx hook in React components.
  */
-function buildNextStep(
-    report: OnyxEntry<Report>,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    shouldFixViolations?: boolean,
-    isUnapprove?: boolean,
-    isReopen?: boolean,
-    isRetracted?: boolean,
-): ReportNextStepDeprecated | null {
+function buildNextStep({
+    report,
+    predictedNextStatus,
+    shouldFixViolations,
+    isUnapprove,
+    isReopen,
+    isRetracted,
+    reportActions,
+}: {
+    report: OnyxEntry<Report>;
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+    shouldFixViolations?: boolean;
+    isUnapprove?: boolean;
+    isReopen?: boolean;
+    isRetracted?: boolean;
+    reportActions: ReportActions | undefined;
+}): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -456,8 +465,7 @@ function buildNextStep(
         ],
     };
 
-    const reportActions = getReportActions(report?.reportID);
-    const isReportRetracted = Object.values(reportActions ?? {})?.some((action: ReportAction) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) || isRetracted;
+    const isReportRetracted = Object.values(reportActions ?? {})?.some((action) => isRetractedAction(action)) || isRetracted;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened

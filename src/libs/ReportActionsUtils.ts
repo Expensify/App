@@ -1168,14 +1168,6 @@ function getReportAction(reportID: string | undefined, reportActionID: string | 
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
 }
 
-function getReportActions(reportOrReportID: Report | string | undefined) {
-    if (!reportOrReportID) {
-        return;
-    }
-    const reportID = typeof reportOrReportID === 'string' ? reportOrReportID : reportOrReportID.reportID;
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-}
-
 /**
  * Get the iouReportID for a given report action.
  */
@@ -3357,7 +3349,6 @@ export {
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getReportAction,
-    getReportActions,
     getReportActionHtml,
     getReportActionMessage,
     getReportActionMessageText,

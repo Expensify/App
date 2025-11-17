@@ -2126,7 +2126,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.SET,
             // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            value: buildNextStep(iou.report, iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, shouldFixViolations),
+            value: buildNextStep({
+                report: iou.report,
+                predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
+                shouldFixViolations,
+                reportActions,
+            }),
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -3621,9 +3626,15 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const reportActions = fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`] ?? {}, {[iouAction.reportActionID]: iouAction}, true);
+
     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
+    const optimisticNextStep = buildNextStep({
+        report: iouReport,
+        predictedNextStatus,
+        reportActions,
+    });
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
@@ -3883,9 +3894,14 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const reportActions = fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`] ?? {}, {[iouAction.reportActionID]: iouAction}, true);
     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
+    const optimisticNextStep = buildNextStep({
+        report: iouReport,
+        predictedNextStatus,
+        reportActions,
+    });
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
@@ -4705,12 +4721,18 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         ) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`];
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                value: buildNextStep(updatedMoneyRequestReport ?? iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
+                value: buildNextStep({
+                    report: updatedMoneyRequestReport ?? iouReport ?? undefined,
+                    predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+                    shouldFixViolations,
+                    reportActions,
+                }),
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
