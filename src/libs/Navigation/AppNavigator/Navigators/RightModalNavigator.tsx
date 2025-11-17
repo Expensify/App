@@ -44,21 +44,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
 
-    useEffect(
-        () => () => {
-            DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED);
-
-            const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
-                | NavigatorScreenParams<RightModalNavigatorParamList>
-                | undefined;
-            if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
-                return;
-            }
-
-            abandonReviewDuplicateTransactions();
-        },
-        [],
-    );
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     return (
         <NarrowPaneContextProvider>
@@ -215,6 +201,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                            listeners={{
+                                beforeRemove: () => {
+                                    const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                                        subscription.remove();
+                                        abandonReviewDuplicateTransactions();
+                                    });
+                                },
+                            }}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
