@@ -40,7 +40,7 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
                 ref={props.ref}
             />
         );
-    };
+    }
 
     return WithSafeAreaInsetsWithRef;
 }

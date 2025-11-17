@@ -46,7 +46,7 @@ function ProductTraining({tooltipName, shouldShow, ref}: {tooltipName: ProductTr
     useImperativeHandle(ref, () => result);
 
     return null;
-};
+}
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
