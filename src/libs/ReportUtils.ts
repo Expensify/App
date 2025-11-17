@@ -4804,14 +4804,13 @@ function canHoldUnholdReportAction(
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionOrReportPreviewOwner(parentReportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
-    const isOwner = isPolicyOwner(policy, currentUserPersonalDetails?.accountID);
     const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
     const isSubmitted = isProcessingReport(report);
 
-    const canModifyStatus = !isTrackExpenseMoneyReport && (isOwner || isAdmin || isActionOwner || isApprover);
-    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isOwner || isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
+    const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
+    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
     const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
