@@ -280,7 +280,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
     });
 
-    it('the hovered item should be focused when the up or down arrow key is pressed', async () => {
+    it('should focus next/previous item relative to hovered item when arrow keys are pressed', async () => {
         render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections}]}
