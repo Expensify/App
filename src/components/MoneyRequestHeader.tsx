@@ -113,7 +113,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {translate} = useLocalize();
     const {login: currentUserLogin, email} = useCurrentUserPersonalDetails();
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '');
+    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', report, policy);
     const reportID = report?.reportID;
     const {removeTransaction, currentSearchHash} = useSearchContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);

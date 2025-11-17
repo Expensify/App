@@ -602,8 +602,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, undefined, undefined);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -625,7 +625,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, undefined, undefined);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -643,7 +643,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', undefined, undefined);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });

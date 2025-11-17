@@ -298,7 +298,10 @@ function MoneyReportHeader({
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
-    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations), [transactions, violations]);
+    const hasAllPendingRTERViolations = useMemo(
+        () => allHavePendingRTERViolation(transactions, violations, email ?? '', moneyRequestReport, policy),
+        [transactions, violations, email, moneyRequestReport, policy],
+    );
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -573,7 +576,7 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? ''));
+        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
         if (!duplicateTransaction) {
             return null;
         }
@@ -864,7 +867,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? ''));
+                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
                         const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);

@@ -225,7 +225,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, report, policy));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -237,7 +237,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, report, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;

@@ -18,7 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -145,10 +145,12 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
+let deprecatedCurrentUserEmail = '';
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
+        deprecatedCurrentUserEmail = val?.email ?? '';
         deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -1073,14 +1075,16 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
 function getTransactionViolations(
     transaction: OnyxEntry<Transaction | SearchTransaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail?: string,
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
 ): TransactionViolations | undefined {
     if (!transaction || !transactionViolations) {
         return undefined;
     }
 
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-        (violation) => !isViolationDismissed(transaction, violation, currentUserEmail),
+        (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
     );
 }
 
@@ -1104,8 +1108,14 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transaction: Transaction | SearchTransaction, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations);
+function hasBrokenConnectionViolation(
+    transaction: Transaction | SearchTransaction,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, report, policy);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 
@@ -1219,13 +1229,22 @@ function shouldShowViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | SearchTransaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function allHavePendingRTERViolation(
+    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
     if (!transactions) {
         return false;
     }
 
     const transactionsWithRTERViolations = transactions.map((transaction) => {
-        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations);
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, report, policy)?.filter((violation) =>
+            // We should only consider RTER violations when they are visible to the current user
+            shouldShowViolation(report, policy, violation.name, currentUserEmail),
+        );
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
@@ -1241,11 +1260,17 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
-function hasAnyTransactionWithoutRTERViolation(transactions: Transaction[] | SearchTransaction[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function hasAnyTransactionWithoutRTERViolation(
+    transactions: Transaction[] | SearchTransaction[],
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
-            return !hasBrokenConnectionViolation(transaction, transactionViolations);
+            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, report, policy);
         })
     );
 }
@@ -1333,7 +1358,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string): boolean {
+function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!transaction) {
         return false;
     }
@@ -1341,7 +1366,7 @@ function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: stri
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
-    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail);
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, iouReport, policy);
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
@@ -1358,19 +1383,53 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Checks if a violation is dismissed for the given transaction, optionally by a particular email address
+ * Checks if a violation is dismissed for the given transaction.
  */
-function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: TransactionViolation | undefined, currentUserEmail?: string): boolean {
+function isViolationDismissed(
+    transaction: OnyxEntry<Transaction>,
+    violation: TransactionViolation | undefined,
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
     if (!transaction || !violation) {
         return false;
     }
 
-    // If we don't provide an email, we just check if the violation has been dismissed by anyone
-    if (!currentUserEmail) {
-        return !!transaction?.comment?.dismissedViolations?.[violation.name];
+    const violationDismissals = transaction.comment?.dismissedViolations?.[violation.name];
+    if (!violationDismissals) {
+        return false;
     }
 
-    return !!transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail];
+    const dismissedByEmails = Object.keys(violationDismissals);
+
+    // Current user dismissed it themselves
+    if (dismissedByEmails.includes(currentUserEmail || deprecatedCurrentUserEmail)) {
+        return true;
+    }
+
+    // RTER violations on instant submit reports only need to be dismissed by one person to be considered dismissed
+    if (violation.name === CONST.VIOLATIONS.RTER && policy && isInstantSubmitEnabled(policy)) {
+        return dismissedByEmails.length > 0;
+    }
+
+    // If the admin is looking at an open report, we check for both, submitter and admin.
+    if (!iouReport) {
+        return false;
+    }
+
+    const currentUserAccountID = deprecatedCurrentUserAccountID;
+    const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
+    const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
+
+    if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
+        const reportOwnerEmail = getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
+        if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -1386,7 +1445,14 @@ function doesTransactionSupportViolations(transaction: Transaction | undefined):
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transaction: Transaction | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function hasViolation(
+    transaction: Transaction | undefined,
+    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    showInReview?: boolean,
+): boolean {
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
@@ -1396,7 +1462,7 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation),
+            !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
     );
 }
 
@@ -1404,7 +1470,7 @@ function hasDuplicateTransactions(currentUserEmail: string, iouReportID?: string
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, undefined, undefined));
 }
 
 /**
@@ -1413,6 +1479,9 @@ function hasDuplicateTransactions(currentUserEmail: string, iouReportID?: string
 function hasNoticeTypeViolation(
     transaction: OnyxEntry<Transaction>,
     transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
     if (!doesTransactionSupportViolations(transaction)) {
@@ -1424,7 +1493,7 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation),
+            !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
     );
 }
 
@@ -1434,18 +1503,22 @@ function hasNoticeTypeViolation(
 function hasWarningTypeViolation(
     transaction: OnyxEntry<Transaction>,
     transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
     const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
+
     const warningTypeViolations =
         violations?.filter(
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transaction, violation),
+                !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
         ) ?? [];
 
     return warningTypeViolations.length > 0;
@@ -1978,8 +2051,8 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
-    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0), allTransactionViolations));
+function shouldShowRTERViolationMessage(transactions: Transaction[] | undefined, currentUserEmail: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0), allTransactionViolations, currentUserEmail, report, policy));
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
