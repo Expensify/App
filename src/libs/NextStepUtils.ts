@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportActions, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -15,7 +15,7 @@ import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {isRetractedAction} from './ReportActionsUtils';
+import {getAllReportActions, isRetractedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -38,6 +38,7 @@ type BuildNextStepNewParams = {
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
     isReopen?: boolean;
+    isRetracted?: boolean;
 };
 
 let currentUserAccountID = -1;
@@ -388,7 +389,6 @@ function buildNextStep({
     isUnapprove,
     isReopen,
     isRetracted,
-    reportActions,
 }: {
     report: OnyxEntry<Report>;
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
@@ -396,7 +396,6 @@ function buildNextStep({
     isUnapprove?: boolean;
     isReopen?: boolean;
     isRetracted?: boolean;
-    reportActions: ReportActions | undefined;
 }): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
@@ -465,7 +464,7 @@ function buildNextStep({
         ],
     };
 
-    const isReportRetracted = Object.values(reportActions ?? {})?.some((action) => isRetractedAction(action)) || isRetracted;
+    const isReportRetracted = isRetracted || !!report?.hasReportBeenRetracted;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -764,8 +763,19 @@ function buildNextStep({
  * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
 function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
-    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
-        params;
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        isRetracted,
+    } = params;
 
     if (!isExpenseReport(report)) {
         return null;
@@ -829,7 +839,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             },
         ],
     };
-
+    const reportActions = getAllReportActions(report?.reportID);
+    const isReportRetracted = isRetracted || Object.values(reportActions ?? {}).some((action) => isRetractedAction(action as OnyxEntry<ReportAction>)) || !!report?.hasReportBeenRetracted;
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
@@ -856,7 +867,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 };
                 break;
             }
-            if (isReopen) {
+            if ((isReportRetracted && isASAPSubmitBetaEnabled && isInstantSubmitEnabled) || isReopen) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -867,7 +878,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         {
                             text: `${ownerDisplayName}`,
                             type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                         },
                         {
                             text: ' to ',

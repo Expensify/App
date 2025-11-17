@@ -10672,6 +10672,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isRetracted: true,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
