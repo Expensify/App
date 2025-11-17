@@ -130,10 +130,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ];
         const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
 
-        Object.entries(employees).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(employees)) {
             // Skip deleted policy employees
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
             const personalDetail = getPersonalDetailByEmail(email);
             const status = deriveStatus(email);
@@ -196,7 +196,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             };
 
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
-        });
+        }
         return sortAlphabetically(list, 'text', localeCompare);
     }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
 
