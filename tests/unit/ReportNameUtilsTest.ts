@@ -10,17 +10,6 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
-    beforeAll(async () => {
-        Onyx.init({keys: ONYXKEYS});
-        await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-            [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: 'lagertha2@vikings.net'},
-        });
-        await IntlStore.load(CONST.LOCALES.EN);
-        await waitForBatchedUpdates();
-    });
-
-    // moved lower after constants
     const currentUserAccountID = 5;
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -58,6 +47,16 @@ describe('ReportNameUtils', () => {
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: 'lagertha2@vikings.net'},
+        });
+        await IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+    });
 
     const emptyCollections = {
         reports: {} as Record<string, Report>,
