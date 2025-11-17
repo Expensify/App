@@ -2,7 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
@@ -13,6 +12,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -37,6 +37,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
@@ -131,7 +132,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
-                        src={BrokenMagnifyingGlass}
+                        src={lazyIllustrations.BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />

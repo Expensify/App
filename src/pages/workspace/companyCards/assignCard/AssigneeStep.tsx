@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -10,6 +9,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +37,7 @@ type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, ty
 function AssigneeStep({route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
@@ -132,7 +133,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 isSelected: selectedMember === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -144,7 +145,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {

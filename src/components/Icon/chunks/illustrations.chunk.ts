@@ -1,6 +1,9 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
@@ -10,6 +13,7 @@ import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustra
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
+import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
@@ -37,6 +41,9 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
+    AmexCardCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    VisaCompanyCardDetail,
     CompanyCardsEmptyState,
 
     // Other assets
@@ -49,6 +56,7 @@ const Illustrations = {
     ExpensifyCardIllustration,
 
     // Product Illustrations
+    BrokenMagnifyingGlass,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
 
