@@ -14,20 +14,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import AssigneeStep from './AssigneeStep';
-import CardNameStep from './CardNameStep';
-import CardSelectionStep from './CardSelectionStep';
-import ConfirmationStep from './ConfirmationStep';
-import TransactionStartDateStep from './TransactionStartDateStep';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const currentStep = assignCard?.currentStep;
-
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
-    const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
 
