@@ -60,20 +60,31 @@ function BaseInvertedFlatList<T>({
         }
         return null;
     });
+    const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
+
     const [isInitialData, setIsInitialData] = useState(true);
     const [isQueueRendering, setIsQueueRendering] = useState(false);
 
-    const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
-
     const {displayedData, negativeScrollIndex} = useMemo(() => {
+        // If no initially linked item is set, we render the entire dataset.
         if (currentDataIndex <= 0) {
             return {displayedData: data, negativeScrollIndex: data.length};
         }
 
+        // On first render, we only render the items up to the initially linked item.
+        // This allows `maintainVisibleContentPosition` to render the initially linked item at the bottom of the list.
         const itemIndex = Math.max(0, currentDataIndex - (isInitialData ? 0 : PAGINATION_SIZE));
+
+        // On the first render, we need to ensure that we render at least the initial number of items.
+        // If the initially linked item is closer to the end of the list, we need to render more items and
+        // therefore the initially linked element will not be rendered right at the bottom of the list.
         const minInitialIndex = Math.max(0, data.length - initialNumToRender);
+        const firstItemIndex = Math.min(itemIndex, minInitialIndex);
+
         return {
-            displayedData: data.slice(Math.min(itemIndex, minInitialIndex)),
+            // The dataset up to the initially linked item.
+            displayedData: data.slice(firstItemIndex),
+            // This is needed to allow scrolling to the initially linked item, when it's on the first page of the dataset.
             negativeScrollIndex: Math.min(data.length, data.length - itemIndex),
         };
     }, [currentDataIndex, data, initialNumToRender, isInitialData]);
