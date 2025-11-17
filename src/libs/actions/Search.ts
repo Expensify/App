@@ -669,13 +669,8 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], currentSearchResults?: SearchResults) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    let runningCount = currentSearchResults?.search?.count ?? 0;
-    let runningTotal = currentSearchResults?.search?.total ?? 0;
-
     transactionIDList.forEach((transactionID) => {
         const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const newTotal = runningTotal - (transaction?.convertedAmount ?? 0);
-        const newCount = Math.max(0, runningCount - 1);
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -688,10 +683,6 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                     } as Partial<SearchTransaction>,
-                    search: {
-                        count: newCount,
-                        total: newTotal,
-                    },
                 },
             },
         ];
@@ -704,16 +695,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], c
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
                     } as Partial<SearchTransaction>,
-                    search: {
-                        count: runningCount,
-                        total: runningTotal,
-                    },
                 },
             },
         ];
-
-        runningCount = newCount;
-        runningTotal = newTotal;
 
         API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
     });
