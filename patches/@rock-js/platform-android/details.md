@@ -1,6 +1,6 @@
 # `@rock-js/platform-android` patches
 
-### [@rock-js+platform-android+0.11.9+001+missing app name hybrid case.patch](@rock-js+platform-android+0.11.9+001+missing app name hybrid case.patch)
+### [@rock-js+platform-android+0.11.9+001+missing-app-name-hybrid-case.patch](@rock-js+platform-android+0.11.9+001+missing-app-name-hybrid-case.patch)
 
 - Reason:
 

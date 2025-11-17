@@ -1,6 +1,6 @@
 # `@rock-js/platform-apple-helpers` patches
 
-### [@rock-js+platform-apple-helpers+0.11.9+001+don't recalculate fingerprint.patch](@rock-js+platform-apple-helpers+0.11.9+001+don't recalculate fingerprint.patch)
+### [@rock-js+platform-apple-helpers+0.11.9+001+recalculate-fingerprint-for-local-builds-only.patch](@rock-js+platform-apple-helpers+0.11.9+001+recalculate-fingerprint-for-local-builds-only.patch)
 
 - Reason:
 
