@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
-import {DownArrow, UpArrow} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     const {translate} = useLocalize();
 
     const [expanded, setExpanded] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
 
     return (
         <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4, styles.justifyContentCenter, styles.alignItemsCenter, style]}>
@@ -57,7 +58,7 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                             text={translate(expanded ? 'common.showLess' : 'common.showMore')}
                             onPress={() => setExpanded((current) => !current)}
                             shouldShowRightIcon
-                            iconRight={expanded ? UpArrow : DownArrow}
+                            iconRight={expanded ? icons.UpArrow : icons.DownArrow}
                         />
                     )}
                 </>

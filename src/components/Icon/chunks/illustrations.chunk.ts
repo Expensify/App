@@ -7,6 +7,7 @@ import Computer from '@assets/images/computer.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
@@ -21,15 +22,18 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -44,6 +48,7 @@ const Illustrations = {
     ExpensifyCardImage,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
+    LaptopOnDeskWithCoffeeAndKey,
 
     // Expensify Card
     ExpensifyCardIllustration,
@@ -74,6 +79,10 @@ const Illustrations = {
     BlueShield,
     Pencil,
     Luggage,
+    OpenSafe,
+    LockClosed,
+    ShieldYellow,
+
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
 };

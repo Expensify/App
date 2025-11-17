@@ -1,9 +1,9 @@
 import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,15 +44,17 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
 
+    const icons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
+
     const threeDotsMenuItems: PopoverMenuItem[] | undefined = isAdmin
         ? [
               {
-                  icon: Expensicons.Globe,
+                  icon: icons.Globe,
                   text: translate('domain.goToDomain'),
                   onSelected: item.action,
               },
               !isValidated && {
-                  icon: Expensicons.Globe,
+                  icon: icons.Globe,
                   text: translate('domain.verifyDomain.title'),
                   onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
               },

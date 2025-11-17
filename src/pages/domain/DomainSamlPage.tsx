@@ -8,7 +8,6 @@ import CopyableTextField from '@components/Domain/CopyableTextField';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {LaptopOnDeskWithCoffeeAndKey, LockClosed, OpenSafe, ShieldYellow} from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -18,6 +17,7 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,21 +37,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
-const samlFeatures: FeatureListItem[] = [
-    {
-        icon: OpenSafe,
-        translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-    },
-    {
-        icon: ShieldYellow,
-        translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-    },
-    {
-        icon: LockClosed,
-        translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-    },
-];
-
 const domainSamlSettingsSelector = (domainSettings: OnyxEntry<DomainSettings>) => ({
     isSamlEnabled: domainSettings?.settings.samlEnabled,
     isSamlRequired: domainSettings?.settings.samlRequired,
@@ -62,6 +47,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow'] as const);
 
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
@@ -76,6 +62,21 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const doesDomainExist = !!domain;
+
+    const samlFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.OpenSafe,
+            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+        },
+        {
+            icon: illustrations.ShieldYellow,
+            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+        },
+    ];
 
     useEffect(() => {
         if (!domainName) {
@@ -100,7 +101,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={LockClosed}
+                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
@@ -141,7 +142,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                     Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(accountID));
                                 }}
                                 illustrationBackgroundColor={colors.blue700}
-                                illustration={LaptopOnDeskWithCoffeeAndKey}
+                                illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
                                 titleStyles={styles.textHeadlineH1}
