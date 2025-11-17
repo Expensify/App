@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +26,7 @@ import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, isCurrentUserSubmitter, isDM, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -47,7 +48,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -57,6 +57,7 @@ import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
@@ -100,11 +101,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
+        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    > | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -128,11 +131,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
+    const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
+    const isParentReportDM = isDM(parentReport);
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -183,14 +189,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const statusBarProps = getStatusBarProps();
-
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
-            return;
-        }
-        Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
         if (!report || !parentReport || !transaction) {
@@ -269,12 +267,27 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, policy, report);
     }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report]);
 
-    const dismissModalAndUpdateUseReject = () => {
-        setIsRejectEducationalModalVisible(false);
-        dismissRejectUseExplanation();
+    const dismissModalAndUpdateUseHold = () => {
+        setIsHoldEducationalModalVisible(false);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
         if (parentReportAction) {
-            rejectMoneyRequestReason(parentReportAction);
+            changeMoneyRequestHoldStatus(parentReportAction);
         }
+    };
+
+    const dismissRejectModalBasedOnAction = () => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
+            dismissRejectUseExplanation();
+            if (parentReportAction) {
+                changeMoneyRequestHoldStatus(parentReportAction);
+            }
+        } else {
+            dismissRejectUseExplanation();
+            if (parentReportAction) {
+                rejectMoneyRequestReason(parentReportAction);
+            }
+        }
+        setRejectModalAction(null);
     };
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
@@ -292,7 +305,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction);
+                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                if (isDismissed || isParentReportDM) {
+                    changeMoneyRequestHoldStatus(parentReportAction);
+                } else if (isReportSubmitter) {
+                    setIsHoldEducationalModalVisible(true);
+                } else {
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                }
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
@@ -354,7 +375,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setIsRejectEducationalModalVisible(true);
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
             },
         },
@@ -476,10 +497,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 danger
                 shouldEnableNewFocusManagement
             />
-            {!!isRejectEducationalModalVisible && (
+            {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
-                    onClose={dismissModalAndUpdateUseReject}
-                    onConfirm={dismissModalAndUpdateUseReject}
+                    onClose={dismissRejectModalBasedOnAction}
+                    onConfirm={dismissRejectModalBasedOnAction}
+                />
+            )}
+            {!!isHoldEducationalModalVisible && (
+                <HoldSubmitterEducationalModal
+                    onClose={dismissModalAndUpdateUseHold}
+                    onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
         </View>

@@ -155,6 +155,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -271,6 +272,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -1407,11 +1409,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         payOnly: 'Pagar apenas',
         approveOnly: 'Aprovar apenas',
-        holdEducationalTitle: 'Esta solicitação está em andamento',
-        holdEducationalText: 'aguarde',
-        whatIsHoldExplain: 'Colocar em espera é como apertar "pausa" em uma despesa para solicitar mais detalhes antes da aprovação ou pagamento.',
-        holdIsLeftBehind: 'Despesas retidas são movidas para outro relatório após aprovação ou pagamento.',
-        unholdWhenReady: 'Os aprovadores podem liberar despesas quando estiverem prontas para aprovação ou pagamento.',
+        holdEducationalTitle: 'Você deve reter essa despesa?',
+        whatIsHoldExplain: 'Reter é como clicar em “pausar” em uma despesa até que você esteja pronto para enviá-la.',
+        holdIsLeftBehind: 'As despesas retidas são deixadas para trás mesmo que você envie um relatório completo.',
+        unholdWhenReady: 'Liberte as despesas quando estiver pronto para enviá-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Verifique novamente esses itens, que tendem a mudar ao mover relatórios para um novo espaço de trabalho.',
@@ -1592,12 +1593,11 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Pesquisar para ver opções',
     },
     contacts: {
-        contactMethod: 'Método de contato',
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        helpTextBeforeEmail: 'Adicione mais maneiras de enviar recibos. Encaminhe-os para',
-        helpTextAfterEmail: 'ou envie uma mensagem para 47777 (apenas números dos EUA).',
+        helpText: ({email}: {email: string}) =>
+            `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
         pleaseVerify: 'Por favor, verifique este método de contato',
         getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
@@ -6144,6 +6144,30 @@ ${amount} para ${merchant} - ${date}`,
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `renomeou o imposto de "${oldValue}" para "${newValue}"`;
+                }
+                case 'code': {
+                    return `alterou o código do imposto "${taxName}" de "${oldValue}" para "${newValue}"`;
+                }
+                case 'rate': {
+                    return `alterou a taxa do imposto "${taxName}" de "${oldValue}" para "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'desativou' : 'ativou'} o imposto "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -6807,33 +6831,45 @@ ${amount} para ${merchant} - ${date}`,
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Despesa proibida:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} álcool`;
-                case 'gambling':
-                    return `${preMessage} jogos de azar`;
-                case 'tobacco':
-                    return `${preMessage} tabaco`;
-                case 'adultEntertainment':
-                    return `${preMessage} entretenimento adulto`;
-                case 'hotelIncidentals':
-                    return `${preMessage} despesas incidentais de hotel`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `álcool`;
+                    case 'gambling':
+                        return `jogos de azar`;
+                    case 'tobacco':
+                        return `tabaco`;
+                    case 'adultEntertainment':
+                        return `entretenimento adulto`;
+                    case 'hotelIncidentals':
+                        return `despesas incidentais de hotel`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que ${email} precisa corrigir.`
-                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
+                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para associar o recibo</a>`
+                    : 'Conexão bancária interrompida. Peça a um administrador para reconectar e associar o recibo.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Peça a ${member} para marcar como dinheiro ou espere 7 dias e tente novamente.` : 'Aguardando a fusão com a transação do cartão.';
@@ -7363,7 +7399,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         modal: {
             title: 'Faça um test drive conosco',
-            description: 'Faça um rápido tour pelo produto para se atualizar rapidamente. Sem paradas necessárias!',
+            description: 'Faça um tour rápido pelo produto para começar rapidamente.',
             confirmText: 'Iniciar test drive',
             helpText: 'Pular',
             employee: {
@@ -7400,6 +7436,109 @@ ${amount} para ${merchant} - ${date}`,
         subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
         refreshAndTryAgain: 'Atualize e tente novamente',
     },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> adicionar despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> adicionar despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador adicionar despesas.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nenhuma ação adicional necessária!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong> você </strong> adicionar uma conta bancária.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> adicionar uma conta bancária.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador adicionar uma conta bancária.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `em ${eta}` : ` ${eta}`;
+                }
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando o envio automático das <strong>suas</strong> despesas${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando o envio automático das despesas de <strong>${actor}</strong>${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando as despesas de um administrador serem enviadas automaticamente${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> corrigir o(s) problema(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> corrigir o(s) problema(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador corrigir o(s) problema(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong> você </strong> aprovar as despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> aprovar as despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador aprovar as despesas.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando que <strong>você</strong> pague as despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> efetuar o pagamento das despesas.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador pagar as despesas.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> concluir a configuração de uma conta bancária empresarial.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> concluir a configuração de uma conta bancária empresarial.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador terminar de configurar uma conta bancária empresarial.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `até ${eta}` : ` ${eta}`;
+                }
+                return `Aguardando a conclusão do pagamento${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'em breve',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'mais tarde hoje',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'no domingo',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'nos dias 1º e 16 de cada mês',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'no último dia útil do mês',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'no último dia do mês',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'no final da sua viagem',
+        },
+    },
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
@@ -7421,6 +7560,16 @@ ${amount} para ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>O domínio <strong>${domainName}</strong> foi verificado com sucesso e agora você pode configurar SAML e outros recursos de segurança.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Logon único SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> é um recurso de segurança que oferece mais controle sobre como os membros com e-mails do domínio <strong>${domainName}</strong> fazem login no Expensify. Para ativá-lo, você precisará confirmar sua identidade como um administrador autorizado da empresa.</muted-text>`,
+            fasterAndEasierLogin: 'Login mais rápido e fácil',
+            moreSecurityAndControl: 'Mais segurança e controle',
+            onePasswordForAnything: 'Uma senha para tudo',
+        },
+        goToDomain: 'Ir para o domínio',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
