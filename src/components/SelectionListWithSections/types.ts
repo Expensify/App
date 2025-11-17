@@ -28,16 +28,7 @@ import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {
-    SearchCardGroup,
-    SearchDataTypes,
-    SearchMemberGroup,
-    SearchReport,
-    SearchTask,
-    SearchTransaction,
-    SearchTransactionAction,
-    SearchWithdrawalIDGroup,
-} from '@src/types/onyx/SearchResults';
+import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransaction, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -377,7 +368,7 @@ type TransactionGroupListItemType = ListItem & {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
