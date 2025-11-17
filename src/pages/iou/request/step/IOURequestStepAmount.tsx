@@ -262,8 +262,8 @@ function IOURequestStepAmount({
             return;
         }
 
-        // User started from global + menu with CREATE flow
-        // The next step is to select the participants for this expense.
+        // Starting from global + menu means no participant context exists yet,
+        // so we need to handle participant selection based on available workspace settings
         if (
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
@@ -275,7 +275,6 @@ function IOURequestStepAmount({
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
-            // Helper function to reset transaction to default workspace and navigate to confirmation
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
@@ -288,13 +287,13 @@ function IOURequestStepAmount({
                 const isP2PChat = isParticipantP2P(firstParticipant);
                 const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
 
-                // If negative amount with P2P user, reset to default workspace
+                // P2P chats don't support negative amounts, so reset to default workspace when amount is negative.
                 if (isP2PChat && isNegativeAmount) {
                     resetToDefaultWorkspace();
                     return;
                 }
 
-                // Preserve user's selection
+                // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
                 const selectedReport = iouReportID ? getReportOrDraftReport(iouReportID) : null;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
