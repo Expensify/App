@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
@@ -13,6 +12,7 @@ import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersB
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +71,9 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     if (!queryJSON) {
         return null;
@@ -79,7 +82,7 @@ function SearchPageWide({
         <View style={styles.searchSplitContainer}>
             <ScreenWrapper
                 testID={Search.displayName}
-                shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicator}
                 offlineIndicatorStyle={offlineIndicatorStyle}
             >
                 {PDFValidationComponent}
@@ -117,7 +120,7 @@ function SearchPageWide({
                 )}
                 <DragAndDropConsumer onDrop={initScanRequest}>
                     <DropZoneUI
-                        icon={Expensicons.SmartScan}
+                        icon={expensifyIcons.SmartScan}
                         dropTitle={translate('dropzone.scanReceipts')}
                         dropStyles={styles.receiptDropOverlay(true)}
                         dropTextStyles={styles.receiptDropText}
