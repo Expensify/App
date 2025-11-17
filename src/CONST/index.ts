@@ -7400,7 +7400,7 @@ const CONST = {
 
     MODAL_EVENTS: {
         CLOSED: 'rhpClosed',
-    }
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

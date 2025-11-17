@@ -1,5 +1,5 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
-import React, {useCallback, useContext, useRef, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -44,18 +44,21 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
 
-    useEffect(() => () => {
-        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED);
+    useEffect(
+        () => () => {
+            DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED);
 
-        const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
-            | NavigatorScreenParams<RightModalNavigatorParamList>
-            | undefined;
-        if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
-            return;
-        }
+            const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                | NavigatorScreenParams<RightModalNavigatorParamList>
+                | undefined;
+            if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                return;
+            }
 
-        abandonReviewDuplicateTransactions();
-    }, []);
+            abandonReviewDuplicateTransactions();
+        },
+        [],
+    );
 
     return (
         <NarrowPaneContextProvider>
@@ -79,7 +82,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 beforeRemove: () => {
                                     const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
                                         subscription.remove();
-                                        clearTwoFactorAuthData(true)
+                                        clearTwoFactorAuthData(true);
                                     });
                                 },
                             }}

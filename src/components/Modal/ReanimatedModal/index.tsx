@@ -1,8 +1,8 @@
 import noop from 'lodash/noop';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { NativeEventSubscription, ViewStyle } from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, DeviceEventEmitter, InteractionManager, Modal, View} from 'react-native';
-import { LayoutAnimationConfig } from 'react-native-reanimated';
+import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
