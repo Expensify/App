@@ -266,7 +266,10 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
+            const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
+            const updatedValues = getMergeFieldUpdatedValues(selectedTransaction, field, selectedFieldValue as MergeTransaction[typeof field]);
+            Object.assign(mergeableData, updatedValues);
         } else {
             conflictFields.push(field);
         }
