@@ -164,6 +164,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'La tarifa debe ser mayor que 0',
             email: 'Por favor, introduzca una dirección de correo electrónico válida',
             login: 'Se produjo un error al iniciar sesión. Por favor intente nuevamente.',
+            pdfLibraryLoadFailed: 'No se pudo cargar el módulo PDF. Por favor, revise su conexión a internet e inténtelo de nuevo.',
+            loadingFailed: 'Error al cargar',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',

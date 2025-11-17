@@ -482,6 +482,8 @@ const translations = {
             lowRateError: 'Rate must be greater than 0',
             email: 'Please enter a valid email address',
             login: 'An error occurred while logging in. Please try again.',
+            pdfLibraryLoadFailed: 'Failed to load PDF module. Please check your internet connection and try again.',
+            loadingFailed: 'Loading failed',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -722,6 +724,7 @@ const translations = {
         expensifyDoesNotHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment. Please try again.',
+        // THIS
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',

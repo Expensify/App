@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'Le taux doit être supérieur à 0',
             email: 'Veuillez entrer une adresse e-mail valide',
             login: "Une erreur s'est produite lors de la connexion. Veuillez réessayer.",
+            pdfLibraryLoadFailed: 'Échec du chargement du module PDF. Veuillez vérifier votre connexion Internet et réessayer.',
+            loadingFailed: 'Échec du chargement',
         },
         comma: 'virgule',
         semicolon: 'point-virgule',

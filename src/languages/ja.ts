@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'レートは0より大きくなければなりません',
             email: '有効なメールアドレスを入力してください',
             login: 'ログイン中にエラーが発生しました。もう一度お試しください。',
+            pdfLibraryLoadFailed: 'PDFモジュールを読み込めませんでした。インターネット接続を確認して、再試行してください。',
+            loadingFailed: '読み込みに失敗しました',
         },
         comma: 'コンマ',
         semicolon: 'セミコロン',

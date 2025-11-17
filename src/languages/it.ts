@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'La tariffa deve essere maggiore di 0',
             email: 'Per favore, inserisci un indirizzo email valido',
             login: "Si è verificato un errore durante l'accesso. Per favore riprova.",
+            pdfLibraryLoadFailed: 'Impossibile caricare il modulo PDF. Controlla la connessione a Internet e riprova.',
+            loadingFailed: 'Caricamento non riuscito',
         },
         comma: 'virgola',
         semicolon: 'semicolon',

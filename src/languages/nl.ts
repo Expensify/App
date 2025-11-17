@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'Tarief moet groter zijn dan 0',
             email: 'Voer een geldig e-mailadres in',
             login: 'Er is een fout opgetreden bij het inloggen. Probeer het opnieuw.',
+            pdfLibraryLoadFailed: 'PDF-module kon niet worden geladen. Controleer uw internetverbinding en probeer het opnieuw.',
+            loadingFailed: 'Laden mislukt',
         },
         comma: 'komma',
         semicolon: 'puntkomma',

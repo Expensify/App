@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: 'Der Satz muss größer als 0 sein.',
             email: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
             login: 'Beim Anmelden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+            pdfLibraryLoadFailed: 'PDF-Modul konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
+            loadingFailed: 'Laden fehlgeschlagen',
         },
         comma: 'Komma',
         semicolon: 'Semikolon',

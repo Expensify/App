@@ -488,6 +488,8 @@ const translations: TranslationDeepObject<typeof en> = {
             lowRateError: '费率必须大于0',
             email: '请输入有效的电子邮件地址',
             login: '登录时发生错误。请重试。',
+            pdfLibraryLoadFailed: '无法加载 PDF 模块。请检查您的网络连接并重试。',
+            loadingFailed: '加载失败',
         },
         comma: '逗号',
         semicolon: '分号',
