@@ -1,6 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
@@ -27,6 +27,7 @@ import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrack
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
@@ -48,6 +49,9 @@ type PopoverReportActionContextMenuProps = {
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
+
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
+
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -340,6 +344,15 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
+
+    const allSnapshotKeys = useMemo(() => {
+        if (!allSnapshots) {
+            return [];
+        }
+
+        return Object.keys(allSnapshots || {}) as OnyxKey[];
+    }, [allSnapshots]);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -358,6 +371,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    allSnapshotKeys,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
@@ -384,6 +398,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         deleteTransactions,
         currentSearchHash,
         isOriginalReportArchived,
+        allSnapshotKeys,
     ]);
 
     const hideDeleteModal = () => {

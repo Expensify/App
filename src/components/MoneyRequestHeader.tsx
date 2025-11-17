@@ -44,6 +44,7 @@ import {dismissRejectUseExplanation} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
@@ -107,6 +108,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     > | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -259,6 +261,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             />
         ),
     };
+
+    const allSnapshotKeys = useMemo(() => {
+        if (!allSnapshots) {
+            return [];
+        }
+
+        return Object.keys(allSnapshots || {}) as OnyxKey[];
+    }, [allSnapshots]);
 
     const secondaryActions = useMemo(() => {
         if (!transaction || !parentReportAction || !parentReport) {
@@ -483,6 +493,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isSingleTransactionView: true,
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
+                            allSnapshotKeys,
                         });
                     } else {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);

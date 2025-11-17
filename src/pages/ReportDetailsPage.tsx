@@ -117,6 +117,7 @@ import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -158,6 +159,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -805,6 +807,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         </OfflineWithFeedback>
     );
 
+    const allSnapshotKeys = useMemo(() => {
+        if (!allSnapshots) {
+            return [];
+        }
+
+        return Object.keys(allSnapshots || {}) as OnyxKey[];
+    }, [allSnapshots]);
+
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
             deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
@@ -830,6 +840,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isSingleTransactionView,
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
+                allSnapshotKeys,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
@@ -853,6 +864,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         currentSearchHash,
         isChatIOUReportArchived,
+        allSnapshotKeys,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
