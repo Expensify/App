@@ -4,25 +4,25 @@ import CONST from '@src/CONST';
  * Strip comma from the amount
  */
 function stripCommaFromAmount(amount: string): string {
-    return amount.replace(/,/g, '');
+    return amount.replaceAll(',', '');
 }
 
 /**
  * Strip spaces from the amount
  */
 function stripSpacesFromAmount(amount: string): string {
-    return amount.replace(/\s+/g, '');
+    return amount.replaceAll(/\s+/g, '');
 }
 
 function replaceCommasWithPeriod(amount: string): string {
-    return amount.replace(/,+/g, '.');
+    return amount.replaceAll(/,+/g, '.');
 }
 
 /**
  * Strip decimals from the amount
  */
 function stripDecimalsFromAmount(amount: string): string {
-    return amount.replace(/\.\d*$/, '');
+    return amount.replaceAll(/\.\d*$/g, '');
 }
 
 /**

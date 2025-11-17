@@ -1449,13 +1449,13 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
     const missingFields: OnyxTypes.ReportFieldsViolations = {};
     const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
 
-    Object.values(iouReport.fieldList ?? {}).forEach((field) => {
+    for (const field of Object.values(iouReport.fieldList ?? {})) {
         if (excludedFields.includes(field.fieldID) || !!field.value || !!field.defaultValue) {
-            return;
+            continue;
         }
         // in case of missing field violation the empty object is indicator.
         missingFields[field.fieldID] = {};
-    });
+    }
 
     return {
         optimisticData: [
@@ -1810,11 +1810,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const successPersonalDetailListAction: Record<number, null> = {};
 
         // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-        Object.keys(personalDetailListAction).forEach((accountIDKey) => {
+        for (const accountIDKey of Object.keys(personalDetailListAction)) {
             const accountID = Number(accountIDKey);
             successPersonalDetailListAction[accountID] = null;
             redundantParticipants[accountID] = null;
-        });
+        }
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2272,11 +2272,11 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         const successPersonalDetailListAction: Record<number, null> = {};
 
         // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-        Object.keys(optimisticDataParams.personalDetailListAction).forEach((accountIDKey) => {
+        for (const accountIDKey of Object.keys(optimisticDataParams.personalDetailListAction)) {
             const accountID = Number(accountIDKey);
             successPersonalDetailListAction[accountID] = null;
             redundantParticipants[accountID] = null;
-        });
+        }
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5592,11 +5592,11 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
 
     const selfDMReportActions = getAllReportActions(selfDMReportID);
 
-    transactionIDs.forEach((transactionID) => {
+    for (const transactionID of transactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             Log.warn('[convertBulkTrackedExpensesToIOU] Transaction not found', {transactionID});
-            return;
+            continue;
         }
 
         const linkedTrackedExpenseReportAction = Object.values(selfDMReportActions).find((action) => {
@@ -5609,7 +5609,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
 
         if (!linkedTrackedExpenseReportAction) {
             Log.warn('[convertBulkTrackedExpensesToIOU] Tracked expense IOU action not found', {transactionID});
-            return;
+            continue;
         }
 
         const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID)?.reportActionID;
@@ -5626,7 +5626,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
                 transactionID,
                 actionReportActionID: (linkedTrackedExpenseReportAction as OnyxTypes.ReportAction).reportActionID,
             });
-            return;
+            continue;
         }
 
         const participantParams = {
@@ -5706,7 +5706,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
         };
 
         convertTrackedExpenseToRequest(convertParams);
-    });
+    }
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
@@ -6890,7 +6890,7 @@ function createSplitsAndOnyxData({
     ];
 
     const hasMultipleParticipants = participants.length > 1;
-    participants.forEach((participant) => {
+    for (const participant of participants) {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         const splitAmount = splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
@@ -6912,17 +6912,17 @@ function createSplitsAndOnyxData({
             };
 
             splits.push(individualSplit);
-            return;
+            continue;
         }
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
         if (splitAmount === 0) {
-            return;
+            continue;
         }
 
         if (email === currentUserEmailForIOUSplit) {
-            return;
+            continue;
         }
 
         // STEP 1: Get existing chat report OR build a new optimistic one
@@ -7109,7 +7109,7 @@ function createSplitsAndOnyxData({
         optimisticData.push(...oneOnOneOptimisticData);
         successData.push(...oneOnOneSuccessData);
         failureData.push(...oneOnOneFailureData);
-    });
+    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -7550,13 +7550,13 @@ function startSplitBill({
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
-    participants.forEach((participant) => {
+    for (const participant of participants) {
         // Disabling this line since participant.login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const email = participant.isOwnPolicyExpenseChat ? '' : addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
-            return;
+            continue;
         }
 
         // When splitting with a expense chat, we only need to supply the policyID and the workspace reportID as it's needed so we can update the report preview
@@ -7565,7 +7565,7 @@ function startSplitBill({
                 policyID: participant.policyID,
                 chatReportID: splitChatReport.reportID,
             });
-            return;
+            continue;
         }
 
         const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -7594,12 +7594,12 @@ function startSplitBill({
             email,
             accountID,
         });
-    });
+    }
 
-    participants.forEach((participant) => {
+    for (const participant of participants) {
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         if (!isPolicyExpenseChat) {
-            return;
+            continue;
         }
         const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
@@ -7634,7 +7634,7 @@ function startSplitBill({
                 value: optimisticPolicyRecentlyUsedTags,
             });
         }
-    });
+    }
 
     // Save the new splits array into the transaction's comment in case the user calls CompleteSplitBill while offline
     optimisticData.push({
@@ -7777,10 +7777,10 @@ function completeSplitBill(
     const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
-    splitParticipants.forEach((participant) => {
+    for (const participant of splitParticipants) {
         // Skip creating the transaction for the current user
         if (participant.email === currentUserEmailForIOUSplit) {
-            return;
+            continue;
         }
         const isPolicyExpenseChat = !!participant.policyID;
 
@@ -7793,7 +7793,7 @@ function completeSplitBill(
                 splits.push({
                     email: participant.email,
                 });
-                return;
+                continue;
             }
         }
 
@@ -7911,7 +7911,7 @@ function completeSplitBill(
         optimisticData.push(...oneOnOneOptimisticData);
         successData.push(...oneOnOneSuccessData);
         failureData.push(...oneOnOneFailureData);
-    });
+    }
 
     const {
         amount: transactionAmount,
@@ -9212,11 +9212,11 @@ function getSendMoneyParams(
         const successPersonalDetailListAction: Record<number, null> = {};
 
         // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+        for (const accountIDKey of Object.keys(optimisticPersonalDetailListAction)) {
             const accountID = Number(accountIDKey);
             successPersonalDetailListAction[accountID] = null;
             redundantParticipants[accountID] = null;
-        });
+        }
 
         optimisticPersonalDetailListData = {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -9425,7 +9425,7 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
     const holdTransactions: OnyxTypes.Transaction[] = [];
 
-    Object.values(iouReportActions).forEach((action) => {
+    for (const action of Object.values(iouReportActions)) {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
@@ -9433,7 +9433,7 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
             holdTransactions.push(transaction);
         }
-    });
+    }
 
     return {holdReportActions, holdTransactions};
 }
@@ -9493,7 +9493,7 @@ function getReportFromHoldRequestsOnyxData(
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
-    holdReportActions.forEach((holdReportAction) => {
+    for (const holdReportAction of holdReportActions) {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const originalMessage = getOriginalMessage(holdReportAction) as OnyxTypes.OriginalMessageIOU;
 
@@ -9531,14 +9531,14 @@ function getReportFromHoldRequestsOnyxData(
                 chatReportID: optimisticExpenseReport.reportID,
             };
         }
-    });
+    }
 
     const updateHeldTransactions: Record<string, Pick<OnyxTypes.Transaction, 'reportID'>> = {};
-    holdTransactions.forEach((transaction) => {
+    for (const transaction of holdTransactions) {
         updateHeldTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             reportID: optimisticExpenseReport.reportID,
         };
-    });
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -9594,14 +9594,14 @@ function getReportFromHoldRequestsOnyxData(
     ];
 
     const bringReportActionsBack: Record<string, OnyxTypes.ReportAction> = {};
-    holdReportActions.forEach((reportAction) => {
+    for (const reportAction of holdReportActions) {
         bringReportActionsBack[reportAction.reportActionID] = reportAction;
-    });
+    }
 
     const bringHeldTransactionsBack: Record<string, OnyxTypes.Transaction> = {};
-    holdTransactions.forEach((transaction) => {
+    for (const transaction of holdTransactions) {
         bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -10389,7 +10389,7 @@ function approveMoneyRequest(
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
         const heldTransactions = getAllHeldTransactionsReportUtils(expenseReport.reportID);
-        heldTransactions.forEach((heldTransaction) => {
+        for (const heldTransaction of heldTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
@@ -10408,7 +10408,7 @@ function approveMoneyRequest(
                     },
                 },
             });
-        });
+        }
     }
 
     let optimisticHoldReportID;
@@ -10432,7 +10432,7 @@ function approveMoneyRequest(
             transactions.filter((transaction) => !isOnHold(transaction));
         }
 
-        transactions.forEach((transaction) => {
+        for (const transaction of transactions) {
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
@@ -10446,7 +10446,7 @@ function approveMoneyRequest(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: transactionViolations,
             });
-        });
+        }
     }
 
     const parameters: ApproveMoneyRequestParams = {
@@ -11966,12 +11966,12 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         });
     }
 
-    parentReportActionOptimistic.forEach((parentActionData) => {
+    for (const parentActionData of parentReportActionOptimistic) {
         if (!parentActionData) {
-            return;
+            continue;
         }
         optimisticData.push(parentActionData);
-    });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -12133,10 +12133,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 }
 
 function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
-    transactionsID.forEach((transactionID) => {
+    for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         putOnHold(transactionID, comment, childReportID);
-    });
+    }
 }
 
 /**
@@ -12594,12 +12594,12 @@ function updateLastLocationPermissionPrompt() {
 function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>) {
     const participants = getMoneyRequestParticipantsFromReport(reportValue);
     const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<OnyxTypes.Transaction>> = {};
-    transactionIDs.forEach((transactionID) => {
+    for (const transactionID of transactionIDs) {
         updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
             participants,
             participantsAutoAssigned: true,
         };
-    });
+    }
     return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
 }
 
@@ -12670,7 +12670,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     const reportActionIDList: string[] = [];
     const optimisticHoldTransactionActions: OnyxUpdate[] = [];
     const failureHoldTransactionActions: OnyxUpdate[] = [];
-    iouActionList.forEach((action) => {
+    for (const action of iouActionList) {
         const transactionThreadReportID = action?.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
@@ -12709,7 +12709,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
                 },
             },
         });
-    });
+    }
 
     const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
@@ -13545,7 +13545,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
     // Add optimistic data for all reports
-    reportsToUpdate.forEach(({reportID: targetReportID, lastVisibleActionCreated}) => {
+    for (const {reportID: targetReportID, lastVisibleActionCreated} of reportsToUpdate) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
@@ -13554,10 +13554,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 lastVisibleActionCreated,
             },
         });
-    });
+    }
 
     // Add success data for all reports
-    reportsToUpdate.forEach(({reportID: targetReportID}) => {
+    for (const {reportID: targetReportID} of reportsToUpdate) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
@@ -13566,10 +13566,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 errorFields: null,
             },
         });
-    });
+    }
 
     // Add failure data to revert all reports
-    reportsToUpdate.forEach(({reportID: targetReportID}) => {
+    for (const {reportID: targetReportID} of reportsToUpdate) {
         const targetReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -13579,7 +13579,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 lastVisibleActionCreated: targetReport?.lastVisibleActionCreated,
             },
         });
-    });
+    }
 
     // Build API parameters
     const parameters: RejectMoneyRequestParams = {
@@ -14024,7 +14024,7 @@ function updateSplitTransactions({
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
-    splitExpenses.forEach((splitExpense, index) => {
+    for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
         if (splitTransaction) {
@@ -14121,7 +14121,7 @@ function updateSplitTransactions({
                 currentSplit.billable = splitTransaction.billable;
             }
 
-            Object.keys(transactionChanges).forEach((key) => {
+            for (const key of Object.keys(transactionChanges)) {
                 const newValue = transactionChanges[key as keyof typeof transactionChanges];
                 const oldValue = existing?.[key as keyof typeof existing];
                 if (newValue === oldValue) {
@@ -14130,7 +14130,7 @@ function updateSplitTransactions({
                 } else if (key === 'amount') {
                     transactionChanges.currency = originalTransactionDetails?.currency;
                 }
-            });
+            }
 
             if (Object.keys(transactionChanges).length > 0) {
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
@@ -14162,14 +14162,14 @@ function updateSplitTransactions({
         optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
         successData.push(...(onyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []));
         failureData.push(...(onyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []));
-    });
+    }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
     const undeletedTransactions = originalChildTransactions.filter(
         (currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID),
     );
 
-    undeletedTransactions.forEach((undeletedTransaction) => {
+    for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
@@ -14198,7 +14198,7 @@ function updateSplitTransactions({
         optimisticData.push(...(deleteExpenseOptimisticData ?? []));
         successData.push(...(deleteExpenseSuccessData ?? []));
         failureData.push(...(deleteExpenseFailureData ?? []));
-    });
+    }
 
     if (!isReverseSplitOperation) {
         optimisticData.push({
@@ -14306,11 +14306,11 @@ function updateSplitTransactions({
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
         const splitApiParams = {} as Record<string, string | number | boolean>;
-        splits.forEach((split, i) => {
-            Object.entries(split).forEach(([key, value]) => {
+        for (const [i, split] of splits.entries()) {
+            for (const [key, value] of Object.entries(split)) {
                 splitApiParams[`splits[${i}][${key}]`] = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
-            });
-        });
+            }
+        }
         const parameters: SplitTransactionParams = {
             ...splitApiParams,
             transactionID: originalTransactionID,
