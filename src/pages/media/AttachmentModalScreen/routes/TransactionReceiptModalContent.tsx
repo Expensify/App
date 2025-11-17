@@ -159,18 +159,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     icon: Expensicons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
-                        Navigation.dismissModal();
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    action ?? CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    draftTransactionID ?? transaction?.transactionID,
-                                    report?.reportID,
-                                    Navigation.getActiveRoute(),
+                        Navigation.dismissModal({
+                            callback: () =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                        action ?? CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        draftTransactionID ?? transaction?.transactionID,
+                                        report?.reportID,
+                                        Navigation.getActiveRoute(),
+                                    ),
                                 ),
-                            );
                         });
                     },
                 });
