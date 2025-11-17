@@ -10,7 +10,6 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -30,6 +29,7 @@ import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, Singula
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -85,6 +85,7 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const isFocused = useIsFocused();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -764,7 +765,7 @@ function SearchFiltersBar({
                         text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
-                        icon={Expensicons.Filter}
+                        icon={expensifyIcons.Filter}
                         textStyles={[styles.textMicroBold]}
                         onPress={openAdvancedFilters}
                     />
