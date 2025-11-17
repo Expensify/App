@@ -200,6 +200,7 @@ import {
     getRetractedMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -5719,6 +5720,9 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
+        return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
