@@ -148,7 +148,7 @@ function BaseInvertedFlatList<T>({
         }
 
         const firstDisplayedItem = displayedData.at(0);
-        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
+        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : null);
     });
 
     const handleStartReached = useCallback(
