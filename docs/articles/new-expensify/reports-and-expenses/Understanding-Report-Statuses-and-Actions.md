@@ -116,3 +116,6 @@ Yes—if the report is a **Draft** or is **Processing**. **Closed** or **Paid** 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
+## An employee sent an IOU before I created our company workspace. How do we report their expenses on the workspace instead?
+Ask the employee to move their IOU to the company workspace by selecting **More** > **Change Workspace**
+
