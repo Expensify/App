@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import useAncestors from '@hooks/useAncestors';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -37,6 +40,7 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStepNew: jest.fn(),
+    buildOptimisticNextStep: jest.fn(),
 }));
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
@@ -312,6 +316,8 @@ describe('actions/Report', () => {
             callback: (val) => (reportActions = val ?? {}),
         });
 
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(report));
+
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
         const USER_2_ACCOUNT_ID = 2;
@@ -501,8 +507,9 @@ describe('actions/Report', () => {
                 return waitForNetworkPromises();
             })
             .then(() => {
+                rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, undefined, undefined);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -519,8 +526,9 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
+                rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, undefined, undefined);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, ancestors.current, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -697,7 +705,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates();
             })
@@ -717,7 +725,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                 }
                 return waitForBatchedUpdates();
             })
@@ -732,7 +740,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skin tone
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -765,7 +773,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -824,7 +832,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
                 }
                 return waitForBatchedUpdates();
             })
@@ -868,6 +876,79 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const SELF_DM_ID = '555';
+        const CHILD_REPORT_ID = '9999';
+        const TXN_ID = 'txn_123';
+
+        // Sign in and set personal details
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+        // Seed a self-DM report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_ID}`, {
+            reportID: SELF_DM_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as OnyxTypes.Report);
+
+        // Seed an existing action in self DM to ensure MERGE does not overwrite
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}`, {
+            123: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{type: 'COMMENT', html: 'Existing', text: 'Existing'}],
+                reportActionID: '123',
+                created: DateUtils.getDBTime(),
+            },
+        } as unknown as OnyxTypes.ReportActions);
+
+        // Seed a legacy transaction (no parentReportActionID)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}`, {
+            transactionID: TXN_ID,
+            amount: -101,
+            currency: CONST.CURRENCY.USD,
+            comment: {comment: 'Legacy expense'},
+        } as unknown as OnyxTypes.Transaction);
+
+        // Get the transaction object from Onyx
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
+        expect(transaction).toBeTruthy();
+
+        // Call openReport with transaction object to trigger the legacy preview flow
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        await waitForBatchedUpdates();
+
+        // Validate the correct Onyx key received the new action and existing one is preserved
+        const selfDMActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}` as const)) as OnyxTypes.ReportActions | undefined;
+        expect(selfDMActions).toBeTruthy();
+        // Existing action still present
+        expect(selfDMActions?.['123']).toBeTruthy();
+
+        // Derive the created parentReportActionID from the self DM actions by finding the one that links to the child report
+        const entries = Object.entries(selfDMActions ?? {}) as Array<[string, OnyxTypes.ReportAction]>;
+        const createdEntry = entries.find((tuple): tuple is [string, OnyxTypes.ReportAction] => tuple?.[1]?.childReportID === CHILD_REPORT_ID);
+        expect(createdEntry).toBeDefined();
+        // Type guard for TS; the expect above will fail the test if undefined
+        if (!createdEntry) {
+            return;
+        }
+        const [parentReportActionID, createdAction] = createdEntry;
+        expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
+
+        // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
+        const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
+        expect(wrongKeyValue).toBeUndefined();
+
+        // The API call should include moneyRequestPreviewReportActionID matching the created action
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+            reportID: CHILD_REPORT_ID,
+            moneyRequestPreviewReportActionID: parentReportActionID,
+        });
     });
 
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
@@ -915,7 +996,9 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, undefined);
+
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -948,7 +1031,8 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
+        rerender(originalReport);
+        Report.deleteReportComment(REPORT_ID, newReportAction, ancestors.current, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -994,7 +1078,9 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, undefined);
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
+
+        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
@@ -1009,7 +1095,8 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
+        rerender(originalReport);
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1058,7 +1145,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1120,7 +1207,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1189,7 +1276,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1333,7 +1420,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
+        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {});
         Report.toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
@@ -1353,7 +1440,6 @@ describe('actions/Report', () => {
                     },
                 },
             },
-            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1385,7 +1471,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1433,7 +1519,7 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
         Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
@@ -1453,7 +1539,6 @@ describe('actions/Report', () => {
                     },
                 },
             },
-            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1469,7 +1554,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1513,26 +1598,20 @@ describe('actions/Report', () => {
             reportActionID,
         );
 
-        Report.deleteReportComment(REPORT_ID, reportAction, undefined, undefined);
+        await waitForBatchedUpdates();
+
+        const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
+
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    if (persistedRequests?.length !== 3) {
-                        return;
-                    }
-                    Onyx.disconnect(connection);
+        await waitForBatchedUpdates();
 
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
-                    expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
-                    resolve();
-                },
-            });
-        });
+        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+        expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
+        expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
@@ -1561,22 +1640,13 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, undefined);
+        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined);
 
         await waitForBatchedUpdates();
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
 
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-
-                    resolve();
-                },
-            });
-        });
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1605,9 +1675,12 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID,
         };
-        Report.editReportComment(originalReport, action, 'value1', undefined, undefined);
-        Report.editReportComment(originalReport, action, 'value2', undefined, undefined);
-        Report.editReportComment(originalReport, action, 'value3', undefined, undefined);
+
+        const {result: ancestors} = renderHook(() => useAncestors(originalReport));
+
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined);
 
         const requests = PersistedRequests?.getAll();
 
@@ -1647,22 +1720,23 @@ describe('actions/Report', () => {
             [mentionActionID]: mentionAction,
             [mentionActionID2]: mentionAction2,
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+
+        let report = {
             ...createRandomReport(Number(reportID), undefined),
             lastMentionedTime: mentionAction2.created,
-        });
-
-        Report.deleteReportComment(reportID, mentionAction, undefined, undefined);
-        Report.deleteReportComment(reportID, mentionAction2, undefined, undefined);
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
 
         await waitForBatchedUpdates();
 
-        const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                callback: resolve,
-            });
-        });
+        const {result: ancestors} = renderHook(() => useAncestors(report));
+
+        Report.deleteReportComment(reportID, mentionAction, ancestors.current, undefined, undefined);
+        Report.deleteReportComment(reportID, mentionAction2, ancestors.current, undefined, undefined);
+
+        await waitForBatchedUpdates();
+
+        report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
         expect(report?.lastMentionedTime).toBeUndefined();
     });
@@ -2462,6 +2536,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
                 policy,

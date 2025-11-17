@@ -5,6 +5,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -76,6 +77,8 @@ function TaskAssigneeSelectorModal() {
         );
     }, [optionsWithoutCurrentUser, debouncedSearchTerm, countryCode]);
 
+    const allPersonalDetails = usePersonalDetails();
+
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
             return;
@@ -130,9 +133,14 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                isSelected: task?.assigneeAccountID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
+
+    const initiallyFocusedOptionKey = useMemo(() => {
+        return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    }, [sections]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -141,13 +149,18 @@ function TaskAssigneeSelectorModal() {
                 return;
             }
 
+            const assigneePersonalDetails = {
+                ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                login: option.login ?? '',
+            };
+
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
                     const assigneeChatReport = setAssigneeValue(
-                        option?.login ?? '',
-                        option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         currentUserPersonalDetails.accountID,
+                        assigneePersonalDetails,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
@@ -169,9 +182,8 @@ function TaskAssigneeSelectorModal() {
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 setAssigneeValue(
-                    option?.login ?? '',
-                    option.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserPersonalDetails.accountID,
+                    assigneePersonalDetails,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
@@ -182,7 +194,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo],
+        [report, currentUserPersonalDetails.accountID, allPersonalDetails, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
@@ -215,6 +227,8 @@ function TaskAssigneeSelectorModal() {
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}

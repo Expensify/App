@@ -60,6 +60,7 @@ function acceptSpotnanaTerms(domain?: string) {
 
 function requestTravelAccess() {
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
