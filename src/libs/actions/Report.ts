@@ -172,6 +172,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Attachment,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -199,6 +200,7 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+import {cacheAttachment, removeCachedAttachment} from './Attachment';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -383,6 +385,13 @@ Onyx.connect({
 
         allTransactions = value;
     },
+});
+
+let allAttachments: OnyxCollection<Attachment> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.ATTACHMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allAttachments = value),
 });
 
 let environment: EnvironmentType;
@@ -579,8 +588,9 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
+    const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction({text, reportID});
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -589,8 +599,9 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
+        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
 
     if (text && file) {
@@ -600,6 +611,30 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
+
+    // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
+    const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
+        // [2] means the exact value, in this case source url and attachment id of the attachment tag
+        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.[2];
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+
+        if (!source) {
+            return [];
+        }
+
+        return {
+            uri: source,
+            attachmentID: dataAttachmentID ?? `${reportActionID}_${index + 1}`,
+        };
+    });
+
+    attachments.forEach((attachment) => {
+        cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
+    });
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
@@ -635,7 +670,7 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
     }
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
-        reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
+        reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
@@ -645,6 +680,10 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    if (file) {
+        parameters.attachmentID = attachmentID;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1987,6 +2026,30 @@ function deleteReportComment(
 
     if (!reportActionID || !originalReportID || !reportID) {
         return;
+    }
+    if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
+        reportAction.message.forEach((message) => {
+            const reportCommentText = message?.html ?? '';
+
+            const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+            const attachments = attachmentTags.flatMap((htmlTag, index) => {
+                const tag = htmlTag[0];
+
+                const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+                const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
+                const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+
+                return {
+                    attachmentID,
+                    localSource: attachment?.source,
+                };
+            });
+
+            attachments.forEach((attachment) => {
+                removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
+            });
+        });
     }
 
     const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);

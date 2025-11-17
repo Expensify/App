@@ -1932,7 +1932,6 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -1984,6 +1983,56 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+    },
+
+    MARKDOWN_ATTACHMENT_FILE_TYPES: {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+        'image/bmp': 'bmp',
+        'image/tiff': 'tiff',
+        'image/tif': 'tif',
+        'image/ico': 'ico',
+        'image/icon': 'ico',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
+        'image/heic': 'heic',
+        'image/heif': 'heif',
+        'image/avif': 'avif',
+        'image/x-ms-bmp': 'bmp',
+        'image/x-portable-pixmap': 'ppm',
+        'image/x-portable-graymap': 'pgm',
+        'image/x-portable-bitmap': 'pbm',
+        'image/x-portable-anymap': 'pnm',
+        'image/x-xbitmap': 'xbm',
+        'image/x-xpixmap': 'xpm',
+        'image/x-pcx': 'pcx',
+        'image/x-tga': 'tga',
+        'image/x-rgb': 'rgb',
+        'image/x-photoshop': 'psd',
+        'image/vnd.adobe.photoshop': 'psd',
+
+        // Video MIME Types
+        'video/mp4': 'mp4',
+        'video/quicktime': 'mov',
+        'video/avi': 'avi',
+        'video/x-msvideo': 'avi',
+        'video/x-ms-wmv': 'wmv',
+        'video/x-flv': 'flv',
+        'video/x-matroska': 'mkv',
+        'video/webm': 'webm',
+        'video/3gpp': '3gp',
+        'video/x-m4v': 'm4v',
+        'video/mpeg': 'mpg',
+        'video/mp1s': 'mpg',
+        'video/mpa': 'mpg',
+        'video/mpe': 'mpg',
+        'video/mpg': 'mpg',
+        'video/x-mpeg': 'mpeg',
+        'video/ogg': 'ogv',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -3688,16 +3737,27 @@ const CONST = {
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
-
-        // Extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
-
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+
+        ATTACHMENT: {
+            // Match any attachment tag inside the markdown text i.e only: <img or <video
+            ATTACHMENT_REGEX: /<video |<img /,
+            // Extract all attachments including all atributes and values from markdown text
+            ATTACHMENT: /<(img|video)[^>]*>/gi,
+            // Extract attachment's source from the data's html string
+            ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+            // Retrieve the attachment id value from data-attachment-id attribute
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            // Retrive attachment source id from attachment source url link
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            // Retrieve attachment source either local or remote
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+        },
+
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -6483,6 +6543,10 @@ const CONST = {
             TRAVEL_EXPENSE: 'travelExpense',
         },
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
+    },
+
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
     },
 
     SESSION_STORAGE_KEYS: {

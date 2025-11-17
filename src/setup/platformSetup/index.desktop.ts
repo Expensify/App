@@ -1,5 +1,6 @@
 import {AppRegistry} from 'react-native';
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
+import CacheAPI from '@libs/CacheAPI';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -7,6 +8,9 @@ import Config from '@src/CONFIG';
 import ROUTES from '@src/ROUTES';
 
 export default function () {
+    // Initialize Cache API (web only)
+    CacheAPI.init();
+
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });

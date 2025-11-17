@@ -186,8 +186,16 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
         return html;
     }
 
-    let attachmentID = 0;
-    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    let index = 0;
+    return html.replace(CONST.REGEX.ATTACHMENT.ATTACHMENT, (match) => {
+        const attachmentID = match.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+        if (attachmentID) {
+            return match;
+        }
+        return match.replace(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX, (m) => {
+            return m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}"`);
+        });
+    });
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {

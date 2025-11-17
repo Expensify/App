@@ -507,7 +507,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = CONST.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
+            const isAttachment = CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }

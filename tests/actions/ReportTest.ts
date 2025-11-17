@@ -38,6 +38,31 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('react-native-fs', () => ({
+    DocumentDirectoryPath: '/mock/documents',
+    copyFile: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-blob-util', () => ({
+    config: jest.fn(() => ({
+        fetch: jest.fn(() =>
+            Promise.resolve({
+                path: jest.fn(() => '/mocked/path/to/file'),
+            }),
+        ),
+    })),
+    fs: {
+        dirs: {
+            DocumentDir: '/mocked/document/dir',
+        },
+    },
+    fetch: jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn(() => '/mocked/path/to/file'),
+        }),
+    ),
+}));
+
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStepNew: jest.fn(),
     buildOptimisticNextStep: jest.fn(),
@@ -1162,7 +1187,14 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        // Mock global fetch and response for sending attachment
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1231,7 +1263,14 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        // Mock global fetch and response for attachment
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
