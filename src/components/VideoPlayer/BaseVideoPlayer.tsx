@@ -120,8 +120,8 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const shouldShowLoadingIndicator = useMemo(() => {
-        return !isPlaying && !isOffline && !hasError && isLoading;
-    }, [hasError, isLoading, isOffline, isPlaying]);
+        return !isPlaying && !isOffline && !hasError && (isLoading || (status === 'idle' && isFirstLoad));
+    }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, status]);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
         videoViewRef,
