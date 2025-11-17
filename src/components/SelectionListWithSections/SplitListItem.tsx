@@ -82,7 +82,7 @@ function SplitListItem<TItem extends ListItem>({
 
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
-    }
+    };
 
     return (
         <BaseListItem
