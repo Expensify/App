@@ -7603,12 +7603,12 @@ ${amount} para ${merchant} - ${date}`,
     migratedUserWelcomeModal: {
         title: '¡Bienvenido a New Expensify!',
         subtitle: 'Tiene todo lo que te encanta de nuestra experiencia clásica con un montón de mejoras para hacerte la vida aún más fácil:',
-        confirmText: 'Vamos!',
+        confirmText: '¡Vamos!',
         helpText: 'Prueba la demo de 2 minutos',
         features: {
             search: 'Búsqueda más potente en móviles, web y ordenadores',
-            concierge: 'Concierge AI integrada para ayudar a automatizar sus gastos',
-            chat: 'Chatea sobre cualquier gasto para resolver dudas rápidamente.',
+            concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
+            chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
         },
     },
     productTrainingTooltip: {
