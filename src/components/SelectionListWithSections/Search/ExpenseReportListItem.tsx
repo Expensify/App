@@ -105,7 +105,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <ExpenseReportListItemRow
                     item={reportItem}
-                    isActionLoading={isLoading ?? reportItem.isActionLoading}
+                    isActionLoading={isLoading}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
