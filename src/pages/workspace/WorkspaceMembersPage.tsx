@@ -19,7 +19,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -404,19 +404,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
         return result;
     }, [
-        isOffline,
-        currentUserLogin,
-        formatPhoneNumber,
-        invitedPrimaryToSecondaryLogins,
-        personalDetails,
-        policy?.owner,
-        policy?.ownerAccountID,
         policy?.employeeList,
+        policy?.ownerAccountID,
+        policy?.owner,
         policyMemberEmailsToAccountIDs,
-        policyOwner,
+        isOffline,
+        personalDetails,
+        isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
-        isPolicyAdmin,
+        formatPhoneNumber,
+        FallbackAvatar,
+        invitedPrimaryToSecondaryLogins,
+        policyOwner,
+        currentUserLogin,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -604,7 +605,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
+    }, [isPolicyAdmin, Table, translate, Download, isAccountLocked, isOffline, policyID, showLockedAccountModal]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
