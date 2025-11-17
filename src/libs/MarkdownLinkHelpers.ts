@@ -4,10 +4,10 @@ import {Str} from 'expensify-common';
  * Returns true if `text` is a single token URL (no whitespace), allowing optional angle-bracket wrappers.
  */
 const isStandaloneURL = (text: string): boolean => {
-    if (!text) {
+    const trimmed = text.trim();
+    if (!trimmed) {
         return false;
     }
-    const trimmed = text.trim();
     if (/\s/.test(trimmed)) {
         return false;
     }
