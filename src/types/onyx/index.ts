@@ -15,6 +15,8 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type CardFeeds from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -28,8 +30,6 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
-import type DomainSettings from './DomainSettings';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, FundID} from './DomainSettings';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -261,6 +261,7 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    CardFeeds,
     DomainSettings,
     SaveSearch,
     RecentSearchItem,

@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DirectStatementCloseDateStepProps = {

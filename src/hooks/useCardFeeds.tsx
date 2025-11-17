@@ -2,8 +2,8 @@ import {useMemo} from 'react';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings} from '@src/types/onyx';
-import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/DomainSettings';
+import type {CardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -32,7 +32,7 @@ type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<DomainSettings>>, DomainSettings | undefined] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];

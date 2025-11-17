@@ -906,7 +906,7 @@ function getFilterDisplayValue(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     cardList: OnyxTypes.CardList,
-    cardFeeds: OnyxCollection<OnyxTypes.DomainSettings>,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {
@@ -959,7 +959,7 @@ function buildUserReadableQueryString(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
-    cardFeeds: OnyxCollection<OnyxTypes.DomainSettings>,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {

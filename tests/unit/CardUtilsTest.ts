@@ -36,8 +36,8 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {Card, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/DomainSettings';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -285,7 +285,7 @@ const cardSettingsWithoutPaymentBankAccountID = {
     paymentBankAccountID: undefined,
 } as unknown as ExpensifyCardSettings;
 
-const cardFeedsCollection: OnyxCollection<DomainSettings> = {
+const cardFeedsCollection: OnyxCollection<CardFeeds> = {
     // Policy with both custom and direct feeds
     FAKE_ID_1: {
         settings: {

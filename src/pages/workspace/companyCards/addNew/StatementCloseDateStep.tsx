@@ -9,7 +9,7 @@ import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspac
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/DomainSettings';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 type StatementCloseDateStepProps = {
     /** ID of the current policy */

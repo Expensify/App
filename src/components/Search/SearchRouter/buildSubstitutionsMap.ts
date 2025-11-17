@@ -3,7 +3,7 @@ import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Se
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardList, DomainSettings, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -30,7 +30,7 @@ function buildSubstitutionsMap(
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
     cardList: CardList,
-    cardFeeds: OnyxCollection<DomainSettings>,
+    cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
 ): SubstitutionMap {

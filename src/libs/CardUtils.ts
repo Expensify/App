@@ -10,9 +10,9 @@ import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardList, CompanyCardFeed, CurrencyList, DomainSettings, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/DomainSettings';
+import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -345,7 +345,7 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<DomainSettings>): CompanyFeeds {
+function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value.pending) {

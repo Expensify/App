@@ -47,7 +47,7 @@ import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, DomainSettings, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -100,7 +100,7 @@ type SearchAutocompleteListProps = {
     reports: OnyxCollection<Report>;
 
     /** All feeds */
-    allFeeds: Record<string, DomainSettings | undefined> | undefined;
+    allFeeds: Record<string, CardFeeds | undefined> | undefined;
 
     /** All cards */
     allCards: CardList;

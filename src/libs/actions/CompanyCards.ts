@@ -32,7 +32,7 @@ import type {
     CompanyCardFeedWithDomainID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
-} from '@src/types/onyx/DomainSettings';
+} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
