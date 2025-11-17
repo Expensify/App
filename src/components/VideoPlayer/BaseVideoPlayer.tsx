@@ -483,8 +483,8 @@ function BaseVideoPlayer({
                                 !(hasError && !isOffline) &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                     <VideoPlayerControls
-                                        duration={duration ?? 0}
-                                        position={currentTime ?? 0}
+                                        duration={duration || 0}
+                                        position={currentTime || 0}
                                         url={url}
                                         videoPlayerRef={videoPlayerRef}
                                         videoViewRef={videoViewRef}
