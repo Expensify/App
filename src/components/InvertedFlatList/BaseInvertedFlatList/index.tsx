@@ -180,7 +180,7 @@ function BaseInvertedFlatList<T>({
             minIndexForVisible: 0,
             autoscrollToTopThreshold: enableAutoScrollToTopThreshold ? AUTOSCROLL_TO_TOP_THRESHOLD : undefined,
         };
-    }, [initialScrollKey, isInitialData, isQueueRendering, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData, data.length]);
+    }, [initialScrollKey, isInitialData, isLoadingData, isQueueRendering, shouldEnableAutoScrollToTopThreshold, wasLoadingData]);
 
     return (
         <FlatList
