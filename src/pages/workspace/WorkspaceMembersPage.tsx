@@ -9,8 +9,8 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -82,6 +82,16 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {accountID: number; login: string};
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
+    const {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} = useMemoizedLazyExpensifyIcons([
+        'Download',
+        'FallbackAvatar',
+        'MakeAdmin',
+        'Plus',
+        'RemoveMembers',
+        'Table',
+        'User',
+        'UserEye',
+    ] as const);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

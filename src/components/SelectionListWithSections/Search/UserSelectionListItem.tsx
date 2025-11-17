@@ -3,8 +3,8 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -38,6 +38,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber} = useLocalize();
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
