@@ -180,18 +180,15 @@ function getContinuousChain<TResource>(
     sortedItems: TResource[],
     pages: Pages,
     getID: (item: TResource) => string,
-    resourceId?: string,
-    resourceItemPredicate?: (item: TResource) => boolean,
+    resourceIdOrPredicate?: string | ((item: TResource) => boolean),
 ): ContinuousPageChainResult<TResource> {
-    const getResourceById = (item: TResource) => getID(item) === resourceId;
-
     // If an id is provided, find the index of the item with that id
     let index = -1;
-    if (resourceId) {
-        index = sortedItems.findIndex(getResourceById);
-    } else if (resourceItemPredicate) {
-        // Otherwise, if a resourceItemPredicate is provided, find the index of the first item that matches the predicate
-        index = sortedItems.findLastIndex(resourceItemPredicate);
+    if (typeof resourceIdOrPredicate === 'string') {
+        index = sortedItems.findIndex((item) => getID(item) === resourceIdOrPredicate);
+    } else if (resourceIdOrPredicate instanceof Function) {
+        // Otherwise, if a predicate function is provided, find the index of the first item that matches the predicate
+        index = sortedItems.findLastIndex(resourceIdOrPredicate);
     }
     const itemFound = index !== -1;
 
@@ -223,7 +220,7 @@ function getContinuousChain<TResource>(
     };
 
     // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
-    if (itemFound || !resourceItemPredicate) {
+    if (itemFound || typeof resourceIdOrPredicate !== 'function') {
         // If we are linking to an action that doesn't exist in Onyx, return an empty array
         if (!itemFound) {
             return {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem};
