@@ -14,6 +14,7 @@ function OptionRowFreeTrial({reportID}: {reportID: string}) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [onboardingPurpose] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true, selector: onboardingPurposeSelector});
 
+    // TODO the check here is expensive and unnecessary for 99% of cases, we need to think how to make this check more effivient
     const isChatForOnboarding = isChatUsedForOnboarding(report, onboardingPurpose);
 
     if (!isChatForOnboarding) {

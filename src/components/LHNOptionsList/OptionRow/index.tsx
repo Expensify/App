@@ -12,6 +12,7 @@ import useIsReportUnread from './hooks/useIsReportUnread';
 import useOptionAlternateText from './hooks/useOptionAlternateText';
 import useOptionName from './hooks/useOptionName';
 import Hoverable from './Hoverable';
+import Provider from './Provider';
 import Wrapper from './Wrapper';
 
 type Props = {
@@ -30,42 +31,33 @@ function OptionRow({reportID, onSelectRow}: Props) {
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
     return (
-        <Wrapper
-            reportID={reportID}
-            onSelectRow={onSelectRow}
-        >
-            <Hoverable
+        <Provider>
+            <Wrapper
                 reportID={reportID}
-                isOptionFocused={false}
-                reportName={reportName}
-                isUnread={isUnread}
-                alternateText={alternateText}
                 onSelectRow={onSelectRow}
             >
-                <Body>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <Avatars
-                            reportID={reportID}
-                            isHovered={false}
-                            isFocused={false}
-                        />
-                        <View style={contentContainerStyles}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                <DisplayNames
-                                    reportID={reportID}
-                                    isFocused={false}
-                                />
-                                <FreeTrial reportID={reportID} />
-                                <AlternateText
-                                    isFocused={false}
-                                    text={alternateText}
-                                />
+                <Hoverable
+                    reportID={reportID}
+                    reportName={reportName}
+                    isUnread={isUnread}
+                    alternateText={alternateText}
+                    onSelectRow={onSelectRow}
+                >
+                    <Body>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Avatars reportID={reportID} />
+                            <View style={contentContainerStyles}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                    <DisplayNames reportID={reportID} />
+                                    <FreeTrial reportID={reportID} />
+                                    <AlternateText text={alternateText} />
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </Body>
-            </Hoverable>
-        </Wrapper>
+                    </Body>
+                </Hoverable>
+            </Wrapper>
+        </Provider>
     );
 }
 

@@ -1,9 +1,6 @@
-import React from 'react';
+import React, {use} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
-import useDisplayNamesWithTooltips from '@components/LHNOptionsList/OptionRowLHNDataNew/hooks/useDisplayNamesWithTooltips';
-import useIsReportUnread from '@components/LHNOptionsList/OptionRowLHNDataNew/hooks/useIsReportUnread';
-import useOptionName from '@components/LHNOptionsList/OptionRowLHNDataNew/hooks/useOptionName';
 import useIsArchived from '@hooks/useIsArchived';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,10 +10,21 @@ import {getReportNotificationPreference, isChatRoom, isGroupChat, isInvoiceRepor
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import useDisplayNamesWithTooltips from './hooks/useDisplayNamesWithTooltips';
+import useIsReportUnread from './hooks/useIsReportUnread';
+import useOptionName from './hooks/useOptionName';
+import {OptionRowContext} from './Provider';
 
 const notificationPreferenceSelector = (report: OnyxEntry<Report>) => getReportNotificationPreference(report);
 
-function OptionRowLHNDisplayNames({reportID, isFocused}: {reportID: string; isFocused: boolean}) {
+type Props = {
+    reportID: string;
+};
+
+function OptionRowLHNDisplayNames({reportID}: Props) {
+    const {
+        state: {isFocused},
+    } = use(OptionRowContext);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
