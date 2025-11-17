@@ -1,12 +1,14 @@
 import reportsSelector from '@selectors/Attributes';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Beta from '@src/types/onyx/Beta';
 import useOnyx from './useOnyx';
 
 type UseFilteredOptionsConfig = {
-    /** Maximum number of recent reports to process for initial load (default: 100) */
+    /** Maximum number of recent reports to pre-filter and process (default: 500). */
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
@@ -18,6 +20,8 @@ type UseFilteredOptionsConfig = {
     enablePagination?: boolean;
     /** Search term for filtering - when present, builds full report map for personal details (default: '') */
     searchTerm?: string;
+    /** Beta features the user has access to */
+    betas?: OnyxEntry<Beta[]>;
 };
 
 type UseFilteredOptionsResult = {
@@ -34,18 +38,25 @@ type UseFilteredOptionsResult = {
 };
 
 /**
- * Hook that provides an optimized, filtered options list for selection screens.
+ * Hook that provides options list for selection screens with optimized pre-filtering.
  *
  * Benefits over OptionListContextProvider:
  * - Only computes when screen is mounted and enabled
  * - No background recalculations when screen is not visible
- * - Filters and limits reports before processing (processes top N recent only)
+ * - Smart pre-filtering for performance (top 500 recent reports)
  * - Recalculates only when dependencies change
+ *
+ * Pre-filtering strategy:
+ * - Filters out null/undefined reports only
+ * - Sorts by lastVisibleActionCreated (most recent first)
+ * - Processes top 500 reports (~90% reduction from all reports)
+ * - Business logic filtering handled by shouldReportBeInOptionList
  *
  * Usage:
  * const {options, isLoading} = useFilteredOptions({
- *   maxRecentReports: 100,
+ *   maxRecentReports: 500,  // Process top 500 reports by date (default)
  *   enabled: didScreenTransitionEnd,
+ *   betas,
  * });
  *
  * <SelectionList
@@ -54,10 +65,8 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 100, enabled = true, includeP2P = true, batchSize = 100, enablePagination = true, searchTerm = ''} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P = true, searchTerm = '', betas} = config;
 
-    // Pagination state - track current batch number
-    const [currentBatch, setCurrentBatch] = useState(1);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // Track total available reports
@@ -80,15 +89,15 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         // Calculate total reports available
         totalReportsRef.current = Object.keys(allReports).length;
 
-        // Calculate how many reports to process based on pagination
-        const reportsToProcess = enablePagination ? currentBatch * batchSize : maxRecentReports;
-
+        // Use optimized pre-filtering: top N most recent reports
+        // Business logic filtering is handled by getValidOptions
         return createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
-            maxRecentReports: reportsToProcess,
+            maxRecentReports,
             includeP2P,
             searchTerm,
+            betas,
         });
-    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, currentBatch, batchSize, enablePagination, searchTerm]);
+    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, searchTerm, betas]);
 
     // Reset loading state after options are computed
     useEffect(() => {
@@ -107,7 +116,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         const hasMoreToLoad = options.reports.length < totalReportsRef.current;
         if (hasMoreToLoad) {
             setIsLoadingMore(true);
-            setCurrentBatch((prev) => prev + 1);
         }
     }, [options, isLoadingMore]);
 

@@ -77,12 +77,13 @@ function useOptions() {
         hasMore,
         isLoadingMore,
     } = useFilteredOptions({
-        maxRecentReports: 100,
+        maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
         searchTerm: debouncedSearchTerm,
+        betas,
     });
 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
