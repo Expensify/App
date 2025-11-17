@@ -28,10 +28,10 @@ function useIsBlockedToAddFeed(policyID?: string) {
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useCardsList(policyID, selectedFeed);
+    const [cardsList] = useCardsList(selectedFeed);
     const [prevCompanyFeedsLength, setPrevCompanyFeedsLength] = useState(0);
 
-    const isLoading = !cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)) || !!defaultFeed?.isLoading;
+    const isLoading = !cardFeeds || (!!defaultFeed?.isLoading && isEmptyObject(cardsList));
 
     useEffect(() => {
         if (isLoading) {

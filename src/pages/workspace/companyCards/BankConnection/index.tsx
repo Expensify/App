@@ -3,13 +3,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {PendingBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -54,6 +54,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
     const prevFeedsData = usePrevious(cardFeeds);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
@@ -217,7 +218,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!isPlaid && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds) {
             return (
                 <BlockingView
-                    icon={PendingBank}
+                    icon={illustrations.PendingBank}
                     iconWidth={styles.pendingBankCardIllustration.width}
                     iconHeight={styles.pendingBankCardIllustration.height}
                     title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
