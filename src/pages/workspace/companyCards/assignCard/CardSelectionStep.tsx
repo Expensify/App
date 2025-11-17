@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -29,7 +29,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT>;
 
@@ -39,16 +39,16 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const illustrations = useThemeIllustrations();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
     const policyID = route.params?.policyID;
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -66,7 +66,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(feed, illustrations)}
+                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}

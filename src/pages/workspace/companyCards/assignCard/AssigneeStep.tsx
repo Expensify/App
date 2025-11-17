@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -43,10 +43,10 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
-    const [list] = useCardsList(policy?.id, feed);
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
+    const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
 
