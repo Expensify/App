@@ -58,7 +58,7 @@ function checkFile(filePath: string): Violation[] {
         const content = fs.readFileSync(filePath, 'utf-8');
         const lines = content.split('\n');
 
-        lines.forEach((line, index) => {
+        for (const [index, line] of lines.entries()) {
             const lineNumber = index + 1;
 
             for (const check of IMPORT_CHECKS) {
@@ -72,7 +72,7 @@ function checkFile(filePath: string): Violation[] {
                     });
                 }
             }
-        });
+        }
     } catch (error) {
         console.warn(`⚠️  Warning: Could not read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -103,10 +103,10 @@ async function main() {
 
     console.log(`Checking ${files.length} files for lazy loading violations...\n`);
 
-    files.forEach((file) => {
+    for (const file of files) {
         const violations = checkFile(file);
         allViolations.push(...violations);
-    });
+    }
 
     if (allViolations.length === 0) {
         console.log('✅ No lazy loading violations found! All icons and illustrations are using lazy loading.');
@@ -115,21 +115,21 @@ async function main() {
 
     // Group violations by file
     const violationsByFile = new Map<string, Violation[]>();
-    allViolations.forEach((violation) => {
+    for (const violation of allViolations) {
         const existing = violationsByFile.get(violation.file) ?? [];
         existing.push(violation);
         violationsByFile.set(violation.file, existing);
-    });
+    }
 
-    violationsByFile.forEach((violations, file) => {
+    for (const [file, violations] of violationsByFile.entries()) {
         console.error(`\n📄 ${file}`);
-        violations.forEach((violation) => {
+        for (const violation of violations) {
             const iconType = violation.type === 'illustration' ? 'Illustration' : 'Expensify Icon';
             console.error(`   Line ${violation.line}: ${iconType} import detected`);
             console.error(`   ❌ ${violation.content}`);
             console.error(`   ✅ ${violation.suggestedFix}`);
-        });
-    });
+        }
+    }
 
     console.error(`\n❌ Found ${allViolations.length} lazy loading violation(s) in ${violationsByFile.size} file(s):\n`);
     console.error(`\n\n💡 For migration help, see: docs/LAZY_ICONS_AND_ILLUSTRATIONS.md`);
