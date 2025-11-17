@@ -6,6 +6,7 @@ import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, innerRHPProgress, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
@@ -49,18 +50,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     } = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const styles = useThemeStyles();
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
         outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
     });
 
-    const animatedStyle = useMemo(() => {
+    const animatedWidthStyle = useMemo(() => {
         return {
-            height: '100%',
-            right: 0,
-            position: 'absolute',
-            overflow: 'hidden',
             width: shouldUseNarrowLayout ? '100%' : animatedWidth,
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
@@ -103,7 +101,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View style={[animatedStyle]}>
+                <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}

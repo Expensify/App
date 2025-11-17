@@ -39,7 +39,7 @@ type WideRHPContextType = {
     // Check if reportID is marked as expense
     isReportIDMarkedAsExpense: (reportID: string) => boolean;
 
-    // Navigate to the first visible RHP 
+    // Navigate to the first visible RHP
     dismissToFirstRHP: () => void;
 
     // Navigate to the second visible RHP
