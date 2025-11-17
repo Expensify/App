@@ -53,10 +53,19 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
     );
     const selectedOptionKey = useMemo(() => sections.find((option) => option.searchText === fieldValue)?.keyForList, [sections, fieldValue]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+        }),
+        [searchValue, translate, setSearchValue],
+    );
+
     return (
         <SelectionList
             data={sections}
-            textInputOptions={{value: searchValue, label: translate('common.search'), onChangeText: setSearchValue}}
+            textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey}
