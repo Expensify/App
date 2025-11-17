@@ -64,20 +64,6 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
-function areFullScreenRoutesEqual(matchingFullScreenRoute: NavigationPartialRoute, lastFullScreenRoute: NavigationPartialRoute) {
-    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-    const lastRouteInLastFullScreenRoute = lastFullScreenRoute.state?.routes?.at(-1);
-
-    // We need to perform a manual check here, since it's possible to open the `WorkspaceRestrictedActionPage` via the FAB while still on the Settings page.
-    if (lastRouteInMatchingFullScreen?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
-        return false;
-    }
-
-    const isEqualFullScreenRoute = matchingFullScreenRoute.name === lastFullScreenRoute.name;
-
-    return isEqualFullScreenRoute;
-}
-
 function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
 
@@ -156,8 +142,13 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-
-            if (matchingFullScreenRoute && lastFullScreenRoute && !areFullScreenRoutesEqual(matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+            const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
+            if (
+                matchingFullScreenRoute &&
+                lastFullScreenRoute &&
+                (matchingFullScreenRoute.name !== lastFullScreenRoute.name ||
+                    (newFocusedRoute.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT))
+            ) {
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
