@@ -14,7 +14,7 @@ index 8c4160c..1038c91 100644
  export declare class S3BuildCache implements RemoteBuildCache {
      name: string;
 diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
-index 1d9331b..813abcd 100644
+index 1d9331b..1e794b9 100644
 --- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
 +++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
 @@ -49,6 +49,18 @@ export class S3BuildCache {
@@ -36,3 +36,37 @@ index 1d9331b..813abcd 100644
          this.s3 = new clientS3.S3Client(s3Config);
          const awsBucket = config.bucket ?? '';
          const bucketTokens = awsBucket.split('/');
+@@ -98,15 +110,24 @@ export class S3BuildCache {
+         return results;
+     }
+     async download({ artifactName, }) {
+-        const res = await this.s3.send(new clientS3.GetObjectCommand({
+-            Bucket: this.bucket,
+-            Key: `${this.directory}/${artifactName}.zip`,
+-        }));
+-        return new Response(toWebStream(res.Body), {
+-            headers: {
+-                'content-length': String(res.ContentLength),
+-            },
+-        });
++        try{
++            const res = await this.s3.send(new clientS3.GetObjectCommand({
++                Bucket: this.bucket,
++                Key: `${this.directory}/${artifactName}.zip`,
++            }));
++            return new Response(toWebStream(res.Body), {
++                headers: {
++                    'content-length': String(res.ContentLength),
++                },
++            });
++        }
++        catch(error){
++            if(this.config.publicAccess){
++                // Avoid misleading Access Denied error message
++                error.message = `Build not found or not accessible to the public`;
++            }
++            throw error;
++        }
+     }
+     async delete({ artifactName, skipLatest, }) {
+         if (skipLatest) {
