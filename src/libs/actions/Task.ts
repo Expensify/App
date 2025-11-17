@@ -1083,7 +1083,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): stri
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
-function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean, currentUserAccountID: number, ancestors: ReportUtils.Ancestor[] = []) {
+function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean, currentUserAccountID: number) {
     if (!report) {
         return;
     }
@@ -1157,12 +1157,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        optimisticParentReportData.forEach((parentReportData) => {
+        for (const parentReportData of optimisticParentReportData) {
             if (isEmptyObject(parentReportData)) {
-                return;
+                continue;
             }
             optimisticData.push(parentReportData);
-        });
+        }
     }
 
     const successData: OnyxUpdate[] = [

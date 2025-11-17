@@ -22,7 +22,6 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -210,7 +209,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
-    const ancestors = useAncestors(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
@@ -810,7 +808,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
+            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
             return;
         }
 
@@ -839,7 +837,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
-        ancestors,
         caseID,
         requestParentReportAction,
         report,
