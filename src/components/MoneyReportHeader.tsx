@@ -552,6 +552,8 @@ function MoneyReportHeader({
             return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
+        // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
+        // This prevents displaying an empty message.
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
