@@ -83,7 +83,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        if (splitExpenseTransactionID) {
+            return transactionDetails.amount > 0 ? -transactionDetails.amount : Math.abs(transactionDetails.amount);
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails?.amount, splitExpenseTransactionID]);
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
