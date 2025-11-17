@@ -506,8 +506,8 @@ class TranslationGenerator {
         let keyBase = node
             .getText()
             .trim()
-            .replace(/^['"`]/, '')
-            .replace(/['"`]$/, '');
+            .replaceAll(/^['"`]/g, '')
+            .replaceAll(/['"`]$/g, '');
 
         const context = this.getContextForNode(node);
         if (context) {

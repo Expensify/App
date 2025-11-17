@@ -161,7 +161,7 @@ type MiniReport = {
 };
 
 function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+    return text.replaceAll(CONST.REGEX.WHITESPACE, ' ').trim();
 }
 
 function shouldDisplayReportInLHN(
