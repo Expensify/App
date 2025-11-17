@@ -23,7 +23,7 @@ class RenderTaskQueue {
         this.renderInfos.push(info);
 
         if (!this.isRendering && startRendering) {
-            this.render();
+            this.renderWithDelay();
         }
     }
 
@@ -31,7 +31,7 @@ class RenderTaskQueue {
         if (this.isRendering) {
             return;
         }
-        this.render();
+        this.renderWithDelay();
     }
 
     setHandler(handler: (info: RenderInfo) => void) {
@@ -47,6 +47,12 @@ class RenderTaskQueue {
         this.onIsRenderingChange?.(false);
     }
 
+    private renderWithDelay() {
+        this.timeout = setTimeout(() => {
+            this.render();
+        }, RENDER_DELAY);
+    }
+
     private render() {
         const info = this.renderInfos.shift();
         if (!info) {
@@ -59,9 +65,7 @@ class RenderTaskQueue {
 
         this.handler?.(info);
 
-        this.timeout = setTimeout(() => {
-            this.render();
-        }, RENDER_DELAY);
+        this.renderWithDelay();
     }
 }
 
