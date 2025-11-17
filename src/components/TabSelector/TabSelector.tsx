@@ -42,7 +42,7 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt', 'User', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'User', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
