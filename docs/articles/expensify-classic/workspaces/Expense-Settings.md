@@ -52,7 +52,7 @@ If your **Group Workspace** integrates with Xero, QuickBooks Online, NetSuite, o
 Expensify generates **eReceipts**, which are digital replacements for receipts of **$75 or less** for credit card transactions.
 
 - **Enabled** – Expensify will generate eReceipts for all US-based card transactions up to $75.
-- **Disabled** – No eReceipts will be generated.
+- **Disabled** – No eReceipts will be generated. Please note that disabling **eReceipts** after enabling them will make existing eReceipts disappear. Simply enable **eReceipts** again to bring them back.
 
 **Note:** Expensify does not generate eReceipts for lodging expenses.
 
