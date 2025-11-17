@@ -4,9 +4,9 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +18,7 @@ function MFABiometricsTestPage() {
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.dismissModal();
     const {process} = useMultifactorAuthenticationContext();
+    const illustrations = useMemoizedLazyIllustrations(['OpenPadlock'] as const);
 
     return (
         <ScreenWrapper testID={MFABiometricsTestPage.displayName}>
@@ -29,7 +30,7 @@ function MFABiometricsTestPage() {
             <FullPageOfflineBlockingView>
                 <View style={styles.flex1}>
                     <BlockingView
-                        icon={Illustrations.OpenPadlock}
+                        icon={illustrations.OpenPadlock}
                         contentFitImage="fill"
                         iconWidth={variables.openPadlockWidth}
                         iconHeight={variables.openPadlockHeight}

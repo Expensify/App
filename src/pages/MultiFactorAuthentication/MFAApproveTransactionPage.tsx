@@ -49,7 +49,7 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        // TODO: Niewiadomo jaki tu jest scenariusz de facto
+        // TODO: We do not know what scenario is set here
         trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FAILURE, 'authorize-transaction-denied');
         // MFAdenyTransaction(); // TODO: Create a trigger responsible for failure
         // onGoBackPress();

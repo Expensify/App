@@ -1,16 +1,22 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+// MFA Illustrations
+import OpenPadlock from '@assets/images/open-padlock.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
+import RunOutOfTime from '@assets/images/running-out-of-time.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -18,9 +24,11 @@ import Building from '@assets/images/simple-illustrations/simple-illustration__b
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
+import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
@@ -30,6 +38,7 @@ import PerDiem from '@assets/images/simple-illustrations/simple-illustration__pe
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import SmartScanMock from '@assets/images/simple-illustrations/simple-illustration__smartscan_mock_for_testing.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -73,7 +82,18 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    LockClosed,
     Luggage,
+
+    // MFA Illustrations
+    OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
+    RunOutOfTime,
+    HumptyDumpty,
+    EncryptionMan,
+    SmartScanMock,
+
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
 };

@@ -1,10 +1,10 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 // import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import type {TranslationPaths} from '@src/languages/types';
 
 type MFAPromptContentProps = {
@@ -15,12 +15,13 @@ type MFAPromptContentProps = {
 
 function MFAPromptContent({title, subtitle}: MFAPromptContentProps) {
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['SmartScanMock'] as const);
     const {translate} = useLocalize();
 
     return (
         <View style={styles.flex1}>
             <BlockingView
-                icon={Illustrations.SmartScanMock}
+                icon={illustrations.SmartScanMock}
                 iconWidth={204}
                 iconHeight={204}
                 // animation={animation}    // TODO: Bring back the animation instead of mock image
