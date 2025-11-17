@@ -1247,7 +1247,7 @@ function createFilteredOptionList(
         betas?: OnyxEntry<Beta[]>;
     } = {},
 ) {
-    const {maxRecentReports = 500, includeP2P = true, searchTerm = '', betas = []} = options;
+    const {maxRecentReports = 500, includeP2P = true, searchTerm = ''} = options;
     const reportMapForAccountIDs: Record<number, Report> = {};
 
     // Step 1: Pre-filter reports to avoid processing thousands
@@ -1260,13 +1260,16 @@ function createFilteredOptionList(
     const sortedReports = reportsArray.sort((a, b) => {
         const aTime = a.lastVisibleActionCreated ?? '';
         const bTime = b.lastVisibleActionCreated ?? '';
-        if (bTime > aTime) return -1;
-        if (bTime < aTime) return 1;
+        if (bTime > aTime) {
+            return -1;
+        }
+        if (bTime < aTime) {
+            return 1;
+        }
         return 0;
     });
 
     // Step 3: Limit to top N reports (default 500)
-    // Balances performance (~90% reduction from 5000) with correctness (enough for 5 in "Recents")
     const limitedReports = sortedReports.slice(0, maxRecentReports);
 
     // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
