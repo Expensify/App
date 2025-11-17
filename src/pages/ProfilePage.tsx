@@ -7,7 +7,7 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -66,6 +66,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Phone', 'Bug'] as const);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
@@ -253,7 +254,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 shouldShowRightIcon
                                 title={translate('common.editYourProfile')}
-                                icon={Expensicons.Pencil}
+                                icon={icons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />
                         )}
@@ -269,7 +270,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
+                                icon={icons.Pencil}
                                 onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -279,7 +280,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
-                                icon={Expensicons.Phone}
+                                icon={icons.Phone}
                                 isAnonymousAction={false}
                                 onPress={callFunctionIfActionIsAllowed(() => {
                                     openExternalLink(guideCalendarLink);
@@ -289,7 +290,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
+                                icon={icons.Bug}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />

@@ -4881,7 +4881,7 @@ function deleteAppReport(reportID: string | undefined) {
 
     let selfDMReportID = getSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
-    let selfDMCreatedReportActionID: string;
+    let selfDMCreatedReportActionID: string | undefined;
     let createdAction: ReportAction;
 
     if (!selfDMReport) {

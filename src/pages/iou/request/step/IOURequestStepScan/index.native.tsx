@@ -22,7 +22,7 @@ import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -105,6 +105,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash'] as const);
     const {isBetaEnabled} = usePermissions();
     const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const device = useCameraDevice('back', {
@@ -853,7 +854,7 @@ function IOURequestStepScan({
                                                 <Icon
                                                     height={16}
                                                     width={16}
-                                                    src={Expensicons.Bolt}
+                                                    src={icons.Bolt}
                                                     fill={flash ? theme.white : theme.icon}
                                                 />
                                             </PressableWithFeedback>
@@ -909,7 +910,7 @@ function IOURequestStepScan({
                                 <Icon
                                     height={32}
                                     width={32}
-                                    src={Expensicons.Gallery}
+                                    src={icons.Gallery}
                                     fill={theme.textSupporting}
                                 />
                             </PressableWithFeedback>
@@ -939,7 +940,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.ReceiptMultiple}
+                                src={icons.ReceiptMultiple}
                                 fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                             />
                         </PressableWithFeedback>
@@ -954,7 +955,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                                src={flash ? icons.Bolt : icons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
