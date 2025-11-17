@@ -131,18 +131,18 @@ function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Reco
 
 function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>, fieldsMap: CorpayFieldsMap, translate: LocaleContextProps['translate']) {
     const errors = {};
-    Object.entries(fieldsMap).forEach(([fieldName, field]) => {
+    for (const [fieldName, field] of Object.entries(fieldsMap)) {
         if (field.isRequired && values[fieldName] === '') {
             addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
-            return;
+            continue;
         }
-        field.validationRules.forEach((rule) => {
+        for (const rule of field.validationRules) {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName])) {
                 addErrorMessage(errors, fieldName, rule.errorMessage);
             }
-        });
-    });
+        }
+    }
     return errors;
 }
 
