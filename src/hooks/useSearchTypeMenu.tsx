@@ -152,7 +152,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 if (section.translationPath === 'search.savedSearchesMenuItemTitle') {
                     sectionItems.push(...savedSearchesMenuItems);
                 } else {
-                    section.menuItems.forEach((item, itemIndex) => {
+                    for (const [itemIndex, item] of section.menuItems.entries()) {
                         const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                         const flattenedIndex = previousItemCount + itemIndex;
                         const isSelected = flattenedIndex === activeItemIndex;
@@ -172,7 +172,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });
-                    });
+                    }
                 }
 
                 return sectionItems;
