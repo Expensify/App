@@ -1653,6 +1653,15 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if an invoice report's receiver matches a given participant.
+ * Used to validate that an invoice chat report corresponds to the correct recipient
+ * when the recipient may have been changed (e.g., while offline).
+ */
+function doesReportReceiverMatchParticipant(report: OnyxEntry<Report>, receiverParticipantAccountID: number | undefined): boolean {
+    return !!(report?.invoiceReceiver && receiverParticipantAccountID && 'accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverParticipantAccountID);
+}
+
+/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -12770,6 +12779,7 @@ export {
     isCompletedTaskReport,
     isConciergeChatReport,
     isControlPolicyExpenseChat,
+    doesReportReceiverMatchParticipant,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
