@@ -5994,6 +5994,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return {};
             }
+            const customUnitParams = isDistanceRequestTransactionUtils(transaction)
+                ? {
+                      customUnitID: getDistanceRateCustomUnit(policyParams?.policy)?.customUnitID,
+                      customUnitRateID,
+                  }
+                : {};
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
@@ -6005,9 +6011,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
-                          customUnitID: getDistanceRateCustomUnit(policyParams?.policy)?.customUnitID,
-                          customUnitRateID,
                           reimbursable,
+                          ...customUnitParams,
                       }
                     : undefined;
             convertTrackedExpenseToRequest({
