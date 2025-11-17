@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {use} from 'react';
 import Text from '@components/Text';
 import useIsInFocusMode from '@hooks/useIsInFocusMode';
 import useLocalize from '@hooks/useLocalize';
@@ -6,8 +6,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
+import {OptionRowContext} from './Provider';
 
-function OptionRowAlternateText({isFocused, text}: {isFocused: boolean; text: string}) {
+type Props = {
+    text: string;
+};
+
+function OptionRowAlternateText({text}: Props) {
+    const {
+        state: {isFocused},
+    } = use(OptionRowContext);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isInFocusMode = useIsInFocusMode();

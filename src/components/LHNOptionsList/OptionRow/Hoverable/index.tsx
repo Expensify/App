@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{use} from 'react';
 import Hoverable from '@components/Hoverable';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import useLocalize from '@hooks/useLocalize';
@@ -7,18 +7,19 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import usePressableInteractions from './hooks/usePressableInteractions';
+import { OptionRowContext } from '../Provider';
 
 type OptionRowLHNDataHoverableProps = {
     reportID: string;
     reportName: string;
     isUnread: boolean;
     alternateText: string;
-    isOptionFocused: boolean;
     children: React.ReactNode;
     onSelectRow: (reportID: string) => void;
 };
 
-function OptionRowLHNDataHoverable({reportID, reportName, isUnread, alternateText, isOptionFocused, onSelectRow, children}: OptionRowLHNDataHoverableProps) {
+function OptionRowLHNDataHoverable({reportID, reportName, isUnread, alternateText, onSelectRow, children}: OptionRowLHNDataHoverableProps) {
+    const {state: {isFocused}} = use(OptionRowContext);
     const {translate} = useLocalize();
     const {onMouseDown, onSecondaryInteraction} = usePressableInteractions();
     const styles = useThemeStyles();
@@ -42,8 +43,8 @@ function OptionRowLHNDataHoverable({reportID, reportName, isUnread, alternateTex
                         styles.sidebarLink,
                         styles.sidebarLinkInnerLHN,
                         StyleUtils.getBackgroundColorStyle(theme.sidebar),
-                        isOptionFocused ? styles.sidebarLinkActive : null,
-                        hovered && !isOptionFocused ? styles.sidebarLinkHover : null,
+                        isFocused ? styles.sidebarLinkActive : null,
+                        hovered && !isFocused ? styles.sidebarLinkHover : null,
                     ]}
                 >
                     {children}

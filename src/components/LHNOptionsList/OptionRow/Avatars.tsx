@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {use} from 'react';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import useIsArchived from '@hooks/useIsArchived';
 import useIsInFocusMode from '@hooks/useIsInFocusMode';
@@ -6,8 +6,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import { OptionRowContext } from './Provider';
 
-function OptionRowLHNAvatars({reportID, isHovered, isFocused}: {reportID: string; isHovered: boolean; isFocused: boolean}) {
+type Props = {
+    reportID: string;
+};
+
+function OptionRowLHNAvatars({reportID}: Props) {
+    const { state: { isFocused, isHovered }  } = use(OptionRowContext);
     const isInFocusMode = useIsInFocusMode();
     const styles = useThemeStyles();
     const theme = useTheme();
