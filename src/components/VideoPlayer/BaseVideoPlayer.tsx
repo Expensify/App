@@ -82,6 +82,7 @@ function BaseVideoPlayer({
     }));
 
     /* eslint-disable no-param-reassign */
+    // According to the library docs, the player is configured by mutating the provided instance
     const videoPlayerRef = useRef<VideoPlayer>(
         useVideoPlayer(sourceURL, (player) => {
             player.loop = isLooping;
