@@ -187,7 +187,7 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
     }
 
     let attachmentID = 0;
-    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    return html.replaceAll(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -1989,7 +1989,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
-    const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const mentions = mentionElements.join(', ').replaceAll(/, ([^,]*)$/g, ' and $1');
     const postMentionsText = ` ${mentionElements.length > 1 ? "aren't members" : "isn't a member"} of this room.`;
 
     return `${preMentionsText}${mentions}${postMentionsText}`;
@@ -3054,7 +3054,7 @@ function getActionableCardFraudAlertMessage(
     const merchant = fraudMessage?.triggerMerchant ?? '';
     const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
     const resolution = fraudMessage?.resolution;
-    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
+    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replaceAll(/am|pm/gi, (match) => match.toUpperCase()) : '';
 
     if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -52,10 +52,10 @@ describe('CountryUtils', () => {
                 {name: 'Russia', code: 'RU'},
             ];
 
-            testCases.forEach(({name, code}) => {
+            for (const {name, code} of testCases) {
                 expect(getCountryCode(name)).toBe(code);
                 expect(getCountryCode(code)).toBe(code);
-            });
+            }
         });
     });
 
@@ -97,11 +97,11 @@ describe('CountryUtils', () => {
                 {input: 'Australia', expected: 'AU'},
             ];
 
-            testCases.forEach(({input, expected}) => {
+            for (const {input, expected} of testCases) {
                 const data = {street: '789 Test St', city: 'Test City', country: input} as unknown as Address;
                 const result = normalizeCountryCode(data);
                 expect(result?.country).toBe(expected);
-            });
+            }
         });
 
         it('should preserve invalid country values', () => {

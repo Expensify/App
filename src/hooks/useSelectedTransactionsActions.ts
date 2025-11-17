@@ -163,15 +163,16 @@ function useSelectedTransactionsActions({
 
         let canHoldTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport;
-        selectedTransactionsList.forEach((selectedTransaction) => {
+
+        for (const selectedTransaction of selectedTransactionsList) {
             if (!canHoldTransactions && !canUnholdTransactions) {
-                return;
+                continue;
             }
 
             if (!selectedTransaction?.transactionID) {
                 canHoldTransactions = false;
                 canUnholdTransactions = false;
-                return;
+                continue;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
@@ -179,7 +180,7 @@ function useSelectedTransactionsActions({
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
-        });
+        }
 
         if (canHoldTransactions) {
             options.push({
@@ -201,13 +202,13 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
-                    selectedTransactionIDs.forEach((transactionID) => {
+                    for (const transactionID of selectedTransactionIDs) {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
-                            return;
+                            continue;
                         }
                         unholdRequest(transactionID, action?.childReportID);
-                    });
+                    }
                     clearSelectedTransactions(true);
                 },
             });
