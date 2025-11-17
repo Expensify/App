@@ -115,9 +115,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             return membersList;
         }
 
-        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
@@ -137,7 +137,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                     },
                 ],
             });
-        });
+        }
 
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 

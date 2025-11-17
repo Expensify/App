@@ -601,7 +601,7 @@ function IOURequestStepScan({
             return;
         }
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const transaction =
                 !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
@@ -614,7 +614,7 @@ function IOURequestStepScan({
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
             setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
-        });
+        }
 
         if (shouldSkipConfirmation) {
             setReceiptFiles(newReceiptFiles);

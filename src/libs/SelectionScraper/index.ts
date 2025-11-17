@@ -91,9 +91,9 @@ const getHTMLOfSelection = (): string => {
     const divsToRemove = div.querySelectorAll(`[data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}=true]`);
 
     if (divsToRemove && divsToRemove.length > 0) {
-        divsToRemove.forEach((element) => {
+        for (const element of divsToRemove) {
             element.remove();
-        });
+        }
     }
 
     return div.innerHTML;

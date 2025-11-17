@@ -28,12 +28,12 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
 
-            formInputs.forEach((formInput) => {
+            for (const formInput of formInputs) {
                 if (formValues[formInput]) {
-                    return;
+                    continue;
                 }
                 addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
-            });
+            }
             return errors;
         },
         [formInputs, translate],
