@@ -101,6 +101,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             shouldShowRightCaret={isLargeScreenWidth}
+            shouldUseDefaultRightHandSideCheckmark={false}
         >
             {(hovered) => (
                 <ExpenseReportListItemRow
