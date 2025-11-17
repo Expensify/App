@@ -33,13 +33,13 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+    for (const [rateID, rate] of Object.entries(distanceUnit.rates)) {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
-            return;
+            continue;
         }
 
         if (!distanceUnit.attributes) {
-            return;
+            continue;
         }
 
         mileageRates[rateID] = {
@@ -50,7 +50,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
         };
-    });
+    }
 
     return mileageRates;
 }
@@ -168,7 +168,7 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
     }
 
@@ -335,7 +335,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rate = customUnitRate?.rate ?? CONST.DEFAULT_NUMBER_ID;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID;
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 1;
     return amount * taxClaimablePercentage;
 }
 
