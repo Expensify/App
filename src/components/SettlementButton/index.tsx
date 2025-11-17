@@ -34,7 +34,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {getSettlementButtonPaymentMethods, handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
+import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
@@ -107,6 +107,7 @@ function SettlementButton({
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const lastPaymentMethod = useMemo(() => {
@@ -227,7 +228,6 @@ function SettlementButton({
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
 
         const shortFormPayElsewhereButton = {
             text: translate('iou.pay'),
@@ -373,6 +373,7 @@ function SettlementButton({
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
+        paymentMethods,
         isLoadingLastPaymentMethod,
         iouReport,
         translate,

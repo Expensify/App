@@ -1,5 +1,6 @@
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import Log from './Log';
@@ -83,25 +84,31 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
 /**
  * Retrieves SettlementButton payment methods.
  */
-const getSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
-    return {
-        [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-            text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: Expensicons.User,
-            value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-        },
-        [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-            text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: Expensicons.Building,
-            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-        },
-        [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-            text: translate('iou.payElsewhere', {formattedAmount: ''}),
-            icon: Expensicons.CheckCircle,
-            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            shouldUpdateSelectedIndex: false,
-        },
-    };
+const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
+
+    const paymentMethods = useMemo(() => {
+        return {
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                icon: icons.User,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusiness', {formattedAmount: ''}),
+                icon: icons.Building,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            },
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                icon: icons.CheckCircle,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                shouldUpdateSelectedIndex: false,
+            },
+        };
+    }, [hasActivatedWallet, translate, icons]);
+
+    return paymentMethods;
 };
 
-export {handleUnvalidatedUserNavigation, getSettlementButtonPaymentMethods};
+export {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods};
