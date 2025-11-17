@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import useOnyx from '@hooks/useOnyx';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +10,7 @@ import Text from './Text';
 
 function CardPreview() {
     const styles = useThemeStyles();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -21,7 +22,7 @@ function CardPreview() {
         <View style={styles.walletCard}>
             <ImageSVG
                 contentFit="contain"
-                src={ExpensifyCardImage}
+                src={lazyIllustrations.ExpensifyCardImage}
                 pointerEvents="none"
                 height={variables.cardPreviewHeight}
                 width={variables.cardPreviewWidth}

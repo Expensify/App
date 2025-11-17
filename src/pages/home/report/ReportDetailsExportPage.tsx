@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass'] as const);
 
     const iconToDisplay = getIntegrationIcon(connectionName);
     const canBeExported = canBeExportedUtil(report);
@@ -89,7 +91,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.LaptopWithSecondScreenAndHourglass}
+                    illustration={lazyIllustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
                     shouldShowButton

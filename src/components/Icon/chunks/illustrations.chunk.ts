@@ -4,13 +4,24 @@ import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
+// Educational Illustrations
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
+// Other Images
+import Hand from '@assets/images/hand.svg';
+import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
+import Shutter from '@assets/images/shutter.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -41,7 +52,9 @@ const Illustrations = {
 
     // Other assets
     Computer,
+    EmptyCardState,
     ExpensifyCardImage,
+    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
 
@@ -51,6 +64,17 @@ const Illustrations = {
     // Product Illustrations
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
+
+    // Educational Illustrations
+    MultiScan,
+
+    // Other Images
+    Hand,
+    ReceiptUpload,
+    RunningTurtle,
+    Shutter,
+    ExpensifyApprovedLogo,
+    TurtleInShell,
 
     // Simple Illustrations
     Accounting,

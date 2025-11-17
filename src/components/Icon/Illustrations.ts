@@ -23,10 +23,7 @@ import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
-import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -51,7 +48,6 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
-import RunningTurtle from '@assets/images/running-turtle.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -111,8 +107,6 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
-import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
@@ -122,10 +116,8 @@ export {
     PinkCar,
     Computer,
     EmailAddress,
-    EmptyCardState,
     EmptyStateExpenses,
     EnvelopeReceipt,
-    ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     Mailbox,
@@ -139,7 +131,6 @@ export {
     ShieldYellow,
     BrokenCompanyCardBankConnection,
     CreditCardsNewGreen,
-    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LockOpen,
@@ -184,7 +175,6 @@ export {
     Stopwatch,
     SubscriptionAnnual,
     SubscriptionPPU,
-    ExpensifyApprovedLogo,
     SendMoney,
     CheckmarkCircle,
     CreditCardEyes,
@@ -193,12 +183,10 @@ export {
     VirtualCard,
     Tire,
     Filters,
-    RunningTurtle,
     CompanyCardsPendingState,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
-    TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,
     CapitalOneCompanyCardDetail,

@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,6 +83,7 @@ function ApproverSelectionList({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell'] as const);
 
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
@@ -127,7 +129,7 @@ function ApproverSelectionList({
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TurtleInShell}
+                icon={lazyIllustrations.TurtleInShell}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workflowsPage.emptyContent.title')}
