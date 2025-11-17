@@ -1,7 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+// import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,8 +11,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionListWithSections';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -55,7 +55,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
+    const {listRef, viewRef, footerRef, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -226,7 +226,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const [sections] = useMemo(() => {
+    const options = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -273,9 +273,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             };
         });
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return [newSections];
+        return items;
     }, [
         transaction,
         draftTransaction?.comment?.splitExpenses,
@@ -288,6 +286,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         getTranslatedText,
     ]);
+
+    const initiallyFocusedOptionKey = useMemo(() => options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList, [options, splitExpenseTransactionID]);
 
     const listFooterContent = useMemo(() => {
         const shouldShowMakeSplitsEven = childTransactions.length === 0;
@@ -339,11 +339,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
-    );
-
     return (
         <ScreenWrapper
             testID={SplitExpensePage.displayName}
@@ -370,13 +365,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
-                        renderScrollComponent={(props) => (
-                            <KeyboardAwareScrollView
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...props}
-                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
-                            />
-                        )}
+                        // renderScrollComponent={(props) => (
+                        //     <KeyboardAwareScrollView
+                        //         // eslint-disable-next-line react/jsx-props-no-spreading
+                        //         {...props}
+                        //         bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                        //     />
+                        // )}
                         onSelectRow={(item) => {
                             if (!item.isEditable) {
                                 setCannotBeEditedModalVisible(true);
@@ -389,17 +384,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             });
                         }}
                         ref={listRef}
-                        sections={sections}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        data={options}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto]}
+                        style={{containerStyle: styles.flexBasisAuto}}
                         footerContent={footerContent}
                         listFooterContent={listFooterContent}
                         disableKeyboardShortcuts
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
                         shouldPreventDefaultFocusOnSelectRow
-                        removeClippedSubviews={false}
                     />
                 </View>
                 <ConfirmModal

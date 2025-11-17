@@ -1,10 +1,11 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type BaseListItem from './BaseListItem';
@@ -236,6 +237,15 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Index of the item in the list */
+    index?: number;
+
+    /** Callback when the input inside the item is focused (if input exists) */
+    onInputFocus?: (index: number) => void;
+
+    /** Callback when the input inside the item is blurred (if input exists) */
+    onInputBlur?: (e: BlurEvent) => void;
 };
 
 type ValidListItem =
@@ -269,6 +279,36 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 };
+
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
+        isEditable: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -310,4 +350,6 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    SplitListItemType,
+    SplitListItemProps,
 };

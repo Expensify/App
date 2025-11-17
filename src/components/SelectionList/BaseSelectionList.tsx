@@ -338,6 +338,26 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     };
 
+    // this function is used specifically for scrolling to the focused input to prevent it from appearing below opened keyboard
+    // and ensures the entire list item element is visible, not just the input field inside it
+    const scrollToFocusedInput = useCallback((index: number) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        if (index < 0) {
+            return;
+        }
+
+        // Perform scroll to specific position in SectionList to show entire item
+        listRef.current.scrollToIndex({
+            index: index + 2, // Scroll to item at index + 2 (because first two items is reserved for optional header and content above the selectionList)
+            animated: true,
+            viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
+            viewPosition: 1.0, // Item position: 1.0 = bottom of screen
+        });
+    }, []);
+
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>(items);
@@ -387,7 +407,12 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput}), [
+        scrollAndHighlightItem,
+        scrollToIndex,
+        updateFocusedIndex,
+        scrollToFocusedInput,
+    ]);
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}

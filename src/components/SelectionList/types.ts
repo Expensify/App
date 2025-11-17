@@ -208,6 +208,9 @@ type SelectionListHandle = {
 
     /** Updates the focused index and optionally scrolls to it */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
+
+    /** Scrolls to the focused input on SplitExpensePage */
+    scrollToFocusedInput: (index: number) => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
