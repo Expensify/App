@@ -553,7 +553,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
     }
 
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-    const reportActionMessage = getReportActionText(parentReportAction).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
+    const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
     if (isAttachment && reportActionMessage) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `[${translateLocal('common.attachment')}]`;
