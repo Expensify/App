@@ -5,7 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -121,6 +121,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
             {
                 name: RHP_TO_SETTINGS[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
+    if (RHP_TO_DOMAIN[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.DOMAIN.INITIAL,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_DOMAIN[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
