@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -126,6 +126,21 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             [screenOptions],
         );
 
+        const isRHPDisplayedOnWideRHP = useMemo(
+            () =>
+                !isSmallScreenWidth &&
+                !isWideRHPFocused &&
+                !isWideRHPClosing &&
+                !isFocused &&
+                shouldRenderSecondaryOverlay &&
+                (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
+            [isFocused, isSmallScreenWidth, isWideRHPClosing, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
+        );
+        const isWideRHPDisplayedOnSuperWideRHP = useMemo(
+            () => !isSmallScreenWidth && !isFocused && !!isWideRHPFocused && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name),
+            [isFocused, isSmallScreenWidth, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
+        );
+
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
             <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
@@ -140,23 +155,26 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isWideRHPRouteName(route.name) && !isFocused && !isWideRHPClosing && !shouldRenderTertiaryOverlay ? (
-                    // This overlay is necessary to cover the gap under the narrow format RHP screen
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={receiptPaneRHPWidth}
-                    />
-                ) : null}
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name) && !!isWideRHPFocused && !isFocused ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={modalStackOverlayWideRHPWidth}
-                    />
-                ) : null}
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name) && !isWideRHPFocused && !isFocused ? (
+                {/* These overlays are used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen */}
+                {/* Their position is calculated as follows: */}
+                {/* The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout. */}
+                {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
+                {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
+                {/* Two cases were described for the secondary overlay: */}
+                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionaly check superWideRHPRouteKeys length as Super Wide RHP route might be dsiplayed in Wide RHP when number of visible transactions is less than 2.  */}
+                {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
+                {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
+                {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
+                {isRHPDisplayedOnWideRHP ? (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : receiptPaneRHPWidth}
+                    />
+                ) : null}
+                {isWideRHPDisplayedOnSuperWideRHP ? (
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        positionLeftValue={modalStackOverlayWideRHPWidth}
                     />
                 ) : null}
                 {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
