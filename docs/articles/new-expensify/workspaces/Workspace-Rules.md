@@ -31,7 +31,8 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Max Expense Amount** – Set a per-expense spending cap (supports decimals).
 - **Max Expense Age (Days)** – Define how old an expense can be (whole numbers only).
 - **Billable Default** – Choose whether expenses are billable by default.
-- **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency). Please note that disabling **eReceipts** after enabling them will make existing eReceipts disappear. Simply enable **eReceipts** again to bring them back.
+- **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
+- Note: Disabling **eReceipts** after enabling them will hide existing eReceipts. Enable **eReceipts** again to restore them.
 
 ---
 
