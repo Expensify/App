@@ -193,7 +193,7 @@ function ReportFooter({
             addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID],
+        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);

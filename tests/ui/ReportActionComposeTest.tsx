@@ -238,11 +238,14 @@ describe('ReportActionCompose Integration Tests', () => {
 
         it('should send when length is within the limit', async () => {
             renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
             const composer = screen.getByTestId('composer');
 
             // Given a message that is within the length limit
             const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
             fireEvent.changeText(composer, validMessage);
+            await waitForBatchedUpdatesWithAct();
 
             // When the message is submitted
             act(onSubmitAction);
@@ -258,11 +261,14 @@ describe('ReportActionCompose Integration Tests', () => {
 
         it('should not send when length exceeds the limit', async () => {
             renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
             const composer = screen.getByTestId('composer');
 
             // Given a message that is over the length limit
             const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
             fireEvent.changeText(composer, invalidMessage);
+            await waitForBatchedUpdatesWithAct();
 
             // When the message is submitted
             act(onSubmitAction);

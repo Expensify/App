@@ -153,7 +153,6 @@ function ReportActionCompose({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
-
     const ancestors = useAncestors(transactionThreadReport ?? report);
     /**
      * Updates the Highlight state of the composer
@@ -324,7 +323,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID, ancestors],
+        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
