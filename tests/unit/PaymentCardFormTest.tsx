@@ -1,7 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {fireEvent, render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -12,6 +12,8 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = require('react') as typeof React;
@@ -48,8 +50,13 @@ afterAll(() => {
 describe('Subscription/AddPaymentCard', () => {
     const Stack = createStackNavigator();
 
-    const renderAddPaymentCardPage = (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
-        return render(
+    const hydrateAddPaymentCardForm = async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {});
+        await waitForBatchedUpdates();
+    };
+
+    const renderAddPaymentCardPage = async (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
+        const rendered = render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, HTMLEngineProvider]}>
                 <PortalProvider>
                     <NavigationContainer>
@@ -63,13 +70,15 @@ describe('Subscription/AddPaymentCard', () => {
                 </PortalProvider>
             </ComposeProviders>,
         );
+        await waitForBatchedUpdatesWithAct();
+        return rendered;
     };
 
     describe('AddPaymentCardPage Expiration Date Formatting', () => {
         const runFormatTest = async (input: string, formattedAs: string) => {
-            const {findByTestId} = renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
-            // eslint-disable-next-line testing-library/prefer-screen-queries
-            const expirationDateField = await findByTestId('addPaymentCardPage.expiration');
+            await hydrateAddPaymentCardForm();
+            await renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+            const expirationDateField = await screen.findByTestId('addPaymentCardPage.expiration');
             fireEvent.changeText(expirationDateField, input);
             expect(expirationDateField.props.value).toBe(formattedAs);
         };
