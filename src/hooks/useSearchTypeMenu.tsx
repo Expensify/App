@@ -14,6 +14,7 @@ import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQu
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
