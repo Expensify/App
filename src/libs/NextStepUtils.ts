@@ -15,7 +15,6 @@ import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getAllReportActions, isRetractedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -839,8 +838,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             },
         ],
     };
-    const reportActions = getAllReportActions(report?.reportID);
-    const isReportRetracted = isRetracted || Object.values(reportActions ?? {}).some((action) => isRetractedAction(action as OnyxEntry<ReportAction>)) || !!report?.hasReportBeenRetracted;
+    const isReportRetracted = isRetracted || !!report?.hasReportBeenRetracted;
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
