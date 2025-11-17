@@ -785,6 +785,20 @@ type DeleteTrackExpenseParams = {
     allSnapshotKeys: OnyxKey[];
 };
 
+type DeleteMoneyRequestInputParams = {
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isChatIOUReportArchived: boolean | undefined;
+    allSnapshotKeys: OnyxKey[];
+    isSingleTransactionView?: boolean;
+    transactionIDsPendingDeletion?: string[];
+    selectedTransactionIDs?: string[];
+};
+
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -8672,19 +8686,21 @@ function cleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    isChatIOUReportArchived: boolean | undefined,
-    allSnapshotKeys: OnyxKey[],
-    isSingleTransactionView = false,
-    transactionIDsPendingDeletion?: string[],
-    selectedTransactionIDs?: string[],
-) {
+function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | undefined {
+    const {
+        transactionID,
+        reportAction,
+        transactions,
+        violations,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        allSnapshotKeys,
+        isSingleTransactionView = false,
+        transactionIDsPendingDeletion,
+        selectedTransactionIDs,
+    } = params;
+
     if (!transactionID) {
         return;
     }
@@ -9032,7 +9048,7 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatIOUReport, isChatIOUReportArchived, allSnapshotKeys, isSingleTransactionView);
+        deleteMoneyRequest({transactionID, reportAction, transactions, violations, iouReport, chatReport: chatIOUReport, isChatIOUReportArchived, allSnapshotKeys, isSingleTransactionView});
         return urlToNavigateBack;
     }
 
