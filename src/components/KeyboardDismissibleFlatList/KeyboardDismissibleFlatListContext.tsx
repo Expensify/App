@@ -123,7 +123,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
             layoutMeasurementHeight,
             setListBehavior,
         }),
-        [height, offset, onScroll, scrollY, contentSizeHeight, layoutMeasurementHeight],
+        [contentSizeHeight, height, layoutMeasurementHeight, offset, onScroll, scrollY],
     );
 
     return <KeyboardDismissibleFlatListContext.Provider value={value}>{children}</KeyboardDismissibleFlatListContext.Provider>;
