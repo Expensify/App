@@ -282,12 +282,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
         return formatPhoneNumber(getDisplayNameOrDefault(personalDetail ?? undefined));
     }
 
-    let policyToUse = invoiceReceiverPolicy;
-    if (!policyToUse && invoiceReceiver?.policyID) {
-        policyToUse = getPolicy(invoiceReceiver.policyID);
-    }
-
-    return getPolicyName({report, policy: policyToUse});
+    return getPolicyName({report, policy: invoiceReceiverPolicy});
 }
 
 /**

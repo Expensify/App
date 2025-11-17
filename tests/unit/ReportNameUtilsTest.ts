@@ -152,7 +152,7 @@ describe('ReportNameUtils', () => {
     });
 
     describe('computeReportName - Policy expense chat', () => {
-        test('Returns policy expense chat name for own PEC', async () => {
+        test('Returns policy expense chat name when owner is set', async () => {
             const report: Report = {
                 ...createPolicyExpenseChat(20, true),
                 ownerAccountID: 1,
@@ -295,8 +295,8 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('computeReportName - reportNameValuePairsList archiving', () => {
-        test('Regular chat gets archived suffix from reportNameValuePairsList', async () => {
+    describe('computeReportName - reportNameValuePairs archiving', () => {
+        test('Regular chat gets archived suffix from reportNameValuePairs', async () => {
             const report: Report = {
                 ...createRegularChat(70, [currentUserAccountID, 1]),
                 ownerAccountID: currentUserAccountID,
