@@ -3567,6 +3567,7 @@ describe('ReportUtils', () => {
             });
             expect(canDeleteMoneyRequestReport(invoiceReport, [], [])).toBe(true);
         });
+
         it('should allow deletion if the expense report is submitted but not yet approved by anyone', async () => {
             const expenseReport: Report = {
                 reportID: '1',
