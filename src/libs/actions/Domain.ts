@@ -209,54 +209,20 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
 /**
  * Fetches the decrypted Okta SCIM token for the domain
  */
-function getScimToken(accountID: number, domainName: string): Promise<string> {
+function getScimToken(domainName: string): Promise<string> {
     return new Promise((resolve, reject) => {
-        const optimisticData: OnyxUpdate[] = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-                value: {
-                    settings: {
-                        isScimTokenLoading: true,
-                        scimTokenError: null,
-                    },
-                },
-            },
-        ];
-        const finallyData: OnyxUpdate[] = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-                value: {settings: {isScimTokenLoading: null}},
-            },
-        ];
+        const genericError = "Couldn't fetch SCIM token";
 
-        const failureData: OnyxUpdate[] = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-        ];
-
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN,
-            {domain: domainName},
-            {
-                optimisticData,
-                failureData,
-                finallyData,
-            },
-        )
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- we cannot store the token in onyx for security reasons
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: domainName})
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject();
+                    reject(response?.message ? response.message : genericError);
                     return;
                 }
                 resolve((response as {SCIMToken: string}).SCIMToken);
             })
-            .catch(() => reject());
+            .catch(() => reject(genericError));
     });
 }
 
