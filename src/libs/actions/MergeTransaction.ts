@@ -279,7 +279,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         value: sourceTransaction,
     };
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
+    const optimisticSourceReportData =
         transactionsOfSourceReport.length === 1
             ? [
                   {
@@ -291,7 +291,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
             : [];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureSourceReportData: OnyxUpdate[] =
+    const failureSourceReportData =
         transactionsOfSourceReport.length === 1
             ? [
                   {
@@ -302,7 +302,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               ]
             : [];
     const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-    const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const optimisticSourceReportActionData = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -315,7 +315,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               },
           ]
         : [];
-    const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const successSourceReportActionData = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -329,7 +329,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
           ]
         : [];
 
-    const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+    const failureSourceReportActionData = iouActionOfSourceTransaction
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -351,7 +351,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
     };
 
     // Optimistic delete duplicated transaction violations
-    const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
+    const optimisticTransactionViolations = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
         const violations = getTransactionViolationsOfTransaction(id);
 
         return {
@@ -361,7 +361,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
-    const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
+    const failureTransactionViolations = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
         const violations = getTransactionViolationsOfTransaction(id);
 
         return {
@@ -373,7 +373,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticSourceTransactionData,
         ...optimisticSourceReportData,
@@ -384,7 +384,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         ...(onyxTargetTransactionData.failureData ?? []),
         failureSourceTransactionData,
         ...failureSourceReportData,
@@ -392,7 +392,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureSourceReportActionData,
     ];
 
-    const successData: OnyxUpdate[] = [];
+    const successData = [];
     successData.push(...successSourceReportActionData);
     successData.push(...(onyxTargetTransactionData.successData ?? []));
 

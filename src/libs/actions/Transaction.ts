@@ -402,9 +402,9 @@ function dismissDuplicateTransactionViolation(
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
 
     if (expenseReport) {
         const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
@@ -476,7 +476,7 @@ function dismissDuplicateTransactionViolation(
     }
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const optimisticReportActions = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -488,7 +488,7 @@ function dismissDuplicateTransactionViolation(
                 : undefined,
         };
     });
-    const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+    const optimisticDataTransactionViolations = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -498,7 +498,7 @@ function dismissDuplicateTransactionViolation(
     optimisticData.push(...optimisticDataTransactionViolations);
     optimisticData.push(...optimisticReportActions);
 
-    const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+    const optimisticDataTransactions = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         value: {
@@ -516,14 +516,14 @@ function dismissDuplicateTransactionViolation(
 
     optimisticData.push(...optimisticDataTransactions);
 
-    const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+    const failureDataTransactionViolations = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         value: transactionViolations.violations?.map((violation) => violation),
     }));
 
-    const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+    const failureDataTransaction = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         value: {
@@ -532,7 +532,7 @@ function dismissDuplicateTransactionViolation(
     }));
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const failureReportActions = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -550,7 +550,7 @@ function dismissDuplicateTransactionViolation(
     failureData.push(...failureReportActions);
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const successReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+    const successReportActions = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -624,7 +624,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
     const optimisticReportActions = {
         [optimisticReportAction.reportActionID]: optimisticReportAction,
     };
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             // Optimistically dismissing the violation, removing it from the list of violations
             {
@@ -666,7 +666,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
 }
 
 function openDraftDistanceExpense() {
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -715,9 +715,9 @@ function changeTransactionsReport(
         currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
     });
 
-    const optimisticData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
+    const optimisticData = [];
+    const failureData = [];
+    const successData = [];
 
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;

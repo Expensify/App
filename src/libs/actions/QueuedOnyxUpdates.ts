@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
-let queuedOnyxUpdates: OnyxUpdate[] = [];
+let queuedOnyxUpdates = [];
 let currentAccountID: number | undefined;
 
 // We use `connectWithoutView` because it is not connected to any UI component.

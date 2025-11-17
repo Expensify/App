@@ -9,14 +9,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
  */
 function getDomainValidationCode(accountID: number, domainName: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {isValidateCodeLoading: true, validateCodeError: null},
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
@@ -24,7 +24,7 @@ function getDomainValidationCode(accountID: number, domainName: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
@@ -42,7 +42,7 @@ function getDomainValidationCode(accountID: number, domainName: string) {
  * Checks if the validation code is present in the domain's DNS records to mark the domain as validated and the user as a verified admin
  */
 function validateDomain(accountID: number, domainName: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
@@ -50,7 +50,7 @@ function validateDomain(accountID: number, domainName: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
@@ -58,7 +58,7 @@ function validateDomain(accountID: number, domainName: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,

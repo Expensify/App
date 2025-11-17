@@ -2,7 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
-const createUpdate = (lastUpdateID: number, successData: OnyxUpdate[] = [], previousUpdateID?: number): OnyxUpdatesFromServer => ({
+const createUpdate = (lastUpdateID: number, successData = [], previousUpdateID?: number): OnyxUpdatesFromServer => ({
     type: CONST.ONYX_UPDATE_TYPES.HTTPS,
     lastUpdateID,
     previousUpdateID: previousUpdateID ?? lastUpdateID - 1,

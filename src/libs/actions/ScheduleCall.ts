@@ -15,7 +15,7 @@ function getGuideCallAvailabilitySchedule(reportID: string) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
@@ -28,7 +28,7 @@ function getGuideCallAvailabilitySchedule(reportID: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
@@ -41,7 +41,7 @@ function getGuideCallAvailabilitySchedule(reportID: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,

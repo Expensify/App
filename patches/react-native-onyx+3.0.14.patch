@@ -1,0 +1,100 @@
+diff --git a/node_modules/react-native-onyx/dist/Onyx.d.ts b/node_modules/react-native-onyx/dist/Onyx.d.ts
+index 03f0bea..c97aa31 100644
+--- a/node_modules/react-native-onyx/dist/Onyx.d.ts
++++ b/node_modules/react-native-onyx/dist/Onyx.d.ts
+@@ -1,5 +1,5 @@
+ import * as Logger from './Logger';
+-import type { CollectionKeyBase, ConnectOptions, InitOptions, OnyxKey, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMergeInput, OnyxMultiSetInput, OnyxSetInput, OnyxUpdate, SetOptions } from './types';
++import type { CollectionKeyBase, ConnectOptions, InitOptions, OnyxKey, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMergeInput, OnyxMultiSetInput, OnyxSetInput, OnyxUpdate,OnyxUpdateFor, SetOptions } from './types';
+ import type { Connection } from './OnyxConnectionManager';
+ /** Initialize the store with actions and listening for storage events */
+ declare function init({ keys, initialKeyStates, evictableKeys, maxCachedKeysCount, shouldSyncMultipleInstances, enablePerformanceMetrics, enableDevTools, skippableCollectionMemberIDs, }: InitOptions): void;
+@@ -139,7 +139,7 @@ declare function clear(keysToPreserve?: OnyxKey[]): Promise<void>;
+  * @param data An array of objects with update expressions
+  * @returns resolves when all operations are complete
+  */
+-declare function update(data: OnyxUpdate[]): Promise<void>;
++declare function update<TKey extends OnyxKey>(data: OnyxUpdateFor<TKey>[]): Promise<void>;
+ /**
+  * Sets a collection by replacing all existing collection members with new values.
+  * Any existing collection members not included in the new data will be removed.
+@@ -177,4 +177,4 @@ declare const Onyx: {
+     registerLogger: typeof Logger.registerLogger;
+ };
+ export default Onyx;
+-export type { OnyxUpdate, ConnectOptions, SetOptions };
++export type { OnyxUpdate,OnyxUpdateFor, ConnectOptions, SetOptions };
+diff --git a/node_modules/react-native-onyx/dist/index.d.ts b/node_modules/react-native-onyx/dist/index.d.ts
+index a2d2df4..dee5868 100644
+--- a/node_modules/react-native-onyx/dist/index.d.ts
++++ b/node_modules/react-native-onyx/dist/index.d.ts
+@@ -1,4 +1,4 @@
+-import type { ConnectOptions, OnyxUpdate } from './Onyx';
++import type { ConnectOptions, OnyxUpdate, OnyxUpdateFor } from './Onyx';
+ import Onyx from './Onyx';
+ import type { CustomTypeOptions, KeyValueMapping, NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, Selector, OnyxInputValue, OnyxCollectionInputValue, OnyxInput, OnyxSetInput, OnyxMultiSetInput, OnyxMergeInput, OnyxMergeCollectionInput, OnyxSetCollectionInput } from './types';
+ import type { FetchStatus, ResultMetadata, UseOnyxResult, UseOnyxOptions } from './useOnyx';
+@@ -7,4 +7,4 @@ import useOnyx from './useOnyx';
+ import type { OnyxSQLiteKeyValuePair } from './storage/providers/SQLiteProvider';
+ export default Onyx;
+ export { useOnyx };
+-export type { ConnectOptions, CustomTypeOptions, FetchStatus, KeyValueMapping, NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxInputValue, OnyxCollectionInputValue, OnyxInput, OnyxSetInput, OnyxMultiSetInput, OnyxMergeInput, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxUpdate, OnyxValue, ResultMetadata, Selector, UseOnyxResult, Connection, UseOnyxOptions, OnyxSQLiteKeyValuePair, };
++export type { ConnectOptions, CustomTypeOptions, FetchStatus, KeyValueMapping, NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxInputValue, OnyxCollectionInputValue, OnyxInput, OnyxSetInput, OnyxMultiSetInput, OnyxMergeInput, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxUpdate, OnyxUpdateFor, OnyxValue, ResultMetadata, Selector, UseOnyxResult, Connection, UseOnyxOptions, OnyxSQLiteKeyValuePair, };
+diff --git a/node_modules/react-native-onyx/dist/types.d.ts b/node_modules/react-native-onyx/dist/types.d.ts
+index 1162911..7d38df8 100644
+--- a/node_modules/react-native-onyx/dist/types.d.ts
++++ b/node_modules/react-native-onyx/dist/types.d.ts
+@@ -299,11 +299,46 @@ type OnyxUpdate = {
+         key: TKey;
+         value: OnyxMergeCollectionInput<TKey>;
+     } | {
+-        onyxMethod: typeof OnyxUtils.METHOD.SET_COLLECTION;
++         onyxMethod: typeof OnyxUtils.METHOD.SET_COLLECTION;
+         key: TKey;
+         value: OnyxSetCollectionInput<TKey>;
+     };
+ }[CollectionKeyBase];
++
++
++type OnyxUpdateFor<TKey extends OnyxKey> =
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.SET;
++          key: TKey;
++          value: OnyxSetInput<TKey>;
++      }
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.MULTI_SET;
++          key: TKey;
++          value: OnyxMultiSetInput;
++      }
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.MERGE;
++          key: TKey;
++          value: OnyxMergeInput<TKey>;
++      }
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.CLEAR;
++          key: TKey;
++          value?: undefined;
++      }
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.MERGE_COLLECTION;
++          key: TKey;
++          value: OnyxMergeCollectionInput<TKey>;
++      }
++    | {
++          onyxMethod: typeof OnyxUtils.METHOD.SET_COLLECTION;
++          key: TKey;
++          value: OnyxSetCollectionInput<TKey>;
++      };
++
++
+ /**
+  * Represents the options used in `Onyx.set()` method.
+  */
+@@ -384,4 +419,4 @@ type MixedOperationsQueue = {
+     mergeReplaceNullPatches: MultiMergeReplaceNullPatches;
+     set: OnyxInputKeyValueMapping;
+ };
+-export type { BaseConnectOptions, Collection, CollectionConnectCallback, CollectionConnectOptions, CollectionKey, CollectionKeyBase, ConnectOptions, CustomTypeOptions, DeepRecord, DefaultConnectCallback, DefaultConnectOptions, ExtractOnyxCollectionValue, GenericFunction, InitOptions, Key, KeyValueMapping, CallbackToStateMapping, NonNull, NonUndefined, OnyxInputKeyValueMapping, NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxInputValue, OnyxCollectionInputValue, OnyxInput, OnyxSetInput, OnyxMultiSetInput, OnyxMergeInput, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMethod, OnyxMethodMap, OnyxUpdate, OnyxValue, Selector, SetOptions, SetParams, SetCollectionParams, MergeCollectionWithPatchesParams, MultiMergeReplaceNullPatches, MixedOperationsQueue, RetriableOnyxOperation, };
++export type { BaseConnectOptions, Collection, CollectionConnectCallback, CollectionConnectOptions, CollectionKey, CollectionKeyBase, ConnectOptions, CustomTypeOptions, DeepRecord, DefaultConnectCallback, DefaultConnectOptions, ExtractOnyxCollectionValue, GenericFunction, InitOptions, Key, KeyValueMapping, CallbackToStateMapping, NonNull, NonUndefined, OnyxInputKeyValueMapping, NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxInputValue, OnyxCollectionInputValue, OnyxInput, OnyxSetInput, OnyxMultiSetInput, OnyxMergeInput, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMethod, OnyxMethodMap, OnyxUpdate, OnyxUpdateFor, OnyxValue, Selector, SetOptions, SetParams, SetCollectionParams, MergeCollectionWithPatchesParams, MultiMergeReplaceNullPatches, MixedOperationsQueue, RetriableOnyxOperation, };

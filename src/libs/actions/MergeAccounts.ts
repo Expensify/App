@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -21,7 +21,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -36,7 +36,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -69,7 +69,7 @@ function clearGetValidateCodeForAccountMerge() {
 }
 
 function mergeWithValidateCode(email: string, validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -83,7 +83,7 @@ function mergeWithValidateCode(email: string, validateCode: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -97,7 +97,7 @@ function mergeWithValidateCode(email: string, validateCode: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,

@@ -5,7 +5,7 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const queuedOnyxUpdates: OnyxUpdate[] = [
+const queuedOnyxUpdates = [
     {key: ONYXKEYS.NVP_TRY_FOCUS_MODE, value: true, onyxMethod: 'merge'},
     {key: ONYXKEYS.PREFERRED_THEME, value: 'system', onyxMethod: 'merge'},
     {key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: 'en', onyxMethod: 'merge'},

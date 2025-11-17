@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate, OnyxUpdateFor} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -125,7 +125,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
 
     const previousAccountID = getCurrentUserAccountID();
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -141,7 +141,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -157,7 +157,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -220,7 +220,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
 }
 
 function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -232,7 +232,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -244,7 +244,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -358,7 +358,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -406,7 +406,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -450,7 +450,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         ];
     };
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -482,7 +482,7 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -507,7 +507,7 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -519,7 +519,7 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -574,7 +574,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -601,7 +601,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -629,7 +629,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -661,7 +661,7 @@ function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateR
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,

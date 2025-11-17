@@ -181,7 +181,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // Optimistically change preferred locale
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -273,7 +273,7 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData {
-    const result: OnyxData = {
+    const result = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

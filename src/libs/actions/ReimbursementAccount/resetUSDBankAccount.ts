@@ -29,7 +29,7 @@ function resetUSDBankAccount(
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
