@@ -39,6 +39,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -348,6 +349,8 @@ const allCardsList = {
     },
 } as OnyxCollection<WorkspaceCardsList>;
 
+const mockIcon = (iconName: string): IconAsset => iconName as IconAsset;
+
 const mockIllustrations = {
     EmptyStateBackgroundImage: 'EmptyStateBackgroundImage',
     ExampleCheckES: 'ExampleCheckES',
@@ -358,32 +361,35 @@ const mockIllustrations = {
     GenericCSVCompanyCardLarge: 'GenericCSVCompanyCardLarge',
     GenericCompanyCardLarge: 'GenericCompanyCardLarge',
 };
-const mockCompanyCardFeedIcons = {
-    VisaCompanyCardDetailLarge: 'VisaCompanyCardDetailLarge',
-    AmexCardCompanyCardDetailLarge: 'AmexCardCompanyCardDetailLarge',
-    MasterCardCompanyCardDetailLarge: 'MasterCardCompanyCardDetailLarge',
-    BankOfAmericaCompanyCardDetailLarge: 'BankOfAmericaCompanyCardDetailLarge',
-    CapitalOneCompanyCardDetailLarge: 'CapitalOneCompanyCardDetailLarge',
-    ChaseCompanyCardDetailLarge: 'ChaseCompanyCardDetailLarge',
-    CitibankCompanyCardDetailLarge: 'CitibankCompanyCardDetailLarge',
-    WellsFargoCompanyCardDetailLarge: 'WellsFargoCompanyCardDetailLarge',
-    BrexCompanyCardDetailLarge: 'BrexCompanyCardDetailLarge',
-    StripeCompanyCardDetailLarge: 'StripeCompanyCardDetailLarge',
-    PlaidCompanyCardDetailLarge: 'PlaidCompanyCardDetailLarge',
-} as unknown as CompanyCardFeedIcons;
-const mockCompanyCardBankIcons = {
-    AmexCardCompanyCardDetail: 'AmexCardCompanyCardDetail',
-    BankOfAmericaCompanyCardDetail: 'BankOfAmericaCompanyCardDetail',
-    CapitalOneCompanyCardDetail: 'CapitalOneCompanyCardDetail',
-    ChaseCompanyCardDetail: 'ChaseCompanyCardDetail',
-    CitibankCompanyCardDetail: 'CitibankCompanyCardDetail',
-    WellsFargoCompanyCardDetail: 'WellsFargoCompanyCardDetail',
-    BrexCompanyCardDetail: 'BrexCompanyCardDetail',
-    StripeCompanyCardDetail: 'StripeCompanyCardDetail',
-    MasterCardCompanyCardDetail: 'MasterCardCompanyCardDetail',
-    VisaCompanyCardDetail: 'VisaCompanyCardDetail',
-    PlaidCompanyCardDetail: 'PlaidCompanyCardDetail',
-} as unknown as CompanyCardBankIcons;
+type CompanyCardFeedIconsMock = Parameters<typeof getCardFeedIcon>[2];
+type CompanyCardBankIconsMock = Parameters<typeof getBankCardDetailsImage>[2];
+
+const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
+    VisaCompanyCardDetailLarge: mockIcon('VisaCompanyCardDetailLarge'),
+    AmexCardCompanyCardDetailLarge: mockIcon('AmexCardCompanyCardDetailLarge'),
+    MasterCardCompanyCardDetailLarge: mockIcon('MasterCardCompanyCardDetailLarge'),
+    BankOfAmericaCompanyCardDetailLarge: mockIcon('BankOfAmericaCompanyCardDetailLarge'),
+    CapitalOneCompanyCardDetailLarge: mockIcon('CapitalOneCompanyCardDetailLarge'),
+    ChaseCompanyCardDetailLarge: mockIcon('ChaseCompanyCardDetailLarge'),
+    CitibankCompanyCardDetailLarge: mockIcon('CitibankCompanyCardDetailLarge'),
+    WellsFargoCompanyCardDetailLarge: mockIcon('WellsFargoCompanyCardDetailLarge'),
+    BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
+    StripeCompanyCardDetailLarge: mockIcon('StripeCompanyCardDetailLarge'),
+    PlaidCompanyCardDetailLarge: mockIcon('PlaidCompanyCardDetailLarge'),
+};
+const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
+    AmexCardCompanyCardDetail: mockIcon('AmexCardCompanyCardDetail'),
+    BankOfAmericaCompanyCardDetail: mockIcon('BankOfAmericaCompanyCardDetail'),
+    CapitalOneCompanyCardDetail: mockIcon('CapitalOneCompanyCardDetail'),
+    ChaseCompanyCardDetail: mockIcon('ChaseCompanyCardDetail'),
+    CitibankCompanyCardDetail: mockIcon('CitibankCompanyCardDetail'),
+    WellsFargoCompanyCardDetail: mockIcon('WellsFargoCompanyCardDetail'),
+    BrexCompanyCardDetail: mockIcon('BrexCompanyCardDetail'),
+    StripeCompanyCardDetail: mockIcon('StripeCompanyCardDetail'),
+    MasterCardCompanyCardDetail: mockIcon('MasterCardCompanyCardDetail'),
+    VisaCompanyCardDetail: mockIcon('VisaCompanyCardDetail'),
+    PlaidCompanyCardDetail: mockIcon('PlaidCompanyCardDetail'),
+};
 
 jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
