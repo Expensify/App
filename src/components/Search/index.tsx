@@ -457,13 +457,13 @@ function Search({
         }
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            data.forEach((transactionGroup) => {
+            for (const transactionGroup of data) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    return;
+                    continue;
                 }
-                transactionGroup.transactions.forEach((transactionItem) => {
+                for (const transactionItem of transactionGroup.transactions) {
                     if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                        return;
+                        continue;
                     }
 
                     newTransactionList[transactionItem.transactionID] = {
@@ -492,15 +492,15 @@ function Search({
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
-                });
-            });
+                }
+            }
         } else {
-            data.forEach((transactionItem) => {
+            for (const transactionItem of data) {
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
-                    return;
+                    continue;
                 }
                 if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                    return;
+                    continue;
                 }
 
                 newTransactionList[transactionItem.transactionID] = {
@@ -529,7 +529,7 @@ function Search({
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
-            });
+            }
         }
         if (isEmptyObject(newTransactionList)) {
             return;
@@ -607,9 +607,9 @@ function Search({
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                currentTransactions.forEach((transaction) => {
+                for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
-                });
+                }
 
                 setSelectedTransactions(reducedSelectedTransactions, data);
                 return;
