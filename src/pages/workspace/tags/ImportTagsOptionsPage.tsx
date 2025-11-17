@@ -39,7 +39,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
 function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Tag', 'MultiTag'] as const);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;

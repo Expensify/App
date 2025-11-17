@@ -476,6 +476,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
         return [];
     }, [
+        icons,
         translate,
         styles.pt3,
         styles.pb2,

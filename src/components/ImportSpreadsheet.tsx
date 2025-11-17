@@ -21,7 +21,6 @@ import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';

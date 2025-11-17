@@ -308,7 +308,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return menuItems;
-    }, [policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
+    }, [icons.Download, icons.Gear, icons.Table, policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];

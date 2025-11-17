@@ -73,7 +73,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 numberOfLinesTitle: 3,
             },
         ],
-        [translate],
+        [icons.Download, icons.NewWindow, translate],
     );
 
     return (

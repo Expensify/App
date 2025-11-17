@@ -219,6 +219,7 @@ function useBulkPayOptions({
         return buttonOptions;
     }, [
         hasActivatedWallet,
+        icons,
         translate,
         selectedReportID,
         selectedPolicyID,

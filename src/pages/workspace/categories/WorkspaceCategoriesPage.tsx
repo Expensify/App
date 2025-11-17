@@ -338,7 +338,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToCategoriesSettings, policyHasAccountingConnections, hasVisibleCategories, navigateToImportSpreadsheet, isOffline, policyId]);
+    }, [icons.Download, icons.Gear, icons.Table, translate, navigateToCategoriesSettings, policyHasAccountingConnections, hasVisibleCategories, navigateToImportSpreadsheet, isOffline, policyId]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];

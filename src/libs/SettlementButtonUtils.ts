@@ -2,7 +2,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
 

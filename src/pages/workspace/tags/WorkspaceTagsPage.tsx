@@ -109,7 +109,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
 
     const tagsList = useMemo(() => {

@@ -220,6 +220,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
+        icons.Gear,
+        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
@@ -295,7 +297,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [icons.NewWindow, styles.pt4, signOut]);
 
     /**
      * Return JSX.Element with menu items

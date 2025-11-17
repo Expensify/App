@@ -596,7 +596,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
+    }, [icons.Download, icons.Table, policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {

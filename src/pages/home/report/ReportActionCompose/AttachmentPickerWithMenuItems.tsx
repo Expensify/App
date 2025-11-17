@@ -292,7 +292,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
+    }, [icons.Document, handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option

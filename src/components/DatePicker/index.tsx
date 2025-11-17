@@ -1,7 +1,6 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

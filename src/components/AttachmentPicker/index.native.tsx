@@ -304,7 +304,7 @@ function AttachmentPicker({
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 

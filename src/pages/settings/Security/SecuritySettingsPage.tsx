@@ -207,6 +207,7 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        icons.UserLock,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,

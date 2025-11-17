@@ -156,7 +156,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -399,6 +399,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
+        icons.Gear,
         policy,
         isSyncInProgress,
         policyID,

@@ -9,7 +9,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';

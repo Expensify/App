@@ -382,7 +382,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
-                icon: icons.Users,
+                icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -398,7 +398,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
-                icon: icons.Users,
+                icon: expensifyIcons.Users,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -545,6 +545,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         return items;
     }, [
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Building,
         isSelfDM,
         isArchivedRoom,
         isGroupChat,

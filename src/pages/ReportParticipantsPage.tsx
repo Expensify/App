@@ -334,7 +334,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         }
 
         return options;
-    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
+    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {

@@ -65,7 +65,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [icons.Download, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
         () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),

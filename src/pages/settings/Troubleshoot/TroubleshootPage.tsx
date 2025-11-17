@@ -143,7 +143,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
+    }, [icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
 
     return (
         <ScreenWrapper

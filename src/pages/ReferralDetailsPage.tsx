@@ -30,7 +30,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;

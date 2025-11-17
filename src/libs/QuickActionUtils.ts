@@ -5,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 

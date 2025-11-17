@@ -603,6 +603,9 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
+        icons.DocumentMerge,
+        icons.Export,
+        icons.Table,
         selectedTransactionsKeys,
         status,
         hash,

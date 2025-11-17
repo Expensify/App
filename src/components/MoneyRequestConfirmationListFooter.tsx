@@ -852,7 +852,7 @@ function MoneyRequestConfirmationListFooter({
             );
         }
         return badges;
-    }, [firstDay, lastDay, translate, tripDays]);
+    }, [icons.CalendarSolid, firstDay, lastDay, translate, tripDays]);
 
     const receiptThumbnailContent = useMemo(
         () => (

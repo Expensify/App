@@ -1,7 +1,6 @@
 import React from 'react';
 import AttachmentPicker from '@components/AttachmentPicker';
 import DecisionModal from '@components/DecisionModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

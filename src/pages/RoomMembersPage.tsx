@@ -7,7 +7,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, Plus, RemoveMembers} from '@components/Icon/Expensicons';
+import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';

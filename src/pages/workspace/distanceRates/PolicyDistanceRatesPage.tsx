@@ -397,7 +397,7 @@ function PolicyDistanceRatesPage({
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             },
         ],
-        [openSettings, translate],
+        [icons.Gear, openSettings, translate],
     );
 
     const headerButtons = (

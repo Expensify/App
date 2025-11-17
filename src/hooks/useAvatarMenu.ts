@@ -81,7 +81,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                 },
             ];
         },
-        [translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+        [icons.Upload, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
     );
 
     return {createMenuItems};

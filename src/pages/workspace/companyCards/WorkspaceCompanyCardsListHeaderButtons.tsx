@@ -119,7 +119,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             },
         ],
-        [policyID, translate],
+        [policyID, icons.Gear, translate],
     );
 
     const supportingText = useMemo(() => {
