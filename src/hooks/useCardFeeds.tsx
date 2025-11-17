@@ -55,7 +55,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
                 const domainID = onyxKey.split('_').at(-1);
 
-                if ((feedSettings.preferredPolicy && feedSettings.preferredPolicy !== policyID) || !domainID) {
+                if (feedSettings.preferredPolicy !== policyID || !domainID) {
                     return;
                 }
 
