@@ -29,6 +29,7 @@ jest.mock('@components/ImageSVG', () => {
 });
 
 jest.unmock('react-native-reanimated');
+jest.unmock('react-native-worklets');
 
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
