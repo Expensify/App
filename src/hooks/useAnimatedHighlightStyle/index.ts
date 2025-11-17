@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
@@ -101,7 +102,7 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
-        runOnJS(() => {
+        scheduleOnRN(() => {
             nonRepeatableProgress.set(
                 withDelay(
                     itemEnterDelay,
@@ -119,7 +120,7 @@ export default function useAnimatedHighlightStyle({
                     }),
                 ),
             );
-        })();
+        });
     }, [
         didScreenTransitionEnd,
         startHighlight,
