@@ -2,8 +2,10 @@ import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import getArchiveReason from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import type {FC} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -127,7 +129,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
@@ -527,6 +528,31 @@ function MoneyReportHeader({
         />
     );
 
+    const Expensicons = useMemoizedLazyExpensifyIcons([
+        'Box',
+        'CreditCardHourglass',
+        'Flag',
+        'Hourglass',
+        'ReceiptScan',
+        'Stopwatch',
+        'Info',
+        'Cash',
+        'ArrowRight',
+        'Plus',
+        'ThumbsDown',
+        'Send',
+        'Document',
+        'Trashcan',
+        'Export',
+        'ThumbsUp',
+        'CircularArrowBackwards',
+        'Workflows',
+        'ArrowCollapse',
+        'ArrowSplit',
+        'Table',
+        'Clear',
+    ]);
+
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (shouldShowMarkAsResolved) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus')};
@@ -737,7 +763,18 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates]);
+    }, [
+        translate,
+        connectedIntegrationFallback,
+        connectedIntegration,
+        moneyRequestReport,
+        isOffline,
+        transactionIDs,
+        isExported,
+        beginExportWithTemplate,
+        exportTemplates,
+        Expensicons.Table,
+    ]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -941,7 +978,7 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            rightIcon: Expensicons.ArrowRight as FC<SvgProps>,
             subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
@@ -1218,7 +1255,7 @@ function MoneyReportHeader({
             text: translate('iou.addExpense'),
             backButtonText: translate('iou.addExpense'),
             icon: Expensicons.Plus,
-            rightIcon: Expensicons.ArrowRight,
+            rightIcon: Expensicons.ArrowRight as FC<SvgProps>,
             value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
             subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {
