@@ -1,17 +1,22 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
+import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewNativeProps} from './types';
 
@@ -33,7 +38,19 @@ import type {PDFViewNativeProps} from './types';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps) {
+function PDFView({
+    onToggleKeyboard,
+    onLoadComplete,
+    fileName,
+    onPress,
+    isFocused,
+    onScaleChanged,
+    sourceURL,
+    onLoadError,
+    isUsedAsChatAttachment,
+    transactionID,
+    reportID,
+}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -47,6 +64,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -104,6 +125,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
     };
+
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -116,6 +138,32 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+
+    /**
+     * Handle link presses in PDF (e.g., "View Trip" links in travel receipts)
+     * @param url - The URL that was pressed in the PDF
+     */
+    const handleLinkPress = useCallback(
+        (url: string) => {
+            // Check if this is a trip link (e.g., https://staging.new.expensify.com/trips/4469127346)
+            const tripMatch = url.match(/\/trips\/(\d+)/);
+            if (tripMatch && transaction && reportID) {
+                const tripIDFromURL = tripMatch[1];
+                const tripIDFromReport = getTripIDFromTransactionParentReportID(parentReport?.reportID);
+
+                // Verify the trip ID matches to ensure we're navigating to the correct trip
+                if (tripIDFromReport === tripIDFromURL) {
+                    // Navigate to trip details - use first reservation (index 0) as default
+                    Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transaction.transactionID, '0', 0));
+                    return;
+                }
+            }
+
+            // For other links, open in external browser
+            Linking.openURL(url);
+        },
+        [transaction, reportID, parentReport?.reportID],
+    );
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
@@ -150,6 +198,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
+                        onPressLink={handleLinkPress}
                     />
                 )}
                 {shouldRequestPassword && (
