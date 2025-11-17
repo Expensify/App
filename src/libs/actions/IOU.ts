@@ -204,6 +204,7 @@ import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -1127,6 +1128,15 @@ function startMoneyRequest(
     draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
 ) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
+        name: '/money-request-create',
+        op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
+        attributes: {
+            iouType,
+            requestType: requestType ?? 'unknown',
+            reportID,
+        },
+    });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:

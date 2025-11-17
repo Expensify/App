@@ -1654,6 +1654,7 @@ const CONST = {
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
