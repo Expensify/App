@@ -3541,7 +3541,7 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, reportPreview, undefined, expenseTransaction, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined)).toEqual({
                 canHoldRequest: true,
                 canUnholdRequest: false,
             });
@@ -3567,15 +3567,6 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            const reportPreviewUpdated = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                    callback: (reportActions) => {
-                        Onyx.disconnect(connection);
-                        resolve(reportActions?.[reportPreview.reportActionID]);
-                    },
-                });
-            });
             const expenseTransactionUpdated = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`,
@@ -3588,16 +3579,7 @@ describe('ReportUtils', () => {
             const transactionThreadReportHoldReportAction = getReportAction(transactionThreadReport.reportID, `${expenseTransactionUpdated?.comment?.hold ?? ''}`);
 
             // canUnholdRequest should be true after the transaction is held.
-            expect(
-                canHoldUnholdReportAction(
-                    expenseReportUpdated,
-                    expenseCreatedActionUpdated,
-                    reportPreviewUpdated,
-                    transactionThreadReportHoldReportAction,
-                    expenseTransactionUpdated,
-                    undefined,
-                ),
-            ).toEqual({
+            expect(canHoldUnholdReportAction(expenseReportUpdated, expenseCreatedActionUpdated, transactionThreadReportHoldReportAction, expenseTransactionUpdated, undefined)).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: true,
             });

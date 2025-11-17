@@ -4780,24 +4780,9 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
     );
 }
 
-/**
- * This function is needed due to the fact that when we first create an empty report, its preview action has an actorAccountID of '0'.
- * This is not the case when the report is automatically created by adding expenses to the chat where no open report is available.
- * Can be simplified by comparing actorAccountID to accountID when mentioned issue is no longer a thing on a BE side.
- */
-function isActionOrReportPreviewOwner(parentReportAction: OnyxEntry<ReportAction>) {
-    const {accountID} = currentUserPersonalDetails ?? {};
-    const {actorAccountID, actionName, childOwnerAccountID} = parentReportAction ?? {};
-    if (typeof accountID === 'number' && typeof actorAccountID === 'number' && accountID === actorAccountID) {
-        return true;
-    }
-    return actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && childOwnerAccountID === accountID;
-}
-
 function canHoldUnholdReportAction(
     report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
-    parentReportAction: OnyxEntry<ReportAction>,
     holdReportAction: OnyxEntry<ReportAction>,
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
@@ -4811,7 +4796,7 @@ function canHoldUnholdReportAction(
     const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isActionCreator(holdReportAction);
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
-    const isActionOwner = isActionOrReportPreviewOwner(parentReportAction);
+    const isActionOwner = isActionCreator(reportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
     const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
@@ -4820,9 +4805,8 @@ function canHoldUnholdReportAction(
 
     const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
-    const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
-    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
+    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning(transaction) && (isSubmitted || isActionOwner);
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 

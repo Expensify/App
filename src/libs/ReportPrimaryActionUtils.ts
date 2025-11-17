@@ -320,7 +320,6 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
         return [];
     }
 
-    const parentReportAction = isThread(report) ? getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
     return reportActions?.filter((action) => {
         if (!isMoneyRequestAction(action) || action.childType !== CONST.REPORT.TYPE.CHAT) {
             return false;
@@ -329,7 +328,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
-        return canHoldUnholdReportAction(report, action, parentReportAction, holdReportAction, transaction, policy).canUnholdRequest;
+        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy).canUnholdRequest;
     });
 }
 

@@ -93,7 +93,7 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
 
     return [
         item.keyForList,
@@ -175,7 +175,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.parentReportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
 
     return {
         ...selectedTransactions,
@@ -473,7 +473,6 @@ function Search({
                     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                         transactionItem.report,
                         transactionItem.reportAction,
-                        transactionItem.parentReportAction,
                         transactionItem.holdReportAction,
                         transactionItem,
                         transactionItem.policy,
@@ -519,7 +518,6 @@ function Search({
                 const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                     transactionItem.report,
                     transactionItem.reportAction,
-                    transactionItem.parentReportAction,
                     transactionItem.holdReportAction,
                     transactionItem,
                     transactionItem.policy,

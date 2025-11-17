@@ -421,9 +421,8 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
-    const parentReportAction = isThread(report) ? getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
     const holdReportAction = getReportAction(reportAction?.childReportID, `${reportTransaction?.comment?.hold ?? ''}`);
-    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, parentReportAction, holdReportAction, reportTransaction, policy);
+    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy);
 
     if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
