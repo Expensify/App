@@ -12,6 +12,7 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 
 function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
@@ -30,39 +31,30 @@ function SearchFiltersTaxRatePage() {
         });
     });
     const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm?.policyID]);
-    const selectedPolicies = useMemo(() => {
-        if (policyIDs.length === 0) {
-            return [];
+
+    const selectedPoliciesMap = useMemo(() => {
+        if (!policies || policyIDs.length === 0) {
+            return null;
         }
-        return policyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).filter((policy) => !!policy);
-    }, [policyIDs, policies]);
-    const selectedPoliciesTaxRates = selectedPolicies.map((policy) => policy.taxRates?.taxes).filter((taxRates) => !!taxRates);
+
+        return policyIDs.reduce<Record<string, Policy>>((acc, policyID) => {
+            const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            const policy = policies[key];
+            if (policy) {
+                acc[key] = policy;
+            }
+            return acc;
+        }, {});
+    }, [policies, policyIDs]);
 
     const taxItems = useMemo(() => {
-        if (!selectedPoliciesTaxRates || selectedPoliciesTaxRates?.length === 0) {
-            return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
-        }
-        const selectedPoliciesTaxRatesItems = selectedPoliciesTaxRates.reduce(
-            (acc, taxRates) => {
-                if (!taxRates) {
-                    return acc;
-                }
-                Object.entries(taxRates).forEach(([taxRateKey, taxRate]) => {
-                    if (!acc[taxRate.name]) {
-                        acc[taxRate.name] = [];
-                    }
-                    if (acc[taxRate.name].includes(taxRateKey)) {
-                        return;
-                    }
-                    acc[taxRate.name].push(taxRateKey);
-                });
-                return acc;
-            },
-            {} as Record<string, string[]>,
-        );
+        const scopedTaxRates = !selectedPoliciesMap || Object.keys(selectedPoliciesMap).length === 0 ? allTaxRates : getAllTaxRates(selectedPoliciesMap);
 
-        return Object.entries(selectedPoliciesTaxRatesItems).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
-    }, [allTaxRates, selectedPoliciesTaxRates]);
+        return Object.entries(scopedTaxRates).map(([taxRateName, taxRateKeys]) => ({
+            name: taxRateName,
+            value: taxRateKeys,
+        }));
+    }, [allTaxRates, selectedPoliciesMap]);
 
     const updateTaxRateFilters = useCallback((values: string[]) => updateAdvancedFilters({taxRate: values}), []);
 
