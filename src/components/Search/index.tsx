@@ -485,7 +485,11 @@ function Search({
                         canHold: transactionItem.canHold,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: transactionItem.canUnhold,
-                        canSplit: isSplitAction(transactionItem.report, [transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]], transactionItem.policy),
+                        canSplit: isSplitAction(
+                            transactionItem.report,
+                            [searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]],
+                            transactionItem.policy,
+                        ),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(transactionItem).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
@@ -524,7 +528,7 @@ function Search({
                     canHold: transactionItem.canHold,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: transactionItem.canUnhold,
-                    canSplit: isSplitAction(transactionItem.report, [transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]], transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]], transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(transactionItem).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
@@ -645,7 +649,7 @@ function Search({
                             .map((transactionItem) =>
                                 mapTransactionItemToSelectedEntry(
                                     transactionItem,
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
+                                    searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
                                     outstandingReportsByPolicyID,
                                 ),
                             ),
@@ -654,7 +658,7 @@ function Search({
                 data,
             );
         },
-        [setSelectedTransactions, selectedTransactions, data, transactions, outstandingReportsByPolicyID],
+        [setSelectedTransactions, selectedTransactions, data, transactions, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRow = useCallback(
@@ -880,14 +884,14 @@ function Search({
                     .map((transactionItem) =>
                         mapTransactionItemToSelectedEntry(
                             transactionItem,
-                            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
+                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`],
                             outstandingReportsByPolicyID,
                         ),
                     ),
             ),
             data,
         );
-    }, [validGroupBy, isExpenseReportType, selectedTransactions, setSelectedTransactions, data, clearSelectedTransactions, transactions, outstandingReportsByPolicyID]);
+    }, [validGroupBy, isExpenseReportType, selectedTransactions, setSelectedTransactions, data, clearSelectedTransactions, transactions, outstandingReportsByPolicyID, searchResults?.data]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 

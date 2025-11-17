@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useAllTransactions from './useAllTransactions';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
@@ -60,7 +61,7 @@ function useSelectedTransactionsActions({
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -287,8 +288,13 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const areSplittable = selectedTransactionsKeys.every((id) => selectedTransactionsMeta[id].canSplit);
-        const areAlreadySplit = selectedTransactionsKeys.every((id) => selectedTransactionsMeta[id].hasBeenSplit);
+        const firstTransactionKey = selectedTransactionsKeys.at(0);
+        const firstTransactionMeta = firstTransactionKey ? selectedTransactionsMeta[firstTransactionKey] : undefined;
+
+        const areSplittable = !!firstTransactionMeta?.canSplit;
+        const areAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
+        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+
         const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
 
         if (canSplitTransaction) {
@@ -297,7 +303,7 @@ function useSelectedTransactionsActions({
                 icon: Expensicons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(allTransactions, allReports, selectedTransactionsList.at(0));
+                    initSplitExpense(allTransactions, allReports, firstTransaction);
                 },
             });
         }
