@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -23,8 +24,10 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policyID);
+    const isPolicyPendingCreation = isOffline && policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
@@ -43,7 +46,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPolicyPendingCreation,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
             onToggle: (isEnabled: boolean) => setPolicyPreventSelfApproval(policyID, isEnabled),
@@ -56,7 +59,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPolicyPendingCreation,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
             onToggle: (isEnabled: boolean) => {
@@ -101,7 +104,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             onToggle: (isEnabled: boolean) => {
                 enablePolicyAutoReimbursementLimit(policyID, isEnabled);
             },
-            disabled: autoPayApprovedReportsUnavailable,
+            disabled: autoPayApprovedReportsUnavailable || isPolicyPendingCreation,
             showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption,

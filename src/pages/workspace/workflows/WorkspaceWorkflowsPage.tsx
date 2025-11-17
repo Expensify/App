@@ -429,7 +429,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <ExpenseReportRulesSection policyID={route.params.policyID} />
+                    <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+                        <ExpenseReportRulesSection policyID={route.params.policyID} />
+                    </OfflineWithFeedback>
                     {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? (
                         <ConfirmModal
                             title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
