@@ -49,6 +49,14 @@ jest.mock('@userActions/Search', () => ({
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
+
+const emptyPersonalDetails = {
+    accountID: 0,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
+};
+
 const approverAccountID = 1111111;
 const approverEmail = 'approver@policy.com';
 const overlimitApproverAccountID = 222222;
@@ -813,12 +821,7 @@ const transactionsListItems = [
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         transactionID: '1',
         transactionThreadReportID: '456',
         transactionType: 'cash',
@@ -1042,14 +1045,14 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: 'Admin',
+        formattedFrom: '',
         formattedStatus: 'Draft',
         formattedTo: '',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             displayName: 'Admin',
-            login: adminEmail,
+            login: 'admin@policy.com',
         },
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
@@ -1063,12 +1066,7 @@ const transactionReportGroupListItems = [
         shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         total: -5000,
         transactions: [
             {
@@ -1114,12 +1112,7 @@ const transactionReportGroupListItems = [
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
-                to: {
-                    accountID: 0,
-                    avatar: '',
-                    displayName: undefined,
-                    login: undefined,
-                },
+                to: emptyPersonalDetails,
                 transactionID: '1',
                 transactionThreadReportID: '456',
                 transactionType: 'cash',
@@ -1147,7 +1140,7 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: 'Admin',
+        formattedFrom: '',
         formattedStatus: 'Outstanding',
         formattedTo: 'Admin',
         from: {
@@ -1256,7 +1249,7 @@ const transactionReportGroupListItems = [
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         currency: 'VND',
-        formattedFrom: 'Admin',
+        formattedFrom: '',
         formattedStatus: 'Outstanding',
         formattedTo: 'Approver',
         isOneTransactionReport: false,
@@ -1301,15 +1294,10 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: 'Admin',
+        formattedFrom: '',
         formattedStatus: 'Draft',
         formattedTo: '',
-        from: {
-            accountID: 18439984,
-            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'Admin',
-            login: 'admin@policy.com',
-        },
+        from: emptyPersonalDetails,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
@@ -1322,12 +1310,7 @@ const transactionReportGroupListItems = [
         shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         total: 0,
         transactions: [],
         type: 'expense',
