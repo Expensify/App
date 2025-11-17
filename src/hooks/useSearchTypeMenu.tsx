@@ -13,13 +13,13 @@ import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQu
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
@@ -46,6 +46,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark'] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
@@ -111,7 +112,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 ),
                 isSelected: false,
                 shouldCallAfterModalHide: true,
-                icon: Expensicons.Bookmark,
+                icon: expensifyIcons.Bookmark,
                 iconWidth: variables.iconSizeNormal,
                 iconHeight: variables.iconSizeNormal,
                 shouldIconUseAutoWidthStyle: false,
@@ -123,7 +124,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID]);
+    }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
@@ -162,7 +163,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             isSelected,
                             icon: item.icon,
                             ...(isSelected ? {iconFill: theme.iconSuccessFill} : {}),
-                            iconRight: Expensicons.Checkmark,
+                            iconRight: expensifyIcons.Checkmark,
                             shouldShowRightIcon: isSelected,
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
@@ -178,7 +179,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, savedSearchesMenuItems, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.border, singleExecution]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons.Checkmark, singleExecution]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

@@ -2,7 +2,6 @@ import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionListWithSections';
@@ -11,6 +10,7 @@ import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListW
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebounce from '@hooks/useDebounce';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -184,6 +184,7 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass'] as const);
 
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
@@ -622,7 +623,7 @@ function SearchAutocompleteList({
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID) : query,
-            singleIcon: Expensicons.History,
+            singleIcon: expensifyIcons.History,
             searchQuery: query,
             keyForList: timestamp,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
@@ -783,7 +784,7 @@ function SearchAutocompleteList({
             return {
                 text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                singleIcon: Expensicons.MagnifyingGlass,
+                singleIcon: expensifyIcons.MagnifyingGlass,
                 searchQuery: text,
                 autocompleteID,
                 keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
