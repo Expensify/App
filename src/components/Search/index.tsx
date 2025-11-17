@@ -459,21 +459,22 @@ function Search({
         }
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || isExpenseReportType) {
-            data.forEach((transactionGroup) => {
+            for (const transactionGroup of data) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    return;
+                    continue;
                 }
-
+              
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
                 const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
 
-                transactionGroup.transactions.forEach((transactionItem) => {
+                for (const transactionItem of transactionGroup.transactions) {
                     const isSelected = transactionItem.transactionID in selectedTransactions;
+
                     // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
                     const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
                     if (!shouldInclude) {
-                        return;
+                        continue;
                     }
 
                     newTransactionList[transactionItem.transactionID] = {
@@ -502,15 +503,15 @@ function Search({
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
-                });
-            });
+                }
+            }
         } else {
-            data.forEach((transactionItem) => {
+            for (const transactionItem of data) {
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
-                    return;
+                    continue;
                 }
                 if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                    return;
+                    continue;
                 }
 
                 newTransactionList[transactionItem.transactionID] = {
@@ -539,7 +540,7 @@ function Search({
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
-            });
+            }
         }
         if (isEmptyObject(newTransactionList)) {
             return;
@@ -617,9 +618,9 @@ function Search({
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                currentTransactions.forEach((transaction) => {
+                for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
-                });
+                }
 
                 setSelectedTransactions(reducedSelectedTransactions, data);
                 return;

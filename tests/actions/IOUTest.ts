@@ -1053,7 +1053,9 @@ describe('actions/IOU', () => {
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
-                                    Object.values(reportActionsForIOUReport ?? {}).forEach((reportAction) => expect(reportAction?.pendingAction).toBeFalsy());
+                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                                        expect(reportAction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -1235,7 +1237,9 @@ describe('actions/IOU', () => {
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
-                                    Object.values(reportActionsForIOUReport ?? {}).forEach((reportAction) => expect(reportAction?.pendingAction).toBeFalsy());
+                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                                        expect(reportAction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -1443,7 +1447,9 @@ describe('actions/IOU', () => {
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
-                                    Object.values(reportActionsForIOUReport ?? {}).forEach((reportAction) => expect(reportAction?.pendingAction).toBeFalsy());
+                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                                        expect(reportAction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -1457,7 +1463,9 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
-                                    Object.values(allTransactions ?? {}).forEach((transaction) => expect(transaction?.pendingAction).toBeFalsy());
+                                    for (const transaction of Object.values(allTransactions ?? {})) {
+                                        expect(transaction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -1764,7 +1772,9 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: true,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
-                                        Object.values(allReports ?? {}).forEach((report) => expect(report).toBeFalsy());
+                                        for (const report of Object.values(allReports ?? {})) {
+                                            expect(report).toBeFalsy();
+                                        }
                                         resolve();
                                     },
                                 });
@@ -1780,7 +1790,9 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: false,
                                     callback: (allReportActions) => {
                                         Onyx.disconnect(connection);
-                                        Object.values(allReportActions ?? {}).forEach((reportAction) => expect(reportAction).toBeFalsy());
+                                        for (const reportAction of Object.values(allReportActions ?? {})) {
+                                            expect(reportAction).toBeFalsy();
+                                        }
                                         resolve();
                                     },
                                 });
@@ -1796,7 +1808,9 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: true,
                                     callback: (allTransactions) => {
                                         Onyx.disconnect(connection);
-                                        Object.values(allTransactions ?? {}).forEach((transaction) => expect(transaction).toBeFalsy());
+                                        for (const transaction of Object.values(allTransactions ?? {})) {
+                                            expect(transaction).toBeFalsy();
+                                        }
                                         resolve();
                                     },
                                 });
@@ -2368,9 +2382,9 @@ describe('actions/IOU', () => {
                                     // The 1:1 chat reports and the IOU reports should be linked together
                                     expect(carlosChatReport?.iouReportID).toBe(carlosIOUReport?.reportID);
                                     expect(carlosIOUReport?.chatReportID).toBe(carlosChatReport?.reportID);
-                                    Object.values(carlosIOUReport?.participants ?? {}).forEach((participant) => {
+                                    for (const participant of Object.values(carlosIOUReport?.participants ?? {})) {
                                         expect(participant.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-                                    });
+                                    }
 
                                     expect(julesChatReport?.iouReportID).toBe(julesIOUReport?.reportID);
                                     expect(julesIOUReport?.chatReportID).toBe(julesChatReport?.reportID);
@@ -2569,12 +2583,14 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
-                                    Object.values(allReports ?? {}).forEach((report) => {
+                                    for (const report of Object.values(allReports ?? {})) {
                                         if (!report?.pendingFields) {
-                                            return;
+                                            continue;
                                         }
-                                        Object.values(report?.pendingFields).forEach((pendingField) => expect(pendingField).toBeFalsy());
-                                    });
+                                        for (const pendingField of Object.values(report?.pendingFields)) {
+                                            expect(pendingField).toBeFalsy();
+                                        }
+                                    }
                                     resolve();
                                 },
                             });
@@ -2588,7 +2604,9 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connection);
-                                    Object.values(allReportActions ?? {}).forEach((reportAction) => expect(reportAction?.pendingAction).toBeFalsy());
+                                    for (const reportAction of Object.values(allReportActions ?? {})) {
+                                        expect(reportAction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -2602,7 +2620,9 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
-                                    Object.values(allTransactions ?? {}).forEach((transaction) => expect(transaction?.pendingAction).toBeFalsy());
+                                    for (const transaction of Object.values(allTransactions ?? {})) {
+                                        expect(transaction?.pendingAction).toBeFalsy();
+                                    }
                                     resolve();
                                 },
                             });
@@ -3721,7 +3741,7 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
             };
             const iouActions: ReportAction[] = [];
-            [transaction1, transaction2].forEach((transaction) =>
+            for (const transaction of [transaction1, transaction2]) {
                 iouActions.push(
                     buildOptimisticIOUReportAction({
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -3731,10 +3751,12 @@ describe('actions/IOU', () => {
                         participants: [],
                         transactionID: transaction.transactionID,
                     }),
-                ),
-            );
+                );
+            }
             const actions: OnyxInputValue<ReportActions> = {};
-            iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
+            for (const iouAction of iouActions) {
+                actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
+            }
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
 
             return waitForBatchedUpdates()
@@ -5378,7 +5400,7 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
             };
             const iouActions: ReportAction[] = [];
-            [transaction1, transaction2].forEach((transaction) =>
+            for (const transaction of [transaction1, transaction2]) {
                 iouActions.push(
                     buildOptimisticIOUReportAction({
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -5388,10 +5410,12 @@ describe('actions/IOU', () => {
                         participants: [],
                         transactionID: transaction.transactionID,
                     }),
-                ),
-            );
+                );
+            }
             const actions: OnyxInputValue<ReportActions> = {};
-            iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
+            for (const iouAction of iouActions) {
+                actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
+            }
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
 
             return waitForBatchedUpdates()
@@ -6214,9 +6238,9 @@ describe('actions/IOU', () => {
             expect(command).toBe(expectedCommand);
 
             // And the parameters should be supported by XMLHttpRequest
-            Object.values(params as Record<string, unknown>).forEach((value) => {
+            for (const value of Object.values(params as Record<string, unknown>)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
-            });
+            }
         });
 
         test.each([
@@ -6265,9 +6289,9 @@ describe('actions/IOU', () => {
             }
 
             // And the parameters should be supported by XMLHttpRequest
-            Object.values(params as Record<string, unknown>).forEach((value) => {
+            for (const value of Object.values(params as Record<string, unknown>)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
-            });
+            }
         });
     });
 
@@ -8399,13 +8423,13 @@ describe('actions/IOU', () => {
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
-                    options.optimisticData.forEach((update) => {
+                    for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
                             Onyx.merge(update.key, update.value);
                         } else if (update.onyxMethod === Onyx.METHOD.SET) {
                             Onyx.set(update.key, update.value);
                         }
-                    });
+                    }
                 }
                 return Promise.resolve();
             });
@@ -8665,13 +8689,13 @@ describe('actions/IOU', () => {
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
-                    options.optimisticData.forEach((update) => {
+                    for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
                             Onyx.merge(update.key, update.value);
                         } else if (update.onyxMethod === Onyx.METHOD.SET) {
                             Onyx.set(update.key, update.value);
                         }
-                    });
+                    }
                 }
                 return Promise.resolve();
             });
