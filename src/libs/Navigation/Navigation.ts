@@ -684,20 +684,6 @@ function clearPreloadedRoutes() {
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 
-const modalDismissedListeners: Array<() => void> = [];
-
-function onModalDismissedOnce(callback: () => void) {
-    modalDismissedListeners.push(callback);
-}
-
-// Wrap modal dismissal so listeners get called
-function fireModalDismissed() {
-    while (modalDismissedListeners.length) {
-        const cb = modalDismissedListeners.pop();
-        cb?.();
-    }
-}
-
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -732,8 +718,6 @@ export default {
     isTopmostRouteModalScreen,
     isOnboardingFlow,
     clearPreloadedRoutes,
-    onModalDismissedOnce,
-    fireModalDismissed,
     isValidateLoginFlow,
 };
 
