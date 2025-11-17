@@ -33,7 +33,7 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
         );
 
         return null;
-    };
+    }
 
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
