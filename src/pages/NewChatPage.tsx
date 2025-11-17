@@ -133,9 +133,9 @@ function useOptions() {
             return;
         }
         const newSelectedOptions: OptionData[] = [];
-        newGroupDraft.participants.forEach((participant) => {
+        for (const participant of newGroupDraft.participants) {
             if (participant.accountID === personalData.accountID) {
-                return;
+                continue;
             }
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
@@ -144,13 +144,13 @@ function useOptions() {
                 });
             }
             if (!participantOption) {
-                return;
+                continue;
             }
             newSelectedOptions.push({
                 ...participantOption,
                 isSelected: true,
             });
-        });
+        }
         setSelectedOptions(newSelectedOptions);
     }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
 

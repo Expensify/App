@@ -405,6 +405,7 @@ describe('TransactionUtils', () => {
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
+                merchant: '(none)',
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
         });
@@ -521,7 +522,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('(none)');
+            expect(merchant).toBe('Expense');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
@@ -537,7 +538,11 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             });
-            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const policy: Policy = {
+                ...createRandomPolicy(10),
+                role: CONST.POLICY.ROLE.ADMIN,
+                customUnits: {},
+            };
             const merchant = TransactionUtils.getMerchant(transaction, policy);
             expect(merchant).toBe('Pending...');
         });
