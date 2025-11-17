@@ -4,7 +4,8 @@ import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {interpolate, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -406,7 +407,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                     <PressableWithoutFeedback
                                         style={[styles.mh5, styles.flex1]}
                                         onLayout={initializeSliderContainer}
-                                        onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                        onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
                                         accessibilityLabel="slider"
                                         role={CONST.ROLE.SLIDER}
                                     >
