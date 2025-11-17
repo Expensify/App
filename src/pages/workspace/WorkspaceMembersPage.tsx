@@ -10,7 +10,6 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -20,7 +19,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
