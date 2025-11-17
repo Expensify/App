@@ -260,6 +260,8 @@ function Search({
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
         if (!violations || !searchResults?.data) {
@@ -456,13 +458,21 @@ function Search({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (validGroupBy || isExpenseReportType) {
             data.forEach((transactionGroup) => {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     return;
                 }
+
+                // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
+                // This ensures report-level selection persists when new transactions are added.
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+
                 transactionGroup.transactions.forEach((transactionItem) => {
-                    if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
+                    const isSelected = transactionItem.transactionID in selectedTransactions;
+                    // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
+                    const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
+                    if (!shouldInclude) {
                         return;
                     }
 
@@ -482,7 +492,7 @@ function Search({
                             transactionItem.policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -539,7 +549,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -764,7 +774,6 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, validGroupBy);
 
