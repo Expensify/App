@@ -436,7 +436,7 @@ function SuggestionMention({
             },
             [calculateMentionSuggestion],
         ),
-        100,
+        CONST.TIMING.MENTION_SUGGESTION_DEBOUNCE_TIME,
     );
 
     useEffect(() => {
