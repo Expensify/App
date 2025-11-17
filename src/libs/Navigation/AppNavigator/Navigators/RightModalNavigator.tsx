@@ -13,7 +13,6 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
-import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,8 +36,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {expandedRHPProgress, shouldRenderSecondaryOverlay, secondOverlayProgress, isWideRHPFocused, shouldRenderThirdOverlay, thirdOverlayProgress, isWideRHPClosing} =
-        useContext(WideRHPContext);
+    const {
+        expandedRHPProgress,
+        shouldRenderSecondaryOverlay,
+        secondOverlayProgress,
+        isWideRHPFocused,
+        shouldRenderTertiaryOverlay,
+        thirdOverlayProgress,
+        isWideRHPClosing,
+        dismissToFirstRHP,
+        dismissToSecondRHP,
+    } = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
@@ -317,21 +325,21 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         progress={secondOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
-                        onPress={() => Navigation.closeRHPFlow()}
+                        onPress={dismissToFirstRHP}
                     />
                 )}
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRHPFocused && (
                     <Overlay
                         progress={secondOverlayProgress}
                         positionRightValue={wideRHPWidth}
-                        onPress={() => Navigation.closeRHPFlow()}
+                        onPress={dismissToFirstRHP}
                     />
                 )}
-                {shouldRenderThirdOverlay && !shouldUseNarrowLayout && (
+                {shouldRenderTertiaryOverlay && !shouldUseNarrowLayout && (
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
-                        onPress={() => Navigation.closeRHPFlow()}
+                        onPress={dismissToSecondRHP}
                     />
                 )}
             </NoDropZone>

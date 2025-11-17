@@ -22,7 +22,7 @@ type WideRHPContextType = {
     shouldRenderSecondaryOverlay: boolean;
 
     // If the tertiary overlay should be rendered. This value takes into account the delay of closing transition.
-    shouldRenderThirdOverlay: boolean;
+    shouldRenderTertiaryOverlay: boolean;
 
     // Show given route as in wide format
     showWideRHPVersion: (route: NavigationRoute) => void;
@@ -39,8 +39,11 @@ type WideRHPContextType = {
     // Check if reportID is marked as expense
     isReportIDMarkedAsExpense: (reportID: string) => boolean;
 
-    // Navigate to the last element in wideRHPRouteKeys array
-    dismissToWideReport: () => void;
+    // Navigate to the first visible RHP 
+    dismissToFirstRHP: () => void;
+
+    // Navigate to the second visible RHP
+    dismissToSecondRHP: () => void;
 
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;

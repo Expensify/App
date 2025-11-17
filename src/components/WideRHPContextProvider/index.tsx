@@ -29,6 +29,13 @@ const thirdOverlayProgress = new Animated.Value(0);
 const singleRHPWidth = variables.sideBarWidth;
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
 
+const OVERLAY_TIMING_DURATION = 300;
+
+// This array includes wide and super wide right modals
+const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
+
+const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
+
 function isSuperWideRHPRouteName(routeName: string) {
     return routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.EXPENSE_REPORT_RHP;
 }
@@ -160,7 +167,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
     const [allSuperWideRHPRouteKeys, setAllSuperWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
-    const [shouldRenderThirdOverlay, setShouldRenderThirdOverlay] = useState(false);
+    const [shouldRenderTertiaryOverlay, setShouldRenderTertiaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
     const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
     const focusedRouteKey = useRootNavigationState((state) => (state ? findFocusedRoute(state)?.key : undefined));
@@ -300,7 +307,38 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Dismiss top layer modal and go back to the wide RHP.
      */
-    const dismissToWideReport = useCallback(() => {
+    const dismissToFirstRHP = useCallback(() => {
+        const rootState = navigationRef.getRootState();
+        if (!rootState) {
+            return;
+        }
+
+        const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+        if (!rhpState) {
+            return;
+        }
+
+        let firstRHPIndex;
+
+        // If Wide RHP is focused, we should dismiss to Super Wide RHP
+        if (isWideRHPFocused) {
+            firstRHPIndex = rhpState.routes.findLastIndex((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+        } else {
+            firstRHPIndex = rhpState.routes.findLastIndex((route) => WIDE_RIGHT_MODALS.has(route.name));
+        }
+
+        const routesToPop = rhpState.routes.length - firstRHPIndex - 1;
+
+        // In the current navigation structure, hardcoding popTo SCREENS.RIGHT_MODAL.SEARCH_REPORT works exactly as we want.
+        // It may change in the future and we may need to improve this function to handle more complex configurations.
+        navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+    }, [isWideRHPFocused]);
+
+    /**
+     * Dismiss top layer modal and go back to the wide RHP.
+     */
+    const dismissToSecondRHP = useCallback(() => {
         const rootState = navigationRef.getRootState();
         if (!rootState) {
             return;
@@ -378,13 +416,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             setShouldRenderSecondaryOverlay(true);
             Animated.timing(secondOverlayProgress, {
                 toValue: 1,
-                duration: 300,
+                duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
             }).start();
         } else {
             Animated.timing(secondOverlayProgress, {
                 toValue: 0,
-                duration: 300,
+                duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
             }).start(() => {
                 setShouldRenderSecondaryOverlay(false);
@@ -397,19 +435,19 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     useEffect(() => {
         if (shouldShowThirdOverlay) {
-            setShouldRenderThirdOverlay(true);
+            setShouldRenderTertiaryOverlay(true);
             Animated.timing(thirdOverlayProgress, {
                 toValue: 1,
-                duration: 300,
+                duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
             }).start();
         } else {
             Animated.timing(thirdOverlayProgress, {
                 toValue: 0,
-                duration: 300,
+                duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
             }).start(() => {
-                setShouldRenderThirdOverlay(false);
+                setShouldRenderTertiaryOverlay(false);
             });
         }
     }, [shouldShowThirdOverlay]);
@@ -452,8 +490,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             secondOverlayProgress,
             thirdOverlayProgress,
             shouldRenderSecondaryOverlay,
-            shouldRenderThirdOverlay,
-            dismissToWideReport,
+            shouldRenderTertiaryOverlay,
+            dismissToFirstRHP,
+            dismissToSecondRHP,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRHPFocused,
@@ -467,13 +506,14 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             cleanWideRHPRouteKey,
             shouldRenderSecondaryOverlay,
-            shouldRenderThirdOverlay,
-            dismissToWideReport,
+            shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
             isWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
+            dismissToFirstRHP,
+            dismissToSecondRHP,
         ],
     );
 

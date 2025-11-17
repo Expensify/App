@@ -105,7 +105,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderThirdOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} =
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} =
             useContext(WideRHPContext);
         const route = useRoute();
 
@@ -140,7 +140,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isWideRHPRouteName(route.name) && !isFocused && !isWideRHPClosing && !shouldRenderThirdOverlay ? (
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && isWideRHPRouteName(route.name) && !isFocused && !isWideRHPClosing && !shouldRenderTertiaryOverlay ? (
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
@@ -159,7 +159,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : receiptPaneRHPWidth}
                     />
                 ) : null}
-                {!isSmallScreenWidth && shouldRenderThirdOverlay && isWideRHPRouteName(route.name) ? (
+                {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionLeftValue={modalStackOverlaySuperWideRHPWidth}
