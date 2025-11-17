@@ -14,7 +14,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {receiptPaneRHPWidth, superWideRHPWidth, wideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -5354,14 +5354,14 @@ const staticStyles = (theme: ThemeColors) =>
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: wideRHPWidth,
+            width: animatedWideRHPWidth,
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: superWideRHPWidth,
+            width: animatedSuperWideRHPWidth,
         },
 
         flexibleHeight: {
@@ -5375,7 +5375,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: receiptPaneRHPWidth,
+            width: animatedReceiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -5582,7 +5582,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         animatedRHPNavigatorContainerWidth: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
             ({
-                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
+                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, animatedReceiptPaneRHPWidth)),
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>

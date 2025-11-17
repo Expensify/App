@@ -2,7 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
-import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, receiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, animatedReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
@@ -168,7 +168,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {isRHPDisplayedOnWideRHP ? (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : receiptPaneRHPWidth}
+                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPWidth : animatedReceiptPaneRHPWidth}
                     />
                 ) : null}
                 {isWideRHPDisplayedOnSuperWideRHP ? (

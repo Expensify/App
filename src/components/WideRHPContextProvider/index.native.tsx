@@ -8,7 +8,7 @@ import type {WideRHPContextType} from './types';
 
 const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
-const receiptPaneRHPWidth = new Animated.Value(0);
+const animatedReceiptPaneRHPWidth = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -24,4 +24,4 @@ WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
 export type {WideRHPContextType};
-export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, receiptPaneRHPWidth};
+export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, animatedReceiptPaneRHPWidth};

@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, innerRHPProgress, WideRHPContext, wideRHPWidth} from '@components/WideRHPContextProvider';
+import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, innerRHPProgress, WideRHPContext, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -330,7 +330,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRHPFocused && (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionRightValue={wideRHPWidth}
+                        positionRightValue={animatedWideRHPWidth}
                         onPress={dismissToFirstRHP}
                     />
                 )}

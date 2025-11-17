@@ -26,9 +26,6 @@ const innerRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
-const singleRHPWidth = variables.sideBarWidth;
-const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
-
 const OVERLAY_TIMING_DURATION = 300;
 
 // This array includes wide and super wide right modals
@@ -75,6 +72,9 @@ function extractNavigationKeys(state: NavigationState | PartialState<NavigationS
     return keys;
 }
 
+const singleRHPWidth = variables.sideBarWidth;
+const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
+
 /**
  * Calculates the optimal width for the receipt pane RHP based on window width.
  * Ensures the RHP doesn't exceed maximum width and maintains minimum responsive width.
@@ -102,15 +102,16 @@ const calculateSuperWideRHPWidth = (windowWidth: number) => {
     return Math.max(Math.min(superWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
 };
 
-// This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
-const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
-const superWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width));
+const receiptPaneRHPWidth = calculateReceiptPaneRHPWidth(Dimensions.get('window').width);
+const superWideRHPWidth = calculateReceiptPaneRHPWidth(Dimensions.get('window').width);
+const wideRHPWidth = receiptPaneRHPWidth + singleRHPWidth;
 
-const wideRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width) + singleRHPWidth);
-const modalStackOverlayWideRHPWidth = new Animated.Value(
-    calculateSuperWideRHPWidth(Dimensions.get('window').width) - calculateReceiptPaneRHPWidth(Dimensions.get('window').width - singleRHPWidth),
-);
-const modalStackOverlaySuperWideRHPWidth = new Animated.Value(calculateSuperWideRHPWidth(Dimensions.get('window').width) - singleRHPWidth);
+// This animated value is necessary to have responsive RHP widths
+const animatedReceiptPaneRHPWidth = new Animated.Value(receiptPaneRHPWidth);
+const animatedSuperWideRHPWidth = new Animated.Value(superWideRHPWidth);
+const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
+const modalStackOverlayWideRHPWidth = new Animated.Value(superWideRHPWidth - wideRHPWidth);
+const modalStackOverlaySuperWideRHPWidth = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -183,72 +184,78 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return !!focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
     }, [focusedRouteKey, wideRHPRouteKeys]);
 
+    const getIsSuperWideRHPBelowFocusedScreen = useCallback(
+        (state: NavigationState | undefined) => {
+            if (!state) {
+                return false;
+            }
+
+            const focusedRoute = findFocusedRoute(state);
+
+            // Shouldn't ever happen but for type safety
+            if (!focusedRoute?.key) {
+                return false;
+            }
+
+            const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+            const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
+            const isFocusedRouteSuperWide = isSuperWideRHPRouteName(focusedRoute.name);
+
+            return currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && !isFocusedRouteSuperWide;
+        },
+        [allSuperWideRHPRouteKeys],
+    );
+
+    const getIsWideRHPBelowFocusedScreen = useCallback(
+        (state: NavigationState | undefined) => {
+            if (!state) {
+                return false;
+            }
+
+            const focusedRoute = findFocusedRoute(state);
+
+            // Shouldn't ever happen but for type safety
+            if (!focusedRoute?.key) {
+                return false;
+            }
+
+            const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+            const currentWideRHPRouteKeys = getCurrentWideRHPKeys(allWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
+            const isFocusedRouteWide = focusedRoute.name === SCREENS.SEARCH.REPORT_RHP;
+
+            return currentWideRHPRouteKeys.length > 0 && !currentWideRHPRouteKeys.includes(focusedRoute.key) && !isFocusedRouteWide;
+        },
+        [allWideRHPRouteKeys],
+    );
+
     /**
      * Determines whether the secondary overlay should be displayed.
-     * Shows second overlay when RHP is open and there is a wide RHP route open but there is another regular route on the top.
      */
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
-        // Safe handling when navigation is not yet initialized
-        if (!state) {
-            return false;
-        }
-
-        const focusedRoute = findFocusedRoute(state);
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-        const currentWideRHPRouteKeys = getCurrentWideRHPKeys(allWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
-        const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
 
-        // Shouldn't ever happen but for type safety
-        if (!focusedRoute?.key) {
+        if (!isRHPLastRootRoute) {
             return false;
         }
 
-        const isFocusedRouteSuperWide = isSuperWideRHPRouteName(focusedRoute.name);
-
-        // This screen is always first in RHP, so secondary overlay is not displayed in this case.
-        if (isFocusedRouteSuperWide) {
-            return false;
-        }
-
-        if (currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && currentWideRHPRouteKeys.length > 0) {
-            return false;
-        }
-
-        if (currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && !isFocusedRouteSuperWide) {
-            return true;
-        }
-
-        // Check the focused route to avoid glitching when quickly close and open RHP.
-        if (currentWideRHPRouteKeys.length > 0 && !currentWideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
-            return true;
-        }
-
-        return false;
+        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state);
+        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state);
+        return isSuperWideRHPBelow || isWideRHPBelow;
     });
 
-    const shouldShowThirdOverlay = useRootNavigationState((state) => {
-        // Safe handling when navigation is not yet initialized
-        if (!state) {
-            return false;
-        }
-
-        const focusedRoute = findFocusedRoute(state);
+    /**
+     * Determines whether the tertiary overlay should be displayed.
+     */
+    const shouldShowTertiaryOverlay = useRootNavigationState((state) => {
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-        const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
 
-        // Shouldn't ever happen but for type safety
-        if (!focusedRoute?.key) {
+        if (!isRHPLastRootRoute) {
             return false;
         }
 
-        const isSuperWideRhpDisplayedBelow =
-            currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && !isSuperWideRHPRouteName(focusedRoute.name);
-        const isWideRhpDisplayedBelow = wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP;
-
-        // Check the focused route to avoid glitching when quickly close and open RHP.
-        return isSuperWideRhpDisplayedBelow && isWideRhpDisplayedBelow && isRHPLastRootRoute;
+        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state);
+        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state);
+        return isSuperWideRHPBelow && isWideRHPBelow;
     });
 
     /**
@@ -434,7 +441,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * Effect that manages the secondary overlay animation and rendering state.
      */
     useEffect(() => {
-        if (shouldShowThirdOverlay) {
+        if (shouldShowTertiaryOverlay) {
             setShouldRenderTertiaryOverlay(true);
             Animated.timing(thirdOverlayProgress, {
                 toValue: 1,
@@ -450,7 +457,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
                 setShouldRenderTertiaryOverlay(false);
             });
         }
-    }, [shouldShowThirdOverlay]);
+    }, [shouldShowTertiaryOverlay]);
 
     /**
      * Effect that handles responsive RHP width calculation when window dimensions change.
@@ -462,11 +469,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             const newReceiptPaneRHPWidth = calculateReceiptPaneRHPWidth(windowWidth);
             const newSuperWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
             const newWideRHPWidth = newReceiptPaneRHPWidth + singleRHPWidth;
-            receiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
-            wideRHPWidth.setValue(newWideRHPWidth);
+            animatedReceiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
+            animatedWideRHPWidth.setValue(newWideRHPWidth);
             modalStackOverlayWideRHPWidth.setValue(newSuperWideRHPWidth - newWideRHPWidth);
             modalStackOverlaySuperWideRHPWidth.setValue(newSuperWideRHPWidth - singleRHPWidth);
-            superWideRHPWidth.setValue(newSuperWideRHPWidth);
+            animatedSuperWideRHPWidth.setValue(newSuperWideRHPWidth);
         };
 
         // Set initial value
@@ -604,14 +611,14 @@ export {
     calculateReceiptPaneRHPWidth,
     calculateSuperWideRHPWidth,
     extractNavigationKeys,
-    superWideRHPWidth,
+    animatedSuperWideRHPWidth,
     modalStackOverlaySuperWideRHPWidth,
     modalStackOverlayWideRHPWidth,
-    receiptPaneRHPWidth,
+    animatedReceiptPaneRHPWidth,
     secondOverlayProgress,
     useShowSuperWideRHPVersion,
     useShowWideRHPVersion,
     WideRHPContext,
-    wideRHPWidth,
+    animatedWideRHPWidth,
     innerRHPProgress,
 };
