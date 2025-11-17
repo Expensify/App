@@ -520,6 +520,8 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const shouldUseParentChatReport = participant.isPolicyExpenseChat;
+            const parentChatReport = shouldUseParentChatReport ? report : undefined;
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
@@ -539,7 +541,7 @@ function IOURequestStepConfirmation({
                 }
 
                 const {iouReport} = requestMoneyIOUActions({
-                    report,
+                    report: parentChatReport,
                     existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
@@ -675,12 +677,14 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const shouldUseParentChatReport = participant.isPolicyExpenseChat;
+            const parentChatReport = shouldUseParentChatReport ? report : undefined;
             transactions.forEach((item, index) => {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 trackExpenseIOUActions({
-                    report,
+                    report: parentChatReport,
                     isDraftPolicy,
                     action,
                     participantParams: {
@@ -749,8 +753,11 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
+            const participant = selectedParticipants.at(0);
+            const shouldUseParentChatReport = participant?.isPolicyExpenseChat ?? false;
+            const parentChatReport = shouldUseParentChatReport ? report : undefined;
             createDistanceRequestIOUActions({
-                report,
+                report: parentChatReport,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
