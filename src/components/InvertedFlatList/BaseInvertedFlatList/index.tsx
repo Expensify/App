@@ -97,6 +97,15 @@ function BaseInvertedFlatList<T>({
     const listRef = useRef<FlatListInnerRefType<T>>(null);
     useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed});
 
+    const [didInitialContentRender, setDidInitialContentRender] = useState(false);
+    const handleContentSizeChange = useCallback(
+        (contentWidth: number, contentHeight: number) => {
+            onContentSizeChange?.(contentWidth, contentHeight);
+            setDidInitialContentRender(true);
+        },
+        [onContentSizeChange],
+    );
+
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
     useEffect(() => {
@@ -108,15 +117,6 @@ function BaseInvertedFlatList<T>({
     // If the unread message is on the first page, scroll to the end once the content is measured and the data is loaded
     const isMessageOnFirstPage = useRef(currentDataIndex > Math.max(0, data.length - initialNumToRender));
     const didScroll = useRef(false);
-    const [didInitialContentRender, setDidInitialContentRender] = useState(false);
-
-    const handleContentSizeChange = useCallback(
-        (contentWidth: number, contentHeight: number) => {
-            onContentSizeChange?.(contentWidth, contentHeight);
-            setDidInitialContentRender(true);
-        },
-        [onContentSizeChange],
-    );
 
     // When we are initially showing a message on the first page of the whole dataset,
     // we don't want to immediately start rendering the list.
