@@ -1,7 +1,7 @@
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
@@ -34,7 +34,7 @@ const COMPANY_CARD_FEED_ICON_NAMES = [
     'PlaidCompanyCardDetailLarge',
 ] as const;
 
-type CompanyCardFeedIconName = (typeof COMPANY_CARD_FEED_ICON_NAMES)[number];
+type CompanyCardFeedIconName = TupleToUnion<typeof COMPANY_CARD_FEED_ICON_NAMES>;
 type CompanyCardFeedIcons = Record<CompanyCardFeedIconName, IconAsset>;
 
 const COMPANY_CARD_BANK_ICON_NAMES = [
@@ -51,7 +51,7 @@ const COMPANY_CARD_BANK_ICON_NAMES = [
     'PlaidCompanyCardDetail',
 ] as const;
 
-type CompanyCardBankIconName = (typeof COMPANY_CARD_BANK_ICON_NAMES)[number];
+type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>;
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
 /**

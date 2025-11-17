@@ -79,7 +79,13 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
     return cardFeedKey;
 }
 
-function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[], illustrations: IllustrationsType, companyCardIcons: CompanyCardFeedIcons): CardFilterItem {
+function createCardFilterItem(
+    card: Card,
+    personalDetailsList: PersonalDetailsList,
+    selectedCards: string[],
+    illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
+): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations, companyCardIcons);

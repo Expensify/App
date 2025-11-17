@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
@@ -11,12 +12,12 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,

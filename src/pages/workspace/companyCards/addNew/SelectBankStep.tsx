@@ -9,10 +9,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank, getCorrectStepForSelectedBank} from '@libs/CardUtils';
@@ -79,8 +79,8 @@ function SelectBankStep() {
         keyForList: bank,
         isSelected: bankSelected === bank,
         leftElement: (
-                <Icon
-                    src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+            <Icon
+                src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}

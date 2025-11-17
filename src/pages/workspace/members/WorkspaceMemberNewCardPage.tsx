@@ -10,10 +10,10 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {CombinedCardFeed} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {

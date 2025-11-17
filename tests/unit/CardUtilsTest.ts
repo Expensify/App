@@ -1,6 +1,7 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
+// eslint-disable-next-line no-restricted-imports
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
@@ -369,7 +370,7 @@ const mockCompanyCardFeedIcons = {
     BrexCompanyCardDetailLarge: 'BrexCompanyCardDetailLarge',
     StripeCompanyCardDetailLarge: 'StripeCompanyCardDetailLarge',
     PlaidCompanyCardDetailLarge: 'PlaidCompanyCardDetailLarge',
-};
+} as unknown as CompanyCardFeedIcons;
 const mockCompanyCardBankIcons = {
     AmexCardCompanyCardDetail: 'AmexCardCompanyCardDetail',
     BankOfAmericaCompanyCardDetail: 'BankOfAmericaCompanyCardDetail',
@@ -382,7 +383,7 @@ const mockCompanyCardBankIcons = {
     MasterCardCompanyCardDetail: 'MasterCardCompanyCardDetail',
     VisaCompanyCardDetail: 'VisaCompanyCardDetail',
     PlaidCompanyCardDetail: 'PlaidCompanyCardDetail',
-};
+} as unknown as CompanyCardBankIcons;
 
 jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 

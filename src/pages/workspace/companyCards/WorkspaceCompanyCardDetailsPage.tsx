@@ -4,7 +4,9 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -14,8 +16,8 @@ import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
