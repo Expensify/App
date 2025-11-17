@@ -16,7 +16,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removeFromGroupChat} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isGroupChatAdmin} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -27,9 +30,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import { removeFromGroupChat } from '@libs/actions/Report';
-import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
-import { isGroupChatAdmin } from '@libs/ReportUtils';
 
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 

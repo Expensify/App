@@ -15,8 +15,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removeFromRoom} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,10 +30,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import { removeFromRoom } from '@libs/actions/Report';
-import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
-import { isPolicyExpenseChat } from '@libs/ReportUtils';
-import { isUserPolicyAdmin } from '@libs/PolicyUtils';
 
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
@@ -45,7 +45,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', route.params.backTo);
+    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);

@@ -327,6 +327,8 @@ function useSelectedTransactionsActions({
         return options;
     }, [
         icons.DocumentMerge,
+        icons.Export,
+        icons.Table,
         selectedTransactionIDs,
         report,
         selectedTransactionsList,

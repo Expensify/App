@@ -39,10 +39,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     action: () => void | Promise<void>;
 };
 
