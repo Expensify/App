@@ -24,6 +24,9 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF is loaded */
     onLoadSuccess?: () => void;
+
+    /** Callback to call if the PDF library fails to load dynamically */
+    onPDFLoadError?: () => void;
 };
 
 export default PDFThumbnailProps;

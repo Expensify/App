@@ -2061,6 +2061,7 @@ const CONST = {
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        PDF_LIBRARY_FAILED: 'pdfLibraryFailed',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',

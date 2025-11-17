@@ -8,15 +8,25 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
-    const styles = useThemeStyles();
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess, onPDFLoadError}: PDFThumbnailProps) {
     const [failedToLoad, setFailedToLoad] = useState(false);
     const [ready, setReady] = useState(false);
+    const [pdfInitializationFailed, setPdfInitializationFailed] = useState(false);
+
+    const styles = useThemeStyles();
 
     useEffect(() => {
-        ensurePdfJsInitialized().then(() => {
-            setReady(true);
-        });
+        ensurePdfJsInitialized()
+            .then(() => {
+                setReady(true);
+            })
+            .catch(() => {
+                setPdfInitializationFailed(true);
+                onPDFLoadError?.();
+            });
+        // We only want to call this method once
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadingIndicator = useMemo(() => <FullScreenLoadingIndicator />, []);
@@ -69,7 +79,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         [loadingIndicator, isAuthTokenRequired, previewSourceURL, onPassword, handleOnLoad, handleOnLoadSuccess, handleOnLoadError, handleError],
     );
 
-    if (!ready) {
+    if (!ready || pdfInitializationFailed) {
         return null;
     }
 

@@ -379,6 +379,11 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                       collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
                       checkIfAllValidatedAndProceed();
                   }}
+                  onPDFLoadError={() => {
+                      validatedPDFs.current.push(file);
+                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PDF_LIBRARY_FAILED});
+                      checkIfAllValidatedAndProceed();
+                  }}
               />
           ))
         : undefined;
