@@ -40,6 +40,7 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStepNew: jest.fn(),
+    buildOptimisticNextStep: jest.fn(),
 }));
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
@@ -914,8 +915,12 @@ describe('actions/Report', () => {
             comment: {comment: 'Legacy expense'},
         } as unknown as OnyxTypes.Transaction);
 
-        // Call openReport with transactionID to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, TXN_ID);
+        // Get the transaction object from Onyx
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
+        expect(transaction).toBeTruthy();
+
+        // Call openReport with transaction object to trigger the legacy preview flow
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -2531,6 +2536,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
                 policy,

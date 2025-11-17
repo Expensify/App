@@ -8,9 +8,10 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
+import {scheduleOnRN} from 'react-native-worklets';
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -198,6 +199,8 @@ function IOURequestStepScan({
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
@@ -227,7 +230,7 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            runOnJS(focusCamera)(point);
+            scheduleOnRN(focusCamera, point);
         });
 
     useFocusEffect(
@@ -332,6 +335,7 @@ function IOURequestStepScan({
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -355,11 +359,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
+        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -598,7 +603,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
