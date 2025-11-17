@@ -1,9 +1,9 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
-import React, {useCallback, useContext, useMemo, useRef, useEffect} from 'react';
+import React, {useCallback, useContext, useRef, useEffect} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, DeviceEventEmitter} from 'react-native';
+import {Animated, DeviceEventEmitter} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,27 +33,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const screenOptions = useRHPScreenOptions();
     const {shouldRenderSecondaryOverlay, secondOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
 
-    const screenListeners = useMemo(
-        () => ({
-            blur: () => {
-                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
-                    | NavigatorScreenParams<RightModalNavigatorParamList>
-                    | undefined;
-
-                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
-                    return;
-                }
-                // Delay clearing review duplicate data till the RHP is completely closed
-                // to avoid not found showing briefly in confirmation page when RHP is closing
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    abandonReviewDuplicateTransactions();
-                });
-            },
-        }),
-        [navigation, route],
-    );
-
     const handleOverlayPress = useCallback(() => {
         if (isExecutingRef.current) {
             return;
@@ -65,7 +44,18 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
 
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
+    useEffect(() => () => {
+        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED);
+
+        const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+            | NavigatorScreenParams<RightModalNavigatorParamList>
+            | undefined;
+        if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+            return;
+        }
+
+        abandonReviewDuplicateTransactions();
+    }, []);
 
     return (
         <NarrowPaneContextProvider>
@@ -76,7 +66,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 <Animated.View style={[styles.animatedRHPNavigatorContainer, styles.animatedRHPNavigatorContainerWidth(shouldUseNarrowLayout, expandedRHPProgress)]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
-                        screenListeners={screenListeners}
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
                         <Stack.Screen
@@ -88,8 +77,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                             listeners={{
                                 beforeRemove: () => {
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
+                                    const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                                        subscription.remove();
+                                        clearTwoFactorAuthData(true)
+                                    });
                                 },
                             }}
                         />
