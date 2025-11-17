@@ -62,7 +62,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
-import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -87,6 +87,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
 function initializePusher() {
@@ -356,7 +357,7 @@ function AuthScreens() {
     }, [dismissToWideReport, modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay]);
 
     // Animation is disabled when navigating to the sidebar screen
-    const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+    const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
         if (!shouldUseNarrowLayout) {
             return rootNavigatorScreenOptions.splitNavigator;
@@ -366,7 +367,7 @@ function AuthScreens() {
         // If it is opened from other tab, we don't want to animate it on the entry.
         // There is a hook inside the workspace navigator that changes animation to SLIDE_FROM_RIGHT after entering.
         // This way it can be animated properly when going back to the settings split.
-        const animationEnabled = !workspaceSplitsWithoutEnteringAnimation.has(route.key);
+        const animationEnabled = !workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key);
 
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
@@ -474,6 +475,7 @@ function AuthScreens() {
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
                     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
@@ -498,8 +500,13 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                    options={getWorkspaceSplitNavigatorOptions}
+                    options={getWorkspaceOrDomainSplitNavigatorOptions}
                     getComponent={loadWorkspaceSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
+                    options={getWorkspaceOrDomainSplitNavigatorOptions}
+                    getComponent={loadDomainSplitNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}

@@ -1,18 +1,14 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import * as Illustrations from './Icon/Illustrations';
-import Text from './Text';
-import TextPill from './TextPill';
 
-type ProcessMoneyRequestHoldMenuProps = {
+type HoldSubmitterEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
@@ -20,26 +16,15 @@ type ProcessMoneyRequestHoldMenuProps = {
     onConfirm: () => void;
 };
 
-function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
+function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useBeforeRemove(onClose);
 
-    const title = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
-            </View>
-        ),
-        [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
-    );
-
     return (
         <FeatureTrainingModal
-            title={title}
+            title={translate('iou.holdEducationalTitle')}
             description={translate('iou.whatIsHoldExplain')}
             confirmText={translate('common.buttonConfirm')}
             image={Illustrations.HoldExpense}
@@ -51,12 +36,13 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             illustrationOuterContainerStyle={styles.p0}
             onClose={onClose}
             onConfirm={onConfirm}
+            shouldCloseOnConfirm={false}
         >
             <HoldMenuSectionList />
         </FeatureTrainingModal>
     );
 }
 
-ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
+HoldSubmitterEducationalModal.displayName = 'HoldSubmitterEducationalModal';
 
-export default ProcessMoneyRequestHoldMenu;
+export default HoldSubmitterEducationalModal;

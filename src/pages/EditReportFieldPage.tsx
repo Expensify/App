@@ -18,10 +18,10 @@ import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {
     getReportFieldKey,
     hasViolations as hasViolationsReportUtils,
-    isAdminOwnerApproverOrReportOwner,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -43,7 +43,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
