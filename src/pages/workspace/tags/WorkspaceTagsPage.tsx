@@ -24,7 +24,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -110,6 +110,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
 
     const tagsList = useMemo(() => {
@@ -399,7 +400,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         menuItems.push({
-            icon: Expensicons.Gear,
+            icon: icons.Gear,
             text: translate('common.settings'),
             onSelected: navigateToTagsSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
@@ -407,7 +408,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (!hasAccountingConnections) {
             menuItems.push({
-                icon: Expensicons.Table,
+                icon: icons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
@@ -416,7 +417,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (hasVisibleTags && !hasDependentTags) {
             menuItems.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
@@ -742,7 +743,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                                   buttonText: translate('workspace.tags.addTag'),
                                               },
                                               {
-                                                  icon: Expensicons.Table,
+                                                  icon: icons.Table,
                                                   buttonText: translate('common.import'),
                                                   buttonAction: navigateToImportSpreadsheet,
                                               },

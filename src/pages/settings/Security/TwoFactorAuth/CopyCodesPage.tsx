@@ -10,6 +10,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,6 +29,7 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
@@ -114,7 +116,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
-                                            icon={Expensicons.Download}
+                                            icon={icons.Download}
                                             onPress={() => {
                                                 localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
                                                 setError('');

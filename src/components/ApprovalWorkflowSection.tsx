@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -22,6 +23,7 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
@@ -74,7 +76,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
-                    icon={Expensicons.Users}
+                    icon={icons.Users}
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
@@ -92,7 +94,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                             description={Str.removeSMSDomain(approver.displayName)}
-                            icon={Expensicons.UserCheck}
+                            icon={icons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
                             numberOfLinesDescription={1}

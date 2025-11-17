@@ -27,6 +27,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -149,6 +150,7 @@ const CASES = {
 type CaseID = ValueOf<typeof CASES>;
 
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Folder', 'Building', 'Gear', 'Users', 'UserPlus'] as const);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -380,7 +382,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
-                icon: Expensicons.Users,
+                icon: icons.Users,
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -396,7 +398,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
-                icon: Expensicons.Users,
+                icon: icons.Users,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -409,7 +411,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
-                icon: Expensicons.Gear,
+                icon: expensifyIcons.Gear,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -444,7 +446,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
-                    icon: Expensicons.Folder,
+                    icon: expensifyIcons.Folder,
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
@@ -454,7 +456,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
                     translationKey: 'actionableMentionTrackExpense.share',
-                    icon: Expensicons.UserPlus,
+                    icon: expensifyIcons.UserPlus,
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
@@ -497,7 +499,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
                 translationKey: 'workspace.common.goToWorkspace',
-                icon: Expensicons.Building,
+                icon: expensifyIcons.Building,
                 action: () => {
                     if (!report?.policyID) {
                         return;

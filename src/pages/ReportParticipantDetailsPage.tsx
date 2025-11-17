@@ -11,6 +11,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,6 +34,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -99,7 +101,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                                 text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                                 isDisabled={isSelectedMemberCurrentUser}
-                                icon={Expensicons.RemoveMembers}
+                                icon={icons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                 style={styles.mv5}
                             />

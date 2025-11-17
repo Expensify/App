@@ -6,6 +6,7 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -263,6 +264,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -835,7 +837,7 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="tripDays"
-                    icon={Expensicons.CalendarSolid}
+                    icon={icons.CalendarSolid}
                     text={translate('iou.tripLengthText', {count: tripDays})}
                 />,
             );

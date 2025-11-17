@@ -20,7 +20,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -126,6 +126,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
     const illustrations = useMemoizedLazyIllustrations(['PerDiem'] as const);
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
@@ -271,14 +272,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const menuItems = [];
         if (policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
             menuItems.push({
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 text: translate('common.settings'),
                 onSelected: openSettings,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             });
         }
         menuItems.push({
-            icon: Expensicons.Table,
+            icon: icons.Table,
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: () => {
                 if (isOffline) {
@@ -291,7 +292,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         });
         if (hasVisibleSubRates) {
             menuItems.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {

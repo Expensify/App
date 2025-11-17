@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -87,7 +88,7 @@ function ThumbnailImage({
     imageHeight = 200,
     shouldDynamicallyResize = true,
     loadingIconSize,
-    fallbackIcon = Expensicons.Gallery,
+    fallbackIcon,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     fallbackIconBackground,
@@ -98,6 +99,7 @@ function ThumbnailImage({
     loadingIndicatorStyles,
     onLoad,
 }: ThumbnailImageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -143,7 +145,7 @@ function ThumbnailImage({
             <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
+                        src={isOffline ? Expensicons.OfflineCloud : (fallbackIcon ?? icons.Gallery)}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}

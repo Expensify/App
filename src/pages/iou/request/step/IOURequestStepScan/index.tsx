@@ -31,6 +31,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -102,6 +103,7 @@ function IOURequestStepScan({
     isStartingScan = false,
     setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -938,7 +940,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.Gallery}
+                                src={icons.Gallery}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>

@@ -17,7 +17,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -81,6 +81,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
+    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Coins'] as const);
 
     const fetchTaxes = useCallback(() => {
@@ -312,13 +313,13 @@ function WorkspaceTaxesPage({
     const secondaryActions = useMemo(
         () => [
             {
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 text: translate('common.settings'),
                 onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             },
         ],
-        [policyID, translate],
+        [icons.Gear, policyID, translate],
     );
 
     const headerButtons = !shouldShowBulkActionsButton ? (

@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFile] = useState(false);
@@ -151,7 +153,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         <>
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ImageSVG
-                    src={Expensicons.SpreadsheetComputer}
+                    src={icons.SpreadsheetComputer}
                     contentFit="contain"
                     style={styles.mb4}
                     width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
@@ -228,7 +230,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                                     <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
                                         <ImageSVG
-                                            src={Expensicons.SpreadsheetComputer}
+                                            src={icons.SpreadsheetComputer}
                                             contentFit="contain"
                                             style={styles.mb4}
                                             width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}

@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -25,6 +26,7 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -85,7 +87,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 title={translate('requestorStep.learnMore')}
                 icon={Expensicons.QuestionMark}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}

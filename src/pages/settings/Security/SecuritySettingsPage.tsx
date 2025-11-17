@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -55,6 +56,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -168,13 +170,13 @@ function SecuritySettingsPage() {
         if (isAccountLocked) {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.unlockAccount',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
             });
         } else {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.reportSuspiciousActivity',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
         }
@@ -395,7 +397,7 @@ function SecuritySettingsPage() {
                                     {!isDelegateAccessRestricted && (
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
-                                            icon={Expensicons.UserPlus}
+                                            icon={icons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
                                                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);

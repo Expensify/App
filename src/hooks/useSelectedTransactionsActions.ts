@@ -27,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -57,6 +58,7 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
+    const icons = useMemoizedLazyExpensifyIcons(['DocumentMerge', 'Export', 'Table'] as const);
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
@@ -217,7 +219,7 @@ function useSelectedTransactionsActions({
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: icons.Table,
                     onSelected: () => {
                         if (!report) {
                             return;
@@ -242,7 +244,7 @@ function useSelectedTransactionsActions({
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: icons.Table,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });
@@ -254,7 +256,7 @@ function useSelectedTransactionsActions({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
-            icon: Expensicons.Export,
+            icon: icons.Export,
             rightIcon: Expensicons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
@@ -273,7 +275,7 @@ function useSelectedTransactionsActions({
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: icons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;

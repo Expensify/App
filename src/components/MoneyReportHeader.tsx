@@ -202,7 +202,7 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings', 'Document', 'Export', 'Workflows', 'Table'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
 
@@ -678,7 +678,7 @@ function MoneyReportHeader({
         const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
                 text: translate('export.basicExport'),
-                icon: Expensicons.Table,
+                icon: expensifyIcons.Table,
                 value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
                 onSelected: () => {
                     if (!moneyRequestReport) {
@@ -729,7 +729,7 @@ function MoneyReportHeader({
         for (const template of exportTemplates) {
             options[template.name] = {
                 text: template.name,
-                icon: Expensicons.Table,
+                icon: expensifyIcons.Table,
                 value: template.templateName,
                 description: template.description,
                 onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
@@ -940,14 +940,14 @@ function MoneyReportHeader({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
-            icon: Expensicons.Export,
+            icon: expensifyIcons.Export,
             rightIcon: Expensicons.ArrowRight,
             subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
             text: translate('common.downloadAsPDF'),
-            icon: Expensicons.Document,
+            icon: expensifyIcons.Document,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
@@ -1101,7 +1101,7 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
             text: translate('iou.changeApprover.title'),
-            icon: Expensicons.Workflows,
+            icon: expensifyIcons.Workflows,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
             onSelected: () => {
                 if (!moneyRequestReport) {

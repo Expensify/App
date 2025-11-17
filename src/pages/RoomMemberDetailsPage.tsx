@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -33,6 +34,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
 function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -96,7 +98,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                             isDisabled={shouldDisableRemoveUser}
-                            icon={Expensicons.RemoveMembers}
+                            icon={icons.RemoveMembers}
                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                             style={styles.mv5}
                         />

@@ -21,6 +21,7 @@ import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +47,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -121,7 +123,7 @@ function TroubleshootPage() {
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 action: exportOnyxState,
             },
         ];

@@ -26,7 +26,7 @@ import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurn
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -91,6 +91,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen'] as const);
 
     const {
@@ -304,14 +305,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         menuItems.push({
-            icon: Expensicons.Gear,
+            icon: icons.Gear,
             text: translate('common.settings'),
             onSelected: navigateToCategoriesSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         });
         if (!policyHasAccountingConnections) {
             menuItems.push({
-                icon: Expensicons.Table,
+                icon: icons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
@@ -319,7 +320,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         if (hasVisibleCategories) {
             menuItems.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
@@ -609,7 +610,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                               success: true,
                                           },
                                           {
-                                              icon: Expensicons.Table,
+                                              icon: icons.Table,
                                               buttonText: translate('common.import'),
                                               buttonAction: navigateToImportSpreadsheet,
                                           },

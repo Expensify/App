@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
+import {Close, Monitor} from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {
@@ -39,6 +40,7 @@ type OnboardingHelpButtonProps = {
 const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
     const {translate} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
@@ -60,7 +62,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     if (!hasActiveScheduledCall && shouldShowGuideBooking) {
         options.push({
             text: translate('getAssistancePage.scheduleACall'),
-            icon: CalendarSolid,
+            icon: icons.CalendarSolid,
             value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
             onSelected: () => {
                 clearBookingDraft();
@@ -96,7 +98,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,
             onSelected: () => rescheduleBooking(latestScheduledCall),
-            icon: CalendarSolid,
+            icon: icons.CalendarSolid,
         });
         options.push({
             text: translate('common.cancel'),

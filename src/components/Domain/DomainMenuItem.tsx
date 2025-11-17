@@ -5,6 +5,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
@@ -85,7 +87,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         rightIcon={
                             isValidated ? (
                                 <Icon
-                                    src={Expensicons.NewWindow}
+                                    src={icons.NewWindow}
                                     fill={hovered ? theme.iconHovered : theme.icon}
                                     isButtonIcon
                                 />

@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function Finish() {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -71,7 +73,7 @@ function Finish() {
                             },
                             icon: Expensicons.Shield,
                             shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
+                            iconRight: icons.NewWindow,
                             outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}

@@ -4,12 +4,13 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {MultiTag, Tag} from '@components/Icon/Expensicons';
+import {MultiTag} from '@components/Icon/Expensicons';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -40,6 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
 function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Tag', 'MultiTag'] as const);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
@@ -175,7 +177,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
 
                     <MenuItem
                         title={translate('workspace.tags.tagLevel.singleLevel')}
-                        icon={Tag}
+                        icon={icons.Tag}
                         shouldShowRightIcon
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
@@ -193,7 +195,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     <MenuItem
                         title={translate('workspace.tags.tagLevel.multiLevel')}
                         // TODO: Update icon to multi-level tag icon once it's provided by design team
-                        icon={MultiTag}
+                        icon={icons.MultiTag}
                         shouldShowRightIcon
                         onPress={() => {
                             if (!isControlPolicy(policy)) {

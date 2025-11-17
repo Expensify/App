@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -112,7 +114,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                     )}
                     {isPerDiemRequest ? (
                         <Icon
-                            src={Expensicons.CalendarSolid}
+                            src={icons.CalendarSolid}
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}

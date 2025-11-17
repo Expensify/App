@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
@@ -30,6 +31,7 @@ type UseAvatarMenuParams = {
  * Custom hook to create avatar menu items
  */
 function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
     const {translate} = useLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
 
@@ -40,7 +42,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
         (openPicker: OpenPicker): Array<DropdownOption<null>> => {
             const menuItems: Array<DropdownOption<null>> = [
                 {
-                    icon: Expensicons.Upload,
+                    icon: icons.Upload,
                     text: translate('avatarWithImagePicker.uploadPhoto'),
                     onSelected: () => {
                         openPicker({

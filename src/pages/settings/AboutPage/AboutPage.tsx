@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +50,7 @@ type MenuItem = {
 };
 
 function AboutPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -70,7 +72,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
                 icon: Expensicons.Eye,
-                iconRight: Expensicons.NewWindow,
+                iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
@@ -80,7 +82,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
                 icon: Expensicons.MoneyBag,
-                iconRight: Expensicons.NewWindow,
+                iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
