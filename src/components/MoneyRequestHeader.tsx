@@ -4,29 +4,33 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {format} from 'date-fns';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {getMoneyRequestParticipantsFromReport, deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -40,7 +44,10 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {dismissRejectUseExplanation} from '@userActions/IOU';
+import {
+    dismissRejectUseExplanation,
+    requestMoney as requestMoneyIOUActions,
+} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,7 +117,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
@@ -139,6 +149,53 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
+
+    const duplicateTransaction = useCallback(
+        (transactions) => {
+            if (!transactions.length || !activePolicyExpenseChat) {
+                return;
+            }
+
+            const optimisticChatReportID = generateReportID();
+            const optimisticCreatedReportActionID = rand64();
+            const optimisticIOUReportID = generateReportID();
+            const optimisticReportPreviewActionID = rand64();
+
+            transactions.forEach((item, index) => {
+                requestMoneyIOUActions({
+                    activePolicyExpenseChat,
+                    optimisticChatReportID,
+                    optimisticCreatedReportActionID,
+                    optimisticIOUReportID,
+                    optimisticReportPreviewActionID,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant: getMoneyRequestParticipantsFromReport(activePolicyExpenseChat),
+                    },
+                    policyParams: {
+                        defaultExpensePolicy,
+                    },
+                    gpsPoint: null,
+                    action: CONST.IOU.ACTION.CREATE,
+                    transactionParams: {
+                        ...item,
+                        amount: item.amount * -1,
+                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                        comment: item?.comment?.comment?.trim() ?? '',
+                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                        source: item.comment?.source,
+                    },
+                    shouldHandleNavigation: false,
+                    shouldGenerateTransactionThreadReport: true,
+                    backToReport: false,
+                });
+            });
+        },
+        [
+            activePolicyExpenseChat,
+        ],
+    );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -340,6 +397,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 temporarilyDisableDuplicateAction();
+
+                duplicateTransaction([transaction]);
+                
             },
             shouldCloseModalOnSelect: false,
         },
