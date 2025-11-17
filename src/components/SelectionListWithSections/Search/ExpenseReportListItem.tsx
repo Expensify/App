@@ -92,7 +92,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             wrapperStyle={listItemWrapperStyle}
             containerStyle={[styles.mb2]}
             isFocused={isFocused}
-            isDisabled={isDisabledOrEmpty}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
