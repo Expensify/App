@@ -28,6 +28,7 @@ import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
+import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
@@ -91,6 +92,7 @@ import Luggage from '@assets/images/simple-illustrations/simple-illustration__lu
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
+import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
@@ -233,6 +235,8 @@ export {
     CardReplacementSuccess,
     EmptyShelves,
     BlueShield,
+    OpenSafe,
+    LaptopOnDeskWithCoffeeAndKey,
     OpenPadlock,
     ApprovedTransactionHand,
     DeniedTransactionHand,

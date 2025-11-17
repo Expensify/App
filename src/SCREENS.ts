@@ -826,6 +826,12 @@ const SCREENS = {
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
+    DOMAIN: {
+        VERIFY: 'Domain_Verify',
+        VERIFIED: 'Domain_Verified',
+        INITIAL: 'Domain_Initial',
+        SAML: 'Domain_SAML',
+    },
     MULTIFACTORAUTHENTICATION: {
         MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
         AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',
