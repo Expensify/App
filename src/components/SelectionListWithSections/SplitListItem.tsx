@@ -41,20 +41,7 @@ function SplitListItem<TItem extends ListItem>({
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = useCallback(
-        (amount: string) => {
-            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-        },
-        [splitItem],
-    );
-
-    const onSplitExpensePercentageChange = useCallback(
-        (value: string) => {
-            const percentageNumber = Number(value || 0);
-            splitItem.onSplitExpensePercentageChange?.(splitItem.transactionID, Number.isNaN(percentageNumber) ? 0 : percentageNumber);
-        },
-        [splitItem],
-    );
+    const onSplitExpenseValueChange = useCallback((value: string) => splitItem.onSplitExpenseValueChange(splitItem.transactionID, Number(value), splitItem.mode), [splitItem]);
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
@@ -85,7 +72,7 @@ function SplitListItem<TItem extends ListItem>({
                     hideCurrencySymbol
                     submitBehavior="blurAndSubmit"
                     formatAmountOnBlur
-                    onAmountChange={onSplitExpenseAmountChange}
+                    onAmountChange={onSplitExpenseValueChange}
                     prefixContainerStyle={[styles.pl1, styles.pv0, styles.h100]}
                     prefixStyle={styles.lineHeightUndefined}
                     inputStyle={styles.optionRowAmountInputContainer}
@@ -132,7 +119,7 @@ function SplitListItem<TItem extends ListItem>({
         splitItem.currency,
         splitItem.currencySymbol,
         formattedOriginalAmount.length,
-        onSplitExpenseAmountChange,
+        onSplitExpenseValueChange,
         focusHandler,
         onInputBlur,
     ]);
@@ -141,18 +128,18 @@ function SplitListItem<TItem extends ListItem>({
         if (splitItem.isEditable) {
             return (
                 <PercentageForm
-                    onInputChange={onSplitExpensePercentageChange}
+                    onInputChange={onSplitExpenseValueChange}
                     value={String(splitItem.percentage ?? 0)}
                     textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
                     containerStyles={styles.optionRowPercentInputContainer}
-                    inputStyle={[styles.optionRowPercentInput, styles.mrHalf, styles.lineHeightUndefined]}
+                    inputStyle={[styles.optionRowPercentInput, styles.lineHeightUndefined]}
                     onFocus={focusHandler}
                     onBlur={onInputBlur}
                 />
             );
         }
         return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
-    }, [StyleUtils, styles, splitItem.isEditable, splitItem.percentage, onSplitExpensePercentageChange, focusHandler, onInputBlur]);
+    }, [StyleUtils, styles, splitItem.isEditable, splitItem.percentage, onSplitExpenseValueChange, focusHandler, onInputBlur]);
 
     return (
         <BaseListItem

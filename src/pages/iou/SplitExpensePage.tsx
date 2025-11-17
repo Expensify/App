@@ -94,7 +94,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const affectedAnimatedTabs = useMemo(() => Array.from({length: tabs.length}, (v, i) => i), []);
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
-    const tabSelectorViewRef = useRef<View>(null);
+    const tabSelectorViewRef = useRef<View | null>(null);
     const [isPercentageMode, setIsPercentageMode] = useState(false);
     const {currentSearchHash} = useSearchContext();
     const theme = useTheme();
@@ -260,21 +260,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isBetaEnabled,
     ]);
 
-    const onSplitExpenseAmountChange = useCallback(
-        (currentItemTransactionID: string, value: number) => {
-            const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
-        },
-        [draftTransaction],
-    );
-
-    const onSplitExpensePercentageChange = useCallback(
-        (currentItemTransactionID: string, percentage: number) => {
-            const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, percentage);
-            updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
+    const onSplitExpenseValueChange = useCallback(
+        (id: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => {
+            if (mode === CONST.IOU.SPLIT_TYPE.AMOUNT) {
+                const amountInCents = convertToBackendAmount(value);
+                updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            } else {
+                const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
+                updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            }
         },
         [draftTransaction, transactionDetailsAmount],
     );
+
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
     const [sections] = useMemo(() => {
@@ -322,10 +320,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
-                onSplitExpenseAmountChange,
                 mode: isPercentageMode ? CONST.IOU.SPLIT_TYPE.PERCENTAGE : CONST.IOU.SPLIT_TYPE.AMOUNT,
                 percentage,
-                onSplitExpensePercentageChange,
+                onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
@@ -342,12 +339,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         allTransactions,
         transactionDetailsAmount,
         currencySymbol,
-        onSplitExpenseAmountChange,
-        onSplitExpensePercentageChange,
         isPercentageMode,
         splitExpenseTransactionID,
         translate,
         getTranslatedText,
+        onSplitExpenseValueChange,
     ]);
 
     const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions]);
@@ -441,13 +437,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             icon={tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? MoneyCircle : Percent}
                             title={translate(tab.titleKey)}
                             isActive={isActive}
-                            onPress={() => {
-                                if (tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT) {
-                                    setIsPercentageMode(false);
-                                } else {
-                                    setIsPercentageMode(true);
-                                }
-                            }}
+                            onPress={() => setIsPercentageMode(tab.key === CONST.IOU.SPLIT_TYPE.PERCENTAGE)}
                             shouldShowLabelWhenInactive
                             backgroundColor={backgroundColor}
                             inactiveOpacity={inactiveOpacity}

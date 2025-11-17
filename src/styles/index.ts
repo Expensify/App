@@ -1264,6 +1264,7 @@ const staticStyles = (theme: ThemeColors) =>
         optionRowPercentInput: {
             width: variables.splitExpensePercentageWidth,
             textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {

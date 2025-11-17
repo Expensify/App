@@ -210,6 +210,17 @@ describe('IOUUtils', () => {
             expect(percentages).toEqual([33, 33, 34]);
             expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
         });
+
+        test('Keeps raw percentages when split totals differ from original total', () => {
+            const originalTotalInCents = 20000;
+            const amounts = [10000, 10000, 5000]; // totals 25000, larger than original total
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, originalTotalInCents);
+
+            // Each amount is expressed as a percentage of the original total
+            expect(percentages).toEqual([50, 50, 25]);
+            // The sum can exceed 100 when splits are over the original total; the validation error covers this
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(125);
+        });
     });
 
     describe('insertTagIntoTransactionTagsString', () => {
