@@ -180,7 +180,7 @@ type SearchTransaction = {
     canUnhold: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number | string;
+    modifiedAmount: number;
 
     /** The transaction currency */
     currency: string;
