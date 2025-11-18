@@ -662,9 +662,9 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey]) => {
+    for (const [actionKey] of Object.entries(optimisticReportActions)) {
         successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
-    });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -692,13 +692,13 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
+    for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
-    });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -715,12 +715,12 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    optimisticParentReportData.forEach((parentReportData) => {
+    for (const parentReportData of optimisticParentReportData) {
         if (isEmptyObject(parentReportData)) {
-            return;
+            continue;
         }
         optimisticData.push(parentReportData);
-    });
+    }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
@@ -1284,12 +1284,12 @@ function openReport(
         const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
-        participantLoginList.forEach((login, index) => {
+        for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
-                return;
+                continue;
             }
 
             optimisticPersonalDetails[accountID] = {
@@ -1302,7 +1302,7 @@ function openReport(
 
             // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
             redundantParticipants[accountID] = null;
-        });
+        }
 
         successData.push(
             {
@@ -1747,9 +1747,9 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
-    Object.values(allReports ?? {}).forEach((report) => {
+    for (const report of Object.values(allReports ?? {})) {
         if (!report) {
-            return;
+            continue;
         }
 
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
@@ -1757,14 +1757,14 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
         if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
-            return;
+            continue;
         }
 
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
         optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
         failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
         reportIDList.push(report.reportID);
-    });
+    }
 
     if (reportIDList.length === 0) {
         return;
@@ -2113,11 +2113,11 @@ function deleteReportComment(
  */
 function removeLinksFromHtml(html: string, links: string[]): string {
     let htmlCopy = html.slice();
-    links.forEach((link) => {
+    for (const link of links) {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
         const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
-    });
+    }
     return htmlCopy;
 }
 
@@ -3213,19 +3213,19 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
         .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
         .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
 
-    [...new Set(transactionIDs)].forEach((transactionID) => {
+    for (const transactionID of [...new Set(transactionIDs)]) {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
-    });
+    }
 
     Onyx.multiSet(onyxData);
 
     if (shouldDeleteChildReports) {
-        Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+        for (const reportAction of Object.values(reportActionsForReport ?? {})) {
             if (!reportAction.childReportID) {
-                return;
+                continue;
             }
             deleteReport(reportAction.childReportID, shouldDeleteChildReports);
-        });
+        }
     }
 
     // Delete linked IOU report
@@ -3945,7 +3945,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
     const optimisticParticipants: Record<number, Partial<ReportParticipant>> = {};
     const successParticipants: Record<number, Partial<ReportParticipant>> = {};
 
-    accountIDList.forEach((accountID) => {
+    for (const accountID of accountIDList) {
         memberRoles[accountID] = role;
         optimisticParticipants[accountID] = {
             role,
@@ -3960,7 +3960,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
             },
             pendingAction: null,
         };
-    });
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3997,9 +3997,9 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     }
 
     const removeParticipantsData: Record<number, null> = {};
-    targetAccountIDs.forEach((accountID) => {
+    for (const accountID of targetAccountIDs) {
         removeParticipantsData[accountID] = null;
-    });
+    }
     const pendingChatMembers = getPendingChatMembers(targetAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
@@ -4817,13 +4817,13 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     });
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
             formData.append(key, String(value));
         }
-    });
+    }
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
@@ -4952,18 +4952,18 @@ function deleteAppReport(reportID: string | undefined) {
     const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
-    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
         if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            return;
+            continue;
         }
 
         if (ReportActionsUtils.isDeletedAction(reportAction)) {
-            return;
+            continue;
         }
 
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
         if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-            return;
+            continue;
         }
 
         const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
@@ -5115,7 +5115,7 @@ function deleteAppReport(reportID: string | undefined) {
                 movedReportActionID: unreportedAction?.reportActionID,
             };
         }
-    });
+    }
 
     // 6. Delete report actions on the report
     optimisticData.push({
@@ -5420,7 +5420,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
-    reportTransactions.forEach((transaction) => {
+    for (const transaction of reportTransactions) {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
@@ -5428,7 +5428,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
+    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -5555,15 +5555,15 @@ function dismissChangePolicyModal() {
  */
 function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
     const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};
-    Object.values(allReports ?? {}).forEach((report) => {
+    for (const report of Object.values(allReports ?? {})) {
         if (!report?.parentReportID) {
-            return;
+            continue;
         }
         if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {
             reportIDToThreadsReportIDsMap[report.parentReportID] = [];
         }
         reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);
-    });
+    }
     return reportIDToThreadsReportIDsMap;
 }
 
@@ -5596,9 +5596,9 @@ function updatePolicyIdForReportAndThreads(
 
     // Recursively process child reports for the current report
     const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];
-    childReportIDs.forEach((childReportID) => {
+    for (const childReportID of childReportIDs) {
         updatePolicyIdForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
-    });
+    }
 }
 
 function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {
