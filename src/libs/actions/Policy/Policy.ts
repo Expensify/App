@@ -124,6 +124,7 @@ import type {
     ReportAction,
     ReportActions,
     Request,
+    ReportNextStep,
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
@@ -133,7 +134,6 @@ import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommo
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
-import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
@@ -778,9 +778,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const nextStepOptimisticData: OnyxUpdate[] = [];
     const nextStepFailureData: OnyxUpdate[] = [];
     const {reportNextSteps, transactionViolations, betas} = additionalData;
-    const resolvedNextSteps = reportNextSteps ?? {};
-    const resolvedTransactionViolations = transactionViolations ?? {};
-    const resolvedBetas = betas ?? [];
+    const resolvedNextSteps: OnyxCollection<ReportNextStep> = reportNextSteps ?? {};
+    const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
+    const resolvedBetas: Beta[] = betas ?? [];
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
     const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
         (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -793,7 +793,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             return;
         }
 
-        const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
+        const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
         const currentNextStep: OnyxEntry<ReportNextStep> | null = resolvedNextSteps[nextStepKey] ?? null;
         const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations);
         const optimisticNextStep = buildNextStepNew({
