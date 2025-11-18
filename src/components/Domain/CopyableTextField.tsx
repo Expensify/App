@@ -23,7 +23,7 @@ type CopyableTextFieldProps = {
     /** Custom styles for the displayed text */
     textStyle?: StyleProp<TextStyle>;
 
-    /** Whether the text field should be expendable */
+    /** Whether the text field should be expandable */
     shouldDisplayShowMoreButton?: boolean;
 };
 
