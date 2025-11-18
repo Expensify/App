@@ -35,20 +35,6 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyTagsPage invalid params', {policyID});
