@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
@@ -19,13 +20,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportName, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportName, getReportOrDraftReport, getTransactionDetails, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
+import {getTag, getTagForDisplay, isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,9 +50,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
-    const policy = usePolicy(report?.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
+    const expensePolicy = usePolicy(report?.policyID);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
@@ -62,7 +62,23 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
+    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
+    // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
+    const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
+    const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
+
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+
+    const isPolicyExpenseChat = isReportInGroupPolicy(report);
+
+    const category = splitExpenseDraftTransactionDetails?.category ?? '';
+    // Flags for showing categories and tags
+    // transactionCategory can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowCategory =
+        (isPolicyExpenseChat && (category || hasEnabledOptions(policyCategories ?? {}))) || (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
@@ -73,11 +89,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const reportName = getReportName(report, policy);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, policy?.areRulesEnabled);
 
-    const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTags = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({
-                shouldShowTags,
+                shouldShowTags: !!shouldShowTags,
                 policy,
                 policyTags,
                 transaction: splitExpenseDraftTransaction,
@@ -121,12 +137,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             numberOfLinesTitle={2}
                             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />
-                        {shouldShowCategory && (
+                        {!!shouldShowCategory && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
+                                title={getDecodedCategoryName(category)}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
@@ -144,7 +160,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTags &&
+                        {!!shouldShowTags &&
                             policyTagLists.map(({name}, index) => {
                                 const tagVisibilityItem = tagVisibility.at(index);
                                 const shouldShow = tagVisibilityItem?.shouldShow ?? false;
