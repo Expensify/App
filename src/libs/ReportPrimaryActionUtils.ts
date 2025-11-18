@@ -34,7 +34,6 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
-    isThread,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {

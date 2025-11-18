@@ -117,7 +117,6 @@ import {
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
-    isThread,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';

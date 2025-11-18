@@ -50,7 +50,6 @@ import {
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
-    isThread,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
