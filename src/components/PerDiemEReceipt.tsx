@@ -1,10 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -13,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type PerDiemEReceiptProps = {
@@ -27,7 +27,7 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
         const rate = subRate.rate ?? 0;
         const rateComment = subRate.name ?? '';
         const quantity = subRate.quantity ?? 0;
-        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
+        return `${quantity}x ${rateComment} @ ${convertToDisplayString(rate, currency, true)}`;
     });
     return subRateComments.join(', ');
 }
@@ -55,6 +55,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
 
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};

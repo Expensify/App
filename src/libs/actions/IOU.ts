@@ -49,7 +49,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -3714,7 +3714,7 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
         const rate = subRate.rate ?? 0;
         const rateComment = subRate.name ?? '';
         const quantity = subRate.quantity ?? 0;
-        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
+        return `${quantity}x ${rateComment} @ ${convertToDisplayString(rate, currency, true)}`;
     });
     return subRateComments.join(', ');
 }

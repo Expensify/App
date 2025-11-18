@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -15,6 +14,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -134,6 +134,7 @@ function MoneyRequestView({
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator', 'Suitcase'] as const);
 
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
@@ -219,8 +220,8 @@ function MoneyRequestView({
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
-    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency, isPerDiemRequest) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency, isPerDiemRequest) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
@@ -229,8 +230,8 @@ function MoneyRequestView({
 
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = updatedTransaction?.taxAmount
-        ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
-        : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
+        ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency, isPerDiemRequest)
+        : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency, isPerDiemRequest);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);

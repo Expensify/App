@@ -314,13 +314,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
-    let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
+    let displayAmountText: TranslationPathOrText = isTransactionScanning
+        ? {translationPath: 'iou.receiptStatusTitle'}
+        : {text: convertToDisplayString(amount, requestCurrency, isPerDiemRequest(transaction))};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
-    const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency)};
+    const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency, isPerDiemRequest(transaction))};
 
     return {
         RBRMessage,
