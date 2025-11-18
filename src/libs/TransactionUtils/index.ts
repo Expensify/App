@@ -2059,10 +2059,22 @@ function hasReimbursableAndNonReimbursableTransactions(iouReportID: string | und
         return false;
     }
 
-    const hasReimbursable = transactions.some((transaction) => getReimbursable(transaction));
-    const hasNonReimbursable = transactions.some((transaction) => !getReimbursable(transaction));
+    let hasReimbursable = false;
+    let hasNonReimbursable = false;
 
-    return hasReimbursable && hasNonReimbursable;
+    for (const transaction of transactions) {
+        if (getReimbursable(transaction)) {
+            hasReimbursable = true;
+        } else {
+            hasNonReimbursable = true;
+        }
+
+        if (hasReimbursable && hasNonReimbursable) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
