@@ -15,7 +15,6 @@ import {
     getPolicyName,
     getReportName,
     isChatRoom as isChatRoomReportUtils,
-    isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -126,7 +125,16 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived, reportDetailsLink);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+        report,
+        policy,
+        participantPersonalDetailListExcludeCurrentUser,
+        localeCompare,
+        isReportArchived,
+        reportDetailsLink,
+        shouldShowUsePlusButtonText,
+        additionalText,
+    );
 
     return (
         <>
@@ -150,13 +158,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <Text>{welcomeMessage.messageText}</Text>
                     </Text>
                 )}
-                {isDefault && !!welcomeMessage.messageHtml && (
-                    <Text>
-                        <RenderHTML html={welcomeMessage.messageHtml} />
-                        {shouldShowUsePlusButtonText && <Text>{` ${translate('reportActionsView.usePlusButton', {additionalText}).trim()}`}</Text>}
-                        {isConciergeChatReport(report) && <Text>{` ${translate('reportActionsView.askConcierge').trim()}`}</Text>}
-                    </Text>
-                )}
+                {isDefault && !!welcomeMessage.messageHtml && <RenderHTML html={welcomeMessage.messageHtml} />}
             </View>
         </>
     );

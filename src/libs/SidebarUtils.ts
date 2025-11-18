@@ -1003,6 +1003,8 @@ function getWelcomeMessage(
     localeCompare: LocaleContextProps['localeCompare'],
     isReportArchived = false,
     reportDetailsLink = '',
+    shouldShowUsePlusButtonText = false,
+    additionalText = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
@@ -1060,8 +1062,24 @@ function getWelcomeMessage(
         })
         .join('');
 
+    if (!displayNamesWithTooltips.length) {
+        return welcomeMessage;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    welcomeMessage.messageHtml = displayNamesWithTooltips.length ? translateLocal('reportActionsView.beginningOfChatHistory', {users: usersHtml}) : '';
+    let messageHtml = translateLocal('reportActionsView.beginningOfChatHistory', {users: usersHtml});
+
+    // Append additional text for plus button or Concierge
+    if (shouldShowUsePlusButtonText) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        messageHtml += translateLocal('reportActionsView.usePlusButton', {additionalText});
+    }
+    if (isConciergeChatReport(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        messageHtml += translateLocal('reportActionsView.askConcierge');
+    }
+
+    welcomeMessage.messageHtml = messageHtml;
     return welcomeMessage;
 }
 
