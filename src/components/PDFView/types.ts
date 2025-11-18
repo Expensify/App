@@ -30,12 +30,6 @@ type PDFViewProps = {
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
-
-    /** Transaction ID for handling trip link navigation */
-    transactionID?: string;
-
-    /** Report ID for handling trip link navigation */
-    reportID?: string;
 };
 
 type PDFViewNativeProps = PDFViewProps & {
