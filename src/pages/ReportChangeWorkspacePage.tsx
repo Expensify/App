@@ -125,7 +125,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         ],
     );
 
-    const {usersWorkspaces, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
@@ -169,11 +169,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
-                            data={usersWorkspaces}
+                            data={data as WorkspaceListItemType[]}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             textInputOptions={textInputOptions}
                             initiallyFocusedItemKey={report.policyID}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                         />
                     )}
                 </>

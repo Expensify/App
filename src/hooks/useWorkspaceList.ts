@@ -83,7 +83,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return {
-        usersWorkspaces,
+        data: filteredAndSortedUserWorkspaces,
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,

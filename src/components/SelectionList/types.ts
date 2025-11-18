@@ -111,6 +111,9 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
+    /** Whether scroll possition should change when focsued item changes */
+    disableMaintainingScrollPosition?: boolean;
+
     /** Whether to use the user skeleton view */
     shouldUseUserSkeletonView?: boolean;
 
