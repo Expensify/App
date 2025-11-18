@@ -52,7 +52,7 @@ function usePolicyData(policyID: string): PolicyData {
     }, [reports, allReportsTransactionsAndViolations]);
     return {
         transactionsAndViolations,
-        tagLists,
+        tagLists: tagLists ?? {},
         categories: categories ?? {},
         policyID,
         policy,
