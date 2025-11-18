@@ -6560,6 +6560,40 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
+function duplicateTransaction(transaction: OnyxEntry<OnyxTypes.Transaction>, targetPolicy: OnyxEntry<OnyxTypes.Policy>, targetReport: OnyxTypes.Report, optimisticChatReportID: string, optimisticIOUReportID: string) {
+    requestMoney({
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            payeeEmail: currentUserPersonalDetails.login,
+            payeeAccountID: currentUserPersonalDetails.accountID,
+            participant: getMoneyRequestParticipantsFromReport(targetReport),
+        },
+        policyParams: {
+            targetPolicy,
+        },
+        gpsPoint: null,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            amount: (transaction.modifiedAmount || transaction.amount) * -1,
+            currency: transaction.modifiedCurrency || transaction.currency,
+            mcc: transaction.modifiedMCC || transaction.mcc,
+            merchant: transaction.modifiedMerchant || transaction.merchant,
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            comment: transaction?.comment?.comment?.trim() ?? '',
+            waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+            source: transaction.comment?.source,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        backToReport: false,
+    });
+}
+
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -14310,6 +14344,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,

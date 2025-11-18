@@ -13,18 +13,16 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {getMoneyRequestParticipantsFromReport, deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -44,10 +42,7 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {
-    dismissRejectUseExplanation,
-    requestMoney as requestMoneyIOUActions,
-} from '@userActions/IOU';
+import {dismissRejectUseExplanation, duplicateTransaction as duplicateTransactionAction} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -117,10 +112,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserLogin = currentUserPersonalDetails.login;
+    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
@@ -152,48 +146,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const duplicateTransaction = useCallback(
         (transactions) => {
-            if (!transactions.length || !activePolicyExpenseChat) {
+            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
                 return;
             }
 
             const optimisticChatReportID = generateReportID();
-            const optimisticCreatedReportActionID = rand64();
             const optimisticIOUReportID = generateReportID();
-            const optimisticReportPreviewActionID = rand64();
 
-            transactions.forEach((item, index) => {
-                requestMoneyIOUActions({
-                    activePolicyExpenseChat,
-                    optimisticChatReportID,
-                    optimisticCreatedReportActionID,
-                    optimisticIOUReportID,
-                    optimisticReportPreviewActionID,
-                    participantParams: {
-                        payeeEmail: currentUserPersonalDetails.login,
-                        payeeAccountID: currentUserPersonalDetails.accountID,
-                        participant: getMoneyRequestParticipantsFromReport(activePolicyExpenseChat),
-                    },
-                    policyParams: {
-                        defaultExpensePolicy,
-                    },
-                    gpsPoint: null,
-                    action: CONST.IOU.ACTION.CREATE,
-                    transactionParams: {
-                        ...item,
-                        amount: item.amount * -1,
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        comment: item?.comment?.comment?.trim() ?? '',
-                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
-                        source: item.comment?.source,
-                    },
-                    shouldHandleNavigation: false,
-                    shouldGenerateTransactionThreadReport: true,
-                    backToReport: false,
-                });
+            transactions.forEach((item) => {
+                duplicateTransactionIOUAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
             });
         },
         [
             activePolicyExpenseChat,
+            defaultExpensePolicy,
         ],
     );
 
