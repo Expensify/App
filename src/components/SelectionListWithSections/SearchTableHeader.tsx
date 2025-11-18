@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
