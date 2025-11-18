@@ -64,6 +64,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
     isCurrentUserSubmitter,
+    isDM,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
@@ -422,6 +423,7 @@ function MoneyReportHeader({
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
+    const isChatReportDM = isDM(chatReport);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
@@ -1038,7 +1040,7 @@ function MoneyReportHeader({
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed) {
+                if (isDismissed || isChatReportDM) {
                     changeMoneyRequestHoldStatus(requestParentReportAction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);

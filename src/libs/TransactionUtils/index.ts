@@ -155,7 +155,7 @@ Onyx.connect({
     },
 });
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
+function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -209,6 +209,11 @@ function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    // Distance requests can have a receipt source (for the map), so we need to exclude them
+    if (hasDistanceCustomUnit(transaction)) {
+        return false;
     }
 
     return !!transaction?.receipt?.source && transaction?.amount === 0;
@@ -370,6 +375,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
+    const isManualTransaction = !isPerDiemTransaction && !isMapDistanceTransaction && !isManualDistanceTransaction && !splitExpenses && !receipt?.source;
+
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
@@ -377,7 +384,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        merchant: merchant || (isManualTransaction ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT),
         created: created || DateUtils.getDBTime(),
         pendingAction,
         receipt: receipt?.source
@@ -422,9 +429,10 @@ function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean 
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
-        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     }
-    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
+    const isMerchantEmpty =
+        transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === CONST.TRANSACTION.DEFAULT_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }
@@ -453,6 +461,13 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
+function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+    if (!transaction) {
+        return false;
+    }
+    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+}
+
 function isPartial(transaction: OnyxEntry<Transaction>): boolean {
     return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
 }
@@ -469,7 +484,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTrans
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
-    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    return (isMerchantRequired && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -721,8 +736,8 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        const amount = transaction?.modifiedAmount ?? 0;
-        if (amount) {
+        const amount = Number(transaction?.modifiedAmount) ?? 0;
+        if (hasValidModifiedAmount(transaction)) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
@@ -735,8 +750,8 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // Expense report case:
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
-    let amount = transaction?.modifiedAmount ?? 0;
-    if (amount) {
+    let amount = Number(transaction?.modifiedAmount) ?? 0;
+    if (hasValidModifiedAmount(transaction)) {
         return -amount;
     }
 
@@ -851,7 +866,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        if (policy && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+        if (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
@@ -966,16 +981,16 @@ function getTagArrayFromName(tagName: string): string[] {
     // and not have it interfere with splitting on a colon (:).
     // So, let's replace it with something absurd to begin with, do our split, and
     // then replace the double backslashes in the end.
-    const tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
-    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
+    const tagWithoutDoubleSlashes = tagName.replaceAll('\\\\', '☠');
+    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replaceAll('\\:', '☢');
 
     // Do our split
     const matches = tagWithoutEscapedColons.split(':');
     const newMatches: string[] = [];
 
     for (const item of matches) {
-        const tagWithEscapedColons = item.replace(/☢/g, '\\:');
-        const tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
+        const tagWithEscapedColons = item.replaceAll('☢', '\\:');
+        const tagWithDoubleSlashes = tagWithEscapedColons.replaceAll('☠', '\\\\');
         newMatches.push(tagWithDoubleSlashes);
     }
 
@@ -1267,7 +1282,7 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.name === 'Distance');
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -2128,6 +2143,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    hasValidModifiedAmount,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
