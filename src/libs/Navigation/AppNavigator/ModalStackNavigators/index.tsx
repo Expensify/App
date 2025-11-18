@@ -133,15 +133,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         );
 
         const isRHPDisplayedOnWideRHP = useMemo(
-            () =>
-                !isSmallScreenWidth &&
-                !isWideRHPFocused &&
-                !isWideRHPClosing &&
-                !isFocused &&
-                shouldRenderSecondaryOverlay &&
-                (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
-            [isFocused, isSmallScreenWidth, isWideRHPClosing, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
+            () => !isSmallScreenWidth && !isWideRHPFocused && !isWideRHPClosing && shouldRenderSecondaryOverlay && (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
+            [isSmallScreenWidth, isWideRHPClosing, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
         );
+
         const isWideRHPDisplayedOnSuperWideRHP = useMemo(
             () => !isSmallScreenWidth && !isFocused && !!isWideRHPFocused && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name),
             [isFocused, isSmallScreenWidth, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
