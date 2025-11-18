@@ -122,6 +122,9 @@ type SearchReport = {
     /** The status of the current report */
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
+    /** Number of transactions in the report */
+    transactionCount?: number;
+
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
