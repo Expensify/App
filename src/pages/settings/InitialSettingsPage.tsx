@@ -124,7 +124,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const walletBrickRoadIndicator =
         hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection
             ? 'error'
-            : undefined;
+            : hasPartiallySetupBankAccount(bankAccountList)
+              ? 'info'
+              : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -183,7 +185,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
-                badgeStyle: hasPartiallySetupBankAccount(bankAccountList) ? styles.badgeSuccess : undefined,
             },
             {
                 translationKey: 'common.preferences',
