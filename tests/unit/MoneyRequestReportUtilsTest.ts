@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 
 const policyBaseMock: Policy = {
-    id: 'AAABBBCCC',
+    id: '123456789A',
     name: 'Policy',
     role: 'admin',
     outputCurrency: 'USD',
