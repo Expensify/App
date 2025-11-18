@@ -83,11 +83,9 @@ function ExitSurveyReasonPage({route, navigation}: PlatformStackScreenProps<Sett
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
-                formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
+                formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={() => {
-                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
-                }}
+                onSubmit={submitForm}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
