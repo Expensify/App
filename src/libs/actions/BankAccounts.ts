@@ -1290,10 +1290,10 @@ function setShareBankAccountAdmins(admins?: MemberForList[]) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {admins});
 }
 
-function shareBankAccount(bankAccountID: number, emails: string[]) {
+function shareBankAccount(bankAccountID: number, emailList: string[]) {
     const parameters: ShareBankAccountParams = {
         bankAccountID,
-        emails,
+        emailList,
     };
 
     const onyxData: OnyxData = {

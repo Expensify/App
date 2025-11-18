@@ -1,6 +1,6 @@
 type ShareBankAccountParams = {
     bankAccountID: number;
-    emails: string[];
+    emailList: string[];
 };
 
 export default ShareBankAccountParams;
