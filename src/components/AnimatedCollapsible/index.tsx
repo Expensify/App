@@ -2,7 +2,8 @@ import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
@@ -87,7 +88,7 @@ function AnimatedCollapsible({
             if (!finished || target) {
                 return;
             }
-            runOnJS(setIsRendered)(false);
+            scheduleOnRN(setIsRendered, false);
         });
     }, []);
 
