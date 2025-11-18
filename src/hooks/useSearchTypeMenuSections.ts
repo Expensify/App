@@ -54,15 +54,23 @@ const useSearchTypeMenuSections = () => {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
-    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{
+        policyID: string;
+        policyName?: string;
+        onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void;
+    } | null>(null);
 
-    const handlePendingConfirm = useCallback(() => {
-        pendingReportCreation?.onConfirm();
-        setPendingReportCreation(null);
-    }, [pendingReportCreation, setPendingReportCreation]);
+    const handlePendingConfirm = useCallback(
+        (shouldDismissEmptyReportsConfirmation: boolean) => {
+            pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
+            setPendingReportCreation(null);
+        },
+        [pendingReportCreation, setPendingReportCreation],
+    );
 
     const handlePendingCancel = useCallback(() => {
         setPendingReportCreation(null);
@@ -87,12 +95,19 @@ const useSearchTypeMenuSections = () => {
                 return;
             }
 
-            const executeCreate = () => {
-                const {reportID: createdReportID} = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
+            const executeCreate = (shouldDismissEmptyReportsConfirmation: boolean) => {
+                const {reportID: createdReportID} = createNewReport(
+                    personalDetailsForCreation,
+                    isASAPSubmitBetaEnabled,
+                    hasViolations,
+                    policyID,
+                    false,
+                    shouldDismissEmptyReportsConfirmation,
+                );
                 onSuccess(createdReportID);
             };
 
-            if (hasEmptyReportsForPolicy(reports, policyID, accountID)) {
+            if (hasEmptyReportsForPolicy(reports, policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true) {
                 setPendingReportCreation({
                     policyID,
                     policyName,
@@ -101,9 +116,9 @@ const useSearchTypeMenuSections = () => {
                 return;
             }
 
-            executeCreate();
+            executeCreate(false);
         },
-        [currentUserLoginAndAccountID?.accountID, hasViolations, isASAPSubmitBetaEnabled, reports, setPendingReportCreation],
+        [currentUserLoginAndAccountID?.accountID, hasDismissedEmptyReportsConfirmation, hasViolations, isASAPSubmitBetaEnabled, reports, setPendingReportCreation],
     );
 
     useEffect(() => {

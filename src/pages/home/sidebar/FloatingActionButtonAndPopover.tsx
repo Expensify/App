@@ -196,30 +196,42 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const hasEmptyReportForDefaultChatEnabledPolicy = useMemo(
-        () => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, session?.accountID),
-        [defaultChatEnabledPolicyID, reportSummaries, session?.accountID],
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+
+    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, session?.accountID) && hasDismissedEmptyReportsConfirmation !== true,
+        [defaultChatEnabledPolicyID, hasDismissedEmptyReportsConfirmation, reportSummaries, session?.accountID],
     );
 
-    const handleCreateWorkspaceReport = useCallback(() => {
-        if (!defaultChatEnabledPolicyID) {
-            return;
-        }
+    const handleCreateWorkspaceReport = useCallback(
+        (shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!defaultChatEnabledPolicyID) {
+                return;
+            }
 
-        if (isReportInSearch) {
-            clearLastSearchParams();
-        }
+            if (isReportInSearch) {
+                clearLastSearchParams();
+            }
 
-        const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(
-                isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                {forceReplace: isReportInSearch},
+            const {reportID: createdReportID} = createNewReport(
+                currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                defaultChatEnabledPolicyID,
+                false,
+                shouldDismissEmptyReportsConfirmation,
             );
-        });
-    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch]);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(
+                    isSearchTopmostFullScreenRoute()
+                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                    {forceReplace: isReportInSearch},
+                );
+            });
+        },
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch],
+    );
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
@@ -556,10 +568,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
-                                  if (hasEmptyReportForDefaultChatEnabledPolicy) {
+                                  if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                       openFabCreateReportConfirmation();
                                   } else {
-                                      handleCreateWorkspaceReport();
+                                      handleCreateWorkspaceReport(false);
                                   }
                                   return;
                               }
