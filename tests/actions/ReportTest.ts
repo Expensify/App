@@ -2066,7 +2066,7 @@ describe('actions/Report', () => {
                     },
                 });
             });
-            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(2);
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
 
         it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {
