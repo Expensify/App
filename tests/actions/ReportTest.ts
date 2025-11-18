@@ -1920,9 +1920,9 @@ describe('actions/Report', () => {
             });
             expect(reportActions).not.toBeNull();
             expect(reportActions).not.toBeUndefined();
-            Object.values(reportActions ?? {}).forEach((action) => {
+            for (const action of Object.values(reportActions ?? {})) {
                 expect(action.isOptimisticAction).toBeFalsy();
-            });
+            }
         });
     });
 
