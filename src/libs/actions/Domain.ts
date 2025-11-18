@@ -102,6 +102,13 @@ function setSamlMetadata(accountID: number, domainName: string, settings: Partia
                 samlMetadataError: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
+            value: {
+                ...settings,
+            },
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {

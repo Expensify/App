@@ -65,6 +65,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 }}
                 errorText={getLatestErrorMessage({errors: samlMetadataError})}
                 maxLength={Infinity}
+                enabledWhenOffline={false}
             />
 
             <MenuItemWithTopDescription
