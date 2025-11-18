@@ -718,7 +718,7 @@ const ONYXKEYS = {
         SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
 
         /** Stored the user information with whom bank account is being shared */
-        BANK_ACCOUNT_SHARE_DETAILS: 'bankAccountShareDetails_',
+        BANK_ACCOUNT_SHARE_DETAILS: 'expensify_bankAccountShare_',
     },
 
     /** List of Form ids */

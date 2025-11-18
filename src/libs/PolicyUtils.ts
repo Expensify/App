@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import {getBankAccountFromID} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -192,13 +193,14 @@ function getActiveAllAdminsFromWorkspaces(
     bankAccountID: string | undefined,
     bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
 ): MemberForList[] {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const adminMap = new Map<string, MemberForList>();
     Object.values(activePolicies ?? {}).forEach((policy) => {
         getAdminEmployees(policy).forEach((admin) => {
             const accountID = admin.email ? getAccountIDsByLogins([admin.email]).at(0) : undefined;
             const isBankAlreadyShared = !!(bankAccountID && accountID && bankAccountShareDetails?.[`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${accountID}`]);
-            if (!admin?.email || adminMap.has(admin.email) || isBankAlreadyShared) {
+            if (!admin?.email || adminMap.has(admin.email) || isBankAlreadyShared || currentBankAccount?.accountData?.sharees?.includes(admin?.email)) {
                 return;
             }
             const personalDetails = getPersonalDetailByEmail(admin.email);
