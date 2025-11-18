@@ -3,7 +3,7 @@
 # Secure proxy script to create an inline comment on a GitHub PR.
 set -eu
 
-ALLOWED_RULES_FILE="${GITHUB_WORKSPACE}/.claude/allowed-rules.txt"
+readonly ALLOWED_RULES_FILE="${GITHUB_WORKSPACE}/.claude/allowed-rules.txt"
 
 # Print error and exit.
 die() {
@@ -36,9 +36,9 @@ validate_rule() {
     die "Comment rejected: rule $rule not present in allowed list"
 }
 
-PATH_ARG="${1:-}"
-BODY_ARG="${2:-}"
-LINE_ARG="${3:-}"
+readonly PATH_ARG="${1:-}"
+readonly BODY_ARG="${2:-}"
+readonly LINE_ARG="${3:-}"
 
 [[ -z "$PR_NUMBER" ]] && die "Environment variable PR_NUMBER is required"
 [[ -z "$GITHUB_REPOSITORY" ]] && die "Environment variable GITHUB_REPOSITORY is required"
@@ -47,9 +47,9 @@ LINE_ARG="${3:-}"
 validate_rule "$BODY_ARG"
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
-COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
+readonly COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
 
-PAYLOAD=$(jq -n \
+readonly PAYLOAD=$(jq -n \
     --arg body "$BODY_ARG" \
     --arg path "$PATH_ARG" \
     --argjson line "$LINE_ARG" \
