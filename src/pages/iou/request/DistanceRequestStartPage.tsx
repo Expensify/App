@@ -45,7 +45,7 @@ function DistanceRequestStartPage({
     defaultSelectedTab = CONST.TAB_REQUEST.DISTANCE_MAP,
 }: DistanceRequestStartPageProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -107,7 +107,6 @@ function DistanceRequestStartPage({
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
-            localeCompare,
             currentUserPersonalDetails,
         });
         // eslint-disable-next-line
@@ -129,11 +128,10 @@ function DistanceRequestStartPage({
                 parentReport,
                 currentDate,
                 lastSelectedDistanceRates,
-                localeCompare,
                 currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, localeCompare, currentUserPersonalDetails],
+        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, currentUserPersonalDetails],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
