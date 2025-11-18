@@ -32,6 +32,7 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -165,6 +166,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+                name: '/search',
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+            });
+
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;

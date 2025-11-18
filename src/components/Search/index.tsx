@@ -55,6 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -870,7 +871,10 @@ function Search({
         );
     }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
