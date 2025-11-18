@@ -19,6 +19,7 @@ import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -371,8 +372,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             amount: -5000,
             canDelete: true,
-            canHold: true,
-            canUnhold: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -409,8 +408,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             amount: -5000,
             canDelete: true,
-            canHold: true,
-            canUnhold: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -448,8 +445,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             amount: 1200,
             canDelete: true,
-            canHold: true,
-            canUnhold: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -486,8 +481,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID4}`]: {
             amount: 3200,
             canDelete: true,
-            canHold: true,
-            canUnhold: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -776,9 +769,8 @@ const transactionsListItems = [
         report: report1,
         policy,
         reportAction: reportAction1,
+        holdReportAction: undefined,
         canDelete: true,
-        canHold: true,
-        canUnhold: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -840,9 +832,8 @@ const transactionsListItems = [
         report: report2,
         policy,
         reportAction: reportAction2,
+        holdReportAction: undefined,
         canDelete: true,
-        canHold: true,
-        canUnhold: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -909,9 +900,8 @@ const transactionsListItems = [
         report: report3,
         policy,
         reportAction: reportAction3,
+        holdReportAction: undefined,
         canDelete: true,
-        canHold: true,
-        canUnhold: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -973,9 +963,8 @@ const transactionsListItems = [
         report: report3,
         policy,
         reportAction: reportAction4,
+        holdReportAction: undefined,
         canDelete: true,
-        canHold: true,
-        canUnhold: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1072,10 +1061,9 @@ const transactionReportGroupListItems = [
                 report: report1,
                 policy,
                 reportAction: reportAction1,
+                holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
-                canHold: true,
-                canUnhold: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1173,10 +1161,9 @@ const transactionReportGroupListItems = [
                 report: report2,
                 policy,
                 reportAction: reportAction2,
+                holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
-                canHold: true,
-                canUnhold: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1818,7 +1805,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 52;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1852,7 +1839,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 52;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2410,8 +2397,6 @@ describe('SearchUIUtils', () => {
                     transactions_1805965960759424086: {
                         amount: 0,
                         canDelete: false,
-                        canHold: true,
-                        canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2538,8 +2523,6 @@ describe('SearchUIUtils', () => {
                 transactions_1805965960759424086: {
                     amount: 0,
                     canDelete: false,
-                    canHold: true,
-                    canUnhold: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
@@ -2927,8 +2910,6 @@ describe('SearchUIUtils', () => {
                 hash: itemHash,
                 moneyRequestReportActionID,
                 canDelete,
-                canHold,
-                canUnhold,
                 convertedAmount,
                 convertedCurrency,
                 transactionThreadReportID,
