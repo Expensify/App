@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

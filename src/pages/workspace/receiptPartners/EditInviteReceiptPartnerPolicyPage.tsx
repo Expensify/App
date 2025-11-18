@@ -3,7 +3,9 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -200,7 +202,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         }
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, expensifyIcons.FallbackAvatar]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {

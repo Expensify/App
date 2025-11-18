@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';

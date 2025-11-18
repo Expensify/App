@@ -6,8 +6,9 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
@@ -67,7 +68,7 @@ function SecuritySettingsPage() {
     const privateSubscription = usePrivateSubscription();
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCollapse'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'ThreeDots'] as const);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
@@ -217,6 +218,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        expensifyIcons.ArrowCollapse,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -251,11 +253,11 @@ function SecuritySettingsPage() {
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
                         avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        icon: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: Expensicons.ThreeDots,
+                        iconRight: expensifyIcons.ThreeDots,
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
@@ -280,7 +282,7 @@ function SecuritySettingsPage() {
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
                     avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    icon: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],

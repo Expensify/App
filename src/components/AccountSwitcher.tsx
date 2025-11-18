@@ -24,6 +24,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';

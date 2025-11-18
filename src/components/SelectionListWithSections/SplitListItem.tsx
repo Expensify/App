@@ -1,6 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {Folder, Tag} from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';

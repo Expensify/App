@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';

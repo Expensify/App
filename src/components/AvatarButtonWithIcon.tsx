@@ -12,6 +12,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';

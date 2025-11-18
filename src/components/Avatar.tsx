@@ -96,7 +96,12 @@ function Avatar({
         optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
     }
     const useFallBackAvatar = imageError || !source || source === expensifyIcons.FallbackAvatar;
-    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || expensifyIcons.FallbackAvatar;
+    let fallbackAvatar;
+    if (isWorkspace) {
+        fallbackAvatar = getDefaultWorkspaceAvatar(name);
+    } else {
+        fallbackAvatar = fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon;
+    }
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 

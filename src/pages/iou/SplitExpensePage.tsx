@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -311,7 +312,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        onAddSplitExpense,
+        onMakeSplitsEven,
+        translate,
+        childTransactions,
+        shouldUseNarrowLayout,
+        styles.w100,
+        styles.ph4,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        expensifyIcons.ArrowsLeftRight,
+    ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;

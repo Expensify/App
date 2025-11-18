@@ -5,6 +5,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';

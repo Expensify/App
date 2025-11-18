@@ -19,6 +19,7 @@ import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';

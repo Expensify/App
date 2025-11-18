@@ -43,6 +43,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
 
     const reservationIcon = getTripReservationIcon(reservation.type);
 
@@ -170,7 +171,6 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
 
     const getTripDescription = useCallback(
         (amount: number, currency: string, reservations: ReservationData[]) => {

@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';

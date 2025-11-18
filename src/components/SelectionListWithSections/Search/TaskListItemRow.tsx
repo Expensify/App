@@ -5,6 +5,7 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
@@ -73,7 +74,6 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
 
     const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
@@ -120,6 +120,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);

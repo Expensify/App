@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';

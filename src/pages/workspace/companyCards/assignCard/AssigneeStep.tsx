@@ -2,7 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -144,7 +143,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare, expensifyIcons.FallbackAvatar]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {

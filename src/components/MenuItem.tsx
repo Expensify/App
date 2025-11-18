@@ -34,6 +34,7 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';

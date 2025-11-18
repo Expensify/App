@@ -3,6 +3,7 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -335,7 +336,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare, expensifyIcons.FallbackAvatar],
     );
 
     const getRoomMentionOptions = useCallback(

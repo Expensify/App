@@ -4,6 +4,7 @@ import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
