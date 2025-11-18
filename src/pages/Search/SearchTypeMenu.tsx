@@ -1,10 +1,9 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
@@ -71,19 +70,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const taxRates = getAllTaxRates();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
-    const initialSearchKeys = useRef<string[]>([]);
-
-    // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
-    // dont animate them in. We only animate in items that a user gains access to later on
-    useEffect(() => {
-        if (initialSearchKeys.current.length) {
-            return;
-        }
-
-        initialSearchKeys.current = typeMenuSections.flatMap((section) => {
-            return section.menuItems.map((item) => item.key);
-        });
-    }, [typeMenuSections]);
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
@@ -259,27 +245,20 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
-                                            const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
-
                                             return (
-                                                <Animated.View
-                                                    key={item.translationPath}
-                                                    entering={!isInitialItem ? FadeIn : undefined}
-                                                >
-                                                    <MenuItem
-                                                        key={item.key}
-                                                        disabled={false}
-                                                        interactive
-                                                        title={translate(item.translationPath)}
-                                                        icon={item.icon}
-                                                        iconWidth={variables.iconSizeNormal}
-                                                        iconHeight={variables.iconSizeNormal}
-                                                        wrapperStyle={styles.sectionMenuItem}
-                                                        focused={focused}
-                                                        onPress={onPress}
-                                                        shouldIconUseAutoWidthStyle
-                                                    />
-                                                </Animated.View>
+                                                <MenuItem
+                                                    key={item.key}
+                                                    disabled={false}
+                                                    interactive
+                                                    title={translate(item.translationPath)}
+                                                    icon={item.icon}
+                                                    iconWidth={variables.iconSizeNormal}
+                                                    iconHeight={variables.iconSizeNormal}
+                                                    wrapperStyle={styles.sectionMenuItem}
+                                                    focused={focused}
+                                                    onPress={onPress}
+                                                    shouldIconUseAutoWidthStyle
+                                                />
                                             );
                                         })}
                                     </>
