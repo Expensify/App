@@ -13722,7 +13722,7 @@ function initSplitExpense(
         const originalTransactionID = transaction.comment?.originalTransactionID;
         const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+        const relatedTransactions = getChildTransactions(transactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
 
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
@@ -13984,7 +13984,7 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
-    const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
+    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const reportTotal = transactionReport?.total ?? 0;

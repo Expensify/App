@@ -92,7 +92,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
                 const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
-                const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
+                const childTransactions = getChildTransactions(allTransactions, transactionID).filter(
                     (transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
                 );
 
