@@ -286,31 +286,30 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-    messages?.forEach((part, index) => {
-        const isEmail = Str.isValidEmail(part.text);
-        let tagType = part.type ?? 'span';
-        let content = Str.safeEscape(part.text);
+    if (messages) {
+        for (const [index, part] of messages.entries()) {
+            const isEmail = Str.isValidEmail(part.text);
+            let tagType = part.type ?? 'span';
+            let content = Str.safeEscape(part.text);
 
-        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-        const nextPart = messages.at(index + 1);
+            const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
+            const nextPart = messages.at(index + 1);
 
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'your' : 'you';
-        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-            content = '';
-        } else if (isEmail) {
-            tagType = 'next-step-email';
-            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+            if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
+                tagType = 'strong';
+                content = nextPart?.text === `'s` ? 'your' : 'you';
+            } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
+                content = '';
+            } else if (isEmail) {
+                tagType = 'next-step-email';
+                content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+            }
+
+            nextStepHTML += `<${tagType}>${content}</${tagType}>`;
         }
+    }
 
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-    });
-
-    const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expenses')
-        .replace(/%Expenses/g, 'Expenses')
-        .replace(/%tobe/g, 'are');
+    const formattedHtml = nextStepHTML.replaceAll('%expenses', 'expenses').replaceAll('%Expenses', 'Expenses').replaceAll('%tobe', 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
 }

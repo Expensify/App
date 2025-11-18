@@ -161,7 +161,9 @@ function IOURequestStepParticipants({
             return;
         }
 
-        transactionIDs.forEach((transactionID) => resetDraftTransactionsCustomUnit(transactionID));
+        for (const transactionID of transactionIDs) {
+            resetDraftTransactionsCustomUnit(transactionID);
+        }
     }, [isFocused, isMovingTransactionFromTrackExpense, transactionIDs]);
 
     const waitForKeyboardDismiss = useCallback(
@@ -185,12 +187,12 @@ function IOURequestStepParticipants({
         }
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        transactions.forEach((transaction) => {
+        for (const transaction of transactions) {
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
-        });
+        }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
@@ -223,9 +225,9 @@ function IOURequestStepParticipants({
             // Use transactions array if available, otherwise use initialTransactionID directly
             // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
             if (transactions.length > 0) {
-                transactions.forEach((transaction) => {
+                for (const transaction of transactions) {
                     setMoneyRequestParticipants(transaction.transactionID, val);
-                });
+                }
             } else {
                 // Fallback to using initialTransactionID directly when transaction object isn't loaded yet
                 setMoneyRequestParticipants(initialTransactionID, val);
@@ -237,9 +239,9 @@ function IOURequestStepParticipants({
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
 
                 if (transactions.length > 0) {
-                    transactions.forEach((transaction) => {
+                    for (const transaction of transactions) {
                         setCustomUnitRateID(transaction.transactionID, rateID);
-                    });
+                    }
                 } else {
                     // Fallback to using initialTransactionID directly
                     setCustomUnitRateID(initialTransactionID, rateID);
@@ -300,7 +302,7 @@ function IOURequestStepParticipants({
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
         // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
-        transactions.forEach((transaction) => {
+        for (const transaction of transactions) {
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
@@ -308,10 +310,10 @@ function IOURequestStepParticipants({
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
-        });
+        }
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
-            transactions.forEach((transaction) => {
+            for (const transaction of transactions) {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {
                         selected: true,
@@ -322,7 +324,7 @@ function IOURequestStepParticipants({
                         searchText: policyName,
                     },
                 ]);
-            });
+            }
             if (isCategorizing) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
             } else {
@@ -375,9 +377,9 @@ function IOURequestStepParticipants({
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
-            transactions.forEach((transaction) => {
+            for (const transaction of transactions) {
                 setMoneyRequestParticipants(transaction.transactionID, []);
-            });
+            }
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change

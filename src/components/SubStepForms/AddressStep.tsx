@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import type {TranslationPaths} from '@src/languages/types';
@@ -73,6 +74,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Indicates if zip code format should be validated */
     shouldValidateZipCodeFormat?: boolean;
+
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    shouldShowPatriotActLink?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -95,6 +99,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
+    shouldShowPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -154,7 +159,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldAllowCountryChange={shouldAllowCountryChange}
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
-                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt6]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
