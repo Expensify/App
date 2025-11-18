@@ -602,17 +602,18 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
 }
 
 function createPolicyCategory(
-    policyID: string,
+    policyData: PolicyData,
     categoryName: string,
     isSetupCategoriesTaskParentReportArchived: boolean,
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ) {
-    const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
+    const onyxData = buildOptimisticPolicyCategories(policyData.policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+
     const parameters = {
-        policyID,
+        policyID: policyData.policyID,
         categories: JSON.stringify([{name: categoryName}]),
     };
 

@@ -36,7 +36,7 @@ function usePolicyData(policyID: string): PolicyData {
     );
 
     const policy = usePolicy(policyID);
-    const [tagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
+    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true}, [policyID]);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: reportsSelectorCallback}, [policyID, allReportsTransactionsAndViolations]);
     const transactionsAndViolations = useMemo(() => {
@@ -50,9 +50,10 @@ function usePolicyData(policyID: string): PolicyData {
             return acc;
         }, {});
     }, [reports, allReportsTransactionsAndViolations]);
+
     return {
         transactionsAndViolations,
-        tagLists,
+        tags: tags ?? {},
         categories: categories ?? {},
         policyID,
         policy,

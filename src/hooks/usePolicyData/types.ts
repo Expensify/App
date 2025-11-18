@@ -5,7 +5,7 @@ import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/
 type PolicyData = {
     policyID: string;
     policy: OnyxEntry<Policy>;
-    tagLists: OnyxEntry<PolicyTagLists>;
+    tags: PolicyTagLists;
     categories: OnyxEntry<PolicyCategories>;
     reports: Array<OnyxEntry<Report>>;
     transactionsAndViolations: ReportTransactionsAndViolationsDerivedValue;

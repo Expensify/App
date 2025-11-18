@@ -91,9 +91,9 @@ describe('usePolicyData', () => {
 
         const {result} = renderHook(() => usePolicyData(mockPolicy.id), {wrapper: OnyxListItemProvider});
 
-        expect(result.current?.policyID).toEqual(mockPolicy.id)
+        expect(result.current?.policyID).toEqual(mockPolicy.id);
         expect(result.current?.policy).toEqual(mockPolicy);
-        expect(result.current?.tagLists).toEqual(mockPolicyTagLists);
+        expect(result.current?.tags).toEqual(mockPolicyTagLists);
         expect(result.current?.categories).toEqual(mockPolicyCategories);
 
         expect(result.current?.reports).toHaveLength(1);
@@ -103,16 +103,15 @@ describe('usePolicyData', () => {
     });
 
     test('returns default empty values when policy ID does not exist in the onyx', () => {
-        const policyID = 'non_existent_policy_id'
+        const policyID = 'non_existent_policy_id';
         const {result} = renderHook(() => usePolicyData('non_existent_policy_id'), {wrapper: OnyxListItemProvider});
 
         expect(result.current?.policyID).toEqual(policyID);
         expect(result.current?.policy).toBeUndefined();
-        
+
         expect(result.current?.reports).toBeUndefined();
-        expect(result.current?.tagLists).toBeUndefined();
+        expect(result.current?.tags).toBeUndefined();
         expect(result.current?.categories).toBeUndefined();
-        
 
         expect(result.current?.transactionsAndViolations).toEqual({});
     });
