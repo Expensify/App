@@ -34,7 +34,7 @@ type TextInputProps = {
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
-    onFocusChange?: (focused: boolean) => void;
+    onFocusChange: (focused: boolean) => void;
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
@@ -113,8 +113,8 @@ function TextInput({
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
-                    onFocus={() => onFocusChange?.(true)}
-                    onBlur={() => onFocusChange?.(false)}
+                    onFocus={() => onFocusChange(true)}
+                    onBlur={() => onFocusChange(false)}
                     label={label}
                     accessibilityLabel={accessibilityLabel}
                     hint={hint}
