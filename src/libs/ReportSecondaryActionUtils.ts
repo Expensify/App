@@ -592,12 +592,6 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
         return false;
     }
 
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    if (isInvoiceReport) {
-        return false;
-    }
-
     const reportTransaction = reportTransactions.at(0);
     const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
 
@@ -698,7 +692,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(report, reportTransactions, reportActions)) {
+    if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -772,7 +766,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(parentReport, [reportTransaction], policy)) {
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
