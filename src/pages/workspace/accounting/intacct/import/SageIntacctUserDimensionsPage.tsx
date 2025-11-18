@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -25,6 +25,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
 
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
@@ -60,7 +61,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => {
-                                        Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                        openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                     }}
                                 >
                                     {translate('workspace.intacct.detailedInstructionsLink')}
@@ -77,7 +78,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <TextLink
                                 style={styles.link}
                                 onPress={() => {
-                                    Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                    openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                 }}
                             >
                                 {translate('workspace.intacct.detailedInstructionsLink')}

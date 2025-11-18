@@ -15,9 +15,9 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Growl from '@libs/Growl';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {openOnfidoFlow, updateAddPersonalBankAccountDraft, verifyIdentity} from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,26 +28,22 @@ function VerifyIdentity() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
-    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {initWithStoredValues: false});
-
-    const openOnfidoFlow = () => {
-        BankAccounts.openOnfidoFlow();
-    };
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {canBeMissing: true, initWithStoredValues: false});
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
-            BankAccounts.verifyIdentity({
+            verifyIdentity({
                 onfidoData: JSON.stringify({
                     ...onfidoData,
                     applicantID: walletOnfidoData?.applicantID,
                 }),
             });
-            BankAccounts.updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
+            updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
         },
         [walletOnfidoData?.applicantID],
     );
 
-    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
+    const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
 
     const handleOnfidoError = () => {
         Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);

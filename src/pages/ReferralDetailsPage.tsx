@@ -29,7 +29,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;

@@ -11,13 +11,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {beginSignIn} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
     return (
@@ -38,7 +38,7 @@ function ExpiredValidateCodeModal() {
                             {translate('validateCodeModal.or')}{' '}
                             <TextLink
                                 onPress={() => {
-                                    Session.beginSignIn(credentials?.login ?? '');
+                                    beginSignIn(credentials?.login ?? '');
                                     Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                                 }}
                             >
