@@ -298,9 +298,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    downloadPerDiemCSV(policyID, () => {
-                        setIsDownloadFailureModalVisible(true);
-                    });
+                    close(() =>
+                        downloadPerDiemCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        }),
+                    );
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
             });
