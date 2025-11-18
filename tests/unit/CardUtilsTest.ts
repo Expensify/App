@@ -1,6 +1,7 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
+// eslint-disable-next-line no-restricted-imports
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
