@@ -39,7 +39,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     const isForwardDisabled = page === attachments.length - 1;
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow'] as const);
 
     return shouldShowArrows ? (
         <>

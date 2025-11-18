@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -57,7 +58,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch'] as const);
 
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
@@ -146,7 +147,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={displayName}
                         titleStyle={styles.mt1}
                         iconStyles={styles.mt1}
-                        icon={cardholder?.avatar ?? FallbackAvatar}
+                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={cardholder?.login}
                         interactive={false}

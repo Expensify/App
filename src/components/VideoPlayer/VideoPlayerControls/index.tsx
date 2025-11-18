@@ -1,5 +1,5 @@
 import type {Video} from 'expo-av';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -30,7 +30,7 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: MutableRefObject<Video | null>;
+    videoPlayerRef: RefObject<Video | null>;
 
     /** Is video playing. */
     isPlaying: boolean;

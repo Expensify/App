@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -47,6 +47,8 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
 }) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -116,7 +118,7 @@ function useReportActionAvatars({
         return {
             id,
             type: CONST.ICON_TYPE_AVATAR,
-            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            source: personalDetails?.[id]?.avatar ?? expensifyIcons.FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
             fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
         };
@@ -209,7 +211,7 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
+        getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? expensifyIcons.FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
@@ -235,7 +237,7 @@ function useReportActionAvatars({
     };
 
     const userFallbackAvatar: IconType = {
-        source: avatar ?? FallbackAvatar,
+        source: avatar ?? expensifyIcons.FallbackAvatar,
         id: accountID,
         name: defaultDisplayName ?? fallbackDisplayName,
         type: CONST.ICON_TYPE_AVATAR,

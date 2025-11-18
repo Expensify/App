@@ -7,7 +7,8 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, Plus, RemoveMembers} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Plus, RemoveMembers} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -17,6 +18,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -64,6 +66,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
     const isReportArchived = useReportIsArchived(report.reportID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -271,7 +274,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? expensifyIcons.FallbackAvatar,
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -297,6 +300,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         searchValue,
         selectedMembers,
         session?.accountID,
+        expensifyIcons.FallbackAvatar,
     ]);
 
     const dismissError = useCallback(
