@@ -1125,7 +1125,14 @@ describe('ReportUtils', () => {
         });
 
         describe('Unreported transaction thread', () => {
-            test('HTML is stripped from unreported transaction message', () => {
+            test('Should link back to the original report', async () => {
+                const fromReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: '789',
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+
                 const transactionThread = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1143,11 +1150,11 @@ describe('ReportUtils', () => {
                 const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
 
                 // Should NOT contain HTML tags
-                expect(reportName).not.toContain('<a href');
-                expect(reportName).not.toContain('</a>');
+                expect(reportName).toContain('<a href');
+                expect(reportName).toContain('</a>');
                 // Should contain the text content
-                expect(reportName).toContain('moved this expense');
-                expect(reportName).toContain('personal space');
+                expect(reportName).toContain('moved this expense from');
+                expect(reportName).toContain('Ragnar');
             });
         });
     });
