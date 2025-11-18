@@ -12,7 +12,7 @@ type FooterProps<TItem extends ListItem> = {
 
 function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
-    const {showButton, text, onConfirm, isDisabled, style} = confirmButtonOptions ?? {};
+    const {showConfirmButton, confirmButtonText, onConfirm, confirmButtonStyle, isConfirmButtonDisabled} = confirmButtonOptions ?? {};
     if (footerContent) {
         return (
             <FixedFooter
@@ -24,7 +24,7 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
         );
     }
 
-    if (showButton) {
+    if (showConfirmButton) {
         return (
             <FixedFooter
                 style={styles.mtAuto}
@@ -33,12 +33,12 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
                 <Button
                     success
                     large
-                    style={[styles.w100, style]}
-                    text={text}
+                    style={[styles.w100, confirmButtonStyle]}
+                    text={confirmButtonText}
                     onPress={onConfirm}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
-                    isDisabled={isDisabled}
+                    isDisabled={isConfirmButtonDisabled}
                 />
             </FixedFooter>
         );

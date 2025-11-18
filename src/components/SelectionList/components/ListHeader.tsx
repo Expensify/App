@@ -22,7 +22,7 @@ type ListHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean;
 
     /** Function called when the select all button is pressed */
-    onSelectAll?: () => void;
+    onSelectAll: () => void;
 
     /** Whether to show 'Select all' button */
     shouldShowSelectAllButton: boolean;
@@ -47,7 +47,7 @@ function ListHeader<TItem extends ListItem>({
         return null;
     }
 
-    if (!canSelectMultiple || !onSelectAll || !shouldShowSelectAllButton) {
+    if (!canSelectMultiple || !shouldShowSelectAllButton) {
         return customListHeader;
     }
 

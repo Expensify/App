@@ -17,7 +17,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
@@ -102,7 +101,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
-    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
+    const hasFooter = !!footerContent || confirmButtonOptions?.showConfirmButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -110,7 +109,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 const idx = item.index ?? index;
                 const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
 
-                if (isItemSelected(item)) {
+                if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
                 if (isItemDisabled) {
@@ -125,12 +124,6 @@ function BaseSelectionList<TItem extends ListItem>({
             },
             {disabledIndexes: [], disabledArrowKeyIndexes: [], selectedOptions: []},
         );
-
-        if (selectedOptions.length > 1 && !canSelectMultiple) {
-            Log.alert(
-                'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
-            );
-        }
 
         const totalSelectable = data.length - disabledIndexes.length;
         const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
@@ -253,7 +246,7 @@ function BaseSelectionList<TItem extends ListItem>({
         {
             captureOnInputs: true,
             shouldBubble: !focusedOption,
-            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isConfirmButtonDisabled,
         },
     );
 
