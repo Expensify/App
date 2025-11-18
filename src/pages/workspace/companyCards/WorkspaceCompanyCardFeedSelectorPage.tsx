@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -43,11 +42,8 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
-    /** Combined feed key */
-    value: CompanyCardFeedWithDomainID;
-
     /** Card feed value */
-    feed: CompanyCardFeed;
+    value: CompanyCardFeed;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -58,7 +54,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -69,24 +64,21 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const isCollect = isCollectPolicy(policy);
 
-    const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, feedSettings]) => {
+    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
+        const feed = key as CompanyCardFeed;
         const filteredFeedCards = filterInactiveCards(
-            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feedSettings.feed}`],
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
-        const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
-        const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
-        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+        const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
         return {
-            value: key,
-            feed: feedSettings.feed,
-            alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
-            keyForList: key,
-            isSelected: key === selectedFeed,
-            isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: feedSettings.pendingAction,
+            value: feed,
+            text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
+            keyForList: feed,
+            isSelected: feed === selectedFeed,
+            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: companyFeeds[feed]?.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
             leftElement: plaidUrl ? (
@@ -96,7 +88,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feedSettings.feed, illustrations, companyCardFeedIcons)}
+                    src={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}

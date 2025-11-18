@@ -217,7 +217,7 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
-            assignedCardsSorted.forEach((card) => {
+            for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
@@ -261,7 +261,7 @@ function PaymentMethodList({
                                 cardID: card.cardID,
                             }),
                     });
-                    return;
+                    continue;
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
@@ -281,7 +281,7 @@ function PaymentMethodList({
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }
-                    return;
+                    continue;
                 }
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
@@ -312,7 +312,7 @@ function PaymentMethodList({
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
                 });
-            });
+            }
             return assignedCardsGrouped;
         }
 
