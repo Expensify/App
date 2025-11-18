@@ -96,7 +96,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
                     accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
                     label={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
                     isChecked={shouldDismissEmptyReportsConfirmation}
-                    onInputChange={(value) => setShouldDismissEmptyReportsConfirmation(Boolean(value))}
+                    onInputChange={(value) => setShouldDismissEmptyReportsConfirmation(!!value)}
                 />
             </View>
         ),

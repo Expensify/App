@@ -6291,6 +6291,7 @@ ${amount} para ${merchant} - ${date}`,
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `¿Estás seguro de que quieres crear otro informe en ${workspaceName}? Puedes acceder a tus informes vacíos en`,
             emptyReportConfirmationPromptLink: 'Informes',
+            emptyReportConfirmationDontShowAgain: 'No volver a mostrar',
             genericWorkspaceName: 'este espacio de trabajo',
         },
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
