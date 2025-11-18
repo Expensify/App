@@ -6193,6 +6193,7 @@ ${
             `heeft de frequentie van automatisch rapporteren bijgewerkt naar "${newFrequency}" (voorheen "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `heeft de goedkeuringsmodus bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
         upgradedWorkspace: 'heeft deze werkruimte geüpgraded naar het Control-plan',
+        forcedCorporateUpgrade: 'Deze werkruimte is geüpgraded naar het Control-plan. Klik <a href="%baseURL/articles/new-expensify/billing-and-subscriptions/Billing-Overview">hier</a> voor meer informatie.',
         downgradedWorkspace: 'heeft deze werkruimte gedowngraded naar het Collect-plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,

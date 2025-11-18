@@ -842,6 +842,9 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            result.alternateText = Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade'));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');

@@ -6180,6 +6180,7 @@ ${
             `zaktualizowano częstotliwość automatycznego raportowania na "${newFrequency}" (wcześniej "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `zaktualizowano tryb zatwierdzania na "${newValue}" (wcześniej "${oldValue}")`,
         upgradedWorkspace: 'zaktualizowano tę przestrzeń roboczą do planu Control',
+        forcedCorporateUpgrade: 'Ta przestrzeń robocza została zaktualizowana do planu Control. Kliknij <a href="%baseURL/articles/new-expensify/billing-and-subscriptions/Billing-Overview">tutaj</a>, aby uzyskać więcej informacji.',
         downgradedWorkspace: 'obniżono ten przestrzeń roboczą do planu Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
