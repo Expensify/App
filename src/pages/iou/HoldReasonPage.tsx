@@ -25,7 +25,7 @@ type HoldReasonPageProps =
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {transactionID, reportID, backTo, searchHash} = route.params;
+    const {transactionID, reportID, backTo} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
@@ -44,7 +44,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, ancestors, searchHash);
+        putOnHold(transactionID, values.comment, reportID, ancestors);
         Navigation.goBack(backTo);
     };
 

@@ -155,6 +155,9 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
+        if (videoSource && currentlyPlayingURL === videoSource) {
+            playVideo();
+        }
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);

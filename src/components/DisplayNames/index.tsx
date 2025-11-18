@@ -16,9 +16,12 @@ function DisplayNames({
     displayNamesWithTooltips,
     renderAdditionalText,
     forwardedFSClass,
+    shouldParseHtml = false,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
+    const title = shouldParseHtml
+        ? StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')
+        : StringUtils.lineBreaksToSpaces(fullTitle) || translate('common.hidden');
 
     if (!tooltipEnabled) {
         return (
