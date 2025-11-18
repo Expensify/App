@@ -111,7 +111,7 @@ function parse(formula?: string): FormulaPart[] {
     // Process the formula by splitting on formula parts to preserve free text
     let lastIndex = 0;
 
-    formulaParts.forEach((part) => {
+    for (const part of formulaParts) {
         const partIndex = formula.indexOf(part, lastIndex);
 
         // Add any free text before this formula part
@@ -130,7 +130,7 @@ function parse(formula?: string): FormulaPart[] {
         // Add the formula part
         parts.push(parsePart(part));
         lastIndex = partIndex + part.length;
-    });
+    }
 
     // Add any remaining free text after the last formula part
     if (lastIndex < formula.length) {
@@ -589,16 +589,16 @@ function getOldestReportActionDate(reportID: string): string | undefined {
 
     let oldestDate: string | undefined;
 
-    Object.values(reportActions).forEach((action) => {
+    for (const action of Object.values(reportActions)) {
         if (!action?.created) {
-            return;
+            continue;
         }
 
         if (oldestDate && action.created > oldestDate) {
-            return;
+            continue;
         }
         oldestDate = action.created;
-    });
+    }
 
     return oldestDate;
 }
@@ -660,23 +660,23 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let oldestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (oldestDate && created >= oldestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         oldestDate = created;
-    });
+    }
 
     return oldestDate;
 }
@@ -829,23 +829,23 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let newestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (newestDate && created <= newestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         newestDate = created;
-    });
+    }
 
     return newestDate;
 }
