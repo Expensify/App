@@ -19,6 +19,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -81,7 +82,9 @@ function IOURequestStepDistanceMap({
 }: IOURequestStepDistanceMapProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -146,6 +149,8 @@ function IOURequestStepDistanceMap({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -343,6 +348,7 @@ function IOURequestStepDistanceMap({
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -365,11 +371,12 @@ function IOURequestStepDistanceMap({
                         billable: !!policy?.defaultBillable,
                         reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                         splitShares: transaction?.splitShares,
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
+                    isASAPSubmitBetaEnabled,
                 });
                 return;
             }
@@ -395,7 +402,6 @@ function IOURequestStepDistanceMap({
                 isPolicyExpenseChat: true,
                 policy: defaultExpensePolicy,
                 lastSelectedDistanceRates,
-                localeCompare,
             });
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
@@ -418,7 +424,6 @@ function IOURequestStepDistanceMap({
         report,
         reportNameValuePairs,
         iouType,
-        personalPolicy?.autoReporting,
         defaultExpensePolicy,
         setDistanceRequestData,
         shouldSkipConfirmation,
@@ -430,12 +435,13 @@ function IOURequestStepDistanceMap({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
+        isASAPSubmitBetaEnabled,
         customUnitRateID,
         navigateToConfirmationPage,
+        personalPolicy?.autoReporting,
         reportID,
-        lastSelectedDistanceRates,
-        localeCompare,
     ]);
 
     const getError = () => {
@@ -464,13 +470,13 @@ function IOURequestStepDistanceMap({
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            data.forEach((waypoint, index) => {
+            for (const [index, waypoint] of data.entries()) {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
-            });
+            }
 
             setOptimisticWaypoints(newWaypoints);
             Promise.all([
