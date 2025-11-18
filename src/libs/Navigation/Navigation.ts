@@ -3,7 +3,7 @@ import type {EventArg, NavigationAction, NavigationContainerEventMap, Navigation
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {InteractionManager, DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -33,15 +33,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {
-    NavigationPartialRoute,
-    NavigationRef,
-    NavigationRoute,
-    NavigationStateRoute,
-    ReportsSplitNavigatorParamList,
-    RootNavigatorParamList,
-    State,
-} from './types';
+import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([

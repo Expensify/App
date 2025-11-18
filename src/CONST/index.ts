@@ -7399,7 +7399,7 @@ const CONST = {
     },
 
     MODAL_EVENTS: {
-        CLOSED: 'modalClosed'
+        CLOSED: 'modalClosed',
     },
 } as const;
 
