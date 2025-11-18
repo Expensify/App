@@ -3351,7 +3351,6 @@ const CONST = {
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
         },
-        FEED_KEY_SEPARATOR: '#',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
