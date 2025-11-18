@@ -197,9 +197,15 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
+        // Sync USDBankAccountStep state with achData.currentStep when backend data changes.
+        // This keeps state updated for legitimate step transitions while preventing flicker during transient re-renders.
+        if (!isNonUSDWorkspace && USDBankAccountStep !== null && achData?.currentStep && achData.currentStep !== USDBankAccountStep) {
+            setUSDBankAccountStep(achData.currentStep);
+        }
+
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
+    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency, USDBankAccountStep]);
 
     useEffect(() => {
         if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
@@ -485,7 +491,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (!isNonUSDWorkspace && USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow
-                USDBankAccountStep={currentStep}
+                USDBankAccountStep={USDBankAccountStep}
                 policyID={policyIDParam}
                 onBackButtonPress={goBack}
                 requestorStepRef={requestorStepRef}

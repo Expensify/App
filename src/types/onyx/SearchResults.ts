@@ -125,9 +125,6 @@ type SearchReport = {
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
@@ -176,14 +173,8 @@ type SearchTransaction = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
-
     /** The edited transaction amount */
-    modifiedAmount: number;
+    modifiedAmount: number | string;
 
     /** The transaction currency */
     currency: string;
@@ -216,6 +207,9 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
