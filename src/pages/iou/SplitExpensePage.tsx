@@ -102,7 +102,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
-    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
+    const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
@@ -120,7 +120,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     useEffect(() => {
         setErrorMessage('');
-    }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
+    }, [sumOfSplitExpenses, splitExpenses]);
 
     const onAddSplitExpense = useCallback(() => {
         if (draftTransaction?.errors) {
@@ -194,10 +194,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
             iouReport,
-            chatReport,
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-            isChatReportArchived: isChatIOUReportArchived,
         });
     }, [
         splitExpenses,
@@ -219,9 +217,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         expenseReportPolicy,
         policyRecentlyUsedCategories,
         iouReport,
-        chatReport,
         iouActions,
-        isChatIOUReportArchived,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
