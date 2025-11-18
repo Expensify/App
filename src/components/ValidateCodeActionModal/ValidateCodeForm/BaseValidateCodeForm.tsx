@@ -276,6 +276,10 @@ function BaseValidateCodeForm({
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
+    const handleCountdownFinish = useCallback(() => {
+        setIsCountdownRunning(false);
+    }, []);
+
     // latestValidateCodeError only holds an error related to bad magic code
     // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
@@ -296,7 +300,7 @@ function BaseValidateCodeForm({
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <ValidateCodeCountdown
                         ref={countdownRef}
-                        onCountdownFinish={() => setIsCountdownRunning(false)}
+                        onCountdownFinish={handleCountdownFinish}
                     />
                 </View>
             )}

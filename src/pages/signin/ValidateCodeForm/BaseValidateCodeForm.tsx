@@ -302,6 +302,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         preferredLocale,
     ]);
 
+    const handleCountdownFinish = useCallback(() => {
+        setIsCountdownRunning(false);
+    }, []);
+
     return (
         <SafariFormWrapper>
             {/* At this point, show 2FA only after the user has submitted a magic code and account requires 2FA */}
@@ -378,7 +382,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
                                 <ValidateCodeCountdown
                                     ref={countdownRef}
-                                    onCountdownFinish={() => setIsCountdownRunning(false)}
+                                    onCountdownFinish={handleCountdownFinish}
                                 />
                             </View>
                         ) : (
