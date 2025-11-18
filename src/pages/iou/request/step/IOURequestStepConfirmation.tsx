@@ -512,10 +512,10 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
-    function getMoneyRequestContextForParticipant(participant: Participant | undefined, report: Report | undefined) {
+    function getMoneyRequestContextForParticipant(participant: Participant | undefined, reportParam: Report | undefined) {
         const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
         return {
-            parentChatReport: isWorkspaceTarget ? report : undefined,
+            parentChatReport: isWorkspaceTarget ? reportParam : undefined,
             policyParams: isWorkspaceTarget
                 ? {
                       policy,
