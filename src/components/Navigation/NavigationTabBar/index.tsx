@@ -178,7 +178,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
                             query,
-                            rawQuery: rawQuery ?? query,
+                            rawQuery,
                             ...rest,
                         }),
                     );

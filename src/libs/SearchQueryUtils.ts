@@ -428,11 +428,9 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
-        const rawFilterListFromRawQuery = rawQuery ? getRawFilterListFromQuery(rawQuery) : undefined;
-        if (rawFilterListFromRawQuery && rawFilterListFromRawQuery.length > 0) {
-            result.rawFilterList = rawFilterListFromRawQuery;
-        } else {
-            delete result.rawFilterList;
+        delete result.rawFilterList;
+        if (rawQuery) {
+            result.rawFilterList = getRawFilterListFromQuery(rawQuery);
         }
 
         if (result.policyID && typeof result.policyID === 'string') {
@@ -1333,7 +1331,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
 function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
-    const queryJSON = buildSearchQueryJSON(query, query);
+    const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
@@ -1342,13 +1340,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
     const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
-    const sanitizedRawFilters = getSanitizedRawFilters(standardizedQuery);
-    const canonicalQueryString = buildSearchQueryString(standardizedQuery);
-
-    return {
-        canonicalQuery: canonicalQueryString,
-        rawFilterList: sanitizedRawFilters,
-    };
+    return buildSearchQueryString(standardizedQuery);
 }
 
 function getCurrentSearchQueryJSON() {

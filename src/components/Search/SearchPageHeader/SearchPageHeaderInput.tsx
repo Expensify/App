@@ -199,8 +199,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQueryResult = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
-            const updatedQuery = updatedQueryResult?.canonicalQuery;
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
 
             if (!updatedQuery) {
                 return;

@@ -57,8 +57,7 @@ const ROUTES = {
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
-            const resolvedRawQuery = rawQuery ?? query;
-            const rawQuerySegment = resolvedRawQuery ? `&rawQuery=${encodeURIComponent(resolvedRawQuery)}` : '';
+            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
             return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },

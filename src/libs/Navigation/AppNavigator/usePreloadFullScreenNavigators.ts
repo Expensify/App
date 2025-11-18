@@ -49,14 +49,14 @@ function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensPa
             const query = buildSearchQueryString(queryJSON);
             navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {
                 screen: SCREENS.SEARCH.ROOT,
-                params: {q: query, rawQuery: rawQuery ?? query, ...rest},
+                params: {q: query, rawQuery, ...rest},
             });
             return;
         }
     }
 
     const defaultQuery = buildCannedSearchQuery();
-    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: defaultQuery, rawQuery: defaultQuery}});
+    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: defaultQuery}});
 }
 
 function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {

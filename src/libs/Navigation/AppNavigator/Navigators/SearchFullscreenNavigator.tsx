@@ -35,7 +35,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
                 <Stack.Screen
                     name={SCREENS.SEARCH.ROOT}
                     getComponent={loadSearchPage}
-                    initialParams={{q: defaultSearchQuery, rawQuery: defaultSearchQuery}}
+                    initialParams={{q: defaultSearchQuery}}
                     options={{animation: Animations.NONE}}
                 />
                 <Stack.Screen

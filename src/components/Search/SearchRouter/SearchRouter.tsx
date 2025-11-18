@@ -282,8 +282,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQueryResult = getQueryWithUpdatedValues(queryWithSubstitutions);
-            const updatedQuery = updatedQueryResult?.canonicalQuery;
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
             if (!updatedQuery) {
                 return;
             }
