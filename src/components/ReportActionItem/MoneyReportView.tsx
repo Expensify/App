@@ -34,6 +34,7 @@ import {
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
+import {hasReimbursableAndNonReimbursableTransactions} from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -73,7 +74,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal && hasReimbursableAndNonReimbursableTransactions(report?.reportID);
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
