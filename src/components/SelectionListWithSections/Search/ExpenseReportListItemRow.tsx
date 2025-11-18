@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
@@ -21,6 +22,7 @@ import UserInfoCell from './UserInfoCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
+    policy?: Policy;
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
@@ -37,6 +39,7 @@ type ExpenseReportListItemRowProps = {
 
 function ExpenseReportListItemRow({
     item,
+    policy,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
@@ -138,7 +141,9 @@ function ExpenseReportListItemRow({
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
                     <ReportActionAvatars
+                        report={item}
                         reportID={item.reportID}
+                        policy={policy}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                     />

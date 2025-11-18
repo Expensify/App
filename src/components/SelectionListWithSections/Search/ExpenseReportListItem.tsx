@@ -108,6 +108,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <ExpenseReportListItemRow
                     item={reportItem}
+                    policy={snapshotPolicy}
                     isActionLoading={isLoading}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
