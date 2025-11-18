@@ -3,7 +3,6 @@ import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -32,8 +31,8 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
     const backTo = route.params.backTo;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const policyID = report?.policyID;
 
     const {translate} = useLocalize();

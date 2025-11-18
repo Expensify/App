@@ -18,7 +18,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Illustrations from './Icon/Illustrations';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionListWithSections';
 import InviteMemberListItem from './SelectionListWithSections/InviteMemberListItem';

@@ -23,6 +23,7 @@ import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
@@ -118,6 +119,7 @@ export {
     EmailAddress,
     EmptyStateExpenses,
     EnvelopeReceipt,
+    ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     Mailbox,

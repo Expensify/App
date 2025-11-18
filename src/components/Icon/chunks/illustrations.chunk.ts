@@ -2,29 +2,30 @@
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+// Educational Illustrations
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+// Other Images
+import Hand from '@assets/images/hand.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
-// Educational Illustrations
-import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
-// Other Images
-import Hand from '@assets/images/hand.svg';
+import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
-import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 // Simple Illustrations - Core ones that are actually used
+import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
@@ -33,23 +34,29 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
+import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
     CompanyCardsEmptyState,
+    CompanyCardsPendingState,
 
     // Other assets
     Computer,
@@ -79,20 +86,25 @@ const Illustrations = {
     TurtleInShell,
 
     // Simple Illustrations
+    Abacus,
     Accounting,
+    Binoculars,
     Building,
     Coins,
     CreditCardsNew,
     FolderOpen,
     HandCard,
     InvoiceBlue,
+    LockClosedOrange,
     MagnifyingGlassMoney,
     MoneyReceipts,
     MoneyWings,
     PerDiem,
+    PiggyBank,
     ReceiptWrangler,
     ReportReceipt,
     Rules,
+    SplitBill,
     Tag,
     CompanyCard,
     Workflows,
