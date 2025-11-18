@@ -41,12 +41,12 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
-            formItems.forEach((formItem) => {
+            for (const formItem of formItems) {
                 if (values[formItem]) {
-                    return;
+                    continue;
                 }
                 addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
-            });
+            }
             return errors;
         },
         [formItems, translate],
