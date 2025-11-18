@@ -464,12 +464,12 @@ function SearchPage({route}: SearchPageProps) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    itemList.forEach((item) => {
+                    for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             submitMoneyRequestOnSearch(hash, [item], [policy]);
                         }
-                    });
+                    }
                     clearSelectedTransactions();
                 },
             });
@@ -665,7 +665,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const newReceiptFiles: ReceiptFile[] = [];
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
                 index === 0
@@ -682,7 +682,7 @@ function SearchPage({route}: SearchPageProps) {
                 transactionID,
             });
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        });
+        }
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
@@ -715,10 +715,10 @@ function SearchPage({route}: SearchPageProps) {
         if (files.length === 0) {
             return;
         }
-        files.forEach((file) => {
+        for (const file of files) {
             // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-        });
+        }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };

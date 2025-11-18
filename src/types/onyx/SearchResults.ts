@@ -176,12 +176,6 @@ type SearchTransaction = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
-
     /** The edited transaction amount */
     modifiedAmount: number;
 
@@ -216,6 +210,9 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */

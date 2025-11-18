@@ -469,13 +469,13 @@ function IOURequestStepDistance({
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            data.forEach((waypoint, index) => {
+            for (const [index, waypoint] of data.entries()) {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
-            });
+            }
 
             setOptimisticWaypoints(newWaypoints);
             Promise.all([

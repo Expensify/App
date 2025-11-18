@@ -176,13 +176,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {

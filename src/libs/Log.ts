@@ -91,7 +91,7 @@ AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {
-        logs.forEach((log) => {
+        for (const log of logs) {
             // Both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
             const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
 
@@ -100,7 +100,7 @@ AppLogs.registerHandler({
             } else {
                 Log.info(message);
             }
-        });
+        }
     },
 });
 
