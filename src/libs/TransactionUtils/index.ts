@@ -1180,7 +1180,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 ): boolean {
     const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
 
-    const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
+    const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation) && shouldShowViolation(report, policy, violation.name, deprecatedCurrentUserEmail));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
