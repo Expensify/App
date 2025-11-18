@@ -1227,12 +1227,10 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
  * 2. Sorts by lastVisibleActionCreated (most recent first)
- * 3. Limits to top N reports (default 300)
+ * 3. Limits to top N reports
  * 4. Processes only those N reports
  *
  * This avoids processing thousands of reports while ensuring correct filtering.
- * The limit (300) provides a safety margin: even if 90% are filtered out by getValidOptions,
- * we still have 30 candidates for displaying the final 5 in "Recents".
  *
  * Use this for screens that need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
  */
@@ -1269,7 +1267,7 @@ function createFilteredOptionList(
         return 0;
     });
 
-    // Step 3: Limit to top N reports (default 500)
+    // Step 3: Limit to top N reports
     const limitedReports = sortedReports.slice(0, maxRecentReports);
 
     // Step 4: If search term is present, build report map with ONLY 1:1 DM reports

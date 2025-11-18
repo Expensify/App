@@ -49,12 +49,12 @@ type UseFilteredOptionsResult = {
  * Pre-filtering strategy:
  * - Filters out null/undefined reports only
  * - Sorts by lastVisibleActionCreated (most recent first)
- * - Processes top 500 reports (~90% reduction from all reports)
+ * - Processes top N reports (default 500)
  * - Business logic filtering handled by shouldReportBeInOptionList
  *
  * Usage:
  * const {options, isLoading} = useFilteredOptions({
- *   maxRecentReports: 500,  // Process top 500 reports by date (default)
+ *   maxRecentReports: 500,
  *   enabled: didScreenTransitionEnd,
  *   betas,
  * });
@@ -69,10 +69,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    // Track total available reports
     const totalReportsRef = useRef(0);
 
-    // Subscribe to Onyx data
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
@@ -81,12 +79,10 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     });
 
     const options = useMemo(() => {
-        // If disabled or data not ready, return null
         if (!enabled || !allReports || !allPersonalDetails) {
             return null;
         }
 
-        // Calculate total reports available
         totalReportsRef.current = Object.keys(allReports).length;
 
         // Use optimized pre-filtering: top N most recent reports
