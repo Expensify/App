@@ -841,6 +841,7 @@ const SCREENS = {
         APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
         PROMPT: 'MultifactorAuthentication_Prompt',
         REVOKE: 'MultifactorAuthentication_Revoke',
+        NOT_FOUND: 'MultifactorAuthentication_Not_Found',
     },
 } as const;
 

@@ -47,6 +47,11 @@ const PUBLIC_SCREENS_ROUTES = {
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
+const MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES = {
+    FACTOR: 'multifactor-authentication/factor',
+    PROMPT: 'multifactor-authentication/prompt',
+} as const;
+
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
@@ -3384,9 +3389,9 @@ const ROUTES = {
         getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
     },
 
-    MULTIFACTORAUTHENTICATION_MAGIC_CODE: 'multifactor-authentication/factor/magic-code',
-    MULTIFACTORAUTHENTICATION_AUTHENTICATOR: 'multifactor-authentication/factor/authenticator',
-    MULTIFACTORAUTHENTICATION_SMS_OTP: 'multifactor-authentication/factor/sms-otp',
+    MULTIFACTORAUTHENTICATION_MAGIC_CODE: `${MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
+    MULTIFACTORAUTHENTICATION_AUTHENTICATOR: `${MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES.FACTOR}/authenticator`,
+    MULTIFACTORAUTHENTICATION_SMS_OTP: `${MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES.FACTOR}/sms-otp`,
     MULTIFACTORAUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
@@ -3400,13 +3405,13 @@ const ROUTES = {
     },
 
     MULTIFACTORAUTHENTICATION_PROMPT: {
-        route: 'multifactor-authentication/prompt/:promptType',
-        getRoute: (promptType: MultifactorAuthenticationPromptType) => `multifactor-authentication/prompt/${promptType}` as const,
+        route: `${MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES.PROMPT}/:promptType`,
+        getRoute: (promptType: MultifactorAuthenticationPromptType) => `${MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES.PROMPT}/${promptType}` as const,
     },
 
     MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactor-authentication/revoke',
 
-    NOT_FOUND: '/not-found',
+    MULTIFACTORAUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
 } as const;
 
 /**
@@ -3422,7 +3427,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;

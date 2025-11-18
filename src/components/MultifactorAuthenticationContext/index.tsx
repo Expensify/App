@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {
     areMultifactorAuthorizationParamsValid,
@@ -31,7 +31,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import {requestValidateCodeAction, triggerOnyxConnect} from '../../../__mocks__/ecuk_api';
 import MULTI_FACTOR_AUTHENTICATION_SCENARIOS from './config';
 
@@ -57,6 +57,15 @@ type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
 };
 
+const isProtectedRoute = (route: string) => {
+    return Object.values(MULTIFACTORAUTHENTICATION_PROTECTED_ROUTES).some((protectedRoute) => route.startsWith(`/${protectedRoute}`));
+};
+
+const isOnProtectedRoute = () => {
+    const currentRoute = Navigation.getActiveRouteWithoutParams();
+    return isProtectedRoute(currentRoute);
+};
+
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     // TODO: Remove this when mocked API is no longer used
     triggerOnyxConnect();
@@ -70,6 +79,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         },
         CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
     );
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => {
+            const shouldRedirect = !mergedStatus.value.scenario && isOnProtectedRoute();
+
+            if (shouldRedirect) {
+                Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOT_FOUND, {forceReplace: true});
+            }
+        });
+    }, [mergedStatus.value.scenario]);
+
     const success = useRef<boolean | undefined>(undefined);
     // to avoid waiting for next render
     const softPromptStore = useRef<{
@@ -97,15 +117,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 value: {scenario},
             } = status;
 
-            const scenarioRoute: Route = scenario ? MULTI_FACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.NOT_FOUND;
+            const scenarioRoute: Route = scenario ? MULTI_FACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.MULTIFACTORAUTHENTICATION_NOT_FOUND;
             const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
 
             const successPath = overriddenScreens.current.success ?? (scenarioPrefix ? `${scenarioPrefix}-success` : undefined);
             const failurePath = overriddenScreens.current.failure ?? (scenarioPrefix ? `${scenarioPrefix}-failure` : undefined);
 
             const notificationPaths = {
-                success: successPath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(successPath) : ROUTES.NOT_FOUND,
-                failure: failurePath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(failurePath) : ROUTES.NOT_FOUND,
+                success: successPath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(successPath) : ROUTES.MULTIFACTORAUTHENTICATION_NOT_FOUND,
+                failure: failurePath ? ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute(failurePath) : ROUTES.MULTIFACTORAUTHENTICATION_NOT_FOUND,
             };
 
             if (revokeAction) {
