@@ -248,9 +248,6 @@ type SearchTransaction = {
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
 
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
-
     /** Whether the action is loading */
     isActionLoading?: boolean;
 

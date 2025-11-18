@@ -47,9 +47,6 @@ type SelectedTransactionInfo = {
     /** The transaction currency */
     currency: string;
 
-    /** Whether it is the only expense of the parent expense report */
-    isFromOneTransactionReport?: boolean;
-
     /** Account ID of the report owner */
     ownerAccountID?: number;
 };
