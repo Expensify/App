@@ -1042,6 +1042,7 @@ function leaveWorkspace(policyID?: string) {
         },
     ];
 
+    const currentTime = DateUtils.getDBTime();
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
@@ -1060,6 +1061,7 @@ function leaveWorkspace(policyID?: string) {
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     oldPolicyName: policy?.name ?? '',
+                    isPinned: false,
                 },
             },
             {
@@ -1069,7 +1071,23 @@ function leaveWorkspace(policyID?: string) {
                     pendingChatMembers,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: currentTime,
+                },
+            },
         );
+
+        // Restore archived flag on failure
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+            value: {
+                private_isArchived: null,
+            },
+        });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
