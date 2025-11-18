@@ -81,7 +81,6 @@ import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
-import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -344,7 +343,6 @@ export {
     MoneyHourglass,
     Monitor,
     Mute,
-    ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
     NotificationsAvatar,
