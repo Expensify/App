@@ -538,9 +538,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
     /** Configuration of the export */
-    export: {
+    export?: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -670,7 +670,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -1041,7 +1041,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -1251,7 +1251,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1310,7 +1310,7 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** Sage Intacct export configs */
-        export: SageIntacctExportConfig;
+        export?: SageIntacctExportConfig;
 
         /** Whether employees should be imported from Sage Intacct */
         importEmployees: boolean;
@@ -1364,7 +1364,7 @@ type QBDConnectionData = {
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how reimbursable expenses are exported */
     reimbursable: QBDReimbursableExportAccountType;
@@ -1415,7 +1415,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         importItems: boolean;
 
         /** Configuration of the export */
-        export: QBDExportConfig;
+        export?: QBDExportConfig;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
