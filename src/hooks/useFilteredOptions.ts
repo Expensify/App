@@ -65,11 +65,13 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, searchTerm = '', betas} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
 
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const totalReportsRef = useRef(0);
+    const prevReportsLengthRef = useRef(0);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -87,13 +89,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
         // Use optimized pre-filtering: top N most recent reports
         // Business logic filtering is handled by getValidOptions
-        return createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
-            maxRecentReports,
+        const result = createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+            maxRecentReports: reportsLimit,
             includeP2P,
             searchTerm,
             betas,
         });
-    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, maxRecentReports, includeP2P, searchTerm, betas]);
+
+        prevReportsLengthRef.current = result.reports.length;
+
+        return result;
+    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, reportsLimit, includeP2P, searchTerm, betas]);
 
     // Reset loading state after options are computed
     useEffect(() => {
@@ -112,8 +118,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         const hasMoreToLoad = options.reports.length < totalReportsRef.current;
         if (hasMoreToLoad) {
             setIsLoadingMore(true);
+            setReportsLimit((prev) => prev + batchSize);
         }
-    }, [options, isLoadingMore]);
+    }, [options, isLoadingMore, batchSize]);
 
     // Calculate if there are more reports to load
     const hasMore = options ? options.reports.length < totalReportsRef.current : false;
