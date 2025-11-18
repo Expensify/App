@@ -118,6 +118,13 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         onLoadComplete(path);
     };
 
+    /**
+     * Handle press link event on native apps.
+     */
+    const handlePressLink = useCallback((url: string) => {
+        Linking.openURL(url);
+    }, []);
+
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
         const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
@@ -151,9 +158,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
-                        onPressLink={(url) => {
-                            Linking.openURL(url);
-                        }}
+                        onPressLink={handlePressLink}
                     />
                 )}
                 {shouldRequestPassword && (
