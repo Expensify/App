@@ -176,14 +176,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             const login = option.login ?? '';
             const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
-                return;
+                continue;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
+        }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
         completeOnboarding(true);

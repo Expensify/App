@@ -2395,9 +2395,9 @@ describe('SearchUIUtils', () => {
 
             const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
-            menuItems.forEach((item, index) => {
+            for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
-            });
+            }
         });
     });
 
