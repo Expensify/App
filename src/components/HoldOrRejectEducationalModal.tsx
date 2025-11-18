@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -46,6 +47,7 @@ const menuSections: SectionMenuItem[] = [
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ModalHoldOrReject'] as const);
 
     useBeforeRemove(onClose);
 
@@ -54,7 +56,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ModalHoldOrReject}
+            image={illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}

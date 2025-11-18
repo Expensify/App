@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -19,6 +19,7 @@ function ExpiredValidateCodeModal() {
     const styles = useThemeStyles();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -26,7 +27,7 @@ function ExpiredValidateCodeModal() {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
-                        src={Illustrations.ToddBehindCloud}
+                        src={illustrations.ToddBehindCloud}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>

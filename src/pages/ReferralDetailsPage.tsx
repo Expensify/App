@@ -3,9 +3,9 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -27,6 +27,7 @@ type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigato
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
@@ -49,7 +50,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             title={translate('common.referral')}
             headerContent={
                 <Icon
-                    src={PaymentHands}
+                    src={illustrations.PaymentHands}
                     width={589}
                     height={232}
                 />

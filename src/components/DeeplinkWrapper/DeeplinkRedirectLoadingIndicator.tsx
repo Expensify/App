@@ -3,9 +3,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -22,6 +22,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -30,7 +31,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
