@@ -22,13 +22,19 @@ function StatusCell({stateNum, statusNum}: StatusCellProps) {
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
 
-    const backgroundColorStyle = useMemo(() => ({
-        backgroundColor: reportStatusColorStyle?.backgroundColor,
-    }), [reportStatusColorStyle?.backgroundColor]);
+    const backgroundColorStyle = useMemo(
+        () => ({
+            backgroundColor: reportStatusColorStyle?.backgroundColor,
+        }),
+        [reportStatusColorStyle?.backgroundColor],
+    );
 
-    const textColorStyle = useMemo(() => ({
-        color: reportStatusColorStyle?.textColor,
-    }), [reportStatusColorStyle?.textColor]);
+    const textColorStyle = useMemo(
+        () => ({
+            color: reportStatusColorStyle?.textColor,
+        }),
+        [reportStatusColorStyle?.textColor],
+    );
 
     if (!statusText || !reportStatusColorStyle) {
         return null;
