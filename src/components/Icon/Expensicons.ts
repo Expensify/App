@@ -175,8 +175,6 @@ import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
-import AppleLogo from '@assets/images/signIn/apple-logo.svg';
-import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
 import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
 import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
@@ -227,7 +225,6 @@ export {
     All,
     Android,
     Apple,
-    AppleLogo,
     ArrowSplit,
     ArrowCollapse,
     ArrowRight,
@@ -301,7 +298,6 @@ export {
     Gallery,
     Gear,
     Globe,
-    GoogleLogo,
     Hashtag,
     Heart,
     History,
