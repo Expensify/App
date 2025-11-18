@@ -103,6 +103,14 @@ function TextInput({
         }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
     );
 
+    const handleFocus = useCallback(() => {
+        onFocusChange(true);
+    }, [onFocusChange]);
+
+    const handleBlur = useCallback(() => {
+        onFocusChange(false);
+    }, [onFocusChange]);
+
     if (!shouldShowTextInput) {
         return null;
     }
@@ -113,8 +121,8 @@ function TextInput({
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
-                    onFocus={() => onFocusChange(true)}
-                    onBlur={() => onFocusChange(false)}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                     label={label}
                     accessibilityLabel={accessibilityLabel}
                     hint={hint}
