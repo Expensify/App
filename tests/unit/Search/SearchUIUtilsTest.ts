@@ -91,6 +91,7 @@ const report1 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report2 = {
@@ -112,6 +113,7 @@ const report2 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report3 = {
@@ -136,6 +138,7 @@ const report3 = {
     total: 4400,
     type: 'iou',
     unheldTotal: 4400,
+    transactionCount: 2,
 } as const;
 
 const report4 = {
@@ -166,6 +169,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
+    transactionCount: 0,
 } as const;
 
 const reportAction1: OnyxTypes.ReportAction = {
@@ -1046,6 +1050,7 @@ const transactionReportGroupListItems = [
             login: undefined,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'submit',
@@ -1145,6 +1150,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'review',
@@ -1238,6 +1244,7 @@ const transactionReportGroupListItems = [
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
@@ -1289,6 +1296,7 @@ const transactionReportGroupListItems = [
             login: undefined,
         },
         total: 0,
+        transactionCount: 0,
         transactions: [],
         type: 'expense',
         unheldTotal: 0,
@@ -1657,12 +1665,18 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionReportID = 'report_multi';
             const multiTransactionID = 'transaction_multi';
             const localSearchResults = {
                 ...searchResults.data,
+                [`report_${multiTransactionReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    transactionCount: 2,
+                },
                 [`transactions_${multiTransactionID}`]: {
                     ...searchResults.data[`transactions_${transactionID}`],
                     transactionID: multiTransactionID,
+                    reportID: multiTransactionReportID,
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
@@ -1794,7 +1808,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 52;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1828,7 +1842,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 52;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
