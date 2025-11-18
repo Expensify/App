@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
@@ -22,6 +23,7 @@ import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -30,7 +32,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -105,7 +106,6 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash'] as const);
     const {isBetaEnabled} = usePermissions();
     const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const device = useCameraDevice('back', {
@@ -854,7 +854,7 @@ function IOURequestStepScan({
                                                 <Icon
                                                     height={16}
                                                     width={16}
-                                                    src={icons.Bolt}
+                                                    src={Expensicons.Bolt}
                                                     fill={flash ? theme.white : theme.icon}
                                                 />
                                             </PressableWithFeedback>
@@ -910,7 +910,7 @@ function IOURequestStepScan({
                                 <Icon
                                     height={32}
                                     width={32}
-                                    src={icons.Gallery}
+                                    src={Expensicons.Gallery}
                                     fill={theme.textSupporting}
                                 />
                             </PressableWithFeedback>
@@ -940,7 +940,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={icons.ReceiptMultiple}
+                                src={Expensicons.ReceiptMultiple}
                                 fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                             />
                         </PressableWithFeedback>
@@ -955,7 +955,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={flash ? icons.Bolt : icons.boltSlash}
+                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
