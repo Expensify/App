@@ -2051,6 +2051,21 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Checks if a report contains both reimbursable and non-reimbursable transactions
+ */
+function hasReimbursableAndNonReimbursableTransactions(iouReportID: string | undefined): boolean {
+    const transactions = getReportTransactions(iouReportID);
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    const hasReimbursable = transactions.some((transaction) => getReimbursable(transaction));
+    const hasNonReimbursable = transactions.some((transaction) => !getReimbursable(transaction));
+
+    return hasReimbursable && hasNonReimbursable;
+}
+
+/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItemType[]}> {
@@ -2191,6 +2206,7 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    hasReimbursableAndNonReimbursableTransactions,
 };
 
 export type {TransactionChanges};
