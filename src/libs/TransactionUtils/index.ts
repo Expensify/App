@@ -1241,10 +1241,12 @@ function allHavePendingRTERViolation(
     }
 
     const transactionsWithRTERViolations = transactions.map((transaction) => {
+        // Get violations not dismissed by current user
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, report, policy)?.filter((violation) =>
-            // We should only consider RTER violations when they are visible to the current user
+            // Further filter to only violations visible to the current user
             shouldShowViolation(report, policy, violation.name, currentUserEmail),
         );
+        // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
