@@ -98,7 +98,7 @@ import type {IOURequestType} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {getCurrentUserAccountID, handlePreexistingReport, openUnreportedExpense} from './actions/Report';
+import {handlePreexistingReport, openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -2751,7 +2751,6 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(chatReport.policyID);
-    const currentUserAccountID = getCurrentUserAccountID();
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
         if (
