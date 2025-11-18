@@ -166,26 +166,26 @@ describe('SearchAutocompleteUtils', () => {
         it('should handle amount filters with various valid formats', () => {
             const validAmounts = ['100', '100.50', '1000.00', '-50.25', '0.99'];
 
-            validAmounts.forEach((amount) => {
+            for (const amount of validAmounts) {
                 const input = `purchaseAmount:${amount}`;
 
                 const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.type).toBe('mention-user');
-            });
+            }
         });
 
         it('should handle amount filters with invalid formats', () => {
             const invalidAmounts = ['100.1234', 'abc', '100.50.25', ''];
 
-            invalidAmounts.forEach((amount) => {
+            for (const amount of invalidAmounts) {
                 const input = `purchaseAmount:${amount}`;
 
                 const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toEqual([]);
-            });
+            }
         });
 
         it('should handle substitution map values for new filters', () => {

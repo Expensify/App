@@ -708,7 +708,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        PAYMENT_BUTTONS: 'paymentButtons',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
     },
     BUTTON_STATES: {
@@ -1654,6 +1653,7 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
+        SPAN_APP_STARTUP: 'ManualAppStartup',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3723,7 +3723,7 @@ const CONST = {
             return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
 
-        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/g,
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
