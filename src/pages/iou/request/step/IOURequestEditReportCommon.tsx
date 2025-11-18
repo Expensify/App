@@ -1,7 +1,6 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -9,6 +8,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -73,6 +73,7 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Close'] as const);
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -220,10 +221,10 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
-                icon={Expensicons.Document}
+                icon={icons.Document}
             />
         );
-    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, icons.Document]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -275,7 +276,7 @@ function IOURequestEditReportCommon({
                                 onPress={removeFromReport}
                                 title={translate('iou.removeFromReport')}
                                 description={translate('iou.moveToPersonalSpace')}
-                                icon={Expensicons.Close}
+                                icon={icons.Close}
                             />
                         )}
                         {createReportOption}
