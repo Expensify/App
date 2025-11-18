@@ -345,7 +345,7 @@ function deleteSavedSearch(hash: number) {
 }
 
 function openSearchPage() {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts: true});
 }
 
 function search({
