@@ -141,17 +141,21 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             <TextLink
                 onPress={() => {
                     if (isMultiLevelTags) {
-                        downloadMultiLevelTagsCSV(
-                            policyID,
-                            () => {
-                                setIsDownloadFailureModalVisible(true);
-                            },
-                            hasDependentTags,
+                        close(() =>
+                            downloadMultiLevelTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                hasDependentTags,
+                            ),
                         );
                     } else {
-                        downloadTagsCSV(policyID, () => {
-                            setIsDownloadFailureModalVisible(true);
-                        });
+                        close(() =>
+                            downloadTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            }),
+                        );
                     }
                 }}
             >
