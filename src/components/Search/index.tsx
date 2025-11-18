@@ -120,7 +120,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
             currency: item.currency,
-            isFromOneTransactionReport: item.isFromOneTransactionReport,
+            isFromOneTransactionReport: item.report?.transactionCount === 1,
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     ];
@@ -202,7 +202,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
-            isFromOneTransactionReport: item.isFromOneTransactionReport,
+            isFromOneTransactionReport: item.report?.transactionCount === 1,
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     };
@@ -705,12 +705,15 @@ function Search({
                 return;
             }
 
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            let reportID = item.reportID;
+            if (isTransactionItem && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = item.report?.transactionCount === 1;
 
-            const reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? item.transactionThreadReportID
-                    : item.reportID;
+                if (isFromSelfDM || !isFromOneTransactionReport) {
+                    reportID = item.transactionThreadReportID;
+                }
+            }
 
             if (!reportID) {
                 return;
