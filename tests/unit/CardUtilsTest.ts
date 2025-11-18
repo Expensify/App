@@ -1,8 +1,6 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-// eslint-disable-next-line no-restricted-imports
-import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -343,7 +341,8 @@ const mockIllustrations = {
     GenericCompanyCardLarge: 'GenericCompanyCardLarge',
 };
 
-jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations'));
 
 describe('CardUtils', () => {
     describe('Expiration date formatting', () => {
