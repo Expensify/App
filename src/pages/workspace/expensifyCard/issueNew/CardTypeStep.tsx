@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';

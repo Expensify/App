@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 

@@ -16,24 +16,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
-
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: illustrations.PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Illustrations.Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
 function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: Illustrations.Alert,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);

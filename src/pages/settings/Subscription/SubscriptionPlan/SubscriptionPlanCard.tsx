@@ -41,7 +41,6 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    console.log('SubscriptionPlanCard');
     const illustrations = useMemoizedLazyIllustrations(['ShieldYellow'] as const);
 
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(

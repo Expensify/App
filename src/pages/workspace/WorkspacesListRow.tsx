@@ -130,8 +130,8 @@ function WorkspacesListRow({
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
     const illustrations = useMemoizedLazyIllustrations(['ShieldYellow'] as const);
 
-    const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
-        switch (workspaceType) {
+    const workspaceTypeIcon = (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+        switch (type) {
             case CONST.POLICY.TYPE.CORPORATE:
                 return illustrations.ShieldYellow;
             case CONST.POLICY.TYPE.TEAM:
