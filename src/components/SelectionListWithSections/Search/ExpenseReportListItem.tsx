@@ -78,13 +78,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
         styles.mh0,
     ];
 
-    const listItemWrapperStyle = useMemo(() => [
-        styles.flex1,
-        styles.userSelectNone,
-        isLargeScreenWidth
-            ? { ...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter }
-            : { ...styles.flexColumn, ...styles.alignItemsStretch },
-    ], [styles, isLargeScreenWidth]);
+    const listItemWrapperStyle = useMemo(
+        () => [
+            styles.flex1,
+            styles.userSelectNone,
+            isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
+        ],
+        [styles, isLargeScreenWidth],
+    );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
