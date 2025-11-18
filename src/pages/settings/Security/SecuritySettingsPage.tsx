@@ -6,8 +6,11 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';

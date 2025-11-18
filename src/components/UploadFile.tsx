@@ -13,6 +13,7 @@ import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import {Close} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';

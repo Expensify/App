@@ -3,6 +3,7 @@ import {fireEvent, render, renderHook, screen} from '@testing-library/react-nati
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

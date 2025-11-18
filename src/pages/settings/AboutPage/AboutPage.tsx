@@ -4,7 +4,9 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';

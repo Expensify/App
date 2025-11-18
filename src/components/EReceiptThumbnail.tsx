@@ -11,6 +11,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';

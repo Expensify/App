@@ -2,7 +2,9 @@ import React, {useRef} from 'react';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';

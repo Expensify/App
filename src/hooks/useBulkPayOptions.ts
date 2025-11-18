@@ -1,6 +1,7 @@
 import truncate from 'lodash/truncate';
 import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';

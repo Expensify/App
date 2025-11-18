@@ -14,6 +14,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';

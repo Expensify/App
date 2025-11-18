@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {ArrowCircleClockwise} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';

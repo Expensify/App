@@ -4,7 +4,6 @@ import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import usePrevious from '@hooks/usePrevious';
@@ -23,6 +22,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';

@@ -14,6 +14,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';

@@ -14,6 +14,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';

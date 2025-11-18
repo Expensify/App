@@ -17,7 +17,9 @@ import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
+// eslint-disable-next-line no-restricted-imports
 import {Close, Monitor} from './Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {

@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';

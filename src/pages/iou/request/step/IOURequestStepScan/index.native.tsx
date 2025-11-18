@@ -22,6 +22,7 @@ import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';

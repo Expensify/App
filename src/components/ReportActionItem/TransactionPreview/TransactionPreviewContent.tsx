@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {DotIndicator} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';

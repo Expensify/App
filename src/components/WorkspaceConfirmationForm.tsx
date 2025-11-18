@@ -26,6 +26,7 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';

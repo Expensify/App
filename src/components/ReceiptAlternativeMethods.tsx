@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import {ChatBubbles, Mail} from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';

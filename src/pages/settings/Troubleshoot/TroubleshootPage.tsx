@@ -1,11 +1,12 @@
 import {differenceInDays} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';

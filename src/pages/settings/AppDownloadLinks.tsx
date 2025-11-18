@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
