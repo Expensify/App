@@ -27,14 +27,15 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
     const [promptText, setPromptText] = useState('');
 
     useEffect(() => {
-        if (isVisible && spreadsheet?.importFinalModal) {
-            const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
-            const prompt = spreadsheet.importFinalModal.promptKey
-                ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
-                : '';
-            setTitleText(title);
-            setPromptText(prompt);
+        if (!isVisible || !spreadsheet?.importFinalModal) {
+            return;
         }
+        const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
+        const prompt = spreadsheet.importFinalModal.promptKey
+            ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
+            : '';
+        setTitleText(title);
+        setPromptText(prompt);
     }, [isVisible, spreadsheet?.importFinalModal, translate]);
 
     return (
