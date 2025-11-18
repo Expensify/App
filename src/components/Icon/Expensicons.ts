@@ -174,9 +174,7 @@ import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
-import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
 import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
-import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -320,7 +318,6 @@ export {
     Menu,
     Meter,
     Megaphone,
-    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -359,7 +356,6 @@ export {
     Scan,
     Send,
     Shield,
-    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,

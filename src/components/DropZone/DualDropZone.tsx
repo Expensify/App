@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -28,6 +29,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle', 'SmartScan'] as const);
 
     const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
     const scanReceiptsText = shouldAcceptSingleReceipt ? 'dropzone.addReceipt' : 'dropzone.scanReceipts';
@@ -38,7 +40,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            icon={Expensicons.MessageInABottle}
+                            icon={icons.MessageInABottle}
                             dropTitle={translate('dropzone.addAttachments')}
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
@@ -54,7 +56,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                 <DropZoneWrapper onDrop={onReceiptDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
-                            icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            icon={isEditing ? Expensicons.ReplaceReceipt : icons.SmartScan}
                             dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
