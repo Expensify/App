@@ -27,6 +27,7 @@ import Text from '@components/Text';
 import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -326,6 +327,7 @@ function WorkspacesListPage() {
     /**
      * Gets the menu item for each workspace
      */
+    const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
     const getWorkspaceMenuItem = useCallback(
         ({item, index}: GetWorkspaceMenuItem) => {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
@@ -343,7 +345,7 @@ function WorkspacesListPage() {
 
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Exit,
+                    icon: icons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {
@@ -480,6 +482,7 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
+            icons.Exit,
         ],
     );
 
