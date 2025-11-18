@@ -77,13 +77,14 @@ function ExitSurveyReasonPage() {
                 onSubmit={submitForm}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
-                validate={() => {
+                validate={(values) => {
                     const errors: Errors = {};
-                    if (!draftResponse?.trim()) {
+                    const response = values[INPUT_IDS.RESPONSE] ?? '';
+                    if (!response.trim()) {
                         errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
-                    } else if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+                    } else if (response.length > CONST.MAX_COMMENT_LENGTH) {
                         errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
-                            length: draftResponse.length,
+                            length: response.length,
                             limit: CONST.MAX_COMMENT_LENGTH,
                         });
                     }
