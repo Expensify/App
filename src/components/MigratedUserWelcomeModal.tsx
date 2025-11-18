@@ -30,7 +30,7 @@ import RenderHTML from './RenderHTML';
 
 // Lazy load illustrations
 const MagnifyingGlassReceipt = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg'));
-const Flash = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__flash.svg'));
+const ConciergeBot = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg'));
 const ChatBubbles = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg'));
 
 const ExpensifyFeatures: FeatureListItem[] = [
@@ -39,7 +39,7 @@ const ExpensifyFeatures: FeatureListItem[] = [
         translationKey: 'migratedUserWelcomeModal.features.search',
     },
     {
-        icon: Flash,
+        icon: ConciergeBot,
         translationKey: 'migratedUserWelcomeModal.features.concierge',
     },
     {
@@ -95,7 +95,7 @@ function MigratedUserWelcomeModal() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             helpText={translate('migratedUserWelcomeModal.helpText')}
             onHelp={() => {
-                Log.hmmm('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
+                Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
                 const isAdmin = !!account?.adminsRoomReportID;
                 const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
                 const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
