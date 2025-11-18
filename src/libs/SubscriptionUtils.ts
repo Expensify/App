@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
@@ -13,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import IconAsset from '@src/types/utils/IconAsset';
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -555,6 +557,7 @@ function getSubscriptionPlanInfo(
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
     hasTeam2025Pricing: boolean,
+    illustrations: Partial<Record<IllustrationName, IconAsset>>,
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
@@ -606,7 +609,7 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit7'),
             translate('subscription.yourPlan.control.benefit8'),
         ],
-        src: Illustrations.ShieldYellow,
+        src: illustrations.ShieldYellow as React.FC<SvgProps>,
         description: translate('subscription.yourPlan.control.description'),
     };
 }

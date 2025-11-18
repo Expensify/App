@@ -3,13 +3,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import {Close} from '@components/Icon/Expensicons';
-import {ThumbsUpStars} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,6 +60,7 @@ function ConnectedVerifiedBankAccount({
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
+    const illustrations = useMemoizedLazyIllustrations(['ThumbsUpStars'] as const);
 
     return (
         <ScreenWrapper
@@ -77,7 +78,7 @@ function ConnectedVerifiedBankAccount({
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('workspace.bankAccount.allSet')}
-                    icon={ThumbsUpStars}
+                    icon={illustrations.ThumbsUpStars}
                 >
                     <OfflineWithFeedback
                         pendingAction={pendingAction}

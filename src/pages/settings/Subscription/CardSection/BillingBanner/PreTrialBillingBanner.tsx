@@ -1,7 +1,9 @@
 import React from 'react';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
@@ -13,7 +15,7 @@ import BillingBanner from './BillingBanner';
 function PreTrialBillingBanner() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const {asset: TreasureChest} = useMemoizedLazyAsset(() => loadIllustration('TreasureChest' as IllustrationName));
     const navigateToChat = () => {
         const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
 
@@ -40,7 +42,7 @@ function PreTrialBillingBanner() {
                     {translate('subscription.billingBanner.preTrial.subtitleEnd')}
                 </Text>
             }
-            icon={Illustrations.TreasureChest}
+            icon={TreasureChest}
         />
     );
 }

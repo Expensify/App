@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,6 +31,7 @@ function Finish() {
         Navigation.goBack();
     };
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
+    const illustrations = useMemoizedLazyIllustrations(['ShieldYellow'] as const);
 
     return (
         <ScreenWrapper
@@ -60,7 +62,7 @@ function Finish() {
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
                     containerStyles={[styles.mh5]}
                     menuItems={[

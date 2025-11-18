@@ -11,7 +11,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
+import {Alert} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -24,6 +24,7 @@ import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -80,17 +81,6 @@ type EmptySearchViewItem = {
     subtitleStyle?: TextStyle;
     children?: React.ReactNode;
 };
-
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
 
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
@@ -176,6 +166,17 @@ function EmptySearchViewContent({
         canBeMissing: true,
         selector: hasExpenseReportsSelector,
     });
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: Alert,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
 
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 

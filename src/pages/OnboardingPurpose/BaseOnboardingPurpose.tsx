@@ -9,6 +9,7 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -39,14 +40,6 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
-    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
-    [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
-    [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
-    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
-};
-
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,6 +60,15 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
 
     const onboardingChoices = getOnboardingChoices(customChoices);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'ReceiptUpload', 'SplitBill'] as const);
+
+    const menuIcons = {
+        [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
+        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
+        [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: illustrations.PiggyBank,
+        [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: illustrations.SplitBill,
+        [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
+    };
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;

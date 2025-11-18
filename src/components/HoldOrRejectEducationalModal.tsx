@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -28,24 +29,25 @@ type HoldOrRejectEducationalModalProps = {
     onConfirm: () => void;
 };
 
-const menuSections: SectionMenuItem[] = [
-    {
-        icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.reject.holdExpenseTitle',
-    },
-    {
-        icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
-    },
-    {
-        icon: Illustrations.ThumbsDown,
-        titleTranslationKey: 'iou.reject.rejectExpenseTitle',
-    },
-];
-
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch', 'ThumbsDown'] as const);
+
+    const menuSections: SectionMenuItem[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
+        },
+        {
+            icon: illustrations.ThumbsDown,
+            titleTranslationKey: 'iou.reject.rejectExpenseTitle',
+        },
+    ];
 
     useBeforeRemove(onClose);
 

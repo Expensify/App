@@ -16,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -58,6 +59,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
     const isFocused = useIsFocused();
+    const illustrations = useMemoizedLazyIllustrations(['Profile'] as const);
 
     useEffect(() => {
         setOnboardingErrorMessage(null);
@@ -126,7 +128,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             shouldRenderEmail: true,
         },
         {
-            icon: Illustrations.Profile,
+            icon: illustrations.Profile,
             titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
         },
         {

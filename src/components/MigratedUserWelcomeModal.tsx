@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,25 +29,26 @@ import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
-const ExpensifyFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.ChatBubbles,
-        translationKey: 'migratedUserWelcomeModal.features.chat',
-    },
-    {
-        icon: Illustrations.Flash,
-        translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
-    },
-    {
-        icon: Illustrations.ExpensifyMobileApp,
-        translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
-    },
-];
-
 function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    const ExpensifyFeatures: FeatureListItem[] = [
+        {
+            icon: Illustrations.ChatBubbles,
+            translationKey: 'migratedUserWelcomeModal.features.chat',
+        },
+        {
+            icon: Illustrations.Flash,
+            translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
+        },
+        {
+            icon: illustrations.ExpensifyMobileApp,
+            translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
+        },
+    ];
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);

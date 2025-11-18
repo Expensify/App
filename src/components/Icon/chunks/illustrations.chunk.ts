@@ -23,15 +23,40 @@ import HandCard from '@assets/images/simple-illustrations/simple-illustration__h
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
+import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
+import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
+import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
+import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
+import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
+import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
+import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
+import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
+import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
+import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
+import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
+import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
+import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
+import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
+import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
+import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
+import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
+import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
+import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
+import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 
 // Create the illustrations object with all imported illustrations
@@ -76,6 +101,31 @@ const Illustrations = {
     Luggage,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
+    ExpensifyMobileApp,
+    MoneyIntoWallet,
+    PalmTree,
+    PaperAirplane,
+    PiggyBank,
+    Pillow,
+    Profile,
+    QRCode,
+    RealtimeReport,
+    ReceiptLocationMarker,
+    ReceiptPartners,
+    ReceiptUpload,
+    SendMoney,
+    ShieldYellow,
+    SplitBill,
+    Stopwatch,
+    SubscriptionAnnual,
+    SubscriptionPPU,
+    TeachersUnite,
+    ThumbsDown,
+    ThumbsUpStars,
+    Tire,
+    TrashCan,
+    TreasureChest,
+    VirtualCard,
 };
 
 /**

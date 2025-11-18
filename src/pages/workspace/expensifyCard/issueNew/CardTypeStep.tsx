@@ -29,7 +29,7 @@ type CardTypeStepProps = {
 function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard'] as const);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
@@ -85,7 +85,7 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
                     wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
-                    icon={Illustrations.VirtualCard}
+                    icon={illustrations.VirtualCard}
                     title={translate('workspace.card.issueNewCard.virtualCard')}
                     description={translate('workspace.card.issueNewCard.virtualCardDescription')}
                     shouldShowRightIcon

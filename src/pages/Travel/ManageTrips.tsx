@@ -9,15 +9,18 @@ import FeatureList from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
+const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
+
 const tripsFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.PiggyBank,
+        icon: illustrations.PiggyBank,
         translationKey: 'travel.features.saveMoney',
     },
     {
