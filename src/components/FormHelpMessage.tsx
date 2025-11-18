@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
@@ -37,6 +38,8 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     const theme = useTheme();
     const styles = useThemeStyles();
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
             return '';
@@ -65,7 +68,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
             )}
             {isInfo && (
                 <Icon
-                    src={Expensicons.Exclamation}
+                    src={expensifyIcons.Exclamation}
                     fill={theme.icon}
                     small
                     additionalStyles={[styles.mr1]}

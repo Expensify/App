@@ -4,6 +4,7 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PaymentHands} from '@components/Icon/Illustrations';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -83,7 +85,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 wrapperStyle={styles.mb4}
                 ref={popoverAnchor}
                 title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
+                icon={expensifyIcons.QuestionMark}
                 shouldShowRightIcon
                 iconRight={Expensicons.NewWindow}
                 disabled={isExecuting}

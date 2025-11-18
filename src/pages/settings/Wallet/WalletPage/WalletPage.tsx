@@ -63,6 +63,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Exclamation', 'MoneySearch'] as const);
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
@@ -79,7 +80,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -522,7 +522,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Hourglass}
+                                                            src={expensifyIcons.Hourglass}
                                                             fill={theme.icon}
                                                         />
 
@@ -535,7 +535,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Exclamation}
+                                                            src={expensifyIcons.Exclamation}
                                                             fill={theme.icon}
                                                         />
 

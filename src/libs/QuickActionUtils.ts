@@ -1,5 +1,6 @@
 import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
@@ -8,7 +9,7 @@ import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
+const getQuickActionIcon = (action: QuickActionName, icons?: Record<string, IconAsset>): React.FC<SvgProps> | IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST);
@@ -25,7 +26,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return getIconForAction(CONST.IOU.TYPE.SEND);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
+            return icons?.Task ?? (Expensicons.MoneyCircle as IconAsset);
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:

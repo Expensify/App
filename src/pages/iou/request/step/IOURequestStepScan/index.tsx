@@ -22,6 +22,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
@@ -104,6 +105,9 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash'] as const);
+
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
@@ -901,7 +905,7 @@ function IOURequestStepScan({
                                     <Icon
                                         height={16}
                                         width={16}
-                                        src={Expensicons.Bolt}
+                                        src={expensifyIcons.Bolt}
                                         fill={isFlashLightOn ? theme.white : theme.icon}
                                     />
                                 </PressableWithFeedback>
@@ -974,12 +978,12 @@ function IOURequestStepScan({
                         onPress={toggleFlashlight}
                         disabled={!isTorchAvailable}
                     >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={isFlashLightOn ? expensifyIcons.Bolt : expensifyIcons.boltSlash}
+                                fill={theme.textSupporting}
+                            />
                     </PressableWithFeedback>
                 )}
             </View>

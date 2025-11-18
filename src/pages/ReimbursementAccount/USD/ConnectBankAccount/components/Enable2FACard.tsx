@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Shield} from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {ShieldYellow} from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -18,6 +18,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Shield'] as const);
 
     return (
         <Section
@@ -30,7 +31,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                     title: translate('connectBankAccountStep.secureYourAccount'),
                     // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID))),
-                    icon: Shield,
+                    icon: expensifyIcons.Shield,
                     shouldShowRightIcon: true,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },

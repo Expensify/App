@@ -183,7 +183,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
+import {getRestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -653,7 +654,9 @@ function PureReportActionItem({
         [actionSheetAwareScrollViewContext],
     );
 
-    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Bell', 'Flag', 'Bug'] as const);
+    const restrictedReadOnlyContextMenuActions = useMemo(() => getRestrictedReadOnlyContextMenuActions(expensifyIcons), [expensifyIcons]);
+    const disabledActions = useMemo(() => (!canWriteInReport(report) ? restrictedReadOnlyContextMenuActions : []), [report, restrictedReadOnlyContextMenuActions]);
 
     /**
      * Show the ReportActionContextMenu modal popover.

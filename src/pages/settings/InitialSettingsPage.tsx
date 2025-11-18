@@ -9,6 +9,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -81,6 +82,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QuestionMark', 'Info', 'Heart'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -245,7 +247,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items: [
                 {
                     translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
+                    icon: expensifyIcons.QuestionMark,
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
@@ -265,7 +267,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
+                    icon: expensifyIcons.Info,
                     screenName: SCREENS.SETTINGS.ABOUT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
                 },
@@ -277,7 +279,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
+                    icon: expensifyIcons.Heart,
                     screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
                 },
@@ -288,7 +290,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, signOut, expensifyIcons]);
 
     /**
      * Return JSX.Element with menu items

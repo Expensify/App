@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -14,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -32,49 +32,49 @@ import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
     key: OnboardingAccounting;
-    icon: React.FC<SvgProps>;
+    iconName: string;
     translationKey: TranslationPaths;
 };
 
 const integrations: Integration[] = [
     {
         key: 'quickbooksOnline',
-        icon: Expensicons.QBOCircle,
+        iconName: 'QBOCircle',
         translationKey: 'workspace.accounting.qbo',
     },
     {
         key: 'quickbooksDesktop',
-        icon: Expensicons.QBDSquare,
+        iconName: 'QBDSquare',
         translationKey: 'workspace.accounting.qbd',
     },
     {
         key: 'xero',
-        icon: Expensicons.XeroCircle,
+        iconName: 'XeroCircle',
         translationKey: 'workspace.accounting.xero',
     },
     {
         key: 'netsuite',
-        icon: Expensicons.NetSuiteSquare,
+        iconName: 'NetSuiteSquare',
         translationKey: 'workspace.accounting.netsuite',
     },
     {
         key: 'intacct',
-        icon: Expensicons.IntacctSquare,
+        iconName: 'IntacctSquare',
         translationKey: 'workspace.accounting.intacct',
     },
     {
         key: 'sap',
-        icon: Expensicons.SapSquare,
+        iconName: 'SapSquare',
         translationKey: 'workspace.accounting.sap',
     },
     {
         key: 'oracle',
-        icon: Expensicons.OracleSquare,
+        iconName: 'OracleSquare',
         translationKey: 'workspace.accounting.oracle',
     },
     {
         key: 'microsoftDynamics',
-        icon: Expensicons.MicrosoftDynamicsSquare,
+        iconName: 'MicrosoftDynamicsSquare',
         translationKey: 'workspace.accounting.microsoftDynamics',
     },
 ];
@@ -105,6 +105,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'QBOCircle',
+        'QBDSquare',
+        'XeroCircle',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'SapSquare',
+        'OracleSquare',
+        'MicrosoftDynamicsSquare',
+        'CircleSlash',
+    ] as const);
+
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
@@ -120,7 +132,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             text: translate(integration.translationKey),
             leftElement: (
                 <Icon
-                    src={integration.icon}
+                    src={expensifyIcons[integration.iconName as keyof typeof expensifyIcons]}
                     width={variables.iconSizeExtraLarge}
                     height={variables.iconSizeExtraLarge}
                     additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
@@ -134,7 +146,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             text: translate('onboarding.accounting.none'),
             leftElement: (
                 <Icon
-                    src={Expensicons.CircleSlash}
+                    src={expensifyIcons.CircleSlash}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.icon}
@@ -160,7 +172,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         };
 
         return [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
-    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
+    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration, expensifyIcons]);
 
     const handleContinue = useCallback(() => {
         if (userReportedIntegration === undefined) {

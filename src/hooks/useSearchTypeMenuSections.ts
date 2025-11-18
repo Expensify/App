@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -113,6 +114,8 @@ const useSearchTypeMenuSections = () => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp'] as const);
+
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
@@ -128,6 +131,7 @@ const useSearchTypeMenuSections = () => {
                 isASAPSubmitBetaEnabled,
                 hasViolations,
                 createReportWithConfirmation,
+                expensifyIcons,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -142,6 +146,7 @@ const useSearchTypeMenuSections = () => {
             isASAPSubmitBetaEnabled,
             hasViolations,
             createReportWithConfirmation,
+            expensifyIcons,
         ],
     );
 

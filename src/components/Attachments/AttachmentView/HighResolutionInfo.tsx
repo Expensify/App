@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@styles/variables';
 
 function HighResolutionInfo({isUploaded}: {isUploaded: boolean}) {
@@ -14,11 +14,12 @@ function HighResolutionInfo({isUploaded}: {isUploaded: boolean}) {
     const styles = useThemeStyles();
     const stylesUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info'] as const);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, stylesUtils.getHighResolutionInfoWrapperStyle(isUploaded)]}>
             <Icon
-                src={Expensicons.Info}
+                src={expensifyIcons.Info}
                 height={variables.iconSizeExtraSmall}
                 width={variables.iconSizeExtraSmall}
                 fill={theme.icon}

@@ -3,15 +3,16 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
-import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
+import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
@@ -27,6 +28,8 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
          *  for growl notifications are stored in CONST.GROWL
@@ -34,7 +37,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         string,
         {
             /** Expensicon for the page */
-            icon: React.FC<SvgProps>;
+            icon: IconAsset;
 
             /** Color for the icon (should be from theme) */
             iconColor: string;
@@ -47,11 +50,11 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
             iconColor: theme.success,
         },
         [CONST.GROWL.ERROR]: {
-            icon: Expensicons.Exclamation,
+            icon: expensifyIcons.Exclamation,
             iconColor: theme.danger,
         },
         [CONST.GROWL.WARNING]: {
-            icon: Expensicons.Exclamation,
+            icon: expensifyIcons.Exclamation,
             iconColor: theme.warning,
         },
     };

@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type InlineSystemMessageProps = {
@@ -14,6 +14,7 @@ type InlineSystemMessageProps = {
 function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
 
     if (!message) {
         return null;
@@ -22,7 +23,7 @@ function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Icon
-                src={Expensicons.Exclamation}
+                src={expensifyIcons.Exclamation}
                 fill={theme.danger}
             />
             <Text style={styles.inlineSystemMessage}>{message}</Text>

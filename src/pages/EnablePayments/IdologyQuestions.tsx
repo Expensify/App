@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
@@ -40,6 +41,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
@@ -134,7 +136,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                         <Icon
-                            src={Expensicons.QuestionMark}
+                            src={expensifyIcons.QuestionMark}
                             width={12}
                             height={12}
                             fill={theme.icon}

@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {unholdRequest} from '@libs/actions/IOU';
@@ -58,6 +59,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
@@ -182,7 +184,7 @@ function useSelectedTransactionsActions({
         if (canHoldTransactions) {
             options.push({
                 text: translate('iou.hold'),
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 value: HOLD,
                 onSelected: () => {
                     if (!report?.reportID) {
@@ -196,7 +198,7 @@ function useSelectedTransactionsActions({
         if (canUnholdTransactions) {
             options.push({
                 text: translate('iou.unhold'),
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
                     selectedTransactionIDs.forEach((transactionID) => {
@@ -345,6 +347,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         hasTransactionsFromMultipleOwners,
+        expensifyIcons,
     ]);
 
     return {

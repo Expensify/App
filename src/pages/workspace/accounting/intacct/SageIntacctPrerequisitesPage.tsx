@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,6 +30,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Task'] as const);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
     const backTo = route.params.backTo;
@@ -56,7 +58,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             {
                 title: translate('workspace.intacct.followSteps'),
                 key: 'workspace.intacct.followSteps',
-                icon: Expensicons.Task,
+                icon: expensifyIcons.Task,
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
@@ -72,7 +74,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 numberOfLinesTitle: 3,
             },
         ],
-        [translate],
+        [translate, expensifyIcons],
     );
 
     return (

@@ -41,7 +41,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
-import ContextMenuActions from './ContextMenuActions';
+import getContextMenuActions from './ContextMenuActions';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
@@ -134,6 +135,7 @@ function BaseReportActionContextMenu({
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Bell', 'Flag', 'Bug'] as const);
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
@@ -217,7 +219,8 @@ function BaseReportActionContextMenu({
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
-    let filteredContextMenuActions = ContextMenuActions.filter(
+    const contextMenuActions = useMemo(() => getContextMenuActions(expensifyIcons), [expensifyIcons]);
+    let filteredContextMenuActions = contextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
             contextAction.shouldShow({

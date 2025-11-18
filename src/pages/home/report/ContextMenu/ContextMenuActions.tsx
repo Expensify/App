@@ -238,7 +238,7 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 };
 
 // A list of all the context actions in this menu.
-const ContextMenuActions: ContextMenuAction[] = [
+const getContextMenuActions = (icons: Record<string, IconAsset>): ContextMenuAction[] => [
     {
         isAnonymousAction: false,
         shouldShow: ({type, reportAction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction),
@@ -387,7 +387,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
-        icon: Expensicons.Stopwatch,
+        icon: icons.Stopwatch,
         shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && canHoldUnholdReportAction(moneyRequestAction).canUnholdRequest,
         onPress: (closePopover, {moneyRequestAction}) => {
@@ -404,7 +404,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
-        icon: Expensicons.Stopwatch,
+        icon: icons.Stopwatch,
         shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
         onPress: (closePopover, {moneyRequestAction}) => {
@@ -421,7 +421,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
-        icon: Expensicons.Bell,
+        icon: icons.Bell,
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
@@ -796,7 +796,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
-        icon: Expensicons.Flag,
+        icon: icons.Flag,
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             canFlagReportAction(reportAction, reportID) &&
@@ -866,7 +866,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
-        icon: Expensicons.Bug,
+        icon: icons.Bug,
         shouldShow: ({type, isDebugModeEnabled}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!isDebugModeEnabled,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (reportAction) {
@@ -930,10 +930,9 @@ const ContextMenuActions: ContextMenuAction[] = [
 
 const restrictedReadOnlyActions: TranslationPaths[] = ['reportActionContextMenu.replyInThread', 'reportActionContextMenu.editAction', 'reportActionContextMenu.joinThread', 'common.delete'];
 
-const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
-    (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey),
-);
+const getRestrictedReadOnlyContextMenuActions = (icons: Record<string, IconAsset>): ContextMenuAction[] =>
+    getContextMenuActions(icons).filter((action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey));
 
-export {RestrictedReadOnlyContextMenuActions};
-export default ContextMenuActions;
+export {getRestrictedReadOnlyContextMenuActions};
+export default getContextMenuActions;
 export type {ContextMenuActionPayload, ContextMenuAction};

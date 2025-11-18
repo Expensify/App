@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +59,7 @@ type BannerProps = {
 function Banner({
     text,
     content,
-    icon = Expensicons.Exclamation,
+    icon,
     onClose,
     onPress,
     onButtonPress,
@@ -73,6 +74,9 @@ function Banner({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const defaultIcon = icon ?? expensifyIcons.Exclamation;
 
     return (
         <Hoverable>
@@ -92,10 +96,10 @@ function Banner({
                         ]}
                     >
                         <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && !!icon && (
+                            {shouldShowIcon && !!defaultIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        src={icon}
+                                        src={defaultIcon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                     />
                                 </View>

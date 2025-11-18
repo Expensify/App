@@ -3,6 +3,7 @@ import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,6 +60,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare'] as const);
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -75,6 +77,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
+                expensifyIcons,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -88,7 +91,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate],
+        [policy, policyID, translate, expensifyIcons],
     );
 
     const closeConfirmationModal = () => {
@@ -118,7 +121,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key)?.setupConnectionFlow;
+        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key, undefined, undefined, undefined, expensifyIcons)?.setupConnectionFlow;
     };
 
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;

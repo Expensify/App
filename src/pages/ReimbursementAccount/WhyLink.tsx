@@ -18,11 +18,12 @@ function WhyLink({containerStyles}: WhyLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <Icon
-                src={Expensicons.QuestionMark}
+                src={expensifyIcons.QuestionMark}
                 width={12}
                 height={12}
                 fill={theme.icon}

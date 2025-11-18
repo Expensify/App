@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
@@ -26,6 +27,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
@@ -97,7 +99,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                 ))}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                     <Icon
-                        src={Expensicons.QuestionMark}
+                        src={expensifyIcons.QuestionMark}
                         width={12}
                         height={12}
                         fill={theme.icon}

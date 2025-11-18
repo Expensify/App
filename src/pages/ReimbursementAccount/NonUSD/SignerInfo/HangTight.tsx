@@ -5,6 +5,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +28,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
@@ -85,7 +87,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     style={[styles.w100]}
                     onPress={handleSendReminder}
                     large
-                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : Expensicons.Bell}
+                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : expensifyIcons.Bell}
                     text={translate('signerInfoStep.sendReminder')}
                     isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 />

@@ -20,14 +20,10 @@ import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
-import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
 import Binoculars from '@assets/images/binoculars.svg';
-import boltSlash from '@assets/images/bolt-slash.svg';
-import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
-import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
@@ -74,7 +70,6 @@ import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
-import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
@@ -89,10 +84,6 @@ import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
 import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
-import Flag from '@assets/images/flag.svg';
-import FlagLevelOne from '@assets/images/flag_level_01.svg';
-import FlagLevelTwo from '@assets/images/flag_level_02.svg';
-import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
@@ -100,30 +91,11 @@ import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
-import Heart from '@assets/images/heart.svg';
 import History from '@assets/images/history.svg';
 import Home from '@assets/images/home.svg';
-import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
-import Info from '@assets/images/info.svg';
-import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
-import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
-import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
-import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
-import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
-import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
-import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
-import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
-import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
-import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
-import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
-import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
-import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
-import Uber from '@assets/images/integrationicons/uber.svg';
-import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
-import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -152,8 +124,6 @@ import MultiTag from '@assets/images/multi-tag.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
-import OfflineCloud from '@assets/images/offline-cloud.svg';
-import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
@@ -167,7 +137,6 @@ import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
-import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
@@ -180,10 +149,8 @@ import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
-import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
-import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
 import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
 import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
 import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
@@ -194,16 +161,11 @@ import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
-import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
-import Sync from '@assets/images/sync.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
-import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
-import ThumbsDown from '@assets/images/thumbs-down.svg';
-import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -246,11 +208,8 @@ export {
     Bank,
     CircularArrowBackwards,
     Bill,
-    Bell,
     Binoculars,
-    Bolt,
     Box,
-    Bug,
     Building,
     Buildings,
     Calendar,
@@ -274,7 +233,6 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
-    CircleSlash,
     Document,
     DocumentMerge,
     DotIndicator,
@@ -286,7 +244,6 @@ export {
     EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
-    Exclamation,
     Exit,
     ExpensifyAppIcon,
     ExpensifyCard,
@@ -299,10 +256,6 @@ export {
     EyeDisabled,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
-    Flag,
-    FlagLevelOne,
-    FlagLevelTwo,
-    FlagLevelThree,
     Fullscreen,
     Folder,
     Tag,
@@ -314,14 +267,11 @@ export {
     Globe,
     GoogleLogo,
     Hashtag,
-    Heart,
     History,
     Home,
-    Hourglass,
     Inbox,
     ImageCropCircleMask,
     ImageCropSquareMask,
-    Info,
     Invoice,
     InvoiceGeneric,
     Key,
@@ -350,8 +300,6 @@ export {
     NewWindow,
     NewWorkspace,
     NotificationsAvatar,
-    Offline,
-    OfflineCloud,
     Paperclip,
     Pause,
     Pencil,
@@ -361,9 +309,7 @@ export {
     Plus,
     Printer,
     Profile,
-    QBOSquare,
     QrCode,
-    QuestionMark,
     TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
@@ -377,17 +323,11 @@ export {
     RotateLeft,
     Scan,
     Send,
-    Shield,
     SmartScan,
-    Stopwatch,
     Suitcase,
-    Sync,
-    Task,
-    ThumbsUp,
     ThreeDots,
     Transfer,
     Trashcan,
-    Uber,
     Unlock,
     UpArrow,
     Upload,
@@ -401,9 +341,6 @@ export {
     Wallet,
     Workflows,
     Workspace,
-    XeroSquare,
-    SageIntacctSquare as IntacctSquare,
-    AdvancedApprovalsSquare,
     Zoom,
     Twitter,
     Facebook,
@@ -420,12 +357,6 @@ export {
     Clear,
     CheckCircle,
     CheckmarkCircle,
-    NetSuiteSquare,
-    XeroCircle,
-    QBOCircle,
-    MicrosoftDynamicsSquare,
-    OracleSquare,
-    SapSquare,
     Filters,
     CalendarSolid,
     Filter,
@@ -437,21 +368,14 @@ export {
     SpreadsheetComputer,
     Bookmark,
     Star,
-    QBDSquare,
     GalleryNotFound,
     Train,
-    boltSlash,
     PlusMinus,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,
     Minus,
-    ThumbsDown,
     UserLock,
     EmptyStateSpyPigeon,
-    NetSuiteExport,
-    QBOExport,
-    SageIntacctExport,
-    XeroExport,
     ArrowCircleClockwise,
     PlusCircle,
 };

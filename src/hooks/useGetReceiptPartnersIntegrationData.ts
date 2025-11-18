@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from './useLocalize';
@@ -8,6 +8,7 @@ import usePolicy from './usePolicy';
 export default function useGetReceiptPartnersIntegrationData(policyID?: string) {
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Uber'] as const);
 
     const uber = policy?.receiptPartners?.uber;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
@@ -20,7 +21,7 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
                     return {
                         title: CONST.POLICY.RECEIPT_PARTNERS.NAME_USER_FRIENDLY[CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER],
                         description: translate('workspace.receiptPartners.uber.subtitle', {organizationName: uber?.organizationName ?? ''}),
-                        icon: Expensicons.Uber,
+                        icon: expensifyIcons.Uber,
                         errorFields: uber?.errorFields,
                         errors: uber?.errors,
                     };
@@ -29,7 +30,7 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
                     return undefined;
             }
         },
-        [translate, uber?.errorFields, uber?.errors, uber?.organizationName],
+        [translate, uber?.errorFields, uber?.errors, uber?.organizationName, expensifyIcons],
     );
 
     return {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected};
