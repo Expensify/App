@@ -273,7 +273,7 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -789,17 +789,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: () => {
-                if (!isPolicyExpenseChat) {
-                    return false;
-                }
-
-                if (action !== CONST.IOU.ACTION.EDIT) {
-                    return true;
-                }
-
-                return !!(policyForMovingExpensesID ?? shouldSelectPolicy);
-            },
+            shouldShow: isPolicyExpenseChat,
         },
     ];
 
