@@ -385,7 +385,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             Keyboard.dismiss();
                             // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID, report?.reportID ?? reportID);
                             });
                         }}
                         ref={listRef}

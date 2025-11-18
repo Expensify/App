@@ -96,7 +96,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    if (!isExpenseReportUtils(report)) {
+    if (!isExpenseReportUtils(report) && !isSelfDMReportUtils(report)) {
         return false;
     }
 
@@ -106,6 +106,10 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
+    }
+
+    if (isSelfDMReportUtils(report)) {
+        return true;
     }
 
     const isSubmitter = isCurrentUserSubmitter(report);

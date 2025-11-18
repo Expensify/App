@@ -1071,7 +1071,7 @@ function MoneyReportHeader({
                 }
 
                 const currentTransaction = transactions.at(0);
-                initSplitExpense(allTransactions, allReports, currentTransaction);
+                initSplitExpense(allTransactions, allReports, currentTransaction, moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
