@@ -202,9 +202,9 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        Object.values(CONST.IOU.TYPE).forEach((iouType) => {
+        for (const iouType of Object.values(CONST.IOU.TYPE)) {
             expect(IOUUtils.isValidMoneyRequestType(iouType)).toBe(true);
-        });
+        }
     });
 
     test('Return false for invalid iou type', () => {
