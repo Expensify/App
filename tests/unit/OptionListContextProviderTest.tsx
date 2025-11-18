@@ -29,7 +29,7 @@ const mockUsePersonalDetails = usePersonalDetails as jest.MockedFunction<typeof 
 
 const wrapper: React.FC<{children: React.ReactNode}> = ({children}) => <OptionListContextProvider>{children}</OptionListContextProvider>;
 
-describe('OptionListContextProvider locale guard', () => {
+describe('OptionListContextProvider', () => {
     let onyxState: Record<string, unknown>;
     let onyxSourceValues: Record<string, unknown>;
 
