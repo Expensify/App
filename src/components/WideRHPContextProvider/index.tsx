@@ -234,7 +234,19 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
-        if (!isRHPLastRootRoute) {
+        if (!isRHPLastRootRoute || !state) {
+            return false;
+        }
+
+        const focusedRoute = findFocusedRoute(state);
+
+        // Shouldn't ever happen but for type safety
+        if (!focusedRoute?.key) {
+            return false;
+        }
+
+        // For this screen the secondary overlay should never be shown, it is always displayed as 1 RHP in the order
+        if (isSuperWideRHPRouteName(focusedRoute.name)) {
             return false;
         }
 
