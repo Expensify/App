@@ -51,6 +51,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listEmptyContent,
     listFooterContent,
     rightHandSideComponent,
+    renderScrollComponent,
     alternateNumberOfSupportedLines,
     selectedItems = CONST.EMPTY_ARRAY,
     style,
@@ -353,8 +354,8 @@ function BaseSelectionList<TItem extends ListItem>({
         listRef.current.scrollToIndex({
             index: index + 2, // Scroll to item at index + 2 (because first two items is reserved for optional header and content above the selectionList)
             animated: true,
-            // viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
-            // viewPosition: 1.0, // Item position: 1.0 = bottom of screen
+            viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
+            viewPosition: 1.0, // Item position: 1.0 = bottom of screen
         });
     }, []);
 
@@ -429,6 +430,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
+                        renderScrollComponent={renderScrollComponent}
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}
@@ -443,6 +445,8 @@ function BaseSelectionList<TItem extends ListItem>({
                         style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
+                        removeClippedSubviews
+                        // maintainVisibleContentPosition={{disabled: true}}
                         ListHeaderComponent={
                             <>
                                 {customListHeaderContent}

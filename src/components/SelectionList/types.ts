@@ -1,5 +1,5 @@
-import type {ReactElement, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {JSXElementConstructor, ReactElement, RefObject} from 'react';
+import type {GestureResponderEvent, InputModeOptions, ScrollViewProps, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
@@ -57,6 +57,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Component to display on the right side of each item */
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
+
+    /** Custom scroll component to use instead of the default ScrollView */
+    renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;

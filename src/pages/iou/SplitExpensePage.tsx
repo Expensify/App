@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 // import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -55,7 +56,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {listRef, viewRef, footerRef, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
+    const {listRef, viewRef, footerRef, scrollToFocusedInput, SplitListItem, bottomOffset} = useDisplayFocusedInputUnderKeyboard();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -379,13 +380,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
                     <SelectionList
                         /* Keeps input fields visible above keyboard on mobile */
-                        // renderScrollComponent={(props) => (
-                        //     <KeyboardAwareScrollView
-                        //         // eslint-disable-next-line react/jsx-props-no-spreading
-                        //         {...props}
-                        //         bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
-                        //     />
-                        // )}
+                        renderScrollComponent={(props) => (
+                            <KeyboardAwareScrollView
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...props}
+                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                            />
+                        )}
                         onSelectRow={(item) => {
                             if (!item.isEditable) {
                                 setCannotBeEditedModalVisible(true);
