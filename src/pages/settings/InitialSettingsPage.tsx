@@ -294,7 +294,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
-                ...(classicRedirectMenuItem ? [classicRedirectMenuItem] : []),
+                ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
