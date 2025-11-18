@@ -510,6 +510,21 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
+    function getMoneyRequestContextForParticipant(participant: Participant | undefined, report: Report | undefined) {
+        const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
+        return {
+            parentChatReport: isWorkspaceTarget ? report : undefined,
+            policyParams: isWorkspaceTarget
+                ? {
+                      policy,
+                      policyTagList: policyTags,
+                      policyCategories,
+                      policyRecentlyUsedCategories,
+                  }
+                : {},
+        };
+    }
+
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
@@ -520,8 +535,8 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            const shouldUseParentChatReport = participant.isPolicyExpenseChat;
-            const parentChatReport = shouldUseParentChatReport ? report : undefined;
+
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
@@ -551,12 +566,7 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams: {
-                        policy,
-                        policyTagList: policyTags,
-                        policyCategories,
-                        policyRecentlyUsedCategories,
-                    },
+                    policyParams,
                     gpsPoint,
                     action,
                     transactionParams: {
@@ -677,8 +687,9 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            const shouldUseParentChatReport = participant.isPolicyExpenseChat;
-            const parentChatReport = shouldUseParentChatReport ? report : undefined;
+
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
+
             transactions.forEach((item, index) => {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
@@ -692,11 +703,7 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                        policyTagList: policyTags,
-                    },
+                    policyParams,
                     transactionParams: {
                         amount: item.amount,
                         distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
@@ -753,9 +760,14 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
+
             const participant = selectedParticipants.at(0);
-            const shouldUseParentChatReport = participant?.isPolicyExpenseChat ?? false;
-            const parentChatReport = shouldUseParentChatReport ? report : undefined;
+            if (!participant) {
+                return;
+            }
+
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
+
             createDistanceRequestIOUActions({
                 report: parentChatReport,
                 participants: selectedParticipants,
@@ -763,12 +775,7 @@ function IOURequestStepConfirmation({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
                 existingTransaction: transaction,
-                policyParams: {
-                    policy,
-                    policyCategories,
-                    policyTagList: policyTags,
-                    policyRecentlyUsedCategories,
-                },
+                policyParams,
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
