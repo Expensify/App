@@ -2028,7 +2028,7 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         return (
             currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
-            currentTransaction?.reportID !== '-2' &&
+            currentTransaction?.reportID !== CONST.REPORT.SPLIT_REPORT_ID &&
             currentTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
         );
     });
