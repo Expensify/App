@@ -68,15 +68,18 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onCheckboxPress?.(reportItem as unknown as TItem);
     }, [onCheckboxPress, reportItem]);
 
-    const listItemPressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.pv3,
-        styles.ph3,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
-        styles.mh0,
-    ];
+    const listItemPressableStyle = useMemo(
+        () => [
+            styles.selectionListPressableItemWrapper,
+            styles.pv3,
+            styles.ph3,
+            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            styles.bgTransparent,
+            item.isSelected && styles.activeComponentBG,
+            styles.mh0,
+        ],
+        [styles, item.isSelected],
+    );
 
     const listItemWrapperStyle = useMemo(
         () => [
