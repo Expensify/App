@@ -32,14 +32,14 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
     const selectionOptions = useMemo<SelectorType[]>(() => {
         const mappingOptions: SelectorType[] = [];
         const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
-        sageIntacctTaxSolutionIDs.forEach((taxSolutionID) => {
+        for (const taxSolutionID of sageIntacctTaxSolutionIDs) {
             mappingOptions.push({
                 value: taxSolutionID,
                 text: taxSolutionID,
                 keyForList: taxSolutionID,
                 isSelected: sageIntacctConfigTaxSolutionID === taxSolutionID,
             });
-        });
+        }
 
         return mappingOptions;
     }, [sageIntacctConfigTaxSolutionID, sageIntacctData?.taxSolutionIDs]);

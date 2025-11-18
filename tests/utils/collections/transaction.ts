@@ -42,6 +42,15 @@ export default function createRandomTransaction(index: number): Transaction {
         receipt: {},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
-        modifiedAmount: 0,
+        modifiedAmount: '',
     };
 }
+
+const createRandomDistanceRequestTransaction = (index: number): Transaction => {
+    return {
+        ...createRandomTransaction(index),
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+    };
+};
+
+export {createRandomDistanceRequestTransaction};
