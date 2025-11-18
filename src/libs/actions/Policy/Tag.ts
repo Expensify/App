@@ -76,14 +76,14 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
     const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    getTagArrayFromName(transactionTags).forEach((tag, index) => {
+    for (const [index, tag] of getTagArrayFromName(transactionTags).entries()) {
         if (!tag) {
-            return;
+            continue;
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
         newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
-    });
+    }
 
     return newOptimisticPolicyRecentlyUsedTags;
 }
@@ -208,7 +208,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
             acc[key] = {
@@ -317,7 +317,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
             if (tagListIndexes.includes(policyData.tags[key].orderWeight)) {
@@ -402,7 +402,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
 }
 
 function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(0);
 
     if (!policyTag) {
@@ -565,7 +565,7 @@ function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPol
 }
 
 function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const tagList = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!tagList) {
         return;
@@ -687,7 +687,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
 }
 
 function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyOptimisticData = {
         areTagsEnabled: enabled,
         pendingFields: {
@@ -740,7 +740,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            value: defaultTagList,
+            value: CONST.POLICY.DEFAULT_TAG_LIST,
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -942,7 +942,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 }
 
 function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
         errors: {requiresTag: null},
@@ -1024,7 +1024,7 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
         return;
     }
 
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyTagsOptimisticData = {
         [policyTag.name]: {
             required: requiresTag,
@@ -1241,25 +1241,27 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'Tags.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed: () => void) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
+function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean) {
+    const command = hasDependentTags ? WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV : WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV;
+
+    const finalParameters = enhanceParameters(command, {
         policyID,
     });
     const fileName = 'MultiLevelTags.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function getPolicyTagsData(policyID: string | undefined) {
@@ -1286,7 +1288,7 @@ export {
     importPolicyTags,
     downloadTagsCSV,
     getPolicyTagsData,
-    downloadMultiLevelIndependentTagsCSV,
+    downloadMultiLevelTagsCSV,
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,

@@ -402,7 +402,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
-            pendingAction: policy?.receiptPartners?.pendingFields?.enabled,
+            pendingAction: policy?.pendingFields?.receiptPartners,
             disabledAction: () => {
                 if (!isUberConnected) {
                     return;
@@ -460,19 +460,21 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    const getItemStyle = useCallback(
+        (item: Item, hovered: boolean) => [
+            styles.workspaceSectionMoreFeaturesItem,
+            shouldUseNarrowLayout && styles.flexBasis100,
+            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
+            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
+        ],
+        [styles.workspaceSectionMoreFeaturesItem, styles.flexBasis100, styles.hoveredComponentBG, shouldUseNarrowLayout, StyleUtils],
+    );
+
     const renderItem = useCallback(
         (item: Item) => (
-            <Hoverable>
+            <Hoverable key={item.titleTranslationKey}>
                 {(hovered) => (
-                    <View
-                        key={item.titleTranslationKey}
-                        style={[
-                            styles.workspaceSectionMoreFeaturesItem,
-                            shouldUseNarrowLayout && styles.flexBasis100,
-                            shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
-                            hovered && item.isActive && !!item.onPress && styles.hoveredComponentBG,
-                        ]}
-                    >
+                    <View style={getItemStyle(item, hovered)}>
                         <ToggleSettingOptionRow
                             icon={item.icon}
                             disabled={item.disabled}
@@ -493,7 +495,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 )}
             </Hoverable>
         ),
-        [styles, StyleUtils, shouldUseNarrowLayout, translate],
+        [styles, translate, getItemStyle],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
