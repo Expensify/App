@@ -1911,9 +1911,11 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
  */
-function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[]) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
-    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT;
+
+    const isUserInRecipients = participants?.some((participant) => !participant.isSender && !participant.isPolicyExpenseChat && participant.accountID);
+    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT && !isUserInRecipients;
 
     const isExpenseReportType = isExpenseReport(report);
     const isGroupPolicyType = isGroupPolicy(policy?.type ?? '');
