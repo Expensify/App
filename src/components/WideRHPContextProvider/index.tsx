@@ -185,7 +185,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [focusedRouteKey, wideRHPRouteKeys]);
 
     const getIsSuperWideRHPBelowFocusedScreen = useCallback(
-        (state: NavigationState | undefined) => {
+        (state: NavigationState | undefined, lastVisibleRouteKey: string | undefined) => {
             if (!state) {
                 return false;
             }
@@ -197,8 +197,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
                 return false;
             }
 
-            const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-            const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
+            const currentSuperWideRHPRouteKeys = getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, lastVisibleRouteKey);
             const isFocusedRouteSuperWide = isSuperWideRHPRouteName(focusedRoute.name);
 
             return currentSuperWideRHPRouteKeys.length > 0 && !currentSuperWideRHPRouteKeys.includes(focusedRoute.key) && !isFocusedRouteSuperWide;
@@ -207,7 +206,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     );
 
     const getIsWideRHPBelowFocusedScreen = useCallback(
-        (state: NavigationState | undefined) => {
+        (state: NavigationState | undefined, lastVisibleRouteKey: string | undefined) => {
             if (!state) {
                 return false;
             }
@@ -219,8 +218,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
                 return false;
             }
 
-            const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-            const currentWideRHPRouteKeys = getCurrentWideRHPKeys(allWideRHPRouteKeys, currentLastVisibleRHPRouteKey);
+            const currentWideRHPRouteKeys = getCurrentWideRHPKeys(allWideRHPRouteKeys, lastVisibleRouteKey);
             const isFocusedRouteWide = focusedRoute.name === SCREENS.SEARCH.REPORT_RHP;
 
             return currentWideRHPRouteKeys.length > 0 && !currentWideRHPRouteKeys.includes(focusedRoute.key) && !isFocusedRouteWide;
@@ -250,9 +248,16 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state);
-        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state);
-        return isSuperWideRHPBelow || isWideRHPBelow;
+        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
+
+        if (isWideRHPBelow) {
+            return true;
+        }
+
+        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
+
+        return isSuperWideRHPBelow;
     });
 
     /**
@@ -265,19 +270,32 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        const rhpState = state?.routes?.at(-1);
+        const rhpState = state?.routes?.at(-1)?.state;
 
-        const lastSuperWideRHPIndex = rhpState?.state?.routes?.findLastIndex((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name)) ?? -1;
-
-        const lastWideRHPIndex = rhpState?.state?.routes?.findLastIndex((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT) ?? -1;
-
-        if (lastSuperWideRHPIndex > lastWideRHPIndex) {
+        // Shouldn't ever happen but for type safety
+        if (!rhpState?.key) {
             return false;
         }
 
-        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state);
-        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state);
-        return isSuperWideRHPBelow && isWideRHPBelow;
+        const lastSuperWideRHPIndex = rhpState?.routes?.findLastIndex((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name)) ?? -1;
+
+        const isSuperWideRHPDirectlyBelowFocusedScreen = lastSuperWideRHPIndex === rhpState.routes.length - 2;
+
+        if (isSuperWideRHPDirectlyBelowFocusedScreen) {
+            return false;
+        }
+
+        const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+
+        const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
+
+        if (!isWideRHPBelow) {
+            return false;
+        }
+
+        const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
+
+        return isSuperWideRHPBelow;
     });
 
     /**
@@ -341,7 +359,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         if (!rootState) {
             return;
         }
-        console.log('dismiss 1', isWideRHPFocused);
+
         const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
 
         if (!rhpState) {
@@ -372,7 +390,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         if (!rootState) {
             return;
         }
-        console.log('dismiss 2');
+
         const rhpStateKey = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state?.key;
 
         if (!rhpStateKey) {
