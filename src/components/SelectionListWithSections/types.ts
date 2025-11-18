@@ -245,9 +245,6 @@ type TransactionListItemType = ListItem &
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
-        /** Parent report action */
-        parentReportAction: ReportAction | undefined;
-
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 

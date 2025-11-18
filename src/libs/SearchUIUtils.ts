@@ -921,16 +921,13 @@ function getTransactionViolations(
 /**
  * @private
  * Creates optimized lookup maps:
- * - Lookup parent report action by report ID
  * - Lookup money request action by transaction ID
  * - Lookup hold action by transaction ID
  */
 function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
-    parentReportActionsByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
 } {
-    const parentReportActionsByReportID = new Map<string, OnyxTypes.ReportAction>();
     const moneyRequestReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
     const holdReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
 
@@ -941,9 +938,6 @@ function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
         if (isReportActionEntry(key)) {
             const actions = Object.values(data[key]);
             for (const action of actions) {
-                if (action.childReportID) {
-                    parentReportActionsByReportID.set(action.childReportID, action);
-                }
                 if (isMoneyRequestAction(action)) {
                     const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
                     const transactionID = originalMessage?.IOUTransactionID;
@@ -971,7 +965,6 @@ function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
     }
 
     return {
-        parentReportActionsByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
     };
@@ -1035,7 +1028,7 @@ function getTransactionsSections(
 
     // Use Map for faster lookups of personal details and reportActions
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
-    const {parentReportActionsByReportID, moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
+    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -1088,7 +1081,6 @@ function getTransactionsSections(
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
-                parentReportAction: report?.reportID ? parentReportActionsByReportID.get(report.reportID) : undefined,
                 policy,
                 reportAction,
                 holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
@@ -1529,7 +1521,7 @@ function getReportSections(
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
-    const {parentReportActionsByReportID, moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
+    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
@@ -1622,7 +1614,6 @@ function getReportSections(
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
-                parentReportAction: report?.reportID ? parentReportActionsByReportID.get(report.reportID) : undefined,
                 reportAction,
                 holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
                 policy,
