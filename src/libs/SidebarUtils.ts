@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,6 +91,7 @@ import {
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
+    getForcedCorporateUpgradeMessage,
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
@@ -630,6 +631,7 @@ function getOptionData({
     card,
     lastAction,
     localeCompare,
+    translate,
     isReportArchived,
     lastActionReport,
     movedFromReport,
@@ -647,6 +649,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
+    translate: LocalizedTranslate;
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
@@ -843,8 +846,7 @@ function getOptionData({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.alternateText = Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade'));
+            result.alternateText = Parser.htmlToText(getForcedCorporateUpgradeMessage(translate));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
