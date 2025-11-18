@@ -65,7 +65,7 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
@@ -226,7 +226,7 @@ function IOURequestStepDistanceManual({
                             currency: transaction?.currency ?? 'USD',
                             merchant: translate('iou.fieldPending'),
                             billable: !!policy?.defaultBillable,
-                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
                         },
@@ -257,6 +257,7 @@ function IOURequestStepDistanceManual({
                     isPolicyExpenseChat: true,
                     policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
+                    localeCompare,
                 });
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
@@ -294,6 +295,7 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             lastSelectedDistanceRates,
+            localeCompare,
             backToReport,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
