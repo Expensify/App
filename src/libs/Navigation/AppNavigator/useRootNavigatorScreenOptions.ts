@@ -67,7 +67,7 @@ const useRootNavigatorScreenOptions = () => {
                         // 0 - Single RHP, y = 1
                         // 1 - Wide RHP, y = receiptPaneWidth / sidebarWidth + 1
                         // 2 - Super Wide RHP, y = superWideRHPWidth / sidebarWidth
-                        // For the given values, after multiplying by sidebarWidth inside useModalCardStyleInterpolator, the correct widths ​​are obtained
+                        // For the given values, after multiplying by sidebarWidth inside useModalCardStyleInterpolator, the correct widths are obtained.
                         outputRangeMultiplier: isSmallScreenWidth
                             ? undefined
                             : Animated.add(
