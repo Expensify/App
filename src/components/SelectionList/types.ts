@@ -182,19 +182,19 @@ type TextInputOptions = {
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
     /** Whether to show the confirm button */
-    showConfirmButton?: boolean;
+    showButton?: boolean;
 
     /** Called when the button is pressed */
     onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
 
     /** Custom style for the button */
-    confirmButtonStyle?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 
     /** Text to display on the button */
-    confirmButtonText?: string;
+    text?: string;
 
     /** Whether the button is disabled */
-    isConfirmButtonDisabled?: boolean;
+    isDisabled?: boolean;
 };
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';

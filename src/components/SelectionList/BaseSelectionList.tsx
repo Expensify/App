@@ -101,7 +101,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
-    const hasFooter = !!footerContent || confirmButtonOptions?.showConfirmButton;
+    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -246,7 +246,7 @@ function BaseSelectionList<TItem extends ListItem>({
         {
             captureOnInputs: true,
             shouldBubble: !focusedOption,
-            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isConfirmButtonDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
 

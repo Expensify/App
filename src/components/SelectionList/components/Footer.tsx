@@ -12,7 +12,7 @@ type FooterProps<TItem extends ListItem> = {
 
 function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
-    const {showConfirmButton, confirmButtonText, onConfirm, confirmButtonStyle, isConfirmButtonDisabled} = confirmButtonOptions ?? {};
+    const {showButton: showConfirmButton, text: confirmButtonText, onConfirm, style: confirmButtonStyle, isDisabled: isConfirmButtonDisabled} = confirmButtonOptions ?? {};
     if (footerContent) {
         return (
             <FixedFooter

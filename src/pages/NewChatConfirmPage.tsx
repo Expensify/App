@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -11,6 +10,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +42,7 @@ function NewChatConfirmPage() {
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -145,7 +146,7 @@ function NewChatConfirmPage() {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}
                 />
