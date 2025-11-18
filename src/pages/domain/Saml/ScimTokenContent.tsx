@@ -12,7 +12,12 @@ const ScimTokenState = {
     ERROR: 'error',
 } as const;
 
-function ScimTokenField({domainName}: {domainName: string}) {
+type ScimTokenContentProps = {
+    /** The domain name associated with the SCIM token. */
+    domainName: string;
+};
+
+function ScimTokenContent({domainName}: ScimTokenContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -59,6 +64,6 @@ function ScimTokenField({domainName}: {domainName: string}) {
     );
 }
 
-ScimTokenField.displayName = 'ScimTokenField';
+ScimTokenContent.displayName = 'ScimTokenContent';
 
-export default ScimTokenField;
+export default ScimTokenContent;

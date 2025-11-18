@@ -19,7 +19,21 @@ const domainSettingsSelector = (domain: OnyxEntry<Domain>) =>
           }
         : undefined;
 
-function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRequired}: {accountID: number; domainName: string; isSamlEnabled: boolean; isSamlRequired: boolean}) {
+type SamlLoginSectionContentProps = {
+    /** The unique identifier for the domain. */
+    accountID: number;
+
+    /** The domain name associated with the SAML configuration. */
+    domainName: string;
+
+    /** Whether SAML authentication is enabled. */
+    isSamlEnabled: boolean;
+
+    /** Whether SAML authentication is required for the domain. */
+    isSamlRequired: boolean;
+};
+
+function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRequired}: SamlLoginSectionContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

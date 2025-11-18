@@ -13,11 +13,22 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
-import ScimTokenField from './ScimTokenField';
+import ScimTokenContent from './ScimTokenContent';
 
 const domainSamlMetadataErrorSelector = (domain: OnyxEntry<Domain>) => domain?.samlMetadataError;
 
-function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldShowScimToken}: {accountID: number; domainName: string; shouldShowScimToken: boolean}) {
+type SamlConfigurationDetailsSectionContentProps = {
+    /** The unique identifier for the domain. */
+    accountID: number;
+
+    /** The domain name associated with the SAML configuration. */
+    domainName: string;
+
+    /** Whether to display the Okta SCIM token menu item. */
+    shouldShowScimToken: boolean;
+};
+
+function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldShowScimToken}: SamlConfigurationDetailsSectionContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -128,7 +139,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
 
             {shouldShowScimToken && (
                 <MenuItemWithTopDescription
-                    titleComponent={<ScimTokenField domainName={domainName} />}
+                    titleComponent={<ScimTokenContent domainName={domainName} />}
                     description={translate('domain.samlConfigurationDetails.oktaScimToken')}
                     descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
                     interactive={false}
