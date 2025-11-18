@@ -45,6 +45,7 @@ import type {
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
     SearchMoneyRequestReportParamList,
+    SearchReportActionsParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
     SettingsNavigatorParamList,
@@ -892,8 +893,7 @@ const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactio
     [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/ConfirmationPage').default,
 });
 
-const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
-    [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
+const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchReportActionsParamList>({
     [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRootVerifyAccountPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportVerifyAccountPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
@@ -901,6 +901,12 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
 });
 
+// This navigator is reserved for the screen that can be displayed as Wide RHP, other screens should not be added here.
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
+});
+
+// // This navigator is reserved for the screen that can be displayed as Super Wide RHP, other screens should not be added here.
 const SearchMoneyRequestReportModalStackNavigator = createModalStackNavigator<SearchMoneyRequestReportParamList>({
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
 });
@@ -1047,4 +1053,5 @@ export {
     WorkspacesDomainModalStackNavigator,
     SearchMoneyRequestReportModalStackNavigator,
     ExpenseReportModalStackNavigator,
+    SearchReportActionsModalStackNavigator,
 };

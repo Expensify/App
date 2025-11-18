@@ -244,6 +244,7 @@ const SCREENS = {
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SEARCH_REPORT_ACTIONS: 'SearchReportActions',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
