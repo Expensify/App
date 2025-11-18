@@ -347,7 +347,7 @@ describe('CustomFormula', () => {
                 {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, expected: 'Reimbursed'},
             ];
 
-            testCases.forEach(({statusNum, expected}) => {
+            for (const {statusNum, expected} of testCases) {
                 const contextWithStatus: FormulaContext = {
                     ...mockContext,
                     report: {
@@ -357,7 +357,7 @@ describe('CustomFormula', () => {
                 };
                 const result = compute('{report:status}', contextWithStatus);
                 expect(result).toBe(expected);
-            });
+            }
         });
 
         test('should handle undefined status number', () => {

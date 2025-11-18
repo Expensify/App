@@ -392,7 +392,7 @@ function peg$parse(input, options) {
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/g, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {
@@ -431,7 +431,7 @@ function peg$parse(input, options) {
       return buildFilter(operator, key, values);
     };
   var peg$f5 = function(rest) {
-      const suffix = rest.replace(/^-+/, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     };
   var peg$f6 = function(k) {

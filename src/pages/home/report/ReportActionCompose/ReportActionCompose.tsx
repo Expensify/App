@@ -382,7 +382,7 @@ function ReportActionCompose({
         (value: string) => {
             const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
+                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
                 setHasExceededMaxCommentLength(false);
                 return validateTaskTitleMaxLength(title);
             }
