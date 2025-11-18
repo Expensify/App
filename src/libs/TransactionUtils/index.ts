@@ -1468,12 +1468,7 @@ function hasViolation(
     );
 }
 
-function hasDuplicateTransactions(
-    currentUserEmail: string,
-    iouReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    allReportTransactions?: SearchTransaction[],
-): boolean {
+function hasDuplicateTransactions(currentUserEmail: string, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, allReportTransactions?: SearchTransaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
