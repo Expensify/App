@@ -129,6 +129,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 showConfirmButton
                 confirmButtonText={translate('iou.changeApprover.title')}
                 onConfirm={changeApprover}
+                shouldUpdateFocusedIndex
                 customListHeader={
                     <>
                         <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
