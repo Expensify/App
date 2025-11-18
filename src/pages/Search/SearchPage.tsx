@@ -24,8 +24,8 @@ import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useFilesValidation from '@hooks/useFilesValidation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -106,7 +106,19 @@ function SearchPage({route}: SearchPageProps) {
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Export', 'ArrowRight', 'ThumbsUp', 'Send', 'Stopwatch', 'MoneyBag', 'Trashcan', 'DocumentMerge', 'Exclamation', 'SmartScan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Table',
+        'Export',
+        'ArrowRight',
+        'ThumbsUp',
+        'Send',
+        'Stopwatch',
+        'MoneyBag',
+        'Trashcan',
+        'DocumentMerge',
+        'Exclamation',
+        'SmartScan',
+    ] as const);
     const personalPolicy = usePersonalPolicy();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
