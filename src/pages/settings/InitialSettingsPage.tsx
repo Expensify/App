@@ -117,7 +117,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
 
     const shouldLogout = useRef(false);
 
@@ -256,6 +255,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return null;
         }
 
+        const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
             icon: Expensicons.ExpensifyLogoNew,
@@ -280,7 +281,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, surveyCompletedWithinLastMonth]);
 
     /**
      * Return a list of menu items data for general section
