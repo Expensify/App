@@ -103,6 +103,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={selectedOption}
+                    disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator
                 />
