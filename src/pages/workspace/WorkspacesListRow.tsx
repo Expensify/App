@@ -9,7 +9,6 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -19,6 +18,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';

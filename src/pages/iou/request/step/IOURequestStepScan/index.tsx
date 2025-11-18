@@ -22,7 +22,6 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
@@ -32,6 +31,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -984,12 +984,12 @@ function IOURequestStepScan({
                         onPress={toggleFlashlight}
                         disabled={!isTorchAvailable}
                     >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={isFlashLightOn ? expensifyIcons.Bolt : expensifyIcons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={isFlashLightOn ? expensifyIcons.Bolt : expensifyIcons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
                     </PressableWithFeedback>
                 )}
             </View>

@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

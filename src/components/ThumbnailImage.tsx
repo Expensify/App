@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +15,6 @@ import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 

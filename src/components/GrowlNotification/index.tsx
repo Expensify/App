@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
@@ -12,8 +12,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
 const INACTIVE_POSITION_Y = -255;
@@ -44,20 +44,23 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         }
     >;
 
-    const types: GrowlIconTypes = {
-        [CONST.GROWL.SUCCESS]: {
-            icon: Expensicons.Checkmark,
-            iconColor: theme.success,
-        },
-        [CONST.GROWL.ERROR]: {
-            icon: expensifyIcons.Exclamation,
-            iconColor: theme.danger,
-        },
-        [CONST.GROWL.WARNING]: {
-            icon: expensifyIcons.Exclamation,
-            iconColor: theme.warning,
-        },
-    };
+    const types: GrowlIconTypes = useMemo(
+        () => ({
+            [CONST.GROWL.SUCCESS]: {
+                icon: Expensicons.Checkmark,
+                iconColor: theme.success,
+            },
+            [CONST.GROWL.ERROR]: {
+                icon: expensifyIcons.Exclamation,
+                iconColor: theme.danger,
+            },
+            [CONST.GROWL.WARNING]: {
+                icon: expensifyIcons.Exclamation,
+                iconColor: theme.warning,
+            },
+        }),
+        [theme, expensifyIcons],
+    );
 
     /**
      * Show the growl notification

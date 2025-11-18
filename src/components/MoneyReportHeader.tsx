@@ -202,7 +202,19 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings', 'XeroExport', 'QBOExport', 'NetSuiteExport', 'SageIntacctExport', 'Hourglass', 'Stopwatch', 'Flag', 'Info', 'ThumbsUp', 'ThumbsDown'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Buildings',
+        'XeroExport',
+        'QBOExport',
+        'NetSuiteExport',
+        'SageIntacctExport',
+        'Hourglass',
+        'Stopwatch',
+        'Flag',
+        'Info',
+        'ThumbsUp',
+        'ThumbsDown',
+    ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
 
@@ -737,7 +749,7 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (

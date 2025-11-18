@@ -1,11 +1,11 @@
 import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 

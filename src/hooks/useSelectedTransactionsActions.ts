@@ -1,8 +1,8 @@
 import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';

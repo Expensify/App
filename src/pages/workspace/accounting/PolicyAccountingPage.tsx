@@ -311,7 +311,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), expensifyIcons);
+        const integrationData = getAccountingIntegrationData(
+            connectedIntegration,
+            policyID,
+            translate,
+            policy,
+            undefined,
+            undefined,
+            undefined,
+            isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
+            expensifyIcons,
+        );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
