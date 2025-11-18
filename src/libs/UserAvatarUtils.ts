@@ -1,5 +1,4 @@
 import {md5} from 'expensify-common';
-import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getAvatarLocal as avatarCatalogGetAvatarLocal, getAvatarURL as avatarCatalogGetAvatarURL, DEFAULT_AVATAR_PREFIX, PRESET_AVATAR_CATALOG} from './Avatars/PresetAvatarCatalog';
@@ -34,6 +33,7 @@ type CommonAvatarArgsType = {
 type DefaultAvatarArgsType = CommonAvatarArgsType & {
     /** Existing avatar URL */
     avatarURL?: string;
+    defaultAvatars?: Record<'ConciergeAvatar' | 'NotificationsAvatar' | 'FallbackAvatar', IconAsset>;
 };
 
 type GetAvatarArgsType = CommonAvatarArgsType & {
@@ -80,14 +80,15 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
+ * @param args.defaultAvatars - ConciergeAvatar | NotificationsAvatar | FallbackAvatar
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
-function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): IconAsset | undefined {
+function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return ConciergeAvatar;
+        return defaultAvatars?.ConciergeAvatar;
     }
     if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        return NotificationsAvatar;
+        return defaultAvatars?.NotificationsAvatar;
     }
 
     return avatarCatalogGetAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
@@ -209,12 +210,13 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarSource - The avatar source (URL or SVG component)
+ * @param args.defaultAvatars - ConciergeAvatar | NotificationsAvatar | FallbackAvatar
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
-function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
+function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, defaultAvatars}: GetAvatarArgsType & DefaultAvatarArgsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
-        return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource});
+        return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource, defaultAvatars});
     }
 
     const maybePresetAvatarName = getPresetAvatarNameFromURL(avatarSource);

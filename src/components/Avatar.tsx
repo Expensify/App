@@ -77,7 +77,7 @@ function Avatar({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [imageError, setImageError] = useState(false);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NotificationsAvatar', 'FallbackAvatar'] as const);
 
     useNetwork({onReconnect: () => setImageError(false)});
 
@@ -88,7 +88,7 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID});
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars: expensifyIcons});
     let optimizedSource = source;
     const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
 
