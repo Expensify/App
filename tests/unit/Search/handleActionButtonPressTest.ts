@@ -77,7 +77,6 @@ const mockReportItemWithHold = {
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: true,
             },
-            parentReportAction: undefined,
             reportAction: {
                 reportActionID: '3042630993757922770',
                 actionName: 'IOU',
@@ -173,7 +172,6 @@ const mockReportItemWithHold = {
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: true,
             },
-            parentReportAction: undefined,
             reportAction: {
                 reportActionID: '3042630993757922770',
                 actionName: 'IOU',
