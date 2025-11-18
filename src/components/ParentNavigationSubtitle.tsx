@@ -82,7 +82,20 @@ function ParentNavigationSubtitle({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
+        const FullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
+
+        const FocusedNavigator = !state?.routes
+            ? undefined
+            : state.routes.findLast((route) => {
+                  return route.state?.routes && route.state.routes.length > 0;
+              });
+
+        return {
+            currentFullScreenRoute: FullScreenRoute,
+            currentFocusedNavigator: FocusedNavigator,
+        };
+    });
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -103,6 +116,22 @@ function ParentNavigationSubtitle({
                     if (moneyRequestReportID === parentReportID) {
                         Navigation.dismissModal();
                         return;
+                    }
+                }
+
+                // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
+                if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentFocusedNavigator.state?.index) {
+                    const currentReportIndex = currentFocusedNavigator.state.index;
+                    const previousRoute = currentFocusedNavigator.state.routes[currentReportIndex - 1];
+
+                    if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
+                        const lastPreviousRoute = previousRoute.state?.routes.at(-1);
+                        const moneyRequestReportID = (lastPreviousRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
+
+                        if (moneyRequestReportID === parentReportID && lastPreviousRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                            Navigation.goBack();
+                            return;
+                        }
                     }
                 }
 
