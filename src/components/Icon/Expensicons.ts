@@ -82,7 +82,6 @@ import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
-import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -290,7 +289,6 @@ export {
     Exit,
     ExpensifyAppIcon,
     ExpensifyCard,
-    ExpensifyWordmark,
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
     Expand,

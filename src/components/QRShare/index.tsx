@@ -2,10 +2,10 @@ import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {Svg} from 'react-native-svg';
-import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ function QRShare({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
@@ -59,7 +60,7 @@ function QRShare({
                 <View style={styles.expensifyQrLogo}>
                     <ImageSVG
                         contentFit="contain"
-                        src={ExpensifyWordmark}
+                        src={icons.ExpensifyWordmark}
                         fill={theme.QRLogo}
                     />
                 </View>

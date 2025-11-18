@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -19,6 +19,7 @@ function ExpiredValidateCodeModal() {
     const styles = useThemeStyles();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -54,7 +55,7 @@ function ExpiredValidateCodeModal() {
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
