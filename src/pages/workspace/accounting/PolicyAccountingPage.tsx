@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -21,7 +22,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -91,6 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyCard'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
     const accountingIntegrations = Object.values(connectionNames);
@@ -348,7 +350,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowCardReconciliationOption
                 ? [
                       {
-                          icon: Expensicons.ExpensifyCard,
+                          icon: icons.ExpensifyCard,
                           iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
@@ -419,6 +421,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        icons.ExpensifyCard,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
