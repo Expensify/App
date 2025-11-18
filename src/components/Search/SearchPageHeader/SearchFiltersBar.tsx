@@ -85,7 +85,6 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const isFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
