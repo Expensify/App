@@ -125,9 +125,6 @@ type SearchReport = {
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
@@ -183,7 +180,7 @@ type SearchTransaction = {
     canUnhold: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number;
+    modifiedAmount: number | string;
 
     /** The transaction currency */
     currency: string;

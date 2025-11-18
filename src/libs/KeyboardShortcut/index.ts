@@ -80,16 +80,16 @@ function getDisplayName(key: string, modifiers: string | string[]): string {
     return displayName.join(' + ');
 }
 
-Object.values(CONST.KEYBOARD_SHORTCUTS).forEach((shortcut) => {
+for (const shortcut of Object.values(CONST.KEYBOARD_SHORTCUTS)) {
     // If there is no trigger for the current OS nor a default trigger, then we don't need to do anything
     if (!('trigger' in shortcut)) {
-        return;
+        continue;
     }
 
     const shortcutTrigger = (operatingSystem && shortcut.trigger[operatingSystem as keyof typeof shortcut.trigger]) ?? shortcut.trigger.DEFAULT;
 
     KeyCommand.addListener(shortcutTrigger, (keyCommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keyCommandEvent, event));
-});
+}
 
 /**
  * Unsubscribes a keyboard event handler.
