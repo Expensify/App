@@ -21,7 +21,7 @@ readonly CERT_FILE="${EXPENSIDEV_DIR}/config/ssl/cloudflare-ca.pem"
 
 # Global constants
 readonly CERT_ALIAS="cloudflare-gateway-root"
-readonly KEYSTORE_PASSWORD="changeit"
+readonly KEYSTORE_PASSWORD="${JAVA_KEYSTORE_PASSWORD:-changeit}"
 
 # Global variables
 JAVA_HOMES=""
