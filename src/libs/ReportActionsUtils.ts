@@ -274,6 +274,10 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
 
+function isHoldAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.HOLD);
+}
+
 function isReimbursementDirectionInformationRequiredAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED> {
@@ -3424,6 +3428,7 @@ export {
     isTrackExpenseAction,
     isTransactionThread,
     isTripPreview,
+    isHoldAction,
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
