@@ -768,7 +768,6 @@ const transactionsListItems = [
         amount: -5000,
         report: report1,
         policy,
-        parentReportAction: undefined,
         reportAction: reportAction1,
         holdReportAction: undefined,
         canDelete: true,
@@ -832,7 +831,6 @@ const transactionsListItems = [
         amount: -5000,
         report: report2,
         policy,
-        parentReportAction: undefined,
         reportAction: reportAction2,
         holdReportAction: undefined,
         canDelete: true,
@@ -901,7 +899,6 @@ const transactionsListItems = [
         allActions: ['view'],
         report: report3,
         policy,
-        parentReportAction: undefined,
         reportAction: reportAction3,
         holdReportAction: undefined,
         canDelete: true,
@@ -965,7 +962,6 @@ const transactionsListItems = [
         allActions: ['view'],
         report: report3,
         policy,
-        parentReportAction: undefined,
         reportAction: reportAction4,
         holdReportAction: undefined,
         canDelete: true,
@@ -1065,7 +1061,6 @@ const transactionReportGroupListItems = [
                 report: report1,
                 policy,
                 reportAction: reportAction1,
-                parentReportAction: undefined,
                 holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
@@ -1166,7 +1161,6 @@ const transactionReportGroupListItems = [
                 report: report2,
                 policy,
                 reportAction: reportAction2,
-                parentReportAction: undefined,
                 holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
@@ -1811,7 +1805,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 52;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1845,7 +1839,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 52;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
