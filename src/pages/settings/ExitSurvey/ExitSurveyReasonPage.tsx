@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -17,22 +17,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {saveResponse} from '@libs/actions/ExitSurvey';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
 
-function ExitSurveyReasonPage({route, navigation}: PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.REASON>) {
+function ExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector, canBeMissing: true});
     const {translate} = useLocalize();
@@ -46,18 +43,9 @@ function ExitSurveyReasonPage({route, navigation}: PlatformStackScreenProps<Sett
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const backTo = route.params?.backTo;
-
-    useEffect(() => {
-        if (!isOffline || backTo === ROUTES.SETTINGS) {
-            return;
-        }
-        navigation.setParams({backTo: ROUTES.SETTINGS});
-    }, [backTo, isOffline, navigation]);
-
     const submitForm = useCallback(() => {
         saveResponse(draftResponse);
-        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
+        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 

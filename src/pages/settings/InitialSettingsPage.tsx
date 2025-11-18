@@ -272,7 +272,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
                                   return;
                               }
                               Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);

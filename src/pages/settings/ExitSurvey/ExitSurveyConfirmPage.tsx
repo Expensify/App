@@ -48,7 +48,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
             return ROUTES.SETTINGS;
         }
         if (exitSurveyResponse) {
-            return ROUTES.SETTINGS_EXIT_SURVEY_REASON.route;
+            return ROUTES.SETTINGS_EXIT_SURVEY_REASON;
         }
         return ROUTES.SETTINGS;
     }, [isOffline, exitSurveyResponse]);
