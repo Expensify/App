@@ -133,27 +133,29 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add submitsTo and forwardsTo members if they are not in the workspace
-        members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.submitsTo,
-                    role: '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
-            }
+        if (members) {
+            for (const member of members) {
+                if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.submitsTo,
+                        role: '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.forwardsTo,
-                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
+                if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.forwardsTo,
+                        role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
             }
-        });
+        }
 
         if (isRoleMissing) {
             setImportedSpreadsheetMemberData(allMembers);
