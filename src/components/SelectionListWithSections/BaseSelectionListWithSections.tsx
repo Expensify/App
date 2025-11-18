@@ -2,15 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {
-    LayoutChangeEvent,
-    NativeSyntheticEvent,
-    SectionList as RNSectionList,
-    TextInput as RNTextInput,
-    SectionListData,
-    SectionListRenderItemInfo,
-    TextInputKeyPressEventData,
-} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -150,6 +142,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     canShowProductTrainingTooltip,
     renderScrollComponent,
     shouldShowRightCaret,
+    shouldHighlightSelectedItem = true,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -233,44 +226,46 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         const selectedOptions: TItem[] = [];
 
-        sections.forEach((section, sectionIndex) => {
+        for (const [sectionIndex, section] of sections.entries()) {
             const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            section.data?.forEach((item, optionIndex) => {
-                // Add item to the general flattened array
-                allOptions.push({
-                    ...item,
-                    sectionIndex,
-                    index: optionIndex,
-                });
+            if (section.data) {
+                for (const [optionIndex, item] of section.data.entries()) {
+                    // Add item to the general flattened array
+                    allOptions.push({
+                        ...item,
+                        sectionIndex,
+                        index: optionIndex,
+                    });
 
-                // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (isItemDisabled || item.isDisabledCheckbox) {
-                    disabledOptionsIndexes.push(disabledIndex);
-                    if (isItemDisabled) {
-                        disabledArrowKeyOptionsIndexes.push(disabledIndex);
+                    // If disabled, add to the disabled indexes array
+                    const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    if (isItemDisabled || item.isDisabledCheckbox) {
+                        disabledOptionsIndexes.push(disabledIndex);
+                        if (isItemDisabled) {
+                            disabledArrowKeyOptionsIndexes.push(disabledIndex);
+                        }
+                    }
+                    disabledIndex += 1;
+
+                    // Account for the height of the item in getItemLayout
+                    const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
+                    itemLayouts.push({length: fullItemHeight, offset});
+                    offset += fullItemHeight;
+
+                    if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
+                        selectedOptions.push(item);
                     }
                 }
-                disabledIndex += 1;
-
-                // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
-                itemLayouts.push({length: fullItemHeight, offset});
-                offset += fullItemHeight;
-
-                if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
-                    selectedOptions.push(item);
-                }
-            });
+            }
 
             // We're not rendering any section footer, but we need to push to the array
             // because React Native accounts for it in getItemLayout
             itemLayouts.push({length: 0, offset});
-        });
+        }
 
         // We're not rendering the list footer, but we need to push to the array
         // because React Native accounts for it in getItemLayout
@@ -612,6 +607,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
+                            testID="selection-list-select-all-checkbox"
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
@@ -656,6 +652,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         isSelected: selected,
                         ...item,
                     }}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     sectionIndex={section?.indexOffset}
@@ -704,7 +701,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         return null;
     };
 
-    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
@@ -726,7 +723,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign
+                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -746,7 +743,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
@@ -895,9 +892,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>();
-            items.forEach((item) => {
+            for (const item of items) {
                 newItemsToHighlight.add(item);
-            });
+            }
             const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
             scrollToIndex(index);
             setItemsToHighlight(newItemsToHighlight);

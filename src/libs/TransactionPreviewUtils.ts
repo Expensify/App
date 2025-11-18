@@ -33,7 +33,6 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -231,18 +230,23 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = path;
     }
 
+    if ((RBRMessage === undefined || RBRMessage.text === '') && isDistanceRequest(transaction) && violationMessage) {
+        const hasModifiedAmountViolation = violations?.some(
+            (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+        );
+
+        if (hasModifiedAmountViolation) {
+            RBRMessage = {text: violationMessage};
+        }
+    }
+
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
         RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -369,7 +373,11 @@ function createTransactionPreviewConditionals({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations) ||
-        hasViolation(transaction, violations, true);
+        hasViolation(transaction, violations, true) ||
+        (isDistanceRequest(transaction) &&
+            violations?.some(
+                (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+            ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);

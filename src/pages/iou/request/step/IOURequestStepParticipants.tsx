@@ -73,7 +73,7 @@ function IOURequestStepParticipants({
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     const participants = initialTransaction?.participants;
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -82,6 +82,7 @@ function IOURequestStepParticipants({
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -122,6 +123,7 @@ function IOURequestStepParticipants({
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const isActivePolicyRequest =
@@ -159,7 +161,9 @@ function IOURequestStepParticipants({
             return;
         }
 
-        transactionIDs.forEach((transactionID) => resetDraftTransactionsCustomUnit(transactionID));
+        for (const transactionID of transactionIDs) {
+            resetDraftTransactionsCustomUnit(transactionID);
+        }
     }, [isFocused, isMovingTransactionFromTrackExpense, transactionIDs]);
 
     const waitForKeyboardDismiss = useCallback(
@@ -183,12 +187,12 @@ function IOURequestStepParticipants({
         }
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        transactions.forEach((transaction) => {
+        for (const transaction of transactions) {
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
-        });
+        }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
@@ -207,7 +211,7 @@ function IOURequestStepParticipants({
 
             const firstParticipant = val.at(0);
 
-            if (firstParticipant?.isSelfDM) {
+            if (firstParticipant?.isSelfDM && !isSplitRequest) {
                 trackExpense();
                 return;
             }
@@ -221,9 +225,9 @@ function IOURequestStepParticipants({
             // Use transactions array if available, otherwise use initialTransactionID directly
             // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
             if (transactions.length > 0) {
-                transactions.forEach((transaction) => {
+                for (const transaction of transactions) {
                     setMoneyRequestParticipants(transaction.transactionID, val);
-                });
+                }
             } else {
                 // Fallback to using initialTransactionID directly when transaction object isn't loaded yet
                 setMoneyRequestParticipants(initialTransactionID, val);
@@ -232,12 +236,12 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
 
                 if (transactions.length > 0) {
-                    transactions.forEach((transaction) => {
+                    for (const transaction of transactions) {
                         setCustomUnitRateID(transaction.transactionID, rateID);
-                    });
+                    }
                 } else {
                     // Fallback to using initialTransactionID directly
                     setCustomUnitRateID(initialTransactionID, rateID);
@@ -269,17 +273,17 @@ function IOURequestStepParticipants({
             }
         },
         [
-            action,
+            isSplitRequest,
+            allPolicies,
             iouType,
             transactions,
             isMovingTransactionFromTrackExpense,
             reportID,
+            action,
             trackExpense,
-            allPolicies,
-            personalPolicy,
-            lastSelectedDistanceRates,
             initialTransactionID,
-            localeCompare,
+            lastSelectedDistanceRates,
+            personalPolicy?.autoReporting,
         ],
     );
 
@@ -296,17 +300,19 @@ function IOURequestStepParticipants({
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-        transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
+        // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
+        for (const transaction of transactions) {
+            const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
+            setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
-        });
+        }
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
-            transactions.forEach((transaction) => {
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
+            for (const transaction of transactions) {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {
                         selected: true,
@@ -317,7 +323,7 @@ function IOURequestStepParticipants({
                         searchText: policyName,
                     },
                 ]);
-            });
+            }
             if (isCategorizing) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
             } else {
@@ -350,23 +356,29 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        navigateToStartMoneyRequestStep(iouRequestType, iouType, initialTransactionID, reportID, action);
+
+        // Change iouType param to enable negative values
+        const shouldForceIOUType =
+            action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.SUBMIT && (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN);
+        const iouTypeValue = shouldForceIOUType ? CONST.IOU.TYPE.CREATE : iouType;
+
+        navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     }, [backTo, iouRequestType, iouType, initialTransactionID, reportID, action]);
 
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
-            transactions.forEach((transaction) => {
+            for (const transaction of transactions) {
                 setMoneyRequestParticipants(transaction.transactionID, []);
-            });
+            }
             numberOfParticipants.current = 0;
         }
         // We don't want to clear out participants every time the transactions change

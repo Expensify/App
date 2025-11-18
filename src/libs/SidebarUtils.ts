@@ -52,6 +52,7 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomAvatarUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
@@ -70,6 +71,7 @@ import {
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
@@ -99,7 +101,6 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
-    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -121,6 +122,7 @@ import {
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
@@ -159,7 +161,7 @@ type MiniReport = {
 };
 
 function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+    return text.replaceAll(CONST.REGEX.WHITESPACE, ' ').trim();
 }
 
 function shouldDisplayReportInLHN(
@@ -202,7 +204,14 @@ function shouldDisplayReportInLHN(
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        !!draftComment || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        !!draftComment ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        reportAttributes?.[report?.reportID]?.requiresAttention ||
+        report.isOwnPolicyExpenseChat;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -240,9 +249,9 @@ function getReportsToDisplayInLHN(
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
-    Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
-        if (!report?.reportID) {
-            return;
+    for (const [reportID, report] of Object.entries(allReportsDictValues)) {
+        if (!report) {
+            continue;
         }
 
         const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
@@ -262,7 +271,7 @@ function getReportsToDisplayInLHN(
         if (shouldDisplay) {
             reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
         }
-    });
+    }
 
     return reportsToDisplay;
 }
@@ -293,10 +302,10 @@ function updateReportsToDisplayInLHN({
     draftComments,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
-    updatedReportsKeys.forEach((reportID) => {
+    for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
-        if (!report?.reportID) {
-            return;
+        if (!report) {
+            continue;
         }
 
         // Get the specific draft comment for this report instead of using a single draft comment for all reports
@@ -320,7 +329,7 @@ function updateReportsToDisplayInLHN({
         } else {
             delete displayedReportsCopy[reportID];
         }
-    });
+    }
 
     return displayedReportsCopy;
 }
@@ -737,6 +746,12 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    // For 1:1 DMs, add the other participant's selected timezone
+    if (isOneOnOneChat(report)) {
+        const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
+        result.timezone = recipientPersonalDetail?.timezone;
+    }
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
 
@@ -754,15 +769,6 @@ function getOptionData({
                   accountID: report.lastActorAccountID,
               }
             : null;
-    }
-
-    // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
-    // to ensures that lastActorDetails.accountID is correctly set in case it's empty string
-    if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
-        lastActorDetails = {
-            ...lastActorDetails,
-            accountID: lastAction.actorAccountID,
-        };
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
@@ -848,6 +854,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
         ) {
             result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
+        } else if (
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
+        ) {
+            result.alternateText = getWorkspaceTaxUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -889,14 +901,14 @@ function getOptionData({
             result.alternateText = getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             result.alternateText = getUpdateRoomDescriptionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
+            result.alternateText = getRoomAvatarUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage());
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1041,6 +1053,10 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
+                if (displayNamesWithTooltips.length > 2) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return `${displayName}, ${translateLocal('common.and')}`;
+                }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return `${displayName} ${translateLocal('common.and')}`;
             }

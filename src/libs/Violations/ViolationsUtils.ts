@@ -4,13 +4,14 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {shouldShowViolation} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -63,13 +64,13 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
     const tagViolations = [...transactionViolations];
 
     if (!tagName) {
-        Object.values(policyTagList).forEach((tagList) =>
+        for (const tagList of Object.values(policyTagList)) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.MISSING_TAG,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 data: {tagName: tagList.name},
-            }),
-        );
+            });
+        }
     } else {
         const tags = TransactionUtils.getTagArrayFromName(tagName);
         if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
@@ -184,31 +185,31 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
 
     // Combine transaction and action errors
     let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
-    errorActions.forEach((action) => {
+    for (const action of errorActions) {
         if (!action.errors) {
-            return;
+            continue;
         }
         allErrors = {...allErrors, ...action.errors};
-    });
+    }
 
     // Extract error messages
-    Object.values(allErrors).forEach((errorValue) => {
+    for (const errorValue of Object.values(allErrors)) {
         if (!errorValue) {
-            return;
+            continue;
         }
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
             uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
         } else {
-            Object.values(errorValue).forEach((nestedErrorValue) => {
+            for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
-                    return;
+                    continue;
                 }
                 uniqueMessages.add(nestedErrorValue);
-            });
+            }
         }
-    });
+    }
 
     return Array.from(uniqueMessages);
 }
@@ -263,7 +264,7 @@ const ViolationsUtils = {
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
@@ -284,7 +285,7 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
-        const policyRequiresTags = !!policy.requiresTag;
+        const policyRequiresTags = !!policy.requiresTag && !isSelfDM;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
@@ -324,7 +325,7 @@ const ViolationsUtils = {
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
@@ -467,11 +468,10 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists, companyCardPageURL?: string): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
-            email,
             isTransactionOlderThan7Days = false,
             member,
             category,
@@ -539,17 +539,17 @@ const ViolationsUtils = {
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {formattedLimit, category});
+                return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
             case 'customRules':
                 return translate('violations.customRules', {message});
             case 'rter':
                 return translate('violations.rter', {
                     brokenBankConnection,
                     isAdmin,
-                    email,
                     isTransactionOlderThan7Days,
                     member,
                     rterType,
+                    companyCardPageURL,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
@@ -569,7 +569,7 @@ const ViolationsUtils = {
                 return translate('violations.hold');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
-                    prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
+                    prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
                 });
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');
@@ -594,6 +594,7 @@ const ViolationsUtils = {
         missingFieldError?: string,
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,
+        companyCardPageURL?: string,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
 
@@ -603,7 +604,7 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...transactionViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
                 if (!message) {
                     return;
                 }

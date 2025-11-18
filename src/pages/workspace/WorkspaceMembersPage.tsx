@@ -44,13 +44,14 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -207,26 +208,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
-            selectedEmployees.forEach((login) => {
+            for (const login of selectedEmployees) {
                 const accountID = policyMemberEmailsToAccountIDs[login];
                 const removedApprover = personalDetails?.[accountID];
                 if (!removedApprover?.login || !ownerEmail) {
-                    return;
+                    continue;
                 }
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows,
                     removedApprover,
                     ownerDetails,
                 });
-                updatedWorkflows.forEach((workflow) => {
+                for (const workflow of updatedWorkflows) {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
                         removeApprovalWorkflowAction(updatedWorkflow, policy);
                     } else {
                         updateApprovalWorkflow(workflow, [], [], policy);
                     }
-                });
-            });
+                }
+            }
         }
 
         setRemoveMembersConfirmModalVisible(false);
@@ -337,17 +338,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             const details = personalDetails?.[accountID];
 
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                return;
+                continue;
             }
 
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
@@ -355,7 +356,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             // see random people added to their policy, but guides having access to the policies help set them up.
             if (isExpensifyTeam(details?.login ?? details?.displayName)) {
                 if (policyOwner && currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                    return;
+                    continue;
                 }
             }
 
@@ -386,12 +387,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         id: accountID,
                     },
                 ],
-                errors: policyEmployee.errors,
+                errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
             });
-        });
+        }
         return result;
     }, [
         isOffline,
@@ -509,8 +510,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return options;
         }
 
-        const selectedEmployeesRoles = selectedEmployees.map((accountID) => {
-            const email = personalDetails?.[accountID]?.login ?? '';
+        const selectedEmployeesRoles = selectedEmployees.map((email) => {
             return policy?.employeeList?.[email]?.role;
         });
 
@@ -546,7 +546,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy)) {
             options.push(auditorOption);
         }
 
@@ -611,6 +611,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isSplitButton={false}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
+                testID={`${WorkspaceMembersPage.displayName}-header-dropdown-menu-button`}
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>

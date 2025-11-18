@@ -60,7 +60,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const completeOnboarding = useCallback(
@@ -131,7 +131,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
+        if (values.firstName.replaceAll(CONST.REGEX.ANY_SPACE, '').length === 0) {
             addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
         }
         if (!isValidDisplayName(values.firstName)) {

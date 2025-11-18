@@ -1,5 +1,4 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import lodashMapKeys from 'lodash/mapKeys';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -15,19 +14,12 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let personalDetailsByEmail: PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (personalDetails) => {
-        personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-    },
-});
-
 type SetApprovalWorkflowApproverParams = {
     approver: Approver;
     approverIndex: number;
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
     policy: OnyxEntry<Policy>;
+    personalDetailsByEmail: OnyxEntry<PersonalDetailsList>;
 };
 
 type ClearApprovalWorkflowApproverParams = {
@@ -223,8 +215,8 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policy - The policy to set the approver for
  */
-function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy}: SetApprovalWorkflowApproverParams) {
-    if (!currentApprovalWorkflow || !policy?.employeeList) {
+function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy, personalDetailsByEmail}: SetApprovalWorkflowApproverParams) {
+    if (!currentApprovalWorkflow || !policy?.employeeList || !personalDetailsByEmail) {
         return;
     }
 
@@ -297,7 +289,7 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
-    approvalWorkflow.approvers.forEach((approver, approverIndex) => {
+    for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
         if (!approver) {
             errors[`approver-${approverIndex}`] = 'common.error.fieldRequired';
         }
@@ -305,7 +297,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
-    });
+    }
 
     if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
         errors.members = 'common.error.fieldRequired';

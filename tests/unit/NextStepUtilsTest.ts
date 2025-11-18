@@ -5,7 +5,7 @@ import {buildNextStep, buildOptimisticNextStepForStrictPolicyRuleViolations} fro
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -35,7 +35,7 @@ describe('libs/NextStepUtils', () => {
             isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
-        const optimisticNextStep: ReportNextStep = {
+        const optimisticNextStep: ReportNextStepDeprecated = {
             type: 'neutral',
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
@@ -615,7 +615,7 @@ describe('libs/NextStepUtils', () => {
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, undefined, true, undefined);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });

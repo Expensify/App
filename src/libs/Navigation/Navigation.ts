@@ -10,6 +10,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,12 +36,12 @@ import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
-const SET_UP_2FA_ROUTES: Route[] = [
+const SET_UP_2FA_ROUTES = new Set<Route>([
     ROUTES.REQUIRE_TWO_FACTOR_AUTH,
     ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
     ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
     ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-];
+]);
 
 let account: OnyxEntry<Account>;
 // We have used `connectWithoutView` here because it is not connected to any UI
@@ -90,7 +91,7 @@ type CanNavigateParams = {
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
     // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
     const targetRoute = params.route ?? params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.includes(targetRoute)) {
+    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.has(targetRoute)) {
         Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
         return false;
     }
@@ -154,7 +155,7 @@ function getReportRHPActiveRoute(): string {
  * @returns The cleaned route path.
  */
 function cleanRoutePath(routePath: string): string {
-    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -193,6 +194,22 @@ function navigate(route: Route, options?: LinkToOptions) {
             pendingNavigationCall = {route, options};
         }
         return;
+    }
+
+    // Start a Sentry span for report navigation
+    if (route.startsWith('r/') || route.startsWith('search/r/')) {
+        const reportIDMatch = route.match(/^(?:search\/)?r\/(\w+)/);
+        if (reportIDMatch?.at(1)) {
+            const reportID = reportIDMatch.at(1);
+            const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: spanName,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                attributes: {
+                    reportID,
+                },
+            });
+        }
     }
 
     linkTo(navigationRef.current, route, options);
@@ -374,7 +391,7 @@ function popToSidebar() {
 
     const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
@@ -436,7 +453,7 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
  * Returns the current active route without the URL params.
  */
 function getActiveRouteWithoutParams(): string {
-    return getActiveRoute().replace(/\?.*/, '');
+    return getActiveRoute().replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -661,6 +678,12 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function isValidateLoginFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -716,6 +739,7 @@ export default {
     clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
+    isValidateLoginFlow,
 };
 
 export {navigationRef};

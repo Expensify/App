@@ -59,6 +59,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
     },
     keyof TaxRateAttributes
 >;
@@ -1983,6 +1986,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
+
+        /** Email address of the technical contact */
+        technicalContact?: string;
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
