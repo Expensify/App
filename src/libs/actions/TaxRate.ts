@@ -318,7 +318,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
 
-    ratesToUpdate.forEach((rate) => {
+    for (const rate of ratesToUpdate) {
         const rateID = rate.customUnitRateID;
         optimisticRates[rateID] = {
             attributes: {
@@ -339,7 +339,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                 taxClaimablePercentage: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         };
-    });
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
