@@ -1,6 +1,7 @@
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
@@ -258,6 +259,7 @@ export {
     Export,
     Eye,
     EyeDisabled,
+    FallbackAvatar,
     Flag,
     FlagLevelOne,
     FlagLevelTwo,

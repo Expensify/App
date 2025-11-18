@@ -81,7 +81,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, expensifyIcons.FallbackAvatar]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

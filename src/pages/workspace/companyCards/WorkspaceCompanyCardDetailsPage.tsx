@@ -5,7 +5,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
-import {Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -133,7 +132,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     </View>
                     {!cardholder?.validated && (
                         <MenuItem
-                            icon={Hourglass}
+                            icon={Expensicons.Hourglass}
                             iconStyles={styles.mln2}
                             descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
                             description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
