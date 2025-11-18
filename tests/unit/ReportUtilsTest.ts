@@ -1125,7 +1125,7 @@ describe('ReportUtils', () => {
         });
 
         describe('Unreported transaction thread', () => {
-            test('Should link back to the original report', async () => {
+            test('HTML is stripped from unreported transaction message', async () => {
                 const fromReport = {
                     ...LHNTestUtils.getFakeReport(),
                     reportID: '789',
@@ -1150,8 +1150,8 @@ describe('ReportUtils', () => {
                 const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
 
                 // Should NOT contain HTML tags
-                expect(reportName).toContain('<a href');
-                expect(reportName).toContain('</a>');
+                expect(reportName).not.toContain('<a href');
+                expect(reportName).not.toContain('</a>');
                 // Should contain the text content
                 expect(reportName).toContain('moved this expense from');
                 expect(reportName).toContain('Ragnar');
