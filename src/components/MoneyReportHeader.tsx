@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -52,11 +53,13 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    generateReportID,
     getAddExpenseDropdownOptions,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
+    getPolicyExpenseChat,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
@@ -93,6 +96,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
+    duplicateTransaction as duplicateTransactionAction,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -189,6 +193,8 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
     const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -1078,6 +1084,8 @@ function MoneyReportHeader({
                 }
 
                 temporarilyDisableDuplicateAction();
+
+                duplicateTransaction([transaction]);
             },
             shouldCloseModalOnSelect: false,
             shouldShow: transactions.length === 1,
@@ -1304,6 +1312,25 @@ function MoneyReportHeader({
             confirmExport();
         });
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
+
+    const duplicateTransaction = useCallback(
+        (transactions) => {
+            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
+                return;
+            }
+
+            const optimisticChatReportID = generateReportID();
+            const optimisticIOUReportID = generateReportID();
+
+            transactions.forEach((item) => {
+                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
+            });
+        },
+        [
+            activePolicyExpenseChat,
+            defaultExpensePolicy,
+        ],
+    );
 
     useEffect(() => {
         if (!exportModalStatus) {
