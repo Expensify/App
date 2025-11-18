@@ -127,7 +127,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     return {
         options,
-        isLoading: enabled && !options,
+        isLoading: !options,
         loadMore,
         hasMore,
         isLoadingMore,

@@ -1256,15 +1256,9 @@ function createFilteredOptionList(
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first)
     const sortedReports = reportsArray.sort((a, b) => {
-        const aTime = a.lastVisibleActionCreated ?? '';
-        const bTime = b.lastVisibleActionCreated ?? '';
-        if (bTime > aTime) {
-            return -1;
-        }
-        if (bTime < aTime) {
-            return 1;
-        }
-        return 0;
+        const aTime = new Date(a.lastVisibleActionCreated ?? 0).getTime();
+        const bTime = new Date(b.lastVisibleActionCreated ?? 0).getTime();
+        return bTime - aTime;
     });
 
     // Step 3: Limit to top N reports
