@@ -13,6 +13,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
+<<<<<<< HEAD
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Other Images
@@ -22,6 +23,9 @@ import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+=======
+import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+>>>>>>> main
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -64,6 +68,7 @@ const Illustrations = {
     // Product Illustrations
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
+    ToddBehindCloud,
 
     // Educational Illustrations
     MultiScan,
