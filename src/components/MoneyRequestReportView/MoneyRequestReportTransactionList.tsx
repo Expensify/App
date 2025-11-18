@@ -47,6 +47,7 @@ import {
     getMerchant,
     getTag,
     getTransactionPendingAction,
+    hasReimbursableAndNonReimbursableTransactions,
     isTransactionPendingDelete,
     mergeProhibitedViolations,
     shouldShowViolation,
@@ -170,7 +171,7 @@ function MoneyRequestReportTransactionList({
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend && hasReimbursableAndNonReimbursableTransactions(report?.reportID);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
