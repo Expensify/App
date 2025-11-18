@@ -545,6 +545,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
                         reportAction,
+                        policyID: report?.policyID,
                         movedFromReport,
                         movedToReport,
                         policyTags,
