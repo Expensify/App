@@ -13461,8 +13461,21 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         }
     }
 
+    // Add optimistic rejected actions to the child report
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+        value: {
+            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
+            [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
+            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
+        },
+    });
+
+    // Update hasOutstandingChildRequest on the chat report after all optimistic updates
     if (policyExpenseChat) {
-        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, reportID);
+        const excludedReportID = rejectedToReportID ?? reportID;
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID);
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
             optimisticData.push({
@@ -13482,17 +13495,6 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             });
         }
     }
-
-    // Add optimistic rejected actions to the child report
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
-        value: {
-            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
-            [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
-        },
-    });
 
     // Add successData to clear pending actions when the server confirms
     successData.push({
