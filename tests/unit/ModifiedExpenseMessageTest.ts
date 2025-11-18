@@ -655,9 +655,9 @@ describe('ModifiedExpenseMessage', () => {
                 // The shouldConvertToLowercase: !source parameter prevents buildMessageFragmentForValue
                 // from calling .toLowerCase() on the entire HTML anchor tag, which would corrupt
                 // the policyID in the href attribute and cause navigation to fail.
-                
+
                 const mockPolicy: Policy = {
-                    id: 'AbC123XyZ789',  // Mixed case to verify exact preservation
+                    id: 'AbC123XyZ789', // Mixed case to verify exact preservation
                     name: 'Test Policy',
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
