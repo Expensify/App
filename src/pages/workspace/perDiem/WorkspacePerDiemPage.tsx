@@ -309,7 +309,18 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return menuItems;
-    }, [policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID, expensifyIcons]);
+    }, [
+        policy?.areCategoriesEnabled,
+        policyCategories,
+        translate,
+        hasVisibleSubRates,
+        openSettings,
+        isOffline,
+        policyID,
+        expensifyIcons.Gear,
+        expensifyIcons.Table,
+        expensifyIcons.Download,
+    ]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
