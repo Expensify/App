@@ -15,6 +15,7 @@ type OpenReportParams = {
     optimisticAccountIDList?: string;
     file?: File | CustomRNImageManipulatorResult;
     guidedSetupData?: string;
+    useLastUnreadReportAction?: boolean;
     /**
      * The ID of the unreported transaction to create a thread for.
      * Used when displaying unreported expenses that have no transaction thread associated with them.

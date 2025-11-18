@@ -9,7 +9,7 @@ class RenderTaskQueue {
 
     private isRendering = false;
 
-    private handler: (info: RenderInfo) => void = () => {};
+    private handler: ((info: RenderInfo) => void) | undefined = undefined;
 
     private timeout: NodeJS.Timeout | null = null;
 
@@ -19,12 +19,19 @@ class RenderTaskQueue {
         this.onIsRenderingChange = onIsRenderingChange;
     }
 
-    add(info: RenderInfo) {
+    add(info: RenderInfo, startRendering = true) {
         this.renderInfos.push(info);
 
-        if (!this.isRendering) {
-            this.render();
+        if (!this.isRendering && startRendering) {
+            this.renderWithDelay();
         }
+    }
+
+    start() {
+        if (this.isRendering) {
+            return;
+        }
+        this.renderWithDelay();
     }
 
     setHandler(handler: (info: RenderInfo) => void) {
@@ -32,11 +39,18 @@ class RenderTaskQueue {
     }
 
     cancel() {
+        this.isRendering = false;
         if (this.timeout == null) {
             return;
         }
         clearTimeout(this.timeout);
         this.onIsRenderingChange?.(false);
+    }
+
+    private renderWithDelay() {
+        this.timeout = setTimeout(() => {
+            this.render();
+        }, RENDER_DELAY);
     }
 
     private render() {
@@ -49,12 +63,11 @@ class RenderTaskQueue {
         this.isRendering = true;
         this.onIsRenderingChange?.(true);
 
-        this.handler(info);
+        this.handler?.(info);
 
-        this.timeout = setTimeout(() => {
-            this.render();
-        }, RENDER_DELAY);
+        this.renderWithDelay();
     }
 }
 
 export default RenderTaskQueue;
+export type {RenderInfo};
