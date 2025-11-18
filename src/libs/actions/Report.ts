@@ -162,7 +162,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {isOnHold} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -662,9 +662,9 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey]) => {
+    for (const [actionKey] of Object.entries(optimisticReportActions)) {
         successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
-    });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -692,13 +692,13 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
+    for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
-    });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -715,12 +715,12 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    optimisticParentReportData.forEach((parentReportData) => {
+    for (const parentReportData of optimisticParentReportData) {
         if (isEmptyObject(parentReportData)) {
-            return;
+            continue;
         }
         optimisticData.push(parentReportData);
-    });
+    }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
@@ -974,7 +974,13 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
+ * @param avatar The avatar file to upload for a new group chat
+ * @param isNewThread Whether this is a new thread being created
+ * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
+ * @param transactionViolations The violations for the transaction, if any
+ * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
@@ -984,8 +990,10 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    transactionID?: string,
     isNewThread = false,
+    transaction?: Transaction,
+    transactionViolations?: TransactionViolations,
+    parentReportID?: string,
 ) {
     if (!reportID) {
         return;
@@ -1066,59 +1074,92 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        transactionID,
+        transactionID: transaction?.transactionID,
     };
 
-    // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
-    if (transactionID && !parentReportActionID) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    // This is a legacy transaction that doesn't have either a transaction thread or a money request preview
+    if (transaction && !parentReportActionID) {
+        const transactionParentReportID = parentReportID ?? transaction?.reportID;
+        const iouReportActionID = rand64();
 
-        if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+        const optimisticIOUAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: Math.abs(transaction.amount),
+            currency: transaction.currency,
+            comment: transaction.comment?.comment ?? '',
+            participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
+            transactionID: transaction.transactionID,
+            isOwnPolicyExpenseChat: true,
+            reportActionID: iouReportActionID,
+            iouReportID: transactionParentReportID,
+        });
 
-            if (selfDMReportID) {
-                const generatedReportActionID = rand64();
-                const optimisticParentAction = buildOptimisticIOUReportAction({
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount: Math.abs(transaction.amount),
-                    currency: transaction.currency,
-                    comment: transaction.comment?.comment ?? '',
-                    participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
-                    transactionID,
-                    isOwnPolicyExpenseChat: true,
-                });
+        // We have a case where the transaction data is only available from the snapshot
+        // So we need to add the transaction data to Onyx so it's available when opening the report
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        parentReportID: selfDMReportID,
-                        parentReportActionID: generatedReportActionID,
-                    },
-                });
+        // Add violations if they exist. This is needed when opening from search results where
+        // violations are in the snapshot but not yet synced to the main collections, so we need
+        // to add them to Onyx to ensure they show up in the transaction thread
+        if (transactionViolations) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: transactionViolations,
+            });
+        }
 
-                // Log how often the legacy transaction fallback path is taken
-                Log.info('[Report] Legacy transaction fallback: creating money request preview in self DM', false, {
-                    selfDMReportID,
-                    transactionID,
-                    reportID,
-                });
+        // Attach the optimistic IOU report action created for the transaction to the transaction thread
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                parentReportActionID: iouReportActionID,
+            },
+        });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                    value: {
-                        [generatedReportActionID]: {
-                            ...optimisticParentAction,
-                            reportActionID: generatedReportActionID,
-                            childReportID: reportID,
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: {
+                    ...optimisticIOUAction,
+                    childReportID: reportID,
+                },
+            },
+        });
+
+        // Update the snapshot with the new transactionThreadReportID and moneyRequestReportActionID if we're coming from search
+        // preventing duplicate reportActionID when moneyRequestReportActionID still empty
+        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+        if (currentSearchQueryJSON?.hash) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            transactionThreadReportID: reportID,
+                            moneyRequestReportActionID: iouReportActionID,
                         },
                     },
-                });
-
-                parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
-            }
+                },
+            });
         }
+
+        parameters.moneyRequestPreviewReportActionID = iouReportActionID;
+
+        // Log how often the legacy transaction fallback path is taken
+        Log.info('[Report] Legacy transaction fallback: creating money request preview', false, {
+            transactionParentReportID,
+            transactionID: transaction.transactionID,
+            reportID,
+        });
     }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -1243,12 +1284,12 @@ function openReport(
         const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
-        participantLoginList.forEach((login, index) => {
+        for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
-                return;
+                continue;
             }
 
             optimisticPersonalDetails[accountID] = {
@@ -1261,7 +1302,7 @@ function openReport(
 
             // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
             redundantParticipants[accountID] = null;
-        });
+        }
 
         successData.push(
             {
@@ -1355,16 +1396,20 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
-function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
-    if (!iouReportAction) {
-        Log.warn('Cannot build transaction thread report without iouReportAction parameter');
-        return;
-    }
+function createTransactionThreadReport(
+    iouReport?: OnyxEntry<Report>,
+    iouReportAction?: OnyxEntry<ReportAction>,
+    transaction?: Transaction,
+    transactionViolations?: TransactionViolations,
+): OptimisticChatReport | undefined {
+    // Determine if we need selfDM report (for track expenses or unreported transactions)
+    const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
+    const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
 
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
-    if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = findSelfDMReportID();
+    if (isTrackExpense && selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -1373,9 +1418,29 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
         return;
     }
 
+    // Sync fresh report data from snapshot to allReports. When navigating from search,
+    // allReports may be stale and missing parentReportID/parentReportActionID, causing
+    // getAllAncestorReportActionIDs() to fail when adding comments optimistically.
+    if (iouReport?.reportID && reportToUse.reportID === iouReport.reportID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+    }
+
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
-    openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
+    openReport(
+        optimisticTransactionThreadReportID,
+        undefined,
+        currentUserEmail ? [currentUserEmail] : [],
+        optimisticTransactionThread,
+        iouReportAction?.reportActionID,
+        false,
+        [],
+        undefined,
+        false,
+        transaction,
+        transactionViolations,
+        selfDMReportID,
+    );
     return optimisticTransactionThread;
 }
 
@@ -1490,7 +1555,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, undefined, true);
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -1682,9 +1747,9 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
-    Object.values(allReports ?? {}).forEach((report) => {
+    for (const report of Object.values(allReports ?? {})) {
         if (!report) {
-            return;
+            continue;
         }
 
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
@@ -1692,14 +1757,14 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
         if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
-            return;
+            continue;
         }
 
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
         optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
         failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
         reportIDList.push(report.reportID);
-    });
+    }
 
     if (reportIDList.length === 0) {
         return;
@@ -2048,11 +2113,11 @@ function deleteReportComment(
  */
 function removeLinksFromHtml(html: string, links: string[]): string {
     let htmlCopy = html.slice();
-    links.forEach((link) => {
+    for (const link of links) {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
         const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
-    });
+    }
     return htmlCopy;
 }
 
@@ -3148,19 +3213,19 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
         .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
         .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
 
-    [...new Set(transactionIDs)].forEach((transactionID) => {
+    for (const transactionID of [...new Set(transactionIDs)]) {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
-    });
+    }
 
     Onyx.multiSet(onyxData);
 
     if (shouldDeleteChildReports) {
-        Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+        for (const reportAction of Object.values(reportActionsForReport ?? {})) {
             if (!reportAction.childReportID) {
-                return;
+                continue;
             }
             deleteReport(reportAction.childReportID, shouldDeleteChildReports);
-        });
+        }
     }
 
     // Delete linked IOU report
@@ -3880,7 +3945,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
     const optimisticParticipants: Record<number, Partial<ReportParticipant>> = {};
     const successParticipants: Record<number, Partial<ReportParticipant>> = {};
 
-    accountIDList.forEach((accountID) => {
+    for (const accountID of accountIDList) {
         memberRoles[accountID] = role;
         optimisticParticipants[accountID] = {
             role,
@@ -3895,7 +3960,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
             },
             pendingAction: null,
         };
-    });
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3932,9 +3997,9 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     }
 
     const removeParticipantsData: Record<number, null> = {};
-    targetAccountIDs.forEach((accountID) => {
+    for (const accountID of targetAccountIDs) {
         removeParticipantsData[accountID] = null;
-    });
+    }
     const pendingChatMembers = getPendingChatMembers(targetAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
@@ -4752,13 +4817,13 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     });
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
             formData.append(key, String(value));
         }
-    });
+    }
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
@@ -4887,18 +4952,18 @@ function deleteAppReport(reportID: string | undefined) {
     const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
-    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
         if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            return;
+            continue;
         }
 
         if (ReportActionsUtils.isDeletedAction(reportAction)) {
-            return;
+            continue;
         }
 
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
         if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-            return;
+            continue;
         }
 
         const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
@@ -5050,7 +5115,7 @@ function deleteAppReport(reportID: string | undefined) {
                 movedReportActionID: unreportedAction?.reportActionID,
             };
         }
-    });
+    }
 
     // 6. Delete report actions on the report
     optimisticData.push({
@@ -5355,15 +5420,15 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
-    reportTransactions.forEach((transaction) => {
+    for (const transaction of reportTransactions) {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
+            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
+    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -5490,15 +5555,15 @@ function dismissChangePolicyModal() {
  */
 function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
     const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};
-    Object.values(allReports ?? {}).forEach((report) => {
+    for (const report of Object.values(allReports ?? {})) {
         if (!report?.parentReportID) {
-            return;
+            continue;
         }
         if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {
             reportIDToThreadsReportIDsMap[report.parentReportID] = [];
         }
         reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);
-    });
+    }
     return reportIDToThreadsReportIDsMap;
 }
 
@@ -5531,9 +5596,9 @@ function updatePolicyIdForReportAndThreads(
 
     // Recursively process child reports for the current report
     const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];
-    childReportIDs.forEach((childReportID) => {
+    for (const childReportID of childReportIDs) {
         updatePolicyIdForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
-    });
+    }
 }
 
 function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {

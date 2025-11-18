@@ -384,7 +384,7 @@ const searchResults: OnyxTypes.SearchResults = {
             hasEReceipt: false,
             isFromOneTransactionReport: true,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -422,7 +422,7 @@ const searchResults: OnyxTypes.SearchResults = {
             hasEReceipt: false,
             isFromOneTransactionReport: true,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -461,7 +461,7 @@ const searchResults: OnyxTypes.SearchResults = {
             hasEReceipt: false,
             isFromOneTransactionReport: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -499,7 +499,7 @@ const searchResults: OnyxTypes.SearchResults = {
             hasEReceipt: false,
             isFromOneTransactionReport: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -787,7 +787,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -800,14 +800,14 @@ const transactionsListItems = [
         isFromOneTransactionReport: true,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -851,7 +851,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -864,13 +864,13 @@ const transactionsListItems = [
         isFromOneTransactionReport: true,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -921,7 +921,7 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -948,7 +948,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         keyForList: '3',
         isAmountColumnWide: false,
@@ -985,7 +985,7 @@ const transactionsListItems = [
         hasEReceipt: false,
         isFromOneTransactionReport: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -1012,7 +1012,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         keyForList: '4',
         isAmountColumnWide: false,
@@ -1084,7 +1084,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1097,14 +1097,14 @@ const transactionReportGroupListItems = [
                 isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1185,7 +1185,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1204,13 +1204,13 @@ const transactionReportGroupListItems = [
                 isFromOneTransactionReport: true,
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -2395,9 +2395,9 @@ describe('SearchUIUtils', () => {
 
             const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
-            menuItems.forEach((item, index) => {
+            for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
-            });
+            }
         });
     });
 
@@ -2863,14 +2863,21 @@ describe('SearchUIUtils', () => {
         const hash = 12345;
         const backTo = '/search/all';
 
-        test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test('Should create transaction thread report and set optimistic data when IOU action exists (moneyRequestReportActionID is not "0")', () => {
             const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
 
+            // Should call setOptimisticDataForTransactionThreadPreview to populate Onyx with snapshot data
             expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+
+            // Should pass reportActionID but NOT transaction/violations since IOU action exists in backend
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction, undefined, undefined);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
         });
 
@@ -2882,6 +2889,59 @@ describe('SearchUIUtils', () => {
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+
+        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
+            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            // Create a legacy transaction item with moneyRequestReportActionID = '0'
+            const legacyTransactionItem = {
+                ...transactionListItem,
+                moneyRequestReportActionID: '0',
+            };
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, hash, backTo);
+
+            // Should NOT call setOptimisticDataForTransactionThreadPreview for legacy transactions
+            expect(setOptimisticDataForTransactionThreadMock).not.toHaveBeenCalled();
+
+            // Extract the transaction by removing UI-specific and search-specific fields
+            const {
+                keyForList,
+                action,
+                allActions,
+                report,
+                from,
+                to,
+                formattedFrom,
+                formattedTo,
+                formattedTotal,
+                formattedMerchant,
+                date,
+                shouldShowMerchant,
+                shouldShowYear,
+                isAmountColumnWide,
+                isTaxAmountColumnWide,
+                violations,
+                hash: itemHash,
+                moneyRequestReportActionID,
+                canDelete,
+                canHold,
+                canUnhold,
+                convertedAmount,
+                convertedCurrency,
+                transactionThreadReportID,
+                isFromOneTransactionReport,
+                accountID,
+                policyID: searchPolicyID,
+                transactionType,
+                ...expectedTransaction
+            } = legacyTransactionItem;
+
+            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
+            // '0' is treated as empty string for reportActionID
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: ''}, expect.objectContaining(expectedTransaction), violations);
         });
     });
 
