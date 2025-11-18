@@ -960,6 +960,7 @@ function MoneyRequestConfirmationList({
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
+            shouldShowTax,
             transaction,
             iouCategory.length,
             policyTags,
