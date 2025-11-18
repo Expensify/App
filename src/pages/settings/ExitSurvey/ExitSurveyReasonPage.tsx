@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -77,7 +78,7 @@ function ExitSurveyReasonPage() {
                 onSubmit={submitForm}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
-                validate={(values) => {
+                validate={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => {
                     const errors: Errors = {};
                     const response = values[INPUT_IDS.RESPONSE] ?? '';
                     if (!response.trim()) {
