@@ -98,7 +98,7 @@ import type {IOURequestType} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handlePreexistingReport, openUnreportedExpense} from './actions/Report';
+import {getCurrentUserAccountID, handlePreexistingReport, openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -272,6 +272,7 @@ import {
     getTaxCode,
     getAmount as getTransactionAmount,
     getWaypoints,
+    getTransactionViolationsOfTransaction,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
@@ -2750,6 +2751,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(chatReport.policyID);
+    const currentUserAccountID = getCurrentUserAccountID();
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
         if (
@@ -2763,8 +2765,22 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
 
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
+        const hasAutoRejectedTransactionsForManager =
+            !!iouReport &&
+            iouReport.managerID === currentUserAccountID &&
+            transactions.length > 0 &&
+            transactions.every((transaction) => {
+                const transactionID = transaction?.transactionID;
+                if (!transactionID) {
+                    return false;
+                }
+                const transactionViolations = getTransactionViolationsOfTransaction(transactionID);
+                return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            });
+        const canSubmit =
+            !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit
         );
     });
 }
