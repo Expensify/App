@@ -167,8 +167,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         clearSelectedText();
         interceptAnonymousUser(() => {
             startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
-                name: '/search',
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
+                name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
             });
 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
