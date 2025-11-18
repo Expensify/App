@@ -271,8 +271,8 @@ import {
     getTaxAmount,
     getTaxCode,
     getAmount as getTransactionAmount,
-    getWaypoints,
     getTransactionViolationsOfTransaction,
+    getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
@@ -2777,11 +2777,8 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
                 const transactionViolations = getTransactionViolationsOfTransaction(transactionID);
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
-        const canSubmit =
-            !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false);
-        return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit
-        );
+        const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false);
+        return canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit;
     });
 }
 
