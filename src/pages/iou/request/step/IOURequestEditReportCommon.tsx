@@ -1,6 +1,7 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -8,7 +9,6 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -16,17 +16,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canAddTransaction,
-    getOutstandingReportsForUser,
-    getPolicyName,
-    getReportName,
-    isIOUReport,
-    isOpenReport,
-    isReportOwner,
-    isSelfDM,
-    sortOutstandingReportsBySelected,
-} from '@libs/ReportUtils';
+import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -73,7 +63,6 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Close'] as const);
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -181,12 +170,11 @@ function IOURequestEditReportCommon({
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
-                    ...(matchingOption ?? report),
+                    ...matchingOption,
                     // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
-                    text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
@@ -221,10 +209,10 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
-                icon={icons.Document}
+                icon={Expensicons.Document}
             />
         );
-    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, icons.Document]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -276,7 +264,7 @@ function IOURequestEditReportCommon({
                                 onPress={removeFromReport}
                                 title={translate('iou.removeFromReport')}
                                 description={translate('iou.moveToPersonalSpace')}
-                                icon={icons.Close}
+                                icon={Expensicons.Close}
                             />
                         )}
                         {createReportOption}
