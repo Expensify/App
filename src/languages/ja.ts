@@ -6175,6 +6175,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

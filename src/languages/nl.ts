@@ -6222,6 +6222,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
