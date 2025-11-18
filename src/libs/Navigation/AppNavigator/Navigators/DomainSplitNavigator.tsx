@@ -12,7 +12,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainInitialPage').default;
-const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/Saml/DomainSamlPage').default;
+const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;
 
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 

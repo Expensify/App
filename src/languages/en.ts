@@ -7605,6 +7605,8 @@ const translations = {
             allowMembers: 'Allow members to log in with SAML.',
             requireSamlLogin: 'Require SAML login',
             anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
+            enableError: "Couldn't update SAML enablement setting",
+            requireError: "Couldn't update SAML requirement setting",
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
@@ -7619,6 +7621,7 @@ const translations = {
             serviceProviderMetaData: 'Service Provider MetaData',
             oktaScimToken: 'Okta SCIM Token',
             revealToken: 'Reveal token',
+            fetchError: "Couldn't fetch SAML configuration details",
         },
     },
 };

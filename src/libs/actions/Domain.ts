@@ -114,24 +114,34 @@ function getSamlSettings(accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
             value: {
                 isLoading: true,
                 errors: null,
             },
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
             value: {
                 isLoading: null,
             },
         },
     ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
+            value: {
+                isLoading: null,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('domain.samlConfigurationDetails.fetchError'),
+            },
+        },
+    ];
 
-    API.read(READ_COMMANDS.GET_SAML_SETTINGS, {domainName}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.GET_SAML_SETTINGS, {domainName}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -159,15 +169,37 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
             },
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {settings: {isSamlEnabledLoading: null}},
         },
     ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {settings: {isSamlEnabledLoading: null, samlEnabledError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.enableError')}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {settings: {samlEnabled: !enabled}},
+        },
+    ];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAML_ENABLED, {enabled, domainName}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.UPDATE_SAML_ENABLED, {enabled, domainName}, {optimisticData, successData, failureData});
+}
+
+/**
+ * For dismissing SAML enabled errors
+ * Resets the errors only on the client's side, no server call is performed
+ */
+function resetSamlEnabledError(accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
+        settings: {samlEnabledError: null},
+    });
 }
 
 /**
@@ -195,15 +227,37 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
             },
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {settings: {isSamlRequiredLoading: null}},
         },
     ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {settings: {isSamlRequiredLoading: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
+            value: {settings: {samlRequired: !required}},
+        },
+    ];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAML_REQUIRED, {required, domainName}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.UPDATE_SAML_REQUIRED, {required, domainName}, {optimisticData, successData, failureData});
+}
+
+/**
+ * For dismissing SAML required errors
+ * Resets the errors only on the client's side, no server call is performed
+ */
+function resetSamlRequiredError(accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
+        settings: {samlRequiredError: null},
+    });
 }
 
 /**
@@ -226,4 +280,16 @@ function getScimToken(domainName: string): Promise<string> {
     });
 }
 
-export {getDomainValidationCode, validateDomain, resetDomainValidationError, openDomainInitialPage, getSamlSettings, setSamlEnabled, setSamlRequired, setSamlMetadata, getScimToken};
+export {
+    getDomainValidationCode,
+    validateDomain,
+    resetDomainValidationError,
+    openDomainInitialPage,
+    getSamlSettings,
+    setSamlEnabled,
+    resetSamlEnabledError,
+    setSamlRequired,
+    resetSamlRequiredError,
+    setSamlMetadata,
+    getScimToken,
+};

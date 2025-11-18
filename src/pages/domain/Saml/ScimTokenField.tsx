@@ -1,54 +1,52 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
-import FormHelpMessage from '@components/FormHelpMessage';
+import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getScimToken} from '@libs/actions/Domain';
+
+const ScimTokenState = {
+    VALUE: 'value',
+    LOADING: 'loading',
+    ERROR: 'error',
+} as const;
 
 function ScimTokenField({domainName}: {domainName: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
-    const [oktaScimToken, setOktaScimToken] = useState<{value: string} | {error: string} | 'loading' | undefined>(undefined);
+    const [oktaScimToken, setOktaScimToken] = useState<
+        {state: typeof ScimTokenState.VALUE; value: string} | {state: typeof ScimTokenState.ERROR; error: string} | {state: typeof ScimTokenState.LOADING} | undefined
+    >(undefined);
 
     const fetchOktaScimToken = () => {
-        setOktaScimToken('loading');
+        setOktaScimToken({state: ScimTokenState.LOADING});
         getScimToken(domainName ?? '')
-            .then((value) => setOktaScimToken({value}))
-            .catch((error: string) => setOktaScimToken({error}));
+            .then((value) => setOktaScimToken({state: ScimTokenState.VALUE, value}))
+            .catch((error: string) => setOktaScimToken({state: ScimTokenState.ERROR, error}));
     };
 
     // token not fetched yet
-    if (!oktaScimToken || oktaScimToken === 'loading') {
+    if (!oktaScimToken || oktaScimToken.state === ScimTokenState.LOADING) {
         return (
             <Button
                 text={translate('domain.samlConfigurationDetails.revealToken')}
                 style={styles.wFitContent}
                 onPress={fetchOktaScimToken}
-                isLoading={oktaScimToken === 'loading'}
+                isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
             />
         );
     }
 
     // token fetching failed
-    if ('error' in oktaScimToken) {
+    if (oktaScimToken.state === ScimTokenState.ERROR) {
         return (
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                <FormHelpMessage
-                    message={oktaScimToken.error}
-                    style={[styles.mt0, styles.mb0]}
-                />
-                <Button
-                    small
-                    text={translate('domain.retry')}
-                    onPress={fetchOktaScimToken}
-                    isDisabled={isOffline}
-                />
-            </View>
+            <FormHelpMessageRowWithRetryButton
+                message={oktaScimToken.error}
+                onRetry={fetchOktaScimToken}
+                isButtonSmall
+            />
         );
     }
 

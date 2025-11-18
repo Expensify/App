@@ -1,41 +1,40 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
-import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
+import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Domain} from '@src/types/onyx';
 
-function SamlLoginSectionSubtitle() {
-    const {translate} = useLocalize();
+const domainSettingsSelector = (domain: OnyxEntry<Domain>) =>
+    domain
+        ? {
+              settings: domain.settings,
+          }
+        : undefined;
 
-    return <RenderHTML html={translate('domain.samlLogin.subtitle')} />;
-}
-
-function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}: {accountID: number; domainName: string; isSamlEnabled: boolean; isSamlRequired: boolean}) {
+function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRequired}: {accountID: number; domainName: string; isSamlEnabled: boolean; isSamlRequired: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
+        canBeMissing: false,
+        selector: domainSettingsSelector,
+    });
 
     return (
-        <Section
-            title={translate('domain.samlLogin.title')}
-            renderSubtitle={SamlLoginSectionSubtitle}
-            isCentralPane
-            titleStyles={styles.accountSettingsSectionTitle}
-            childrenStyles={[styles.gap6, styles.pt6]}
-        >
+        <>
             <OfflineWithFeedback
                 pendingAction={domain?.settings.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                 errors={domain?.settings.samlEnabledError}
-                canDismissError={false}
+                onClose={() => resetSamlEnabledError(accountID)}
+                dismissError={() => resetSamlEnabledError(accountID)}
             >
                 <View style={styles.sectionMenuItemTopDescription}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
@@ -56,7 +55,8 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
                 <OfflineWithFeedback
                     pendingAction={domain?.settings.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                     errors={domain?.settings.samlRequiredError}
-                    canDismissError={false}
+                    onClose={() => resetSamlRequiredError(accountID)}
+                    dismissError={() => resetSamlRequiredError(accountID)}
                 >
                     <View style={styles.sectionMenuItemTopDescription}>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
@@ -72,10 +72,10 @@ function SamlLoginSection({accountID, domainName, isSamlEnabled, isSamlRequired}
                     </View>
                 </OfflineWithFeedback>
             )}
-        </Section>
+        </>
     );
 }
 
-SamlLoginSection.displayName = 'SamlLoginSection';
+SamlLoginSectionContent.displayName = 'SamlLoginSectionContent';
 
-export default SamlLoginSection;
+export default SamlLoginSectionContent;

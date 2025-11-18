@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import Section from '@components/Section';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,8 +25,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DomainSettings} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import SamlConfigurationDetailsSection from './SamlConfigurationDetailsSection';
-import SamlLoginSection from './SamlLoginSection';
+import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
+import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -55,27 +56,30 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const doesDomainExist = !!domain;
 
-    const samlFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.OpenSafe,
-            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-        },
-        {
-            icon: illustrations.ShieldYellow,
-            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-        },
-        {
-            icon: illustrations.LockClosed,
-            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-        },
-    ];
+    const samlFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: illustrations.OpenSafe,
+                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+            },
+            {
+                icon: illustrations.ShieldYellow,
+                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+            },
+            {
+                icon: illustrations.LockClosed,
+                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+            },
+        ],
+        [illustrations],
+    );
 
     useEffect(() => {
-        if (!domainName) {
+        if (!domainName || !isSamlEnabled) {
             return;
         }
         getSamlSettings(accountID, domainName);
-    }, [accountID, domainName]);
+    }, [accountID, domainName, isSamlEnabled]);
 
     return (
         <ScreenWrapper
@@ -104,19 +108,36 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                         {domain?.validated ? (
                             <>
-                                <SamlLoginSection
-                                    accountID={accountID}
-                                    domainName={domainName ?? ''}
-                                    isSamlEnabled={isSamlEnabled}
-                                    isSamlRequired={isSamlRequired}
-                                />
-
-                                {isSamlEnabled && (
-                                    <SamlConfigurationDetailsSection
+                                <Section
+                                    title={translate('domain.samlLogin.title')}
+                                    renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
+                                    isCentralPane
+                                    titleStyles={styles.accountSettingsSectionTitle}
+                                    childrenStyles={[styles.gap6, styles.pt6]}
+                                >
+                                    <SamlLoginSectionContent
                                         accountID={accountID}
                                         domainName={domainName ?? ''}
-                                        shouldShowOktaScim={isSamlRequired && !!domainSettings.oktaSCIM}
+                                        isSamlEnabled={isSamlEnabled}
+                                        isSamlRequired={isSamlRequired}
                                     />
+                                </Section>
+
+                                {isSamlEnabled && (
+                                    <Section
+                                        title={translate('domain.samlConfigurationDetails.title')}
+                                        subtitle={translate('domain.samlConfigurationDetails.subtitle')}
+                                        subtitleMuted
+                                        isCentralPane
+                                        titleStyles={styles.accountSettingsSectionTitle}
+                                        childrenStyles={[styles.gap6, styles.pt6]}
+                                    >
+                                        <SamlConfigurationDetailsSectionContent
+                                            accountID={accountID}
+                                            domainName={domainName ?? ''}
+                                            shouldShowScimToken={isSamlRequired && !!domainSettings.oktaSCIM}
+                                        />
+                                    </Section>
                                 )}
                             </>
                         ) : (

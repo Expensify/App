@@ -1,32 +1,44 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import CopyableTextField from '@components/Domain/CopyableTextField';
+import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Section from '@components/Section';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSamlMetadata} from '@libs/actions/Domain';
+import {getSamlSettings, setSamlMetadata} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Domain} from '@src/types/onyx';
 import ScimTokenField from './ScimTokenField';
 
-function SamlConfigurationDetailsSection({accountID, domainName, shouldShowOktaScim}: {accountID: number; domainName: string; shouldShowOktaScim: boolean}) {
+const domainSamlMetadataErrorSelector = (domain: OnyxEntry<Domain>) => domain?.samlMetadataError;
+
+function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldShowScimToken}: {accountID: number; domainName: string; shouldShowScimToken: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
-    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: false});
+    const [samlMetadataError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainSamlMetadataErrorSelector});
+    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: true});
+
+    if (samlMetadata?.isLoading) {
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
+    }
+
+    if (samlMetadata?.errors) {
+        return (
+            <FormHelpMessageRowWithRetryButton
+                message={getLatestErrorMessage(samlMetadata)}
+                onRetry={() => getSamlSettings(accountID, domainName)}
+            />
+        );
+    }
 
     return (
-        <Section
-            title={translate('domain.samlConfigurationDetails.title')}
-            subtitle={translate('domain.samlConfigurationDetails.subtitle')}
-            subtitleMuted
-            isCentralPane
-            titleStyles={styles.accountSettingsSectionTitle}
-            childrenStyles={[styles.gap6, styles.pt6]}
-        >
+        <>
             <TextPicker
                 value={samlMetadata?.metaIdentity}
                 inputID="identityProviderMetadata"
@@ -40,7 +52,7 @@ function SamlConfigurationDetailsSection({accountID, domainName, shouldShowOktaS
                 onValueCommitted={(value) => {
                     setSamlMetadata(accountID, domainName ?? '', {metaIdentity: value});
                 }}
-                errorText={getLatestErrorMessage({errors: domain?.samlMetadataError})}
+                errorText={getLatestErrorMessage({errors: samlMetadataError})}
                 maxLength={Infinity}
             />
 
@@ -114,7 +126,7 @@ function SamlConfigurationDetailsSection({accountID, domainName, shouldShowOktaS
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
             />
 
-            {shouldShowOktaScim && (
+            {shouldShowScimToken && (
                 <MenuItemWithTopDescription
                     titleComponent={<ScimTokenField domainName={domainName} />}
                     description={translate('domain.samlConfigurationDetails.oktaScimToken')}
@@ -123,10 +135,10 @@ function SamlConfigurationDetailsSection({accountID, domainName, shouldShowOktaS
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
                 />
             )}
-        </Section>
+        </>
     );
 }
 
-SamlConfigurationDetailsSection.displayName = 'SamlConfigurationDetailsSection';
+SamlConfigurationDetailsSectionContent.displayName = 'SamlConfigurationDetailsSectionContent';
 
-export default SamlConfigurationDetailsSection;
+export default SamlConfigurationDetailsSectionContent;
