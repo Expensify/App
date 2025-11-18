@@ -21,7 +21,7 @@ jest.mock('@libs/Parser', () => ({
     default: {
         htmlToText: jest.fn((html: string) => {
             // Simulate stripTag behavior: remove anything that looks like HTML tags
-            return html.replace(/(<([^>]+)>)/gi, '');
+            return html.replaceAll(/(<([^>]+)>)/gi, '');
         }),
     },
 }));

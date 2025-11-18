@@ -252,7 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => {
+        for (const workflow of updatedWorkflows) {
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
@@ -260,7 +260,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             } else {
                 updateApprovalWorkflow(workflow, [], [], policy);
             }
-        });
+        }
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
@@ -312,9 +312,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+            if (value !== member?.role) {
+                updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+            }
         },
-        [accountID, memberLogin, policyID],
+        [accountID, member?.role, memberLogin, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {

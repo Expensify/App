@@ -71,7 +71,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
-                    onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
+                    onChangeText={(text) => setSearchText(text.replaceAll(CONST.REGEX.NON_NUMERIC, '').trim())}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
