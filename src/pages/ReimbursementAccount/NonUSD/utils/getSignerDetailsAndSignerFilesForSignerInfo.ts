@@ -51,19 +51,19 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
         signerDetails[DATE_OF_BIRTH] = '';
         signerDetails[ADDRESS] = '';
 
-        beneficialOwnerFields.forEach((fieldName) => {
+        for (const fieldName of beneficialOwnerFields) {
             const beneficialFieldKey: BeneficialOwnerDataKey = `${BENEFICIAL_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${fieldName}`;
 
             if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
                 signerDetails[FULL_NAME] = signerDetails[FULL_NAME]
                     ? `${SafeString(signerDetails[FULL_NAME])} ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === DOB) {
                 signerDetails[DATE_OF_BIRTH] = SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
-                return;
+                continue;
             }
 
             if (fieldName === BENEFICIAL_STREET || fieldName === BENEFICIAL_CITY || fieldName === BENEFICIAL_STATE || fieldName === BENEFICIAL_ZIP_CODE) {
@@ -71,17 +71,17 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
                     ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : SafeString(reimbursementAccountDraft?.[beneficialFieldKey]);
             }
-        });
+        }
     }
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = reimbursementAccountDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }
