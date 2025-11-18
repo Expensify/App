@@ -392,7 +392,7 @@ function MoneyReportHeader({
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicates = hasDuplicateTransactions(email ?? '', moneyRequestReport?.reportID);
+    const hasDuplicates = hasDuplicateTransactions(email ?? '', moneyRequestReport, policy);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
     const shouldShowStatusBar =
         hasAllPendingRTERViolations ||

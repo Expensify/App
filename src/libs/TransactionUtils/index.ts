@@ -1468,11 +1468,16 @@ function hasViolation(
     );
 }
 
-function hasDuplicateTransactions(currentUserEmail: string, iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReportID);
+function hasDuplicateTransactions(
+    currentUserEmail: string,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    allReportTransactions?: SearchTransaction[],
+): boolean {
+    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, undefined, undefined));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, iouReport, policy));
 }
 
 /**

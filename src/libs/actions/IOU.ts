@@ -10251,7 +10251,7 @@ function approveMoneyRequest(
     const currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, expenseReport.reportID);
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, expenseReport, policy);
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
