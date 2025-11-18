@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -112,6 +113,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
+
+    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest', 'Exit'] as const);
 
     const shouldLogout = useRef(false);
 
@@ -260,7 +263,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.whatIsNew',
-                    icon: Expensicons.TreasureChest,
+                    icon: icons.TreasureChest,
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.WHATS_NEW_URL,
@@ -288,12 +291,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
+                    icon: icons.Exit,
                     action: () => signOut(false),
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, signOut, icons]);
 
     /**
      * Return JSX.Element with menu items

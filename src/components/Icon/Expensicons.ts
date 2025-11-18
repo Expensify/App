@@ -73,7 +73,6 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
-import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
@@ -195,7 +194,6 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
-import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
@@ -273,7 +271,6 @@ export {
     EReceiptIcon,
     Emoji,
     Exclamation,
-    Exit,
     Expand,
     Export,
     Eye,
@@ -342,7 +339,6 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
-    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
