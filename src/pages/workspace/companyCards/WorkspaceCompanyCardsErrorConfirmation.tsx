@@ -8,17 +8,17 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
-    newFeed?: CompanyCardFeedWithDomainID;
+    newFeed?: CompanyCardFeed;
 };
 
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
@@ -26,7 +26,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
-    const [cardsList] = useCardsList(newFeed);
+    const [cardsList] = useCardsList(policyID, newFeed);
     const [cardFeeds] = useCardFeeds(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -39,10 +39,10 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         }
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
-        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
+        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).find(
             (feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getCompanyCardFeed(newFeed), cardIDs, feedToOpen);
+        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, newFeed, cardIDs, feedToOpen);
     };
 
     const onButtonPress = () => {

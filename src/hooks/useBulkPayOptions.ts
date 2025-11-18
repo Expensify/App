@@ -155,7 +155,7 @@ function useBulkPayOptions({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            activeAdminPolicies.forEach((activePolicy) => {
+            for (const activePolicy of activeAdminPolicies) {
                 const policyName = activePolicy.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
@@ -163,7 +163,7 @@ function useBulkPayOptions({
                     key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
                 });
-            });
+            }
         }
 
         if (shouldShowPayElsewhereOption) {

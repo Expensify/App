@@ -835,17 +835,17 @@ function MoneyRequestConfirmationList({
         }
 
         let updatedTagsString = getTag(transaction);
-        policyTagLists.forEach((tagList, index) => {
+        for (const [index, tagList] of policyTagLists.entries()) {
             const isTagListRequired = tagList.required ?? false;
             if (!isTagListRequired) {
-                return;
+                continue;
             }
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
             if (enabledTags.length !== 1 || getTag(transaction, index)) {
-                return;
+                continue;
             }
             updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
-        });
+        }
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
