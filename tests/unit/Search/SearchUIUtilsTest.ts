@@ -2846,21 +2846,14 @@ describe('SearchUIUtils', () => {
         const hash = 12345;
         const backTo = '/search/all';
 
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        test('Should create transaction thread report and set optimistic data when IOU action exists (moneyRequestReportActionID is not "0")', () => {
+        test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
 
-            // Should call setOptimisticDataForTransactionThreadPreview to populate Onyx with snapshot data
             expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
-
-            // Should pass reportActionID but NOT transaction/violations since IOU action exists in backend
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
         });
 
@@ -2872,57 +2865,6 @@ describe('SearchUIUtils', () => {
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
-        });
-
-        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
-            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
-            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
-
-            // Create a legacy transaction item with moneyRequestReportActionID = '0'
-            const legacyTransactionItem = {
-                ...transactionListItem,
-                moneyRequestReportActionID: '0',
-            };
-
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, hash, backTo);
-
-            // Should NOT call setOptimisticDataForTransactionThreadPreview for legacy transactions
-            expect(setOptimisticDataForTransactionThreadMock).not.toHaveBeenCalled();
-
-            // Extract the transaction by removing UI-specific and search-specific fields
-            const {
-                keyForList,
-                action,
-                allActions,
-                report,
-                from,
-                to,
-                formattedFrom,
-                formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowYear,
-                isAmountColumnWide,
-                isTaxAmountColumnWide,
-                violations,
-                hash: itemHash,
-                moneyRequestReportActionID,
-                canDelete,
-                convertedAmount,
-                convertedCurrency,
-                transactionThreadReportID,
-                isFromOneTransactionReport,
-                accountID,
-                policyID: searchPolicyID,
-                transactionType,
-                ...expectedTransaction
-            } = legacyTransactionItem;
-
-            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
-            // '0' is treated as empty string for reportActionID
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: ''}, expect.objectContaining(expectedTransaction), violations);
         });
     });
 
