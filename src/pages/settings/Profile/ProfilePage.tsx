@@ -71,7 +71,7 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
         },
         {
-            description: translate('contacts.contactMethod'),
+            description: translate('contacts.contactMethods'),
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
