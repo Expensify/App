@@ -1,10 +1,11 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -89,5 +90,25 @@ describe('IOURequestStartPage', () => {
             });
         });
         expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+    });
+
+    it('should load IOURequestStepScan illustrations via lazy loading', () => {
+        // Test that IOURequestStepScan's lazy-loaded illustrations are available
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Hand', 'MultiScan', 'Shutter', 'ReceiptUpload'] as const));
+
+        expect(result.current.Hand).toBeDefined();
+        expect(result.current.MultiScan).toBeDefined();
+        expect(result.current.Shutter).toBeDefined();
+        expect(result.current.ReceiptUpload).toBeDefined();
+    });
+
+    it('should load IOURequestStepScan icons via lazy loading', () => {
+        // Test that IOURequestStepScan's lazy-loaded Expensify icons are available
+        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash'] as const));
+
+        expect(result.current.Bolt).toBeDefined();
+        expect(result.current.Gallery).toBeDefined();
+        expect(result.current.ReceiptMultiple).toBeDefined();
+        expect(result.current.boltSlash).toBeDefined();
     });
 });
