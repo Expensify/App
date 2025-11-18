@@ -2252,10 +2252,10 @@ ${merchant}的${amount} - ${date}`,
         theme: '主题',
         themes: {
             dark: {
-                label: 'Dark',
+                label: '深色',
             },
             light: {
-                label: '光',
+                label: '浅色',
             },
             system: {
                 label: '使用设备设置',
