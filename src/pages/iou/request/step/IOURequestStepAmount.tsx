@@ -20,7 +20,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, getTransactionDetails, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -33,7 +33,6 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTaxAmount,
     setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
@@ -179,10 +178,6 @@ function IOURequestStepAmount({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
-        // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
-        // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
-        setMoneyRequestTaxAmount(transactionID, null);
-
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -262,8 +257,8 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If there was no reportID, then that means the user started this flow from the global + menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
+        // Starting from global + menu means no participant context exists yet,
+        // so we need to handle participant selection based on available workspace settings
         if (
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
@@ -273,17 +268,38 @@ function IOURequestStepAmount({
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                        transactionID,
-                        activePolicyExpenseChat?.reportID,
-                    ),
-                );
-            });
+            const isReturningFromConfirmationPage = !!transaction?.participants?.length;
+
+            const resetToDefaultWorkspace = () => {
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
+                });
+            };
+
+            if (isReturningFromConfirmationPage) {
+                const firstParticipant = transaction?.participants?.at(0);
+                const isP2PChat = isParticipantP2P(firstParticipant);
+                const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
+
+                // P2P chats don't support negative amounts, so reset to default workspace when amount is negative.
+                if (isP2PChat && isNegativeAmount) {
+                    resetToDefaultWorkspace();
+                    return;
+                }
+
+                // Preserve user's participant selection to avoid forcing them back to default workspace.
+                const iouReportID = transaction?.reportID;
+                const selectedReport = iouReportID ? getReportOrDraftReport(iouReportID) : null;
+                const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+                const chatReportID = selectedReport?.chatReportID ?? iouReportID;
+
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
+                });
+            } else {
+                resetToDefaultWorkspace();
+            }
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 navigateToParticipantPage(iouType, transactionID, reportID);
@@ -371,6 +387,13 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
+/**
+ * Check if the participant is a P2P chat
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+}
+
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
@@ -378,3 +401,4 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
+export {isParticipantP2P};
