@@ -88,7 +88,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
-    const {policy, tagLists: policyTags} = policyData;
+    const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});

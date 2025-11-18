@@ -99,7 +99,7 @@ describe('usePolicyData', () => {
         expect(result.current?.reports).toHaveLength(1);
         expect(result.current?.reports.at(0)).toEqual(mockIOUReport);
 
-        expect(result.current.transactionsAndViolations).toEqual(expectedTransactionsAndViolations);
+        expect(result.current?.transactionsAndViolations).toEqual(expectedTransactionsAndViolations);
     });
 
     test('returns default empty values when policy ID does not exist in the onyx', () => {

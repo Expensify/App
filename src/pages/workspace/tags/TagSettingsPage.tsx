@@ -45,7 +45,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
-    const {policy, tagLists: policyTags} = policyData;
+    const {policy, tags: policyTags} = policyData;
     const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);

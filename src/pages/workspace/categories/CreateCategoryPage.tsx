@@ -5,8 +5,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
-import useThemeStyles from '@hooks/useThemeStyles';
 import usePolicyData from '@hooks/usePolicyData';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -47,15 +47,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             );
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyData.policyID, backTo) : undefined);
         },
-        [
-            policyData,
-            isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            isQuickSettingsFlow,
-            backTo,
-        ],
+        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID, isQuickSettingsFlow, backTo],
     );
 
     return (

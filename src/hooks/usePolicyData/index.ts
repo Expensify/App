@@ -54,7 +54,7 @@ function usePolicyData(policyID: string): PolicyData {
     return {
         transactionsAndViolations,
         tags: tags ?? {},
-        categories: categories ?? {},
+        categories,
         policyID,
         policy,
         reports: Object.values(reports ?? {}),

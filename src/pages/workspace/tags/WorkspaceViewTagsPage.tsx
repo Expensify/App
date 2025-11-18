@@ -68,7 +68,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
-    const {policy, tagLists: policyTags} = policyData;
+    const {policy, tags: policyTags} = policyData;
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
