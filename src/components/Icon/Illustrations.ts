@@ -29,28 +29,6 @@ import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-cof
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
-import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
-import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
-import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
-import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
-import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
-import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
-import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
-import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
-import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
-import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
-import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
-import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
-import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
-import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
-import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
-import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
-import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
-import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
-import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
-import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
-import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
-import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -115,29 +93,16 @@ import ExpensifyApprovedLogo from '@assets/images/subscription-details__approved
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
-    Abracadabra,
     Encryption,
-    BrokenMagnifyingGlass,
     ChatBubbles,
     PinkCar,
     Computer,
     EmailAddress,
     EmptyCardState,
-    EmptyStateExpenses,
     EnvelopeReceipt,
     ExpensifyCardImage,
-    PaymentHands,
-    MagicCode,
     Mailbox,
-    MushroomTopHat,
-    RocketBlue,
-    RocketDude,
-    ToddBehindCloud,
-    SewerDino,
-    ToddWithPhones,
-    ToddInCar,
     ShieldYellow,
-    BrokenCompanyCardBankConnection,
     CreditCardsNewGreen,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
@@ -148,9 +113,7 @@ export {
     ConciergeBubble,
     TreasureChest,
     ThumbsUpStars,
-    Hands,
     HeadSet,
-    SmartScan,
     Hourglass,
     CommentBubbles,
     TrashCan,
@@ -161,11 +124,8 @@ export {
     Gears,
     QRCode,
     RealtimeReport,
-    HoldExpense,
-    ReceiptFairy,
     Approval,
     PendingBank,
-    ThreeLeggedLaptopWoman,
     House,
     Buildings,
     Alert,
@@ -189,7 +149,6 @@ export {
     CheckmarkCircle,
     CreditCardEyes,
     LockClosedOrange,
-    FolderWithPapers,
     VirtualCard,
     Tire,
     Filters,
@@ -219,13 +178,10 @@ export {
     WellsFargoCompanyCardDetailLarge,
     Flash,
     ExpensifyMobileApp,
-    ModalHoldOrReject,
     ThumbsDown,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,
-    ReceiptsStackedOnPin,
     PaperAirplane,
-    CardReplacementSuccess,
     EmptyShelves,
     BlueShield,
     OpenSafe,
