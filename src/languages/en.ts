@@ -6287,22 +6287,31 @@ const translations = {
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
-            const action = enabled ? 'enabled' : 'disabled';
             switch (featureName) {
                 case 'categories':
+                    return `${enabled ? 'enabled' : 'disabled'} categories`;
                 case 'tags':
+                    return `${enabled ? 'enabled' : 'disabled'} tags`;
                 case 'workflows':
+                    return `${enabled ? 'enabled' : 'disabled'} workflows`;
                 case 'distance rates':
+                    return `${enabled ? 'enabled' : 'disabled'} distance rates`;
                 case 'accounting':
+                    return `${enabled ? 'enabled' : 'disabled'} accounting`;
                 case 'Expensify Cards':
+                    return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
                 case 'company cards':
+                    return `${enabled ? 'enabled' : 'disabled'} company cards`;
                 case 'invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} invoicing`;
                 case 'per diem':
+                    return `${enabled ? 'enabled' : 'disabled'} per diem`;
                 case 'receipt partners':
+                    return `${enabled ? 'enabled' : 'disabled'} receipt partners`;
                 case 'rules':
-                    return `${action} ${featureName}`;
+                    return `${enabled ? 'enabled' : 'disabled'} rules`;
                 default:
-                    return `${action} ${featureName}`;
+                    return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
             }
         },
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,

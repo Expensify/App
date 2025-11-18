@@ -5946,32 +5946,31 @@ ${amount} para ${merchant} - ${date}`,
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}) => {
-            const action = enabled ? 'habilitó' : 'deshabilitó';
             switch (featureName) {
                 case 'categories':
-                    return `${action} las categorías`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las categorías`;
                 case 'tags':
-                    return `${action} las etiquetas`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las etiquetas`;
                 case 'workflows':
-                    return `${action} los flujos de trabajo`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} los flujos de trabajo`;
                 case 'distance rates':
-                    return `${action} las tasas por distancia`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las tasas por distancia`;
                 case 'accounting':
-                    return `${action} la contabilidad`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} la contabilidad`;
                 case 'Expensify Cards':
-                    return `${action} las Tarjetas Expensify`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las Tarjetas Expensify`;
                 case 'company cards':
-                    return `${action} las tarjetas de empresa`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las tarjetas de empresa`;
                 case 'invoicing':
-                    return `${action} la facturación`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} la facturación`;
                 case 'per diem':
-                    return `${action} los viáticos`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} los viáticos`;
                 case 'receipt partners':
-                    return `${action} los socios de recibos`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} los socios de recibos`;
                 case 'rules':
-                    return `${action} las reglas`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} las reglas`;
                 default:
-                    return `${action} ${featureName}`;
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} ${featureName}`;
             }
         },
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,

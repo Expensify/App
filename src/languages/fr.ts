@@ -6260,6 +6260,34 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'activé' : 'désactivé'} catégories`;
+                case 'tags':
+                    return `${enabled ? 'activé' : 'désactivé'} étiquettes`;
+                case 'workflows':
+                    return `${enabled ? 'activé' : 'désactivé'} flux de travail`;
+                case 'distance rates':
+                    return `${enabled ? 'activé' : 'désactivé'} tarifs de distance`;
+                case 'accounting':
+                    return `${enabled ? 'activé' : 'désactivé'} comptabilité`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'activé' : 'désactivé'} Cartes Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'activé' : 'désactivé'} cartes d’entreprise`;
+                case 'invoicing':
+                    return `Facturation ${enabled ? 'activé' : 'désactivé'}`;
+                case 'per diem':
+                    return `${enabled ? 'activé' : 'désactivé'} d'indemnité journalière`;
+                case 'receipt partners':
+                    return `${enabled ? 'activé' : 'désactivé'} partenaires de reçus`;
+                case 'rules':
+                    return `${enabled ? 'activé' : 'désactivé'} règles`;
+                default:
+                    return `${enabled ? 'activé' : 'désactivé'} ${featureName}`;
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',

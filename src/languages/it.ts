@@ -6239,6 +6239,34 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} categorie`;
+                case 'tags':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} etichette`;
+                case 'workflows':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} flussi di lavoro`;
+                case 'distance rates':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} tariffe chilometriche`;
+                case 'accounting':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} contabilità`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} Carte Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} carte aziendali`;
+                case 'invoicing':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} fatturazione`;
+                case 'per diem':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} diaria`;
+                case 'receipt partners':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} partner per le ricevute`;
+                case 'rules':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} regole`;
+                default:
+                    return `${enabled ? 'abilitato' : 'disabilitato'} ${featureName}`;
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
