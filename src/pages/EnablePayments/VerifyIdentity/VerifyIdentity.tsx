@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Growl from '@libs/Growl';
 import {openOnfidoFlow, updateAddPersonalBankAccountDraft, verifyIdentity} from '@userActions/BankAccounts';
-import * as Wallet from '@userActions/Wallet';
+import {updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,7 +50,7 @@ function VerifyIdentity() {
     };
 
     const goBack = () => {
-        Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+        updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     };
 
     return (
