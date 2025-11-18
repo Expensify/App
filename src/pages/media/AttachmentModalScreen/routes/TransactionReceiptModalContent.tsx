@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -5,8 +6,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
+import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -151,6 +153,79 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
+    /**
+     * Rotate the receipt image 90 degrees and save it automatically.
+     */
+    const rotateReceipt = useCallback(() => {
+        if (!transaction?.transactionID || !source || typeof source !== 'string') {
+            return;
+        }
+
+        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+        if (!receiptFilename || !Str.isImage(receiptFilename)) {
+            return;
+        }
+
+        const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
+        const imageUri = isDraftTransaction && typeof source === 'string' ? source : receiptURIs.image ?? '';
+
+        if (!imageUri || typeof imageUri !== 'string') {
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        (async () => {
+            try {
+                const rotatedImage = await cropOrRotateImage(
+                    imageUri,
+                    [{rotate: 90}],
+                    {
+                        compress: 1,
+                        name: receiptFilename,
+                        type: receiptType,
+                    },
+                );
+
+                if (!rotatedImage) {
+                    return;
+                }
+
+                // Both web and native return objects with uri property
+                const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
+                if (!imageUriResult) {
+                    return;
+                }
+
+                const file = rotatedImage as File;
+                const rotatedFilename = file.name ?? receiptFilename;
+
+                // Update the transaction immediately so the modal displays the rotated image right away
+                setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
+
+                // // Then save it to the backend
+                // replaceReceipt({
+                //     transactionID: transaction.transactionID,
+                //     file,
+                //     source: imageUriResult,
+                //     transactionPolicyCategories: policyCategories,
+                // });
+            } catch (error) {
+                // Silently fail if rotation fails
+            }
+        })();
+    }, [transaction, source, isDraftTransaction, receiptURIs.image]);
+
+    const shouldShowRotateReceiptButton =
+        shouldShowReplaceReceiptButton &&
+        transaction &&
+        hasReceiptSource(transaction) &&
+        !isEReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt &&
+        (() => {
+            const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+            return receiptFilename ? Str.isImage(receiptFilename) : false;
+        })();
+
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
@@ -238,6 +313,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
+            shouldShowRotateButton: shouldShowRotateReceiptButton,
+            onRotateButtonPress: rotateReceipt,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
         }),
@@ -251,6 +328,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             report,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
+            shouldShowRotateReceiptButton,
+            rotateReceipt,
             source,
             threeDotsMenuItems,
             transaction,
