@@ -40,14 +40,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const isEmpty = useMemo(() => reportItem.transactions.length === 0, [reportItem.transactions.length]);
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    const snapshotData = snapshot?.data;
+
     const snapshotReport = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
-    }, [snapshot, reportItem.reportID]);
+        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+    }, [snapshotData, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, reportItem.policyID]);
+        return (snapshotData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    }, [snapshotData, reportItem.policyID]);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
