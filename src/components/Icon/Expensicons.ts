@@ -71,7 +71,6 @@ import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
-import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
@@ -276,7 +275,6 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
-    EmptyStateRoutePending,
     Exclamation,
     Exit,
     Expand,
