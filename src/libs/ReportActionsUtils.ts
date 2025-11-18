@@ -2856,11 +2856,10 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
 }
 
 function getWorkspaceAttendeeTrackingUpdateMessage(action: ReportAction): string {
-    const {newValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
-    const enabled = newValue === 'true';
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled});
+    return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
 }
 
 function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction): string {
