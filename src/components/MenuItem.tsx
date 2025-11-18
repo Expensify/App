@@ -590,8 +590,6 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight !== undefined || (shouldShowRightComponent && rightComponent);
-
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
@@ -895,7 +893,7 @@ function MenuItem({
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}

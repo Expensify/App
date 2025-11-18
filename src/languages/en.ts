@@ -7622,6 +7622,7 @@ const translations = {
             oktaScimToken: 'Okta SCIM Token',
             revealToken: 'Reveal token',
             fetchError: "Couldn't fetch SAML configuration details",
+            setMetadataGenericError: "Couldn't set SAML MetaData",
         },
     },
 };

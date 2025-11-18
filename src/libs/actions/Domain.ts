@@ -75,7 +75,7 @@ function validateDomain(accountID: number, domainName: string) {
 }
 
 /**
- * For resetting domain validation errors, when opening the verification flow
+ * For resetting domain validation errors when opening the verification flow
  * Resets the errors only on the client's side, no server call is performed
  */
 function resetDomainValidationError(accountID: number) {
@@ -103,8 +103,17 @@ function setSamlMetadata(accountID: number, domainName: string, settings: Partia
             },
         },
     ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlMetadataError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlConfigurationDetails.setMetadataGenericError'),
+            },
+        },
+    ];
 
-    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {...settings, domainName}, {optimisticData});
+    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {...settings, domainName}, {optimisticData, failureData});
 }
 
 /**
