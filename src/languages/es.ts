@@ -5945,6 +5945,35 @@ ${amount} para ${merchant} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}) => {
+            const action = enabled ? 'habilitó' : 'deshabilitó';
+            switch (featureName) {
+                case 'categories':
+                    return `${action} las categorías`;
+                case 'tags':
+                    return `${action} las etiquetas`;
+                case 'workflows':
+                    return `${action} los flujos de trabajo`;
+                case 'distance rates':
+                    return `${action} las tasas por distancia`;
+                case 'accounting':
+                    return `${action} la contabilidad`;
+                case 'Expensify Cards':
+                    return `${action} las Tarjetas Expensify`;
+                case 'company cards':
+                    return `${action} las tarjetas de empresa`;
+                case 'invoicing':
+                    return `${action} la facturación`;
+                case 'per diem':
+                    return `${action} los viáticos`;
+                case 'receipt partners':
+                    return `${action} los socios de recibos`;
+                case 'rules':
+                    return `${action} las reglas`;
+                default:
+                    return `${action} ${featureName}`;
+            }
+        },
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {

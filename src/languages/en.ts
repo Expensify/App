@@ -6286,6 +6286,25 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            const action = enabled ? 'enabled' : 'disabled';
+            switch (featureName) {
+                case 'categories':
+                case 'tags':
+                case 'workflows':
+                case 'distance rates':
+                case 'accounting':
+                case 'Expensify Cards':
+                case 'company cards':
+                case 'invoicing':
+                case 'per diem':
+                case 'receipt partners':
+                case 'rules':
+                    return `${action} ${featureName}`;
+                default:
+                    return `${action} ${featureName}`;
+            }
+        },
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
