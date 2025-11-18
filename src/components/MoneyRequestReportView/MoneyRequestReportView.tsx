@@ -61,6 +61,16 @@ function goBackFromSearchMoneyRequest() {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
+    if (!lastRoute) {
+        Log.hmmm('[goBackFromSearchMoneyRequest()] No last route found in root state.');
+        return;
+    }
+
+    if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        Navigation.goBack();
+        return;
+    }
+
     if (lastRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
         Log.hmmm('[goBackFromSearchMoneyRequest()] goBackFromSearchMoneyRequest was called from a different navigator than SearchFullscreenNavigator.');
         return;
