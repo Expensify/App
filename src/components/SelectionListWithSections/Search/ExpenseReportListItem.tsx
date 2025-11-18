@@ -64,6 +64,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         );
     }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
 
+    const handleCheckboxPress = useCallback(() => {
+        onCheckboxPress?.(reportItem as unknown as TItem);
+    }, [onCheckboxPress, reportItem]);
+
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
         styles.pv3,
@@ -114,7 +118,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     isActionLoading={isLoading}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
-                    onCheckboxPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                    onCheckboxPress={handleCheckboxPress}
                     onButtonPress={handleOnButtonPress}
                     avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
