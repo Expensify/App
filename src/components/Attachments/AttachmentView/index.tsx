@@ -9,12 +9,12 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -135,6 +135,7 @@ function AttachmentView({
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery'] as const);
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
@@ -291,7 +292,7 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={ArrowCircleClockwise}
+                        icon={expensifyIcons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
@@ -311,7 +312,7 @@ function AttachmentView({
                     <>
                         <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={Gallery}
+                                icon={expensifyIcons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}

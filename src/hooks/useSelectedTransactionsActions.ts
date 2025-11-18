@@ -27,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -62,6 +63,7 @@ function useSelectedTransactionsActions({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ArrowRight'] as const);
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
@@ -255,7 +257,7 @@ function useSelectedTransactionsActions({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            rightIcon: expensifyIcons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
 
@@ -288,7 +290,7 @@ function useSelectedTransactionsActions({
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),
-                icon: Expensicons.ArrowCollapse,
+                icon: expensifyIcons.ArrowCollapse,
                 value: MERGE,
                 onSelected: () => {
                     const targetTransaction = selectedTransactionsList.at(0);
@@ -345,6 +347,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         hasTransactionsFromMultipleOwners,
+        expensifyIcons,
     ]);
 
     return {

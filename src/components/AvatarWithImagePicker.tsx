@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,7 +88,7 @@ function AvatarWithImagePicker({
     onErrorClose = () => {},
     source = '',
     avatarID,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     isUsingDefaultAvatar = false,
@@ -115,6 +116,7 @@ function AvatarWithImagePicker({
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -260,7 +262,7 @@ function AvatarWithImagePicker({
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}
-                                        fallbackIcon={fallbackIcon}
+                                        fallbackIcon={fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
                                         editIcon={editIcon}

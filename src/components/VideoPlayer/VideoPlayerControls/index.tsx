@@ -11,6 +11,7 @@ import IconButton from '@components/VideoPlayer/IconButton';
 import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -68,6 +69,8 @@ function VideoPlayerControls({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
     const onLayout = (event: LayoutChangeEvent) => {
@@ -128,7 +131,7 @@ function VideoPlayerControls({
                             small={small}
                         />
                         <IconButton
-                            src={Expensicons.ThreeDots}
+                            src={expensifyIcons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}

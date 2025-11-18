@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
@@ -38,6 +39,8 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+
     const currentUserAccountID = getCurrentUserAccountID();
     const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
@@ -83,7 +86,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
                 <Avatar
                     source={icon.source}
@@ -120,7 +123,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
-                            disabled={icon.source === Expensicons.FallbackAvatar}
+                            disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}

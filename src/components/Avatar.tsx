@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -13,7 +14,6 @@ import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 
 type AvatarProps = {
@@ -66,7 +66,7 @@ function Avatar({
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     fallbackIconTestID = '',
     type,
     name = '',
@@ -77,6 +77,7 @@ function Avatar({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [imageError, setImageError] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     useNetwork({onReconnect: () => setImageError(false)});
 
@@ -94,8 +95,8 @@ function Avatar({
     if (maybeDefaultAvatarName) {
         optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
     }
-    const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
-    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const useFallBackAvatar = imageError || !source || source === expensifyIcons.FallbackAvatar;
+    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || expensifyIcons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 
@@ -108,7 +109,7 @@ function Avatar({
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
         // Assign the icon fill color only for the default fallback avatar
-    } else if (useFallBackAvatar && avatarSource === Expensicons.FallbackAvatar) {
+    } else if (useFallBackAvatar && avatarSource === expensifyIcons.FallbackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;

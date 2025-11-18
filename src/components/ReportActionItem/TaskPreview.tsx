@@ -13,6 +13,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -82,6 +83,8 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar'] as const);
+
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
@@ -99,7 +102,7 @@ function TaskPreview({
     const isTaskActionable = canActionTask(taskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
-    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
+    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? expensifyIcons.FallbackAvatar;
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
@@ -178,7 +181,7 @@ function TaskPreview({
                     </View>
                 )}
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={expensifyIcons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                     additionalStyles={iconWrapperStyle}
                 />

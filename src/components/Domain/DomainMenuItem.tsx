@@ -5,6 +5,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined =
         !isValidated && isAdmin
@@ -91,7 +93,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                                 />
                             ) : (
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={expensifyIcons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
                                     isButtonIcon

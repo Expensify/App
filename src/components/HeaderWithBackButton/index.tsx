@@ -13,6 +13,7 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -78,6 +79,7 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -220,7 +222,7 @@ function HeaderWithBackButton({
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
-                                src={Expensicons.BackArrow}
+                                src={expensifyIcons.BackArrow}
                                 fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>

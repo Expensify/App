@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -72,6 +73,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
+
     const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
@@ -136,7 +139,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                         {shouldDisplayCompactArrowIcon && (
                             <Icon
-                                src={Expensicons.ArrowRightLong}
+                                src={expensifyIcons.ArrowRightLong}
                                 width={variables.iconSizeXXSmall}
                                 height={variables.iconSizeXXSmall}
                                 fill={theme.icon}

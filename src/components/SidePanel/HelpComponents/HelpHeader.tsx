@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ type HelpHeaderProps = {
 function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: HelpHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
 
     const {translate} = useLocalize();
 
@@ -45,7 +47,7 @@ function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBac
                             accessibilityLabel={translate('common.back')}
                         >
                             <Icon
-                                src={Expensicons.BackArrow}
+                                src={expensifyIcons.BackArrow}
                                 fill={theme.icon}
                             />
                         </PressableWithoutFeedback>

@@ -2,6 +2,7 @@ import type {RefObject} from 'react';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -78,7 +79,7 @@ function AvatarButtonWithIcon({
     onPress,
     source = '',
     avatarID,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
@@ -89,6 +90,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     return (
         <Tooltip
@@ -111,7 +113,7 @@ function AvatarButtonWithIcon({
                             imageStyles={[styles.alignSelfCenter, avatarStyle]}
                             source={source}
                             avatarID={avatarID}
-                            fallbackIcon={fallbackIcon}
+                            fallbackIcon={fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon}
                             size={size}
                             type={type}
                             name={name}
