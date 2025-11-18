@@ -206,11 +206,11 @@ describe('getSettlementButtonPaymentMethods', () => {
         };
         const resultWithWallet = getSettlementButtonPaymentMethods(icons.current, true, translate);
         const resultWithoutWallet = getSettlementButtonPaymentMethods(icons.current, false, translate);
-        [resultWithWallet, resultWithoutWallet].forEach((result) => {
+        for (const result of [resultWithWallet, resultWithoutWallet]) {
             const paymentMethod = result[method];
             expect(paymentMethod.icon).toBe(expectedIcons[expectedValue]);
             expect(paymentMethod.value).toBe(expectedValue);
-        });
+        }
     });
 
     it('should only set shouldUpdateSelectedIndex for elsewhere payment type', () => {
