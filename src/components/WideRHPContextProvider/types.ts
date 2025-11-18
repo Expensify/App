@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import type {Animated} from 'react-native';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
 type WideRHPContextType = {
@@ -8,15 +6,6 @@ type WideRHPContextType = {
 
     // Route keys of screens that should be displayed in super wide format
     superWideRHPRouteKeys: string[];
-
-    // Progress of changing format: 0 - narrow, 1 - wide, 2 - super-wide
-    expandedRHPProgress: Animated.Value;
-
-    // Progress of the secondary overlay, the one covering wider RHP screen
-    secondOverlayProgress: Animated.Value;
-
-    // Progress of the tertiary overlay, the one covering wider RHP screen
-    thirdOverlayProgress: Animated.Value;
 
     // If the secondary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderSecondaryOverlay: boolean;

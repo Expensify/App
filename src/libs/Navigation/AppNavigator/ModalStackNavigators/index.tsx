@@ -2,7 +2,14 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
-import {modalStackOverlaySuperWideRHPWidth, modalStackOverlayWideRHPWidth, animatedReceiptPaneRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {
+    animatedReceiptPaneRHPWidth,
+    modalStackOverlaySuperWideRHPWidth,
+    modalStackOverlayWideRHPWidth,
+    secondOverlayProgress,
+    thirdOverlayProgress,
+    WideRHPContext,
+} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
@@ -105,8 +112,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {secondOverlayProgress, shouldRenderSecondaryOverlay, thirdOverlayProgress, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} =
-            useContext(WideRHPContext);
+        const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} = useContext(WideRHPContext);
         const route = useRoute();
 
         const isFocused = useIsFocused();
@@ -161,7 +167,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
                 {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
                 {/* Two cases were described for the secondary overlay: */}
-                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionaly check superWideRHPRouteKeys length as Super Wide RHP route might be dsiplayed in Wide RHP when number of visible transactions is less than 2.  */}
+                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionally check the length of superWideRHPRouteKeys because Super Wide RHP route can also be displayed in Wide RHP when the number of visible transactions is less than 2.  */}
                 {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}

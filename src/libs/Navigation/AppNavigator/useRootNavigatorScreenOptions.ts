@@ -1,10 +1,9 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import {useContext} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import {calculateSuperWideRHPWidth, WideRHPContext} from '@components/WideRHPContextProvider';
+import {calculateSuperWideRHPWidth, expandedRHPProgress} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,7 +43,6 @@ const useRootNavigatorScreenOptions = () => {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
-    const {expandedRHPProgress} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
 
     return {

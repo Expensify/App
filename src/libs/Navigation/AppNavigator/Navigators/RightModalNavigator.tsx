@@ -4,7 +4,16 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth, innerRHPProgress, WideRHPContext, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {
+    animatedWideRHPWidth,
+    calculateReceiptPaneRHPWidth,
+    calculateSuperWideRHPWidth,
+    expandedRHPProgress,
+    innerRHPProgress,
+    secondOverlayProgress,
+    thirdOverlayProgress,
+    WideRHPContext,
+} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -15,7 +24,6 @@ import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackN
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -37,17 +45,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {
-        expandedRHPProgress,
-        shouldRenderSecondaryOverlay,
-        secondOverlayProgress,
-        isWideRHPFocused,
-        shouldRenderTertiaryOverlay,
-        thirdOverlayProgress,
-        isWideRHPClosing,
-        dismissToFirstRHP,
-        dismissToSecondRHP,
-    } = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlay, isWideRHPFocused, shouldRenderTertiaryOverlay, isWideRHPClosing, dismissToFirstRHP, dismissToSecondRHP} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
@@ -262,7 +260,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             component={ModalStackNavigators.SearchReportModalStackNavigator}
                             options={{
-                                presentation: Presentation.TRANSPARENT_MODAL,
                                 web: {
                                     cardStyleInterpolator: (props: StackCardInterpolationProps) =>
                                         // Add 1 to change range from [0, 1] to [1, 2]

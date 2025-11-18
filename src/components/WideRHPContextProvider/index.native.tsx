@@ -6,9 +6,18 @@ import {Animated} from 'react-native';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
-const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
+const thirdOverlayProgress = new Animated.Value(0);
+
 const animatedReceiptPaneRHPWidth = new Animated.Value(0);
+const animatedWideRHPWidth = new Animated.Value(0);
+const animatedSuperWideRHPWidth = new Animated.Value(0);
+
+const modalStackOverlaySuperWideRHPWidth = new Animated.Value(0);
+const modalStackOverlayWideRHPWidth = new Animated.Value(0);
+
+const expandedRHPProgress = new Animated.Value(0);
+const innerRHPProgress = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -20,8 +29,35 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useShowWideRHPVersion(condition: boolean) {}
 
+// Super Wide RHP is not displayed on native platforms
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function useShowSuperWideRHPVersion(condition: boolean) {}
+
+// Wide RHP is not displayed on native platforms
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const calculateReceiptPaneRHPWidth = (windowWidth: number) => {};
+
+// Super Wide RHP is not displayed on native platforms
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const calculateSuperWideRHPWidth = (windowWidth: number) => {};
+
 WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
 export type {WideRHPContextType};
-export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, animatedReceiptPaneRHPWidth};
+export {
+    calculateReceiptPaneRHPWidth,
+    calculateSuperWideRHPWidth,
+    animatedSuperWideRHPWidth,
+    modalStackOverlaySuperWideRHPWidth,
+    modalStackOverlayWideRHPWidth,
+    animatedReceiptPaneRHPWidth,
+    secondOverlayProgress,
+    thirdOverlayProgress,
+    useShowSuperWideRHPVersion,
+    useShowWideRHPVersion,
+    WideRHPContext,
+    animatedWideRHPWidth,
+    innerRHPProgress,
+    expandedRHPProgress,
+};
