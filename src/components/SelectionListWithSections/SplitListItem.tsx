@@ -1,10 +1,9 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +31,7 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
@@ -110,7 +109,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
-                                        src={Folder}
+                                        src={icons.Folder}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -126,7 +125,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.tags?.at(0) && (
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
                                     <Icon
-                                        src={Tag}
+                                        src={icons.Tag}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -197,7 +196,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={icons.ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>
