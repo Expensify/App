@@ -26,6 +26,8 @@ import ROUTES from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import ExitSurveyOffline from './ExitSurveyOffline';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
 
@@ -76,6 +78,19 @@ function ExitSurveyReasonPage() {
                 onSubmit={submitForm}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
+                validate={() => {
+                    const errors: Errors = {};
+                    if (!draftResponse?.trim()) {
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
+                    } else if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
+                            length: draftResponse.length,
+                            limit: CONST.MAX_COMMENT_LENGTH,
+                        });
+                    }
+                    return errors;
+                }}
+                shouldHideFixErrorsAlert
                 shouldValidateOnChange
             >
                 {isOffline && <ExitSurveyOffline />}
