@@ -400,15 +400,15 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * Effect that shows/hides the expanded RHP progress based on the number of wide RHP routes.
      */
     useEffect(() => {
-        if (superWideRHPRouteKeys.length > 0) {
+        const numberOfSuperWideRoutes = superWideRHPRouteKeys.length;
+        const numberOfWideRoutes = wideRHPRouteKeys.length;
+
+        if (numberOfSuperWideRoutes > 0) {
             expandedRHPProgress.setValue(2);
-            if (wideRHPRouteKeys.length > 0) {
-                innerRHPProgress.setValue(1);
-            } else {
-                innerRHPProgress.setValue(0);
-            }
-        } else if (wideRHPRouteKeys.length > 0) {
+            innerRHPProgress.setValue(numberOfWideRoutes > 0 ? 1 : 0);
+        } else if (numberOfWideRoutes > 0) {
             expandedRHPProgress.setValue(1);
+            innerRHPProgress.setValue(0);
         } else {
             expandedRHPProgress.setValue(0);
             innerRHPProgress.setValue(0);
