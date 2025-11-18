@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -204,7 +205,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: updatedQuery,
+                    rawQuery: queryWithSubstitutions,
+                }),
+            );
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
