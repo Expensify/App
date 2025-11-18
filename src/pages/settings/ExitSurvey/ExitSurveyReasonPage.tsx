@@ -25,8 +25,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
-import ExitSurveyOffline from './ExitSurveyOffline';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import ExitSurveyOffline from './ExitSurveyOffline';
 
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
