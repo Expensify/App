@@ -1157,12 +1157,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        optimisticParentReportData.forEach((parentReportData) => {
+        for (const parentReportData of optimisticParentReportData) {
             if (isEmptyObject(parentReportData)) {
-                return;
+                continue;
             }
             optimisticData.push(parentReportData);
-        });
+        }
     }
 
     const successData: OnyxUpdate[] = [
