@@ -14,6 +14,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
@@ -25,6 +26,7 @@ import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
@@ -64,6 +66,7 @@ const Illustrations = {
     InvoiceBlue,
     MagnifyingGlassMoney,
     MoneyReceipts,
+    MoneyIntoWallet,
     MoneyWings,
     PerDiem,
     ReceiptWrangler,
@@ -75,6 +78,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    ShareBank,
     Luggage,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests

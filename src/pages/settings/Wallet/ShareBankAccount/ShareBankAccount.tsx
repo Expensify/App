@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ShareBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionListWithSections';
@@ -10,6 +9,7 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -22,8 +22,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {clearShareBankAccount, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
-import {getPaymentMethods} from '@userActions/PaymentMethods';
+import {clearShareBankAccount, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +33,8 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank'] as const);
+
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: false});
@@ -73,7 +74,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         if (isOffline) {
             return;
         }
-        getPaymentMethods();
+        openBankAccountSharePage();
     }, [isOffline]);
 
     useEffect(() => {
@@ -175,7 +176,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     <ConfirmationPage
                         heading={translate('walletPage.shareBankAccountSuccess')}
                         description={translate('walletPage.shareBankAccountSuccessDescription')}
-                        illustration={ShareBank}
+                        illustration={illustrations.ShareBank}
                         shouldShowButton
                         descriptionStyle={[styles.ph4, styles.textSupporting]}
                         illustrationStyle={styles.successBankSharedCardIllustration}

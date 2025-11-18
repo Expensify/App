@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -1344,6 +1344,36 @@ function getBankAccountFromID(bankAccountID: number | undefined) {
     return bankAccountList?.[bankAccountID];
 }
 
+function openBankAccountSharePage() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: true,
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: false,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: false,
+        },
+    ];
+
+    return API.read(READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1396,4 +1426,5 @@ export {
     sendReminderForCorpaySignerInformation,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
+    openBankAccountSharePage,
 };

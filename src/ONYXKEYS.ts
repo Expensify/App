@@ -341,6 +341,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    /** Set when we are loading bank accounts for share page */
+    IS_LOADING_SHARE_BANK_ACCOUNTS: 'isLoadingShareBankAccounts',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
@@ -1204,6 +1207,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
+    [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
