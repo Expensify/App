@@ -18,6 +18,7 @@ import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -39,6 +40,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
+import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -54,6 +56,7 @@ type EmptySearchViewProps = {
     similarSearchHash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+    queryJSON: SearchQueryJSON;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -94,7 +97,7 @@ const tripsFeatures: FeatureListItem[] = [
 
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
-function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
@@ -128,6 +131,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
                 searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
+                queryJSON={queryJSON}
             />
         </SearchScopeProvider>
     );
@@ -153,6 +157,7 @@ function EmptySearchViewContent({
     introSelected,
     hasSeenTour,
     searchMenuCreateReportConfirmationModal,
+    queryJSON,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -335,7 +340,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                if (hasResults) {
+                if (hasResults && (!isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),
@@ -389,7 +394,7 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasResults) {
+                if (hasResults && (!isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),

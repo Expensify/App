@@ -1095,6 +1095,10 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
+function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON) {
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+}
+
 /**
  * Always show `No category` and `No tag` as the first option
  */
@@ -1232,6 +1236,7 @@ export {
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
+    isDefaultExpenseReportsQuery,
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
