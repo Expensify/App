@@ -4,11 +4,12 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionListContextProvider, {useOptionsList} from '@components/OptionListContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {createOptionList} from '@libs/OptionsListUtils';
-import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/OptionsListUtils', () => {
-    const actual = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/OptionsListUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
         createOptionList: jest.fn(),
