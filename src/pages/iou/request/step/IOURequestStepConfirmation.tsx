@@ -515,20 +515,23 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
-    function getMoneyRequestContextForParticipant(participant: Participant | undefined, reportParam: Report | undefined) {
-        const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
-        return {
-            parentChatReport: isWorkspaceTarget ? reportParam : undefined,
-            policyParams: isWorkspaceTarget
-                ? {
-                      policy,
-                      policyTagList: policyTags,
-                      policyCategories,
-                      policyRecentlyUsedCategories,
-                  }
-                : {},
-        };
-    }
+    const getMoneyRequestContextForParticipant = useCallback(
+        (participant: Participant | undefined, reportParam: Report | undefined) => {
+            const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
+            return {
+                parentChatReport: isWorkspaceTarget ? reportParam : undefined,
+                policyParams: isWorkspaceTarget
+                    ? {
+                          policy,
+                          policyTagList: policyTags,
+                          policyCategories,
+                          policyRecentlyUsedCategories,
+                      }
+                    : {},
+            };
+        },
+        [policy, policyTags, policyCategories, policyRecentlyUsedCategories],
+    );
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
@@ -624,7 +627,6 @@ function IOURequestStepConfirmation({
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -744,9 +746,6 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             transactionTaxCode,
             transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
             action,
             customUnitRateID,
             isDraftPolicy,
@@ -807,10 +806,6 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
-            policy,
-            policyCategories,
-            policyTags,
-            policyRecentlyUsedCategories,
             isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
