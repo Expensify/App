@@ -13,15 +13,15 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
     );
     const transactionIDSet = new Set<string>();
-    reportsToArchive.forEach((report) => {
+    for (const report of reportsToArchive) {
         if (!report?.iouReportID) {
-            return;
+            continue;
         }
         const reportTransactions = getReportTransactions(report.iouReportID);
         for (const transaction of reportTransactions) {
             transactionIDSet.add(transaction.transactionID);
         }
-    });
+    }
 
     const transactionViolationSelector = useCallback(
         (violations: OnyxCollection<TransactionViolations>) => {
