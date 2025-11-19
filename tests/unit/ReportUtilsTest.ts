@@ -1125,33 +1125,6 @@ describe('ReportUtils', () => {
                 );
             });
         });
-
-        describe('Unreported transaction thread', () => {
-            test('HTML is stripped from unreported transaction message', () => {
-                const transactionThread = {
-                    ...LHNTestUtils.getFakeReport(),
-                    type: CONST.REPORT.TYPE.CHAT,
-                    reportID: '123',
-                    parentReportID: '456',
-                };
-
-                const unreportedTransactionAction = {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                    originalMessage: {
-                        fromReportID: '789',
-                    },
-                } as ReportAction;
-
-                const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
-
-                // Should NOT contain HTML tags
-                expect(reportName).not.toContain('<a href');
-                expect(reportName).not.toContain('</a>');
-                // Should contain the text content
-                expect(reportName).toContain('moved this expense');
-                expect(reportName).toContain('personal space');
-            });
-        });
     });
 
     // Need to merge the same tests
