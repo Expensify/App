@@ -910,10 +910,7 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <Animated.View
-                layout={LinearTransition.easing(Easing.out(Easing.quad))}
-                style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}
-            >
+            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -973,7 +970,7 @@ function MoneyRequestConfirmationListFooter({
                         />
                     </PressableWithoutFocus>
                 )}
-            </Animated.View>
+            </View>
         ),
         [
             styles.moneyRequestImage,
@@ -1098,10 +1095,7 @@ function MoneyRequestConfirmationListFooter({
 
             <View style={[styles.mb5, styles.mt2]}>
                 {isScan && (
-                    <Animated.View
-                        layout={LinearTransition.easing(Easing.out(Easing.quad))}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}
-                    >
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
                         <Icon
                             src={Expensicons.Sparkles}
                             fill={theme.icon}
@@ -1109,24 +1103,12 @@ function MoneyRequestConfirmationListFooter({
                             height={variables.iconSizeNormal}
                         />
                         <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                    </Animated.View>
+                    </View>
                 )}
 
                 {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
 
-                {!shouldRestrictHeight &&
-                    fields
-                        .filter((field) => field.shouldShow && !(field.isRequired ?? false))
-                        .map((field) => (
-                            <Animated.View
-                                key={field.item.key}
-                                entering={FadeInDown.easing(Easing.out(Easing.quad))}
-                                exiting={FadeOutUp.duration(500).easing(Easing.out(Easing.quad))}
-                                layout={LinearTransition.easing(Easing.out(Easing.quad))}
-                            >
-                                {field.item}
-                            </Animated.View>
-                        ))}
+                {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
 
                 {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
