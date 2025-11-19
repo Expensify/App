@@ -417,7 +417,6 @@ function buildNextStep(
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -790,7 +789,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
