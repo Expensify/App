@@ -249,7 +249,6 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
-
     const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -257,21 +256,12 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, []);
 
-    const handleTextInputRef = (element: BaseTextInputRef | null) => {
-        innerTextInputRef.current = element;
-
-        const textInputRef = textInputOptions?.ref;
-        if (!textInputRef) {
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef) {
             return;
         }
-
-        if (typeof textInputRef === 'function') {
-            textInputRef(element);
-        } else {
-            // eslint-disable-next-line react-compiler/react-compiler
-            textInputRef.current = element;
-        }
-    };
+        innerTextInputRef.current?.focus();
+    }, [innerTextInputRef]);
 
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
@@ -280,10 +270,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
         return (
             <TextInput
+                ref={innerTextInputRef}
+                focusTextInput={focusTextInput}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
-                ref={handleTextInputRef}
                 options={textInputOptions}
                 onSubmit={selectFocusedOption}
                 dataLength={data.length}
@@ -291,6 +282,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
+                setFocusedIndex={setFocusedIndex}
             />
         );
     };
