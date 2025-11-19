@@ -172,9 +172,9 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
+    isCurrentUserSubmitter,
     isDraftReport,
     isExpenseReport,
-    isCurrentUserSubmitter,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
@@ -4663,13 +4663,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
 
         // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
         if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
-            const hasRejectedExpenseViolation = currentTransactionViolations.some(
-                (violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-            );
+            const hasRejectedExpenseViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             if (hasRejectedExpenseViolation) {
-                currentTransactionViolations = currentTransactionViolations.filter(
-                    (violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                );
+                currentTransactionViolations = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
                 // Optimistically remove the violation immediately
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
