@@ -52,8 +52,8 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {doesReportReceiverMatchParticipant, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
-    getAttendees,
     getDefaultTaxCode,
+    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -319,11 +319,14 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
-        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
+        if (isMovingTransactionFromTrackExpense) {
+            return;
+        }
+        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat]);
+    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -626,6 +629,7 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
+            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -754,6 +758,7 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
+            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -818,6 +823,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
+            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -1298,7 +1304,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getAttendees(transaction)}
+                        iouAttendees={getOriginalAttendees(transaction)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
