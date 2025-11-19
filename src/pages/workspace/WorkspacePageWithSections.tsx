@@ -17,9 +17,10 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
-import Navigation from '@libs/Navigation/Navigation';
-import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -198,8 +199,17 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                onLinkPress={goBackFromInvalidPolicy}
+                onBackButtonPress={() => {
+                    const rootState = navigationRef.getRootState();
+                    const secondToLastRoute = rootState.routes.at(-2);
+
+                    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                        Navigation.dismissModal();
+                    } else {
+                        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+                    }
+                }}
+                onLinkPress={() => Navigation.goBackToHome()}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
