@@ -4559,7 +4559,7 @@ ${amount} para ${merchant} - ${date}`,
                     subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de empresa en un solo lugar.',
                     ctaText: 'Reservar o gestionar',
                 },
-            },            
+            },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
                 subtitle: 'Obtén información y control sobre tus gastos.',

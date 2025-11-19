@@ -1592,7 +1592,7 @@ function getTravelStep(
     if (hasAcceptedTerms) {
         return CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP;
     }
-    if (!isPolicyProvisioned && !isTravelVerifiedBetaEnabled) {
+    if (!isPolicyProvisioned && !isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
         return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;

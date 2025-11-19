@@ -72,7 +72,6 @@ const Illustrations = {
     Tag,
     CompanyCard,
     Workflows,
-    Luggage,
 
     CarIce,
     BlueShield,

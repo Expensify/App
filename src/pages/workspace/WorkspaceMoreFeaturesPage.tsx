@@ -119,7 +119,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Tag', 'PerDiem', 'HandCard', 'Coins', 'Luggage'] as const);
+    const illustrations = useMemoizedLazyIllustrations([
+        'FolderOpen',
+        'Accounting',
+        'CompanyCard',
+        'Workflows',
+        'InvoiceBlue',
+        'Rules',
+        'Tag',
+        'PerDiem',
+        'HandCard',
+        'Coins',
+        'Luggage',
+    ] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
