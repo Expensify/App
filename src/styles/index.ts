@@ -353,10 +353,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportStatusContainer: {
-            paddingHorizontal: 10,
+            paddingHorizontal: 4,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
+            minHeight: 16,
         },
 
         reportStatusText: {
@@ -4091,7 +4092,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorButton: {
-            padding: variables.tabSelectorButtonEffectivePadding,
+            minHeight: variables.tabSelectorButtonHeight,
+            padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -4424,7 +4426,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
         },
-
 
         textMicroSupportingPadding: {
             padding: variables.paddingSmall,

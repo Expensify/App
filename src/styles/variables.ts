@@ -52,6 +52,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    labelPaddingVertical: Math.abs((getValueUsingPixelRatio(13, 19) - 16) / 2),
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
@@ -179,7 +180,6 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
-    tabSelectorButtonEffectivePadding: 26, // (tabSelectorButtonHeight - tabSelectorButtonPadding) / 2 + tabSelectorButtonPadding
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
