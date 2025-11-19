@@ -967,6 +967,11 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
+ * @param avatar The avatar file to upload for a new group chat
+ * @param isNewThread Whether this is a new thread being created
+ * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
+ * @param transactionViolations The violations for the transaction, if any
+ * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
  */
 function openReport(
     reportID: string | undefined,
@@ -977,8 +982,10 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    transactionID?: string,
     isNewThread = false,
+    transaction?: Transaction,
+    transactionViolations?: TransactionViolations,
+    parentReportID?: string,
 ) {
     if (!reportID) {
         return;
@@ -1059,59 +1066,92 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        transactionID,
+        transactionID: transaction?.transactionID,
     };
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
-    if (transactionID && !parentReportActionID) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transaction && !parentReportActionID) {
+        const transactionParentReportID = parentReportID ?? transaction?.reportID;
+        const iouReportActionID = rand64();
 
-        if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+        const optimisticIOUAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: Math.abs(transaction.amount),
+            currency: transaction.currency,
+            comment: transaction.comment?.comment ?? '',
+            participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
+            transactionID: transaction.transactionID,
+            isOwnPolicyExpenseChat: true,
+            reportActionID: iouReportActionID,
+            iouReportID: transactionParentReportID,
+        });
 
-            if (selfDMReportID) {
-                const generatedReportActionID = rand64();
-                const optimisticParentAction = buildOptimisticIOUReportAction({
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount: Math.abs(transaction.amount),
-                    currency: transaction.currency,
-                    comment: transaction.comment?.comment ?? '',
-                    participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
-                    transactionID,
-                    isOwnPolicyExpenseChat: true,
-                });
+        // We have a case where the transaction data is only available from the snapshot
+        // So we need to add the transaction data to Onyx so it's available when opening the report
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        parentReportID: selfDMReportID,
-                        parentReportActionID: generatedReportActionID,
-                    },
-                });
+        // Add violations if they exist. This is needed when opening from search results where
+        // violations are in the snapshot but not yet synced to the main collections, so we need
+        // to add them to Onyx to ensure they show up in the transaction thread
+        if (transactionViolations) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: transactionViolations,
+            });
+        }
 
-                // Log how often the legacy transaction fallback path is taken
-                Log.info('[Report] Legacy transaction fallback: creating money request preview in self DM', false, {
-                    selfDMReportID,
-                    transactionID,
-                    reportID,
-                });
+        // Attach the optimistic IOU report action created for the transaction to the transaction thread
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                parentReportActionID: iouReportActionID,
+            },
+        });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                    value: {
-                        [generatedReportActionID]: {
-                            ...optimisticParentAction,
-                            reportActionID: generatedReportActionID,
-                            childReportID: reportID,
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: {
+                    ...optimisticIOUAction,
+                    childReportID: reportID,
+                },
+            },
+        });
+
+        // Update the snapshot with the new transactionThreadReportID and moneyRequestReportActionID if we're coming from search
+        // preventing duplicate reportActionID when moneyRequestReportActionID still empty
+        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+        if (currentSearchQueryJSON?.hash) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            transactionThreadReportID: reportID,
+                            moneyRequestReportActionID: iouReportActionID,
                         },
                     },
-                });
-
-                parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
-            }
+                },
+            });
         }
+
+        parameters.moneyRequestPreviewReportActionID = iouReportActionID;
+
+        // Log how often the legacy transaction fallback path is taken
+        Log.info('[Report] Legacy transaction fallback: creating money request preview', false, {
+            transactionParentReportID,
+            transactionID: transaction.transactionID,
+            reportID,
+        });
     }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
