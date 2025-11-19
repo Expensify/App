@@ -786,6 +786,7 @@ function SearchFiltersBar({
                     renderItem={renderFilterItem}
                     ListFooterComponent={renderListFooter}
                     onEndReached={adjustScroll}
+                    onEndReachedThreshold={0.75}
                 />
             )}
         </View>
