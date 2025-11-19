@@ -1,7 +1,7 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
+import Illustrations from '@components/Icon/chunks/illustrations.chunk';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';

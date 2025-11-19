@@ -4,7 +4,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
-import * as Illustrations from '@components/Icon/Illustrations';
+import Illustrations from '@components/Icon/chunks/illustrations.chunk';
+import * as DeprecatedIllustrations from '@components/Icon/Illustrations';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -606,7 +607,7 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit7'),
             translate('subscription.yourPlan.control.benefit8'),
         ],
-        src: Illustrations.ShieldYellow,
+        src: DeprecatedIllustrations.ShieldYellow,
         description: translate('subscription.yourPlan.control.description'),
     };
 }

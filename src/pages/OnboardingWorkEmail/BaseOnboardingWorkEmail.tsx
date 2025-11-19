@@ -16,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ type Item = {
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears'] as const);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
@@ -121,7 +123,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     const section: Item[] = [
         {
-            icon: Illustrations.EnvelopeReceipt,
+            icon: illustrations.EnvelopeReceipt,
             titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
             shouldRenderEmail: true,
         },
@@ -130,7 +132,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
         },
         {
-            icon: Illustrations.Gears,
+            icon: illustrations.Gears,
             titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
         },
     ];
