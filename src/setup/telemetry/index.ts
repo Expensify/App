@@ -10,6 +10,14 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
     enableTimeToInitialDisplay: true,
 });
 
+const tracingIntegration = Sentry.reactNativeTracingIntegration({
+    shouldCreateSpanForRequest(url: string): boolean {
+        const filteredPhrases = ['/api/Log', '/api/SendPerformanceTiming', 'firebaselogging-pa.googleapis.com', 'analytics.google.com', 'rs.fullstory.com', 'api.github.com'];
+
+        return !filteredPhrases.some((phrase) => url.includes(phrase));
+    },
+});
+
 export default function (): void {
     if (isDevelopment()) {
         return;
@@ -20,7 +28,7 @@ export default function (): void {
         profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations: [navigationIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
+        integrations: [navigationIntegration, tracingIntegration, SentryReact.browserProfilingIntegration(), SentryReact.browserTracingIntegration()],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
