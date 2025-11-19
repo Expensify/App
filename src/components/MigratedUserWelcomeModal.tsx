@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
@@ -25,29 +26,28 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
-function MigratedUserWelcomeModal() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
-    const ExpensifyFeatures: FeatureListItem[] = [
-        {
-            icon: Illustrations.ChatBubbles,
-            translationKey: 'migratedUserWelcomeModal.features.chat',
-        },
-        {
-            icon: Illustrations.Flash,
-            translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
-        },
-        {
-            icon: illustrations.ExpensifyMobileApp,
-            translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
-        },
-    ];
+// Lazy load illustrations
+const MagnifyingGlassReceipt = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg'));
+const ConciergeBot = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg'));
+const ChatBubbles = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg'));
+
+const ExpensifyFeatures: FeatureListItem[] = [
+    {
+        icon: MagnifyingGlassReceipt,
+        translationKey: 'migratedUserWelcomeModal.features.search',
+    },
+    {
+        icon: ConciergeBot,
+        translationKey: 'migratedUserWelcomeModal.features.concierge',
+    },
+    {
+        icon: ChatBubbles,
+        translationKey: 'migratedUserWelcomeModal.features.chat',
+    },
+];
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {typeMenuSections} = useSearchTypeMenuSections();
@@ -60,6 +60,7 @@ function MigratedUserWelcomeModal() {
         canBeMissing: true,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
@@ -89,6 +90,16 @@ function MigratedUserWelcomeModal() {
             title={translate('migratedUserWelcomeModal.title')}
             description={translate('migratedUserWelcomeModal.subtitle')}
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
+            helpText={translate('migratedUserWelcomeModal.helpText')}
+            onHelp={() => {
+                Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
+                const isAdmin = !!account?.adminsRoomReportID;
+                const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
+                const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
+                const helpUrl = isAdmin ? adminUrl : employeeUrl;
+                openExternalLink(helpUrl);
+                dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+            }}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
                 Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
@@ -106,21 +117,23 @@ function MigratedUserWelcomeModal() {
                 style={[styles.gap3, styles.pt1, styles.pl1]}
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                {ExpensifyFeatures.map(({translationKey, icon}) => (
-                    <View
-                        key={translationKey}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
-                    >
-                        <Icon
-                            src={icon}
-                            height={variables.menuIconSize}
-                            width={variables.menuIconSize}
-                        />
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                            <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                <Suspense fallback={null}>
+                    {ExpensifyFeatures.map(({translationKey, icon}) => (
+                        <View
+                            key={translationKey}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                        >
+                            <Icon
+                                src={icon}
+                                height={variables.menuIconSize}
+                                width={variables.menuIconSize}
+                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                                <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                            </View>
                         </View>
-                    </View>
-                ))}
+                    ))}
+                </Suspense>
             </View>
         </FeatureTrainingModal>
     );
