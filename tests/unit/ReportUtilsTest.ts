@@ -9288,7 +9288,7 @@ describe('ReportUtils', () => {
         const delegatedAccess = {
             delegate: copilotEmail,
             delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
-        }
+        };
 
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
 
@@ -9304,7 +9304,7 @@ describe('ReportUtils', () => {
 
         const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
         expect(requiresAttention).toBe(true);
-        
+
         const reasonForOptionList = reasonForReportToBeInOptionList({
             report: expenseReport,
             chatReport: undefined,
@@ -9316,7 +9316,7 @@ describe('ReportUtils', () => {
             draftComment: undefined,
             isReportArchived: undefined,
         });
-    
+
         expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
         await Onyx.clear();
@@ -9329,7 +9329,7 @@ describe('ReportUtils', () => {
         const delegatedAccess = {
             delegate: copilotEmail,
             delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
-        }
+        };
 
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
 
@@ -9359,9 +9359,7 @@ describe('ReportUtils', () => {
         });
 
         expect(reasonForOptionList).toBe(null);
-        
+
         await Onyx.clear();
     });
-    
-
 });
