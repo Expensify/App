@@ -118,6 +118,9 @@ type AttachmentModalBaseContentProps = {
 
     /** Transaction object. When provided, will be used instead of fetching from Onyx. */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Allows users to swipe down to close the modal */
+    shouldCloseOnSwipeDown?: boolean;
 };
 
 export type {

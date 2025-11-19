@@ -409,9 +409,9 @@ function MoneyRequestParticipantsSelector({
             return 0;
         }
         let length = 0;
-        sections.forEach((section) => {
+        for (const section of sections) {
             length += section.data.length;
-        });
+        }
         return length;
     }, [areOptionsInitialized, sections]);
 
