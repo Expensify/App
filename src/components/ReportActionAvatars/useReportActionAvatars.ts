@@ -94,10 +94,10 @@ function useReportActionAvatars({
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 
     const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
-    const policyFromSnapshot = usePolicy(policyID);
+    const policyFromOnyx = usePolicy(policyID);
     // When the search hash changes, policy from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to passedPolicy while the data is being fetched.
-    const policy = policyFromSnapshot ?? policyProp;
+    const policy = policyFromOnyx ?? policyProp;
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
