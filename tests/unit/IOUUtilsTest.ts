@@ -153,6 +153,24 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
         });
+
+        describe('calculateAmount - floorToLast rounding', () => {
+            beforeAll(() => initCurrencyList());
+
+            test('Positive total: remainder added entirely to default user', () => {
+                // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
+                const numberOfSplits = 2; // total participants = 3
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true)).toBe(334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true)).toBe(333);
+            });
+
+            test('Negative total: use ceil to move toward zero and remainder applied to default user', () => {
+                // -$10.00 among 3 -> base -3.33 (ceil to -3333 subunits), remainder -0.01 -> default -3.34
+                const numberOfSplits = 2;
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true)).toBe(-334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true)).toBe(-333);
+            });
+        });
     });
 
     describe('insertTagIntoTransactionTagsString', () => {
@@ -184,9 +202,9 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        Object.values(CONST.IOU.TYPE).forEach((iouType) => {
+        for (const iouType of Object.values(CONST.IOU.TYPE)) {
             expect(IOUUtils.isValidMoneyRequestType(iouType)).toBe(true);
-        });
+        }
     });
 
     test('Return false for invalid iou type', () => {
