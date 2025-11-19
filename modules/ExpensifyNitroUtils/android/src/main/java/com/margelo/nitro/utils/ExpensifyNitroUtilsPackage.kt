@@ -7,7 +7,7 @@ import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.uimanager.ViewManager
 import com.margelo.nitro.utils.ExpensifyNitroUtilsOnLoad.Companion.initializeNative
-import com.margelo.nitro.utils.views.HybridTTIMeasurementViewManager
+import com.margelo.nitro.utils.views.HybridTtiMeasurementViewManager
 
 class ExpensifyNitroUtilsPackage : BaseReactPackage() {
     override fun getModule(
@@ -23,7 +23,7 @@ class ExpensifyNitroUtilsPackage : BaseReactPackage() {
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
         val viewManagers = ArrayList<ViewManager<*, *>>()
-        viewManagers.add(HybridTTIMeasurementViewManager())
+        viewManagers.add(HybridTtiMeasurementViewManager())
         return viewManagers
     }
 
