@@ -298,12 +298,12 @@ function SettlementButton({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            activeAdminPolicies.forEach((activePolicy) => {
-                const policyName = activePolicy.name;
+            activeAdminPolicies.forEach((p) => {
+                const policyName = p.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: Expensicons.Building,
-                    value: activePolicy.id,
+                    value: p.id,
                     shouldUpdateSelectedIndex: false,
                 });
             });
@@ -317,7 +317,7 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const hasActivePolicyAsAdmin = activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
+            const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
 
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
