@@ -1258,8 +1258,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: 'Elimina rapporto',
-        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
+        deleteReport: () => ({
+            one: 'Elimina rapporto',
+            other: 'Elimina rapporti',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Sei sicuro di voler eliminare questo report?',
+            other: 'Sei sicuro di voler eliminare questi report?',
+        }),
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',

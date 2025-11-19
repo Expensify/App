@@ -37,7 +37,7 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
-    deleteMoneyRequestOnSearch,
+    bulkDeleteReports,
     exportSearchItemsToCSV,
     getExportTemplates,
     getLastPolicyBankAccountID,
@@ -638,10 +638,30 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, currentSearchResults);
+            bulkDeleteReports(hash, selectedTransactions, currentSearchResults);
             clearSelectedTransactions();
         });
     };
+
+    const {reportCount, expenseCount} = useMemo(() => {
+        let reports = 0;
+        let expenses = 0;
+
+        Object.keys(selectedTransactions).forEach((key) => {
+            const selectedItem = selectedTransactions[key];
+            if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                reports += 1;
+            } else {
+                expenses += 1;
+            }
+        });
+
+        return {reportCount: reports, expenseCount: expenses};
+    }, [selectedTransactions]);
+
+    const isDeletingOnlyReports = reportCount > 0 && expenseCount === 0;
+    const deleteModalTitle = isDeletingOnlyReports ? translate('iou.deleteReport', {count: reportCount}) : translate('iou.deleteExpense', {count: expenseCount});
+    const deleteModalPrompt = isDeletingOnlyReports ? translate('iou.deleteReportConfirmation', {count: reportCount}) : translate('iou.deleteConfirmation', {count: expenseCount});
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -796,11 +816,16 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.filter((key) => {
+                  const item = selectedTransactions[key];
+                  return !(item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID);
+              }).length
+            : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
 
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+        return {count: numberOfExpense, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -839,8 +864,8 @@ function SearchPage({route}: SearchPageProps) {
                             onCancel={() => {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
-                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                            title={deleteModalTitle}
+                            prompt={deleteModalPrompt}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
@@ -853,15 +878,6 @@ function SearchPage({route}: SearchPageProps) {
                             secondOptionText={translate('common.buttonConfirm')}
                             isVisible={isOfflineModalVisible}
                             onClose={() => setIsOfflineModalVisible(false)}
-                        />
-                        <DecisionModal
-                            title={translate('common.downloadFailedTitle')}
-                            prompt={translate('common.downloadFailedDescription')}
-                            isSmallScreenWidth={isSmallScreenWidth}
-                            onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                            secondOptionText={translate('common.buttonConfirm')}
-                            isVisible={isDownloadErrorModalVisible}
-                            onClose={() => setIsDownloadErrorModalVisible(false)}
                         />
                         <ConfirmModal
                             isVisible={isExportWithTemplateModalVisible}
@@ -889,6 +905,15 @@ function SearchPage({route}: SearchPageProps) {
                         />
                     </View>
                 )}
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadErrorModalVisible}
+                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
             </>
         );
     }
@@ -978,8 +1003,8 @@ function SearchPage({route}: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    title={deleteModalTitle}
+                    prompt={deleteModalPrompt}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
