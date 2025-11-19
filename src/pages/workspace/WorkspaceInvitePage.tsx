@@ -165,8 +165,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(searchOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, translate, policyName]);
+        return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, searchOptions.userToInvite, selectedOptions.length, translate, policyName]);
 
     const footerContent = useMemo(
         () => (
