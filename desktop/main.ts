@@ -21,8 +21,55 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import type {SecureStoreAddonNative, SecureStoreAPI, SecureStoreOptions} from './secureStoreTypes';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
+
+interface NodeModuleLoader {
+    _load(request: string, parent: unknown, isMain: boolean): unknown;
+}
+
+function loadSecureStoreAddon(): SecureStoreAPI | null {
+    if (process.platform !== 'darwin') {
+        return null;
+    }
+
+    try {
+        log.info('[SecureStore] Loading native addon...');
+
+        const addonPaths = [
+            // Development paths
+            `${__dirname}/../secure-store/build/Release/secure_store_addon.node`,
+            `${app.getAppPath()}/secure-store/build/Release/secure_store_addon.node`,
+            // Packaged app paths (asar.unpacked)
+            `${app.getAppPath().replace('app.asar', 'app.asar.unpacked')}/secure-store/build/Release/secure_store_addon.node`,
+            // Packaged app - Resources folder (via extraFiles)
+            `${process.resourcesPath}/secure_store_addon.node`,
+        ];
+
+        const nodeModule = require('module') as NodeModuleLoader;
+
+        for (const path of addonPaths) {
+            try {
+                log.info(`[SecureStore] Trying path: ${path}`);
+                const nativeAddon = nodeModule._load(path, module, false) as SecureStoreAddonNative;
+                const instance = new nativeAddon.SecureStoreAddon();
+                log.info(`[SecureStore] Loaded successfully from: ${path}`);
+                return instance;
+            } catch (error) {
+                log.info(`[SecureStore] Failed to load from ${path}: ${error}`);
+                // Try next path
+            }
+        }
+
+        throw new Error('Addon not found. Run: cd desktop/secure-store && npm install');
+    } catch (error) {
+        log.error('[SecureStore] Failed to load:', error);
+        return null;
+    }
+}
+
+let secureStore: SecureStoreAPI | null = null;
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
@@ -170,7 +217,8 @@ Object.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
-const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
+// For packaged dev builds, use app:// protocol. For unpackaged dev, use dev server URL
+const APP_DOMAIN = __DEV__ && !app.isPackaged ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion: string;
 for (const arg of process.argv) {
@@ -361,11 +409,16 @@ const mainWindow = (): Promise<void> => {
     let deeplinkUrl: string;
     let browserWindow: BrowserWindow;
 
-    const loadURL = __DEV__ ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
+    // For packaged dev builds, load from local files. For unpackaged dev, load from dev server
+    const loadURL = __DEV__ && !app.isPackaged ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        app?.dock?.setIcon(`${__dirname}/../icon-dev.png`);
+        // In packaged dev build, icon is in Resources. In unpackaged dev, use path from desktop folder
+        const iconPath = app.isPackaged
+            ? `${process.resourcesPath}/icon-dev.png`
+            : `${app.getAppPath()}/icon-dev.png`;
+        app?.dock?.setIcon(iconPath);
         app.setName('New Expensify Dev');
     }
 
@@ -392,6 +445,9 @@ const mainWindow = (): Promise<void> => {
         app
             .whenReady()
             .then(() => {
+                // Load SecureStore addon after app is ready
+                secureStore = loadSecureStoreAddon();
+
                 /**
                  * We only want to register the scheme this way when in dev, since
                  * when the app is bundled electron-builder will take care of it.
@@ -791,6 +847,103 @@ const mainWindow = (): Promise<void> => {
                     }
                     isSilentUpdating = true;
                     manuallyCheckForUpdates(undefined, browserWindow);
+                });
+
+                // SecureStore IPC handlers
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_SET, async (_event, key: string, value: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] SET request - key: ${key}, options:`, options);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        await secureStore.set(key, value, options);
+                        log.info(`[SecureStore] SET success - key: ${key}`);
+                    } catch (error) {
+                        log.error('[SecureStore] SET error:', error);
+                        throw error;
+                    }
+                });
+
+                // Handle both async (invoke) and sync (sendSync) for GET
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_GET, (_event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] GET request (async) - key: ${key}, options:`, options);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        const value = secureStore.get(key, options);
+                        log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
+                        return value;
+                    } catch (error) {
+                        log.error('[SecureStore] GET error:', error);
+                        throw error;
+                    }
+                });
+
+                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_GET, (event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] GET request (sync) - key: ${key}, options:`, options);
+
+                    const setReturnValue = (value: string | null) => {
+                        // eslint-disable-next-line no-param-reassign
+                        event.returnValue = value;
+                    };
+
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        setReturnValue(null);
+                        return;
+                    }
+                    try {
+                        const value = secureStore.get(key, options);
+                        log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
+                        setReturnValue(value);
+                    } catch (getError) {
+                        log.error('[SecureStore] GET error:', getError);
+                        setReturnValue(null);
+                    }
+                });
+
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_DELETE, (_event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] DELETE request - key: ${key}, options:`, options);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        secureStore.delete(key, options);
+                        log.info(`[SecureStore] DELETE success - key: ${key}`);
+                    } catch (error) {
+                        log.error('[SecureStore] DELETE error:', error);
+                        throw error;
+                    }
+                });
+
+                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_CAN_USE_AUTH, (event) => {
+                    log.info('[SecureStore] canUseAuthentication request');
+                    const setReturnValue = (value: boolean) => {
+                        // eslint-disable-next-line no-param-reassign
+                        event.returnValue = value;
+                    };
+
+                    if (!secureStore) {
+                        log.info('[SecureStore] SecureStore not available, returning false');
+                        setReturnValue(false);
+                        return;
+                    }
+                    try {
+                        const canUse = secureStore.canUseAuthentication();
+                        log.info(`[SecureStore] canUseAuthentication result: ${canUse}`);
+                        setReturnValue(canUse);
+                    } catch (error) {
+                        log.error('[SecureStore] canUseAuthentication error:', error);
+                        setReturnValue(false);
+                    }
                 });
 
                 return browserWindow;

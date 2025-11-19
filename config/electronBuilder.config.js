@@ -47,7 +47,10 @@ module.exports = {
     extraMetadata: {
         version,
     },
-    asarUnpack: ['**/node-mac-permissions/bin/**'],
+    asarUnpack: [
+        '**/node-mac-permissions/bin/**',
+        '**/secure-store/build/**',
+    ],
     mac: {
         category: 'public.app-category.finance',
         icon: macIcon[process.env.ELECTRON_ENV],
@@ -82,6 +85,13 @@ module.exports = {
         },
     ],
     files: ['dist', '!dist/www/{.well-known,favicon*}'],
+    // Copy Swift dylib to Frameworks
+    extraFiles: [
+        {
+            from: 'desktop/secure-store/build_swift/libSecureStore.dylib',
+            to: 'Frameworks/libSecureStore.dylib',
+        },
+    ],
     directories: {
         app: 'desktop',
         output: 'desktop-build',
@@ -90,5 +100,4 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
-    afterPack: 'desktop/dist/afterPack.js',
 };
