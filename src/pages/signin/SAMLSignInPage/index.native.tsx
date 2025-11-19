@@ -88,9 +88,6 @@ function SAMLSignInPage() {
             }
             handleNavigationStateChange(response.url);
         });
-        return () => {
-            // subscription.remove();
-        };
     }, [SAMLUrl, handleNavigationStateChange]);
 
     useEffect(() => {
