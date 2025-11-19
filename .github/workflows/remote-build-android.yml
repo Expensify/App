@@ -73,7 +73,7 @@ jobs:
             echo "No APK found in artifact"
             exit 1
           fi
-          echo "APK_PATH=$APK" >> $GITHUB_ENV
+          echo "APK_PATH=$APK" >> "$GITHUB_ENV"
           echo "Using APK: $APK"
 
       - name: Verify ELF alignment
