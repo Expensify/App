@@ -38,8 +38,8 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResultsOptions = searchOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !searchResultsOptions.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchOptions(searchValue, countries);
+    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -72,7 +72,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             />
 
             <SelectionList
-                data={searchResultsOptions}
+                data={searchResults}
                 textInputOptions={{headerMessage, label: translate('common.country'), value: searchValue, onChangeText: setSearchValue}}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
