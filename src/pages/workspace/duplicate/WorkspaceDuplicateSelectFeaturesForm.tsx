@@ -182,7 +182,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         invoiceCompany,
     ]);
 
-    const featuresToCopyOptions: ListItem[] = useMemo(() => {
+    const featuresToCopy: ListItem[] = useMemo(() => {
         return items.map((option) => {
             const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
             return {
@@ -339,7 +339,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         </PressableWithFeedback>
                     </View>
                     <SelectionList
-                        data={featuresToCopyOptions}
+                        data={featuresToCopy}
                         shouldSingleExecuteRowSelect
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
