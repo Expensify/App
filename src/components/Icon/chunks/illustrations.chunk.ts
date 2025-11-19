@@ -3,6 +3,7 @@
 import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
+import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
 // Educational Illustrations
@@ -57,6 +58,7 @@ const Illustrations = {
     // Company Cards
     CompanyCardsEmptyState,
     CompanyCardsPendingState,
+    PendingBank,
 
     // Other assets
     Computer,

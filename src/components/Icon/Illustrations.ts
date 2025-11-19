@@ -80,6 +80,7 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
@@ -122,6 +123,7 @@ export {
     ExpensifyCardImage,
     PaymentHands,
     MagicCode,
+    MagnifyingGlassReceipt,
     Mailbox,
     MushroomTopHat,
     RocketBlue,
