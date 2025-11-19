@@ -1,21 +1,38 @@
-package com.margelo.nitro.utils
+package com.margelo.nitro.utils.performance
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.provider.ContactsContract
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.facebook.react.bridge.ReactApplicationContext
+import android.view.View
 import com.facebook.react.uimanager.ThemedReactContext
-import com.margelo.nitro.NitroModules
-import com.margelo.nitro.core.Promise
+import com.margelo.nitro.utils.HybridTtiMeasurementViewSpec
+import com.margelo.nitro.utils.TtiMeasurementValue
+
+internal typealias OnMeasurementListener = (measurement: TtiMeasurementValue) -> Unit
 
 class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasurementViewSpec() {
-  // Props
-  override var onMeasurement: (measurement: TTIMeasurementValue) -> Unit {
-    throw UnsupportedOperationException("Not implemented")
-  }
+    // Props
+    var measurementListener: OnMeasurementListener? = null
+    var measurementSent = false
 
-  // View
-  override val view: View = View(context)
+    // View
+    override val view: View = View(context)
+
+    private fun registerDrawListener() {
+        FirstDrawDoneListener.registerForNextDraw(view) {
+            if (measurementSent) {
+                return@registerForNextDraw
+            }
+            measurementSent = true
+
+            val timestamp = System.currentTimeMillis().toDouble()
+            val measurement = TtiMeasurementValue(timestamp=timestamp)
+
+            measurementListener?.invoke(measurement)
+        }
+    }
+
+    override var onMeasurement: OnMeasurementListener
+        get() = TODO("Not yet implemented")
+        set(listener) {
+            measurementListener = listener
+            registerDrawListener()
+        }
 }
