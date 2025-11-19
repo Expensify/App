@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
@@ -26,7 +26,8 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     const styles = useThemeStyles();
 
     const openPolicyExpenseReport = useCallback(() => {
-        const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        const reportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);
