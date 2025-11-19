@@ -174,7 +174,7 @@ type SearchTransaction = {
     canDelete: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number;
+    modifiedAmount: number | string;
 
     /** The transaction currency */
     currency: string;
