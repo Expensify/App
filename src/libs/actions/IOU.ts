@@ -1129,6 +1129,7 @@ function startMoneyRequest(
     draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
 ) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    const sourceRoute = Navigation.getActiveRoute();
     startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
         name: '/money-request-create',
         op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
@@ -1136,6 +1137,7 @@ function startMoneyRequest(
             iouType,
             requestType: requestType ?? 'unknown',
             reportID,
+            sourceRoute: sourceRoute || 'unknown',
         },
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
