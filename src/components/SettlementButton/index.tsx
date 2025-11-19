@@ -19,14 +19,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
-    getBankAccountRoute,
     hasViolations as hasViolationsReportUtils,
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
@@ -119,8 +119,9 @@ function SettlementButton({
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
+    const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
 
@@ -314,14 +315,28 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
+            const hasActivePolicyAsAdmin = activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
+
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: Expensicons.Bank,
                     onSelected: () => {
-                        const bankAccountRoute = getBankAccountRoute(chatReport);
-                        Navigation.navigate(bankAccountRoute);
+                        if (payAsBusiness) {
+                            if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+                                navigateToBankAccountRoute(chatReport?.invoiceReceiver?.policyID);
+                            } else {
+                                if (!hasActivePolicyAsAdmin) {
+                                    const {policyID} = createWorkspace();
+                                    navigateToBankAccountRoute(policyID);
+                                } else {
+                                    navigateToBankAccountRoute(activePolicy.id);
+                                }
+                            }
+                        } else {
+                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                        }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
