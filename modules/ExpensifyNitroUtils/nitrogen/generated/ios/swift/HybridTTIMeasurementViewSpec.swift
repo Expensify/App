@@ -17,6 +17,13 @@ public protocol HybridTtiMeasurementViewSpec_protocol: HybridObject, HybridView 
   
 }
 
+public extension HybridTtiMeasurementViewSpec_protocol {
+  /// Default implementation of ``HybridObject.toString``
+  func toString() -> String {
+    return "[HybridObject TtiMeasurementView]"
+  }
+}
+
 /// See ``HybridTtiMeasurementViewSpec``
 open class HybridTtiMeasurementViewSpec_base {
   private weak var cxxWrapper: HybridTtiMeasurementViewSpec_cxx? = nil

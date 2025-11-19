@@ -10,8 +10,7 @@ package com.margelo.nitro.utils
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
-import com.margelo.nitro.core.*
-import com.margelo.nitro.views.*
+import com.margelo.nitro.views.HybridView
 
 /**
  * A Kotlin class representing the TtiMeasurementView HybridObject.
@@ -37,6 +36,11 @@ abstract class HybridTtiMeasurementViewSpec: HybridView() {
     super.updateNative(hybridData)
   }
 
+  // Default implementation of `HybridObject.toString()`
+  override fun toString(): String {
+    return "[HybridObject TtiMeasurementView]"
+  }
+
   // Properties
   abstract var onMeasurement: ((measurement: TtiMeasurementValue) -> Unit)?
   
@@ -58,6 +62,6 @@ abstract class HybridTtiMeasurementViewSpec: HybridView() {
   private external fun initHybrid(): HybridData
 
   companion object {
-    private const val TAG = "HybridTtiMeasurementViewSpec"
+    protected const val TAG = "HybridTtiMeasurementViewSpec"
   }
 }

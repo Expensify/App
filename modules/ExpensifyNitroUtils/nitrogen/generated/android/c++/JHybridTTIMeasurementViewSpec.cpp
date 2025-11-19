@@ -38,6 +38,12 @@ namespace margelo::nitro::utils {
     method(_javaPart);
   }
 
+  std::string JHybridTtiMeasurementViewSpec::toString() {
+    static const auto method = javaClassStatic()->getMethod<jni::JString()>("toString");
+    auto javaString = method(_javaPart);
+    return javaString->toStdString();
+  }
+
   // Properties
   std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> JHybridTtiMeasurementViewSpec::getOnMeasurement() {
     static const auto method = javaClassStatic()->getMethod<jni::local_ref<JFunc_void_TtiMeasurementValue::javaobject>()>("getOnMeasurement_cxx");

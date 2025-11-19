@@ -21,8 +21,6 @@
 #include <optional>
 #include <memory>
 #include "HybridTtiMeasurementViewSpec.hpp"
-#include <functional>
-#include <optional>
 
 namespace margelo::nitro::utils::views {
 

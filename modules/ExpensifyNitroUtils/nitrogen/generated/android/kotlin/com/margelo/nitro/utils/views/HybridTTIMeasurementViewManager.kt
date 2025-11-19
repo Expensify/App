@@ -17,7 +17,7 @@ import com.margelo.nitro.utils.*
 /**
  * Represents the React Native `ViewManager` for the "TtiMeasurementView" Nitro HybridView.
  */
-class HybridTtiMeasurementViewManager: SimpleViewManager<View>() {
+open class HybridTtiMeasurementViewManager: SimpleViewManager<View>() {
   private val views = hashMapOf<View, HybridTtiMeasurementView>()
 
   override fun getName(): String {

@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifndef RN_SERIALIZABLE_STATE
+#error ExpensifyNitroUtils was compiled without the 'RN_SERIALIZABLE_STATE' flag. This flag is required for Nitro Views - set it in your CMakeLists!
+#endif
+
 #include <fbjni/fbjni.h>
 #include <react/fabric/StateWrapperImpl.h>
 #include <react/fabric/CoreComponentsRegistry.h>

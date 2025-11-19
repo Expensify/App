@@ -44,7 +44,11 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JTtiMeasurementValue::javaobject> fromCpp(const TtiMeasurementValue& value) {
-      return newInstance(
+      using JSignature = JTtiMeasurementValue(double);
+      static const auto clazz = javaClassStatic();
+      static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
+      return create(
+        clazz,
         value.timestamp
       );
     }

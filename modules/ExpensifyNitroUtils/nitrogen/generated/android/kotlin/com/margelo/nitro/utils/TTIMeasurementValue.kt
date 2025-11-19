@@ -9,7 +9,6 @@ package com.margelo.nitro.utils
 
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
-import com.margelo.nitro.core.*
 
 
 /**
@@ -17,13 +16,23 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-data class TtiMeasurementValue
+data class TtiMeasurementValue(
   @DoNotStrip
   @Keep
-  constructor(
+  val timestamp: Double
+) {
+  /* primary constructor */
+
+  private companion object {
+    /**
+     * Constructor called from C++
+     */
     @DoNotStrip
     @Keep
-    val timestamp: Double
-  ) {
-  /* main constructor */
+    @Suppress("unused")
+    @JvmStatic
+    private fun fromCpp(timestamp: Double): TtiMeasurementValue {
+      return TtiMeasurementValue(timestamp)
+    }
+  }
 }

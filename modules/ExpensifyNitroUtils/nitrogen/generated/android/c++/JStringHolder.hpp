@@ -44,7 +44,11 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JStringHolder::javaobject> fromCpp(const StringHolder& value) {
-      return newInstance(
+      using JSignature = JStringHolder(jni::alias_ref<jni::JString>);
+      static const auto clazz = javaClassStatic();
+      static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
+      return create(
+        clazz,
         jni::make_jstring(value.value)
       );
     }
