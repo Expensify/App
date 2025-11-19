@@ -13,6 +13,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -21,6 +23,7 @@ import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
@@ -33,13 +36,16 @@ type AssigneeStepProps = {
 
     /** Start from step index */
     startStepIndex: number;
+
+    /** Route params */
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 };
 
-function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
+function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const policyID = policy?.id;
+    const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});

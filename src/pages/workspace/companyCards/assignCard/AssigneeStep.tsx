@@ -17,6 +17,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchInServer} from '@libs/actions/Report';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -25,6 +27,7 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
@@ -34,17 +37,21 @@ type AssigneeStepProps = {
 
     /** Selected feed */
     feed: OnyxTypes.CompanyCardFeed;
+
+    /** Route params */
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
 };
 
-function AssigneeStep({policy, feed}: AssigneeStepProps) {
+function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
+    const policyID = route.params.policyID;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policy?.id, feed);
-    const [cardFeeds] = useCardFeeds(policy?.id);
+    const [list] = useCardsList(policyID, feed);
+    const [cardFeeds] = useCardFeeds(policyID);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -97,7 +104,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
             });
-            setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policy?.id);
+            setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
             return;
         }
 

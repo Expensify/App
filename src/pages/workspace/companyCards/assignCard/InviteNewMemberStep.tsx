@@ -32,7 +32,8 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const isEditing = assignCard?.isEditing;
-    const [list] = useCardsList(policy?.id, feed);
+    const policyID = route.params.policyID;
+    const [list] = useCardsList(policyID, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
@@ -81,12 +82,12 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
     useEffect(() => {
-        setDraftInviteAccountID(assignCard?.data?.invitingMemberEmail ?? '', assignCard?.data?.invitingMemberAccountID ?? undefined, policy?.id);
+        setDraftInviteAccountID(assignCard?.data?.invitingMemberEmail ?? '', assignCard?.data?.invitingMemberAccountID ?? undefined, policyID);
         if (!policy?.employeeList?.[assignCard?.data?.invitingMemberEmail ?? '']) {
             return;
         }
         goToNextStep();
-    }, [assignCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep, assignCard?.data?.invitingMemberAccountID, policy?.id]);
+    }, [assignCard?.data?.invitingMemberEmail, policy?.employeeList, goToNextStep, assignCard?.data?.invitingMemberAccountID, policyID]);
 
     return (
         <InteractiveStepWrapper
@@ -101,7 +102,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
         >
             <WorkspaceInviteMessageComponent
                 policy={policy}
-                policyID={route.params.policyID}
+                policyID={policyID}
                 backTo={undefined}
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 shouldShowBackButton={false}
