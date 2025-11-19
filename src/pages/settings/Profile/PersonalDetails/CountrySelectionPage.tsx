@@ -56,6 +56,16 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [route],
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.country'),
+            onChangeText: setSearchValue,
+            headerMessage,
+        }),
+        [headerMessage, searchValue, translate, setSearchValue],
+    );
+
     return (
         <ScreenWrapper
             testID={CountrySelectionPage.displayName}
@@ -73,7 +83,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
             <SelectionList
                 data={searchResults}
-                textInputOptions={{headerMessage, label: translate('common.country'), value: searchValue, onChangeText: setSearchValue}}
+                textInputOptions={textInputOptions}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 shouldSingleExecuteRowSelect
