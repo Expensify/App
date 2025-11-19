@@ -579,7 +579,7 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
         });
 
-        it('should show "waiting for you to submit expense" next step message when moving expnese to a new report ', async () => {
+        it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
             const policyID = '12346';
             const oldExpenseReportID = '5';
 
