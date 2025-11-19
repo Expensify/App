@@ -33,7 +33,7 @@ const EnvironmentContext = createContext<EnvironmentContextValue>({
 function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement {
     const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
-    const [environmentURLWithoutTrailingSlash] = useMemo(() => [environmentURL.replace(/\/+$/, '')], [environmentURL]);
+    const [environmentURLWithoutTrailingSlash] = useMemo(() => [environmentURL.replaceAll(/\/+$/g, '')], [environmentURL]);
 
     useEffect(() => {
         getEnvironment().then(setEnvironment);

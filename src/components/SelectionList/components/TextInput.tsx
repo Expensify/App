@@ -47,6 +47,9 @@ type TextInputProps = {
 
     /** Function to update the focused index in the list */
     setFocusedIndex: (index: number) => void;
+
+    /** Function to focus text input component */
+    focusTextInput: () => void;
 };
 
 function TextInput({
@@ -62,6 +65,7 @@ function TextInput({
     isLoadingNewOptions,
     shouldShowTextInput,
     setFocusedIndex,
+    focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,14 +84,6 @@ function TextInput({
         },
         [onChangeText, setFocusedIndex],
     );
-
-    const focusTextInput = useCallback(() => {
-        if (!ref) {
-            return;
-        }
-
-        ref.current?.focus();
-    }, [ref]);
 
     useFocusEffect(
         useCallback(() => {
@@ -110,6 +106,7 @@ function TextInput({
     if (!shouldShowTextInput) {
         return null;
     }
+
     return (
         <>
             <View style={[styles.ph5, styles.pb3]}>
