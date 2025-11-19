@@ -580,12 +580,12 @@ describe('SearchQueryUtils', () => {
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
             ];
 
-            filterKeys.forEach((filterKey) => {
+            for (const filterKey of filterKeys) {
                 const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
-            });
+            }
         });
     });
 });
