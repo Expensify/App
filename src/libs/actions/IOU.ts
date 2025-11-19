@@ -13680,17 +13680,14 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     }
 
     const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const originalTransactionID = transaction?.comment?.originalTransactionID;
+    const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
     if (isExpenseSplit) {
-        const originalTransactionID = transaction.comment?.originalTransactionID;
-        const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-
         const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
-
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
-
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
