@@ -1414,7 +1414,7 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
             const harvestOriginalReportID = getHarvestOriginalReportID(reportNameValuePairs);
-            children = <ReportActionItemBasicMessage message={translate('reportAction.harvestCreatedCopy', {reportID: harvestOriginalReportID})} />;
+            children = <ReportActionItemBasicMessage message={translate('reportAction.harvestCreatedExpenseReport', {reportID: harvestOriginalReportID})} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>
