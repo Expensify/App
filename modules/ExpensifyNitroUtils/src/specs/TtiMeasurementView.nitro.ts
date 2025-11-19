@@ -8,7 +8,7 @@ type OnTtiMeasurement = (measurement: TtiMeasurementValue) => void;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface TtiMeasurementViewProps extends HybridViewProps {
-    onMeasurement: OnTtiMeasurement;
+    onMeasurement?: OnTtiMeasurement;
 }
 
 type TtiMeasurementViewMethods = HybridViewMethods;
