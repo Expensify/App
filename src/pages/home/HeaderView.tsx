@@ -304,6 +304,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
                                                 forwardedFSClass={displayNamesFSClass}
+                                                shouldParseHtml={isChatThread}
                                             />
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
