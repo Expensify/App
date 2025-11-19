@@ -353,11 +353,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportStatusContainer: {
-            paddingHorizontal: 4,
+            paddingHorizontal: 10,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
         },
 
         reportStatusText: {
@@ -1445,6 +1444,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         lh140Percent: {
             lineHeight: '140%',
+        },
+
+        lhUndefined: {
+            lineHeight: undefined,
         },
 
         formHelp: {
@@ -4420,6 +4423,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
+        },
+
+
+        textMicroSupportingPadding: {
+            padding: variables.paddingSmall,
         },
 
         mapViewContainer: {
