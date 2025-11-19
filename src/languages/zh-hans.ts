@@ -1241,8 +1241,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '您确定要删除此费用吗？',
             other: '您确定要删除这些费用吗？',
         }),
-        deleteReport: '删除报告',
-        deleteReportConfirmation: '您确定要删除此报告吗？',
+        deleteReport: () => ({
+            one: '删除报告',
+            other: '删除报告',
+        }),
+        deleteReportConfirmation: () => ({
+            one: '您确定要删除此报告吗？',
+            other: '您确定要删除这些报告吗？',
+        }),
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方支付',

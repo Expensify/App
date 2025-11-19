@@ -643,6 +643,26 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
+    const {reportCount, expenseCount} = useMemo(() => {
+        let reports = 0;
+        let expenses = 0;
+
+        Object.keys(selectedTransactions).forEach((key) => {
+            const selectedItem = selectedTransactions[key];
+            if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                reports += 1;
+            } else {
+                expenses += 1;
+            }
+        });
+
+        return {reportCount: reports, expenseCount: expenses};
+    }, [selectedTransactions]);
+
+    const isDeletingOnlyReports = reportCount > 0 && expenseCount === 0;
+    const deleteModalTitle = isDeletingOnlyReports ? translate('iou.deleteReport', {count: reportCount}) : translate('iou.deleteExpense', {count: expenseCount});
+    const deleteModalPrompt = isDeletingOnlyReports ? translate('iou.deleteReportConfirmation', {count: reportCount}) : translate('iou.deleteConfirmation', {count: expenseCount});
+
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
@@ -839,8 +859,8 @@ function SearchPage({route}: SearchPageProps) {
                             onCancel={() => {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
-                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                            title={deleteModalTitle}
+                            prompt={deleteModalPrompt}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
@@ -978,8 +998,8 @@ function SearchPage({route}: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    title={deleteModalTitle}
+                    prompt={deleteModalPrompt}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
