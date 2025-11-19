@@ -17,6 +17,7 @@ import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -66,6 +67,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
         Timing.end(CONST.TIMING.SEND_MESSAGE);
+        endSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
