@@ -282,7 +282,7 @@ function SearchAutocompleteList({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
-    const taxRates = getAllTaxRates(policies);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
@@ -874,6 +874,6 @@ function SearchAutocompleteList({
     );
 }
 
-export default SearchAutocompleteList;
+export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};
