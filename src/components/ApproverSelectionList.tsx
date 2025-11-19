@@ -42,6 +42,7 @@ type ApproverSelectionListPageProps = {
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
+    onSearchChange?: (searchTerm: string) => void;
 };
 
 type SelectionListApprover = {
@@ -76,12 +77,20 @@ function ApproverSelectionList({
     onSelectApprover,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
+    onSearchChange,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const handleSearchChange = (term: string) => {
+        setSearchTerm(term);
+        if (onSearchChange) {
+            onSearchChange(term);
+        }
+    };
 
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
@@ -165,7 +174,7 @@ function ApproverSelectionList({
                     ListItem={InviteMemberListItem}
                     textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
                     textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
+                    onChangeText={handleSearchChange}
                     headerMessage={headerMessage}
                     onSelectRow={toggleApprover}
                     showScrollIndicator

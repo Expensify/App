@@ -65,6 +65,24 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+
+    // Determine header title - use custom title if provided, or detect from backTo route
+    const getHeaderTitle = () => {
+        // If backTo is the expenses from page, use that title
+        if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
+            return translate('workflowsExpensesFromPage.title');
+        }
+        return translate('workspace.inviteMessage.confirmDetails');
+    };
+
+    const policyName = policy?.name;
+
+    const getSubtitle = () => {
+        if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
+            return undefined;
+        }
+        return policyName;
+    };
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
@@ -146,6 +164,14 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
+        // If backTo is provided and it's not the members page, navigate back to it
+        if (backTo && !(backTo as string).endsWith('members')) {
+            // Just go back in the navigation stack instead of dismissing and navigating
+            // This preserves the RHP and keeps the members selected
+            Navigation.goBack();
+            return;
+        }
+
         if ((backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
@@ -179,8 +205,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
-
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
@@ -201,8 +225,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={getHeaderTitle()}
+                        subtitle={getSubtitle()}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -218,7 +242,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || !!(backTo && typeof backTo === 'string' && backTo.includes('expenses-from'))) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
