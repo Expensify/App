@@ -78,12 +78,12 @@ function TroubleshootPage() {
         let timestampToCheck: Date = tryNewDot.classicRedirect?.timestamp;
 
         if (dismissedReasons && dismissedReasons.length > 0) {
-            const earliestReason = dismissedReasons.reduce((earliest, current) => {
-                const currentDate = new Date(current.timestamp);
-                const earliestDate = new Date(earliest.timestamp);
-                return currentDate < earliestDate ? current : earliest;
+            const latestReason = dismissedReasons.reduce((latest, current) => {
+                const currentDate = current.timestamp;
+                const latestDate = latest.timestamp;
+                return currentDate > latestDate ? current : latest;
             });
-            timestampToCheck = earliestReason.timestamp;
+            timestampToCheck = latestReason.timestamp;
         }
 
         if (!timestampToCheck) {
