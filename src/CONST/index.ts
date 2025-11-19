@@ -6865,6 +6865,7 @@ const CONST = {
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
         SEARCH_CONTEXT_SHARE_LOG: 'shareLog',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
+        SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },
     EXPENSE: {
         TYPE: {
