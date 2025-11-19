@@ -1659,6 +1659,7 @@ const CONST = {
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
