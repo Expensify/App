@@ -52,6 +52,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const [isFirstTimeOpened, setIsFirstTimeOpened] = useState(false);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -78,6 +79,12 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
+        setIsFirstTimeOpened((prev) => {
+            if (!prev) {
+                return true;
+            }
+            return prev;
+        });
         calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
             setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL});
             toggleOverlay();
@@ -104,10 +111,13 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
+        if (!isFirstTimeOpened) {
+            return null;
+        }
         return PopoverComponent({closeOverlay: toggleOverlay});
         // PopoverComponent is stable so we don't need it here as a dep.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [toggleOverlay]);
+    }, [isFirstTimeOpened, toggleOverlay]);
 
     return (
         <View ref={anchorRef}>
@@ -128,30 +138,32 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 </CaretWrapper>
             </Button>
 
-            {/* Dropdown overlay */}
-            <PopoverWithMeasuredContent
-                anchorRef={triggerRef}
-                avoidKeyboard
-                isVisible={isOverlayVisible}
-                onClose={toggleOverlay}
-                anchorPosition={popoverTriggerPosition}
-                anchorAlignment={ANCHOR_ORIGIN}
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldEnableNewFocusManagement
-                shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
-                // This must be false because we dont want the modal to close if we open the RHP for selections
-                // such as date years
-                shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={containerStyles}
-                popoverDimensions={{
-                    width: CONST.POPOVER_DROPDOWN_WIDTH,
-                    height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
-                }}
-                shouldSkipRemeasurement
-            >
-                {popoverContent}
-            </PopoverWithMeasuredContent>
+            {/* Dropdown overlay. Wait with PopoverComponent logic execution until the first time the overlay is opened */}
+            {isFirstTimeOpened && (
+                <PopoverWithMeasuredContent
+                    anchorRef={triggerRef}
+                    avoidKeyboard
+                    isVisible={isOverlayVisible}
+                    onClose={toggleOverlay}
+                    anchorPosition={popoverTriggerPosition}
+                    anchorAlignment={ANCHOR_ORIGIN}
+                    restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+                    shouldEnableNewFocusManagement
+                    shouldMeasureAnchorPositionFromTop={false}
+                    outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
+                    // This must be false because we dont want the modal to close if we open the RHP for selections
+                    // such as date years
+                    shouldCloseWhenBrowserNavigationChanged={false}
+                    innerContainerStyle={containerStyles}
+                    popoverDimensions={{
+                        width: CONST.POPOVER_DROPDOWN_WIDTH,
+                        height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
+                    }}
+                    shouldSkipRemeasurement
+                >
+                    {popoverContent}
+                </PopoverWithMeasuredContent>
+            )} 
         </View>
     );
 }
