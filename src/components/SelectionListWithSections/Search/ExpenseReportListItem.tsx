@@ -19,7 +19,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isLoading,
     isFocused,
     showTooltip,
-    isDisabled,
     canSelectMultiple,
     onSelectRow,
     onFocus,
@@ -36,9 +35,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
-
-    const isEmpty = useMemo(() => reportItem.transactions.length === 0, [reportItem.transactions.length]);
-    const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const snapshotData = snapshot?.data;
 
@@ -129,7 +125,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
                     isIndeterminate={false}
-                    isDisabled={!!isDisabledOrEmpty}
+                    isDisabledCheckbox={item.isDisabledCheckbox}
                     isHovered={hovered}
                     isFocused={isFocused}
                 />

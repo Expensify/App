@@ -32,7 +32,7 @@ type ExpenseReportListItemRowProps = {
     avatarBorderColor?: ColorValue;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
-    isDisabled?: boolean;
+    isDisabledCheckbox?: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
 };
@@ -49,7 +49,7 @@ function ExpenseReportListItemRow({
     avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
-    isDisabled,
+    isDisabledCheckbox,
     isHovered = false,
     isFocused = false,
 }: ExpenseReportListItemRowProps) {
@@ -98,10 +98,10 @@ function ExpenseReportListItemRow({
                                 isChecked={isSelectAllChecked}
                                 isIndeterminate={isIndeterminate}
                                 containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                                disabled={!!isDisabled || item.isDisabledCheckbox}
+                                disabled={isDisabledCheckbox}
                                 accessibilityLabel={item.text ?? ''}
                                 shouldStopMouseDownPropagation
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
                             />
                         )}
                         <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
@@ -133,10 +133,10 @@ function ExpenseReportListItemRow({
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                        disabled={!!isDisabled || item.isDisabledCheckbox}
+                        disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
