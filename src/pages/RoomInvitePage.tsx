@@ -12,6 +12,7 @@ import InviteMemberListItem from '@components/SelectionListWithSections/InviteMe
 import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -194,6 +195,9 @@ function RoomInvitePage({
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
     const reportName = useMemo(() => getReportName(report), [report]);
+
+    const ancestors = useAncestors(report);
+
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
@@ -210,7 +214,7 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         if (reportID) {
-            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            inviteToRoomAction(reportID, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             if (backTo) {
                 Navigation.goBack(backTo);
@@ -218,7 +222,7 @@ function RoomInvitePage({
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             }
         }
-    }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
+    }, [validate, selectedOptions, ancestors, reportID, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);

@@ -3854,10 +3854,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 /** Invites people to a room via concierge whisper */
-function inviteToRoomAction(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
+function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
 
-    addComment(reportID, reportID, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
+    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
