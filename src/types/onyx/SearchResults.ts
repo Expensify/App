@@ -215,9 +215,6 @@ type SearchTransaction = {
     /** The transaction category */
     category: string;
 
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 
@@ -372,9 +369,6 @@ type SearchWithdrawalIDGroup = {
     debitPosted: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
@@ -410,7 +404,6 @@ export type {
     ListItemDataType,
     SearchTask,
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated

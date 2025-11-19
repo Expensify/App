@@ -376,6 +376,13 @@ function Search({
         openSearch();
     }, []);
 
+    useEffect(() => {
+        if (!prevIsOffline || isOffline) {
+            return;
+        }
+        openSearch();
+    }, [isOffline, prevIsOffline]);
+
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
