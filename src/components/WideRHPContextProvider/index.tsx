@@ -685,4 +685,6 @@ export {
     animatedWideRHPWidth,
     innerRHPProgress,
     expandedRHPProgress,
+    WIDE_RIGHT_MODALS,
+    SUPER_WIDE_RIGHT_MODALS,
 };

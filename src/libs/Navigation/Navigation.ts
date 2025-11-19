@@ -605,6 +605,25 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
 };
 
 /**
+ * Returns to the first screen in the Right Hand Modal stack, dismissing all the others.
+ */
+const dismissToFirstRHP = () => {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const routesToPop = rhpState.routes.length - 1;
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+};
+
+/**
  * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
  */
 function popToTop() {
@@ -743,6 +762,7 @@ export default {
     onModalDismissedOnce,
     fireModalDismissed,
     isValidateLoginFlow,
+    dismissToFirstRHP,
 };
 
 export {navigationRef};
