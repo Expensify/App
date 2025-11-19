@@ -72,13 +72,13 @@ type SamlMetadata = {
     urlLogout?: string;
 
     /**
-     * A URL or an identifier pointing to the SAML metadata of the service provider
+     * SAML metadata of the service provider
      * This metadata includes keys and endpoints needed to establish the service provider in a SAML exchange.
      */
     metaService?: string;
 
     /**
-     * A URL or an identifier pointing to the SAML metadata of the identity provider
+     * SAML metadata of the identity provider
      * This metadata includes keys and endpoints necessary for the identity provider to participate in SAML exchanges.
      */
     metaIdentity?: string;
