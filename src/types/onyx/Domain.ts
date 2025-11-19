@@ -30,7 +30,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     validateCodeError?: OnyxCommon.Errors;
 
     /** Domain-related settings */
-    settings: {
+    settings?: {
         /** Whether setting SAML enabled/disabled setting is in progress */
         isSamlEnabledLoading?: boolean;
 

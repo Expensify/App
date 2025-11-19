@@ -45,8 +45,8 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     return (
         <>
             <OfflineWithFeedback
-                pendingAction={domain?.settings.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                errors={domain?.settings.samlEnabledError}
+                pendingAction={domain?.settings?.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                errors={domain?.settings?.samlEnabledError}
                 onClose={() => resetSamlEnabledError(accountID)}
                 dismissError={() => resetSamlEnabledError(accountID)}
             >
@@ -67,8 +67,8 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
 
             {isSamlEnabled && (
                 <OfflineWithFeedback
-                    pendingAction={domain?.settings.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                    errors={domain?.settings.samlRequiredError}
+                    pendingAction={domain?.settings?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                    errors={domain?.settings?.samlRequiredError}
                     onClose={() => resetSamlRequiredError(accountID)}
                     dismissError={() => resetSamlRequiredError(accountID)}
                 >
