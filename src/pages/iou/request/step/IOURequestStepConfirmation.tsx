@@ -1,7 +1,7 @@
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import { transactionDraftValuesSelector } from '@selectors/TransactionDraft';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -10,7 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
+import { usePersonalDetails, usePolicyCategories } from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -18,7 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -28,79 +28,46 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import { completeTestDriveTask } from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import { isLocalFile as isLocalFileFileUtils } from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
-import {
-    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
-    navigateToStartMoneyRequestStep,
-    shouldShowReceiptEmptyState,
-    shouldUseTransactionDraft,
-} from '@libs/IOUUtils';
+import { isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldShowReceiptEmptyState, shouldUseTransactionDraft } from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import { rand64 } from '@libs/NumberUtils';
+import { getParticipantsOption, getReportOption } from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {doesReportReceiverMatchParticipant, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {
-    getAttendees,
-    getDefaultTaxCode,
-    getRateID,
-    getRequestType,
-    getValidWaypoints,
-    hasReceipt,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
-    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isScanRequest,
-} from '@libs/TransactionUtils';
-import type {GpsPoint} from '@userActions/IOU';
-import {
-    createDistanceRequest as createDistanceRequestIOUActions,
-    getIOURequestPolicyID,
-    getReceiverType,
-    requestMoney as requestMoneyIOUActions,
-    sendInvoice,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
-    setMoneyRequestBillable,
-    setMoneyRequestCategory,
-    setMoneyRequestReceipt,
-    setMoneyRequestReimbursable,
-    splitBill,
-    splitBillAndOpenReport,
-    startMoneyRequest,
-    startSplitBill,
-    submitPerDiemExpense as submitPerDiemExpenseIOUActions,
-    trackExpense as trackExpenseIOUActions,
-    updateLastLocationPermissionPrompt,
-} from '@userActions/IOU';
-import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import { isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { doesReportReceiverMatchParticipant, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest } from '@libs/ReportUtils';
+import { getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isDistanceRequest as isDistanceRequestTransactionUtils, isManualDistanceRequest as isManualDistanceRequestTransactionUtils, isScanRequest } from '@libs/TransactionUtils';
+import type { GpsPoint } from '@userActions/IOU';
+import { createDistanceRequest as createDistanceRequestIOUActions, getIOURequestPolicyID, getReceiverType, requestMoney as requestMoneyIOUActions, sendInvoice, sendMoneyElsewhere, sendMoneyWithWallet, setMoneyRequestBillable, setMoneyRequestCategory, setMoneyRequestReceipt, setMoneyRequestReimbursable, splitBill, splitBillAndOpenReport, startMoneyRequest, startSplitBill, submitPerDiemExpense as submitPerDiemExpenseIOUActions, trackExpense as trackExpenseIOUActions, updateLastLocationPermissionPrompt } from '@userActions/IOU';
+import { openDraftWorkspaceRequest } from '@userActions/Policy/Policy';
+import { removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction } from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {InvoiceReceiver} from '@src/types/onyx/Report';
+import type { RecentlyUsedCategories, Report } from '@src/types/onyx';
+import type { Participant } from '@src/types/onyx/IOU';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
+import type { InvoiceReceiver } from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Receipt } from '@src/types/onyx/Transaction';
+import type { FileObject } from '@src/types/utils/Attachment';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type { WithFullTransactionOrNotFoundProps } from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -320,7 +287,7 @@ function IOURequestStepConfirmation({
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy) || isCreatingTrackExpense)? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
@@ -529,6 +496,8 @@ function IOURequestStepConfirmation({
                 : {},
         };
     }
+
+    console.log(transaction);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
