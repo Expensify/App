@@ -52,10 +52,27 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 
     /** The chatReportID of the request */
     chatReportID?: string;
+
+    /** Whether the request is from a policy expense chat (workspace) vs 1:1 chat */
+    isPolicyExpenseChat?: boolean;
 };
 
 const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
-const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>) => !amount.length || parseFloat(amount) < 0 || (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType));
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isPolicyExpenseChat: boolean) => {
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
+
+    if (iouType === CONST.IOU.TYPE.REQUEST && parseFloat(amount) < 0.01 && !isPolicyExpenseChat) {
+        return true;
+    }
+
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -78,6 +95,7 @@ function MoneyRequestAmountForm({
     chatReportID,
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
+    isPolicyExpenseChat = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -144,7 +162,7 @@ function MoneyRequestAmountForm({
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isPolicyExpenseChat))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
@@ -158,7 +176,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isPolicyExpenseChat],
     );
 
     const buttonText: string = useMemo(() => {
