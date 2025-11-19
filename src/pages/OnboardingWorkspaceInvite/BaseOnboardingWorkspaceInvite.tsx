@@ -201,7 +201,17 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
         }
         return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, searchOptions.userToInvite, selectedOptions.length, translate, policy?.name]);
+    }, [
+        searchTerm,
+        availableOptions.userToInvite,
+        excludedUsers,
+        countryCode,
+        searchOptions.personalDetails.length,
+        searchOptions.userToInvite,
+        selectedOptions.length,
+        translate,
+        policy?.name,
+    ]);
 
     const footerContent = useMemo(
         () => (
