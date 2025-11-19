@@ -4088,7 +4088,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorButton: {
-            padding: variables.tabSelectorButtonPadding,
+            padding: variables.tabSelectorButtonEffectivePadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
