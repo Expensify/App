@@ -160,6 +160,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
                 initiallyFocusedItemKey={assignees.find((option) => option.isSelected)?.keyForList}
+                disableMaintainingScrollPosition
             />
         </InteractiveStepWrapper>
     );
