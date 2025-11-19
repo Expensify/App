@@ -169,6 +169,13 @@ function BaseSelectionList<TItem extends ListItem>({
         isFocused,
     });
 
+    useEffect(() => {
+        if (initialFocusedIndex < 0) {
+            return;
+        }
+        setFocusedIndex(initialFocusedIndex);
+    }, [initialFocusedIndex, setFocusedIndex]);
+
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
             if (!isFocused) {
