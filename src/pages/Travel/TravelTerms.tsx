@@ -8,6 +8,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import {RocketDude} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -57,7 +58,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
+        addComment(conciergeReportID, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     }, [translate, account?.primaryLogin, conciergeReportID]);
 
