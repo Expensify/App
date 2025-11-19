@@ -9335,6 +9335,8 @@ describe('ReportUtils', () => {
 
         const expenseReport: Report = {
             ...createExpenseReport(1234),
+            isPinned: false,
+            isWaitingOnBankAccount: false,
             hasOutstandingChildRequest: false,
         };
 
