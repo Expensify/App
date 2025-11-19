@@ -309,7 +309,7 @@ function getForReportAction({
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((policyTagKey, index) => {
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
@@ -327,7 +327,7 @@ function getForReportAction({
                     policyTagListName === localizedTagListName,
                 );
             }
-        });
+        }
     }
 
     const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
@@ -404,4 +404,225 @@ function getForReportAction({
     return `${message.substring(1, message.length)}`;
 }
 
-export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage};
+/**
+ * Temporary function with same implementation as getForReportAction but without policyID and  with policyTags
+ * to gradually migrate from Onyx.connect
+ */
+function getForReportActionTemp({
+    reportAction,
+    movedFromReport,
+    movedToReport,
+    policyTags,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
+    policyTags: OnyxEntry<PolicyTagLists>;
+}): string {
+    if (!isModifiedExpenseAction(reportAction)) {
+        return '';
+    }
+
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+    if (movedFromOrToReportMessage) {
+        return movedFromOrToReportMessage;
+    }
+
+    const reportActionOriginalMessage = getOriginalMessage(reportAction);
+
+    const removalFragments: string[] = [];
+    const setFragments: string[] = [];
+    const changeFragments: string[] = [];
+
+    const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
+    const hasModifiedAmount =
+        isReportActionOriginalMessageAnObject &&
+        'oldAmount' in reportActionOriginalMessage &&
+        'oldCurrency' in reportActionOriginalMessage &&
+        'amount' in reportActionOriginalMessage &&
+        'currency' in reportActionOriginalMessage;
+
+    const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+
+    if (hasModifiedAmount) {
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
+
+        const currency = reportActionOriginalMessage?.currency;
+        const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
+
+        // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
+        // We check the merchant is in distance format (includes @) as a sanity check
+        if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
+            return getForDistanceRequest(reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildMessageFragmentForValue(amount, oldAmount, translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
+    if (hasModifiedComment) {
+        buildMessageFragmentForValue(
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('common.description'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildMessageFragmentForValue(reportActionOriginalMessage.created, formattedOldCreated, translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    if (hasModifiedMerchant) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.merchant ?? '',
+            reportActionOriginalMessage?.oldMerchant ?? '',
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('common.merchant'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
+    if (hasModifiedCategory) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let categoryLabel = translateLocal('common.category');
+
+        // Add attribution suffix based on source
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+        }
+
+        buildMessageFragmentForValue(
+            getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
+            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
+            categoryLabel,
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
+    if (hasModifiedTag) {
+        const transactionTag = reportActionOriginalMessage?.tag ?? '';
+        const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
+        const splittedTag = getTagArrayFromName(transactionTag);
+        const splittedOldTag = getTagArrayFromName(oldTransactionTag);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const localizedTagListName = translateLocal('common.tag');
+        const sortedTagKeys = getSortedTagKeys(policyTags);
+
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
+
+            const newTag = splittedTag.at(index) ?? '';
+            const oldTag = splittedOldTag.at(index) ?? '';
+
+            if (newTag !== oldTag) {
+                buildMessageFragmentForValue(
+                    getCleanedTagName(newTag),
+                    getCleanedTagName(oldTag),
+                    policyTagListName,
+                    true,
+                    setFragments,
+                    removalFragments,
+                    changeFragments,
+                    policyTagListName === localizedTagListName,
+                );
+            }
+        }
+    }
+
+    const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    if (hasModifiedTaxAmount) {
+        const currency = reportActionOriginalMessage?.currency;
+
+        const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    if (hasModifiedTaxRate) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.taxRate ?? '',
+            reportActionOriginalMessage?.oldTaxRate ?? '',
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('iou.taxRate'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
+    if (hasModifiedBillable) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.billable ?? '',
+            reportActionOriginalMessage?.oldBillable ?? '',
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.reimbursable ?? '',
+            reportActionOriginalMessage?.oldReimbursable ?? '',
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
+    if (hasModifiedAttendees) {
+        const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildMessageFragmentForValue(oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const message =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        getMessageLine(`\n${translateLocal('iou.changed')}`, changeFragments) +
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        getMessageLine(`\n${translateLocal('iou.set')}`, setFragments) +
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        getMessageLine(`\n${translateLocal('iou.removed')}`, removalFragments);
+    if (message === '') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.changedTheExpense');
+    }
+    return `${message.substring(1, message.length)}`;
+}
+
+export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage, getForReportActionTemp};
