@@ -5,7 +5,6 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {Easing, FadeInDown, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -53,6 +52,7 @@ import Badge from './Badge';
 import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import Icon from './Icon';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -278,7 +278,7 @@ function MoneyRequestConfirmationListFooter({
     showMoreFields,
     setShowMoreFields,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -435,7 +435,7 @@ function MoneyRequestConfirmationListFooter({
 
     const getRightLabelIcon = useCallback(
         (fieldType: 'amount' | 'merchant' | 'date' | 'category') => {
-            return willFieldBeAutomaticallyFilled(transaction, fieldType) ? Expensicons.Sparkles : undefined;
+            return willFieldBeAutomaticallyFilled(transaction, fieldType) ? icons.Sparkles : undefined;
         },
         [transaction],
     );
@@ -1099,7 +1099,7 @@ function MoneyRequestConfirmationListFooter({
                 {isScan && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
                         <Icon
-                            src={Expensicons.Sparkles}
+                            src={icons.Sparkles}
                             fill={theme.icon}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
@@ -1120,7 +1120,7 @@ function MoneyRequestConfirmationListFooter({
                             onPress={() => setShowMoreFields(true)}
                             small
                             shouldShowRightIcon
-                            iconRight={Expensicons.DownArrow}
+                            iconRight={icons.DownArrow}
                             innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
                             textStyles={[styles.buttonSmallText]}
                         />
