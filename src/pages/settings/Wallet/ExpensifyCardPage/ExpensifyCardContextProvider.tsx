@@ -37,9 +37,9 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
             return {};
         }
         const errors: Record<string, Errors | undefined> = {};
-        Object.keys(cardList).forEach((cardID) => {
+        for (const cardID of Object.keys(cardList)) {
             errors[cardID] = cardList[cardID]?.errors;
-        });
+        }
         return errors;
     }, [cardList]);
 
@@ -47,12 +47,12 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     useEffect(() => {
         setCardsDetailsErrors((prevErrors) => {
             const clearedErrors = {...prevErrors};
-            Object.keys(clearedErrors).forEach((cardID) => {
+            for (const cardID of Object.keys(clearedErrors)) {
                 if (cardListErrors[cardID] && Object.keys(cardListErrors[cardID]).length > 0) {
-                    return;
+                    continue;
                 }
                 delete clearedErrors[Number(cardID)];
-            });
+            }
             return clearedErrors;
         });
     }, [cardListErrors]);

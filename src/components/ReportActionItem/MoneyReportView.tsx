@@ -26,11 +26,11 @@ import {
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
     hasUpdatedTotal,
-    isAdminOwnerApproverOrReportOwner,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
@@ -145,7 +145,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 }
 
                                 const fieldValue = reportField.value ?? reportField.defaultValue;
-                                const isFieldDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
