@@ -406,7 +406,6 @@ describe('TransactionUtils', () => {
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
-                merchant: '(none)',
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction], '', undefined, undefined)).toBe(true);
         });
@@ -532,7 +531,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('Expense');
+            expect(merchant).toBe('(none)');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
