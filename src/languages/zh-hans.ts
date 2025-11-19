@@ -269,6 +269,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6062,6 +6063,7 @@ ${
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `此工作区的${enabled ? '已启用' : '已禁用'}笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7239,13 +7241,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: '欢迎使用 New Expensify！',
-        subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
+        subtitle: '它集成了你在我们经典体验中喜爱的所有内容，并带来一系列升级，让你的生活更加轻松：',
         confirmText: '我们走吧！',
         features: {
-            chat: '<strong>直接在任何费用</strong>、报告或工作区上聊天',
-            scanReceipt: '<strong>扫描收据</strong>并获得报销',
-            crossPlatform: '通过手机或浏览器完成<strong>所有操作</strong>',
+            chat: '就任何费用发起聊天，快速解决问题',
+            search: '更强大的搜索，适用于移动端、网页端和桌面端',
+            concierge: '内置 Concierge AI，帮助自动化处理您的报销',
         },
+        helpText: '试用 2 分钟演示',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
