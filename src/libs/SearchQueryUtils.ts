@@ -962,7 +962,7 @@ function buildUserReadableQueryString(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
-    autoCompleteWithSpace: boolean = false,
+    autoCompleteWithSpace = false,
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
