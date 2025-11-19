@@ -5,7 +5,8 @@ import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessag
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getScimToken} from '@libs/actions/Domain';
-import {ScimTokenState, ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
+import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
+import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
 
 type ScimTokenContentProps = {
     /** The domain name associated with the SCIM token. */

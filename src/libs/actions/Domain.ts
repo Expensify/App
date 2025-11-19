@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
-import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SamlMetadata} from '@src/types/onyx';
+import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
+import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
