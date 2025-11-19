@@ -663,7 +663,7 @@ function SearchFiltersBar({
 
     const adjustScroll = useCallback(() => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
-        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // When the FlatList is scrolled to the end and the last item is changed, a blank space is left behind.
         // To fix this, we detect when onEndReached is triggered due to an item deletion,
         // and programmatically scroll to the end to fill the space.
         if (!shouldAdjustScroll) {
