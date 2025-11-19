@@ -5205,6 +5205,7 @@ ${
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
+                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
