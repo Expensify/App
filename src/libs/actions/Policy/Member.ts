@@ -967,15 +967,11 @@ function buildAddMembersToWorkspaceOnyxData(
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     welcomeNote: string,
-    policyID: string | undefined,
+    policyID: string,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    if (!policyID) {
-        Log.warn('addMembersToWorkspace missing policyID');
-        return;
-    }
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policyID,
@@ -1174,10 +1170,7 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, role);
 }
 
-function clearWorkspaceInviteRoleDraft(policyID: string | undefined) {
-    if (!policyID) {
-        return;
-    }
+function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 

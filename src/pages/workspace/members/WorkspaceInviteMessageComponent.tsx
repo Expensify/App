@@ -42,7 +42,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
-    policyID: string | undefined;
+    policyID: string;
     backTo: Routes | undefined;
     currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
     shouldShowTooltip?: boolean;

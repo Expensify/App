@@ -423,10 +423,7 @@ function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAs
     });
 }
 
-function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAccountID: number | undefined, policyID: string | undefined) {
-    if (!policyID) {
-        return;
-    }
+function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAccountID: number | undefined, policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {
         [assigneeEmail ?? '']: assigneeAccountID,
     });
