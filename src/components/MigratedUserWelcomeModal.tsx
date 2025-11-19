@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,6 +48,10 @@ const ExpensifyFeatures: FeatureListItem[] = [
     },
 ];
 
+function MigratedUserWelcomeModal() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
