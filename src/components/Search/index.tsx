@@ -260,6 +260,8 @@ function Search({
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
+    const {markReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
+
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
         if (!violations || !searchResults?.data) {
@@ -708,6 +710,11 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
                 }
+
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                }
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }

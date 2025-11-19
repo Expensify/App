@@ -170,6 +170,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [shouldRenderTertiaryOverlay, setShouldRenderTertiaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
+    const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
     const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
     const focusedRouteKey = useRootNavigationState((state) => (state ? findFocusedRoute(state)?.key : undefined));
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
@@ -256,7 +257,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
-
         return isSuperWideRHPBelow;
     });
 
@@ -278,7 +278,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const lastSuperWideRHPIndex = rhpState?.routes?.findLastIndex((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name)) ?? -1;
-
         const isSuperWideRHPDirectlyBelowFocusedScreen = lastSuperWideRHPIndex === rhpState.routes.length - 2;
 
         if (isSuperWideRHPDirectlyBelowFocusedScreen) {
@@ -286,7 +285,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const currentLastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-
         const isWideRHPBelow = getIsWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
 
         if (!isWideRHPBelow) {
@@ -294,7 +292,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         const isSuperWideRHPBelow = getIsSuperWideRHPBelowFocusedScreen(state, currentLastVisibleRHPRouteKey);
-
         return isSuperWideRHPBelow;
     });
 
@@ -437,6 +434,31 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     );
 
     /**
+     * Marks a report ID as a multi-transaction expense report, adding it to the expense reports set.
+     * This enables optimistic super wide RHP display for expense reports.
+     * It helps us open expense as super wide, before it fully loads.
+     */
+    const markReportIDAsMultiTransactionExpense = useCallback((reportID: string) => {
+        setMultiTransactionExpenseReportIDs((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(reportID);
+            return newSet;
+        });
+    }, []);
+
+    /**
+     * Checks if a report ID is marked as a multi-transaction expense report.
+     * Used to determine if super wide RHP should be displayed optimistically.
+     * It helps us open expense as super wide, before it fully loads.
+     */
+    const isReportIDMarkedAsMultiTransactionExpense = useCallback(
+        (reportID: string) => {
+            return multiTransactionExpenseReportIDs.has(reportID);
+        },
+        [multiTransactionExpenseReportIDs],
+    );
+
+    /**
      * Effect that shows/hides the expanded RHP progress based on the number of wide RHP routes.
      */
     useEffect(() => {
@@ -539,7 +561,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToFirstRHP,
             dismissToSecondRHP,
             markReportIDAsExpense,
+            markReportIDAsMultiTransactionExpense,
             isReportIDMarkedAsExpense,
+            isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
@@ -552,13 +576,14 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             cleanWideRHPRouteKey,
             shouldRenderSecondaryOverlay,
             shouldRenderTertiaryOverlay,
-            markReportIDAsExpense,
-            isReportIDMarkedAsExpense,
-            isWideRHPFocused,
-            isWideRHPClosing,
-            setIsWideRHPClosing,
             dismissToFirstRHP,
             dismissToSecondRHP,
+            markReportIDAsExpense,
+            markReportIDAsMultiTransactionExpense,
+            isReportIDMarkedAsExpense,
+            isReportIDMarkedAsMultiTransactionExpense,
+            isWideRHPFocused,
+            isWideRHPClosing,
         ],
     );
 
@@ -612,7 +637,7 @@ function useShowSuperWideRHPVersion(condition: boolean) {
     const navigation = useNavigation();
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, showSuperWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
+    const {showWideRHPVersion, showSuperWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense, isReportIDMarkedAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     /**
      * Effect that sets up cleanup when the screen is about to be removed.
@@ -633,12 +658,12 @@ function useShowSuperWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
-        if (!condition) {
-            showWideRHPVersion(route);
+        if (condition || (reportID && isReportIDMarkedAsMultiTransactionExpense(reportID))) {
+            showSuperWideRHPVersion(route);
             return;
         }
-        showSuperWideRHPVersion(route);
-    }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion, showSuperWideRHPVersion]);
+        showWideRHPVersion(route);
+    }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion, showSuperWideRHPVersion, isReportIDMarkedAsMultiTransactionExpense]);
 }
 
 WideRHPContextProvider.displayName = 'WideRHPContextProvider';

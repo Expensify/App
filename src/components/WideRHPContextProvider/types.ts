@@ -25,8 +25,14 @@ type WideRHPContextType = {
     // Mark reportID as expense before condition check
     markReportIDAsExpense: (reportID: string) => void;
 
+    // Mark reportID as multi-transaction expense before condition check
+    markReportIDAsMultiTransactionExpense: (reportID: string) => void;
+
     // Check if reportID is marked as expense
     isReportIDMarkedAsExpense: (reportID: string) => boolean;
+
+    // Check if reportID is marked as multi-transaction expense
+    isReportIDMarkedAsMultiTransactionExpense: (reportID: string) => boolean;
 
     // Navigate to the first visible RHP
     dismissToFirstRHP: () => void;
