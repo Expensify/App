@@ -1067,7 +1067,7 @@ function openReport(
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+            const selfDMReportID = getSelfDMReportID();
 
             if (selfDMReportID) {
                 const generatedReportActionID = rand64();
