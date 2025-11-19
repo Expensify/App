@@ -874,15 +874,6 @@ function SearchPage({route}: SearchPageProps) {
                             isVisible={isOfflineModalVisible}
                             onClose={() => setIsOfflineModalVisible(false)}
                         />
-                        <DecisionModal
-                            title={translate('common.downloadFailedTitle')}
-                            prompt={translate('common.downloadFailedDescription')}
-                            isSmallScreenWidth={isSmallScreenWidth}
-                            onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                            secondOptionText={translate('common.buttonConfirm')}
-                            isVisible={isDownloadErrorModalVisible}
-                            onClose={() => setIsDownloadErrorModalVisible(false)}
-                        />
                         <ConfirmModal
                             isVisible={isExportWithTemplateModalVisible}
                             onConfirm={() => {
@@ -909,6 +900,15 @@ function SearchPage({route}: SearchPageProps) {
                         />
                     </View>
                 )}
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadErrorModalVisible}
+                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
             </>
         );
     }
