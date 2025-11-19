@@ -1373,10 +1373,7 @@ function MoneyReportHeader({
                 duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
             });
         },
-        [
-            activePolicyExpenseChat,
-            defaultExpensePolicy,
-        ],
+        [activePolicyExpenseChat, defaultExpensePolicy],
     );
 
     useEffect(() => {

@@ -6610,7 +6610,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function duplicateTransaction(transaction: OnyxEntry<OnyxTypes.Transaction>, targetPolicy: OnyxEntry<OnyxTypes.Policy>, targetReport: OnyxTypes.Report, optimisticChatReportID: string, optimisticIOUReportID: string) {
+function duplicateTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>,
+    targetReport: OnyxTypes.Report,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+) {
     requestMoney({
         report: targetReport,
         optimisticChatReportID,

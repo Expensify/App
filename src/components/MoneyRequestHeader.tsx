@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
+import {format} from 'date-fns';
 import type {ReactNode} from 'react';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {format} from 'date-fns';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -29,7 +29,16 @@ import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, generateReportID, getPolicyExpenseChat, isCurrentUserSubmitter, isDM, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {
+    changeMoneyRequestHoldStatus,
+    generateReportID,
+    getPolicyExpenseChat,
+    isCurrentUserSubmitter,
+    isDM,
+    isSelfDM,
+    navigateToDetailsPage,
+    rejectMoneyRequestReason,
+} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -164,10 +173,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 duplicateTransactionIOUAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
             });
         },
-        [
-            activePolicyExpenseChat,
-            defaultExpensePolicy,
-        ],
+        [activePolicyExpenseChat, defaultExpensePolicy],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -387,7 +393,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 temporarilyDisableDuplicateAction();
 
                 duplicateTransaction([transaction]);
-                
             },
             shouldCloseModalOnSelect: false,
         },

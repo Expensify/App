@@ -58,11 +58,11 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
-    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
 } from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
@@ -600,7 +600,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserOwner = managerID === currentUserAccountID;
-    
+
     if (!isCurrentUserOwner) {
         return false;
     }

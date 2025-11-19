@@ -1578,7 +1578,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
             reportID: REPORT_ID,
         } as unknown as Transaction;
-        
+
         const reportActions = [
             {
                 reportActionID: '1',
@@ -1727,7 +1727,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
             reportID: REPORT_ID,
         } as unknown as Transaction;
-        
+
         const reportActions = [
             {
                 reportActionID: '1',
