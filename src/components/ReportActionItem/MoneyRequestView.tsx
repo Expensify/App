@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -15,6 +14,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -126,6 +126,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -659,7 +660,7 @@ function MoneyRequestView({
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
                         <Icon
-                            src={Expensicons.DotIndicator}
+                            src={icons.DotIndicator}
                             fill={theme.danger}
                             height={16}
                             width={16}
@@ -676,7 +677,7 @@ function MoneyRequestView({
                     <MenuItemWithTopDescription
                         title={amountTitle}
                         shouldShowTitleIcon={shouldShowPaid}
-                        titleIcon={Expensicons.Checkmark}
+                        titleIcon={icons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
@@ -970,7 +971,7 @@ function MoneyRequestView({
                 {shouldShowViewTripDetails && (
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
-                        icon={Expensicons.Suitcase}
+                        icon={icons.Suitcase}
                         onPress={() => {
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
                             if (reservations > 1) {

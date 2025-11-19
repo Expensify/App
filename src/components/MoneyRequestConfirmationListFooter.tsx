@@ -43,10 +43,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -263,6 +263,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -828,7 +829,7 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="firstDay"
-                    icon={Expensicons.Stopwatch}
+                    icon={icons.Stopwatch}
                     text={translate('iou.firstDayText', {count: firstDay})}
                 />,
             );
@@ -837,7 +838,7 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="tripDays"
-                    icon={Expensicons.CalendarSolid}
+                    icon={icons.CalendarSolid}
                     text={translate('iou.tripLengthText', {count: tripDays})}
                 />,
             );
@@ -846,13 +847,13 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="lastDay"
-                    icon={Expensicons.Stopwatch}
+                    icon={icons.Stopwatch}
                     text={translate('iou.lastDayText', {count: lastDay})}
                 />,
             );
         }
         return badges;
-    }, [firstDay, lastDay, translate, tripDays]);
+    }, [firstDay, lastDay, translate, tripDays, icons]);
 
     const receiptThumbnailContent = useMemo(
         () => (
