@@ -419,12 +419,11 @@ function deletePaymentBankAccount(
         const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID, newFundID);
         onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
     }
-
-    Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
+    for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
-            return;
+            continue;
         }
 
         if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -496,7 +495,7 @@ function deletePaymentBankAccount(
                 },
             });
         }
-    });
+    }
 
     API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
 }
