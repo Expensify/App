@@ -8,6 +8,7 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -130,7 +131,7 @@ function ReportFooter({
             if (!match) {
                 return false;
             }
-            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
             if (!title) {
                 return false;
             }
@@ -178,6 +179,9 @@ function ReportFooter({
         [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});
+    const targetReportAncestors = useAncestors(targetReport);
+
     const onSubmitComment = useCallback(
         (text: string) => {
             const isTaskCreated = handleCreateTask(text);
@@ -187,10 +191,10 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID],
+        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);

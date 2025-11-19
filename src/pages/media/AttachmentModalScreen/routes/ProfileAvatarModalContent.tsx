@@ -54,6 +54,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
             shouldShowNotFoundPage,
             maybeIcon: true,
             onDownloadAttachment,
+            shouldCloseOnSwipeDown: true,
         }),
         [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );
