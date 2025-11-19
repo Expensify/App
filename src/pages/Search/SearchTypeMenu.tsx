@@ -16,6 +16,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -29,7 +30,6 @@ import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQu
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +57,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark'] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -65,7 +66,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const taxRates = getAllTaxRates();
+    const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
@@ -190,13 +191,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             <MenuItemList
                 menuItems={menuItems}
                 wrapperStyle={styles.sectionMenuItem}
-                icon={Expensicons.Bookmark}
+                icon={expensifyIcons.Bookmark}
                 iconWidth={variables.iconSizeNormal}
                 iconHeight={variables.iconSizeNormal}
                 shouldUseSingleExecution
             />
         ),
-        [styles],
+        [expensifyIcons.Bookmark, styles.sectionMenuItem],
     );
 
     const activeItemIndex = useMemo(() => {

@@ -33,8 +33,8 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, TransactionViolation} from '@src/types/onyx';
-import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {PersonalDetails, Report, TransactionViolation} from '@src/types/onyx';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -55,10 +55,10 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     onButtonPress?: () => void;
 
     /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
+    from?: PersonalDetails;
 
     /** The personal details of the user paying the request */
-    to?: SearchPersonalDetails;
+    to?: PersonalDetails;
 
     /** formatted "to" value used for displaying and sorting on Reports page */
     formattedTo?: string;
