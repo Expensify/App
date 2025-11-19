@@ -24,6 +24,7 @@ type TrackExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    reimbursable?: boolean;
     receiptGpsPoints?: string;
     transactionThreadReportID: string | undefined;
     createdReportActionIDForThread: string | undefined;
@@ -32,7 +33,6 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
-    isDistance?: boolean;
 };
 
 export default TrackExpenseParams;
