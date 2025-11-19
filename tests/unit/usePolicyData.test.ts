@@ -109,7 +109,7 @@ describe('usePolicyData', () => {
         expect(result.current?.policyID).toEqual(policyID);
         expect(result.current?.policy).toBeUndefined();
 
-        expect(result.current?.reports).toBeUndefined();
+        expect(result.current?.reports).toEqual([]);
         expect(result.current?.tags).toEqual([]);
         expect(result.current?.categories).toBeUndefined();
 
