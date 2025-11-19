@@ -4,9 +4,9 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -182,7 +182,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         invoiceCompany,
     ]);
 
-    const listData: ListItem[] = useMemo(() => {
+    const featuresToCopyOptions: ListItem[] = useMemo(() => {
         return items.map((option) => {
             const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
             return {
@@ -339,15 +339,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         </PressableWithFeedback>
                     </View>
                     <SelectionList
+                        data={featuresToCopyOptions}
                         shouldSingleExecuteRowSelect
-                        sections={[{data: listData}]}
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
-                        isAlternateTextMultilineSupported
+                        alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        showConfirmButton
-                        confirmButtonText={translate('common.continue')}
-                        onConfirm={onConfirmSelectList}
+                        confirmButtonConfig={{showButton: true, text: translate('common.continue'), onConfirm: onConfirmSelectList}}
                     />
                 </View>
             </>
