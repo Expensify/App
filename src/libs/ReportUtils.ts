@@ -206,6 +206,7 @@ import {
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -5722,6 +5723,14 @@ function getReportName(
 
     if (isMovedAction(parentReportAction)) {
         return getMovedActionMessage(parentReportAction, parentReport);
+    }
+
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
+    ) {
+        return getWorkspaceTaxUpdateMessage(parentReportAction);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
