@@ -343,6 +343,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
+    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 
@@ -383,7 +384,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement:
-                    !shouldUseNarrowLayout && isControlPolicy(policy) ? (
+                    isControlPolicyWithWideLayout ? (
                         <>
                             <View style={[styles.flex1, styles.pr3]}>
                                 <Text
@@ -445,7 +446,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.label,
         styles.alignSelfStart,
         formatPhoneNumber,
-        shouldUseNarrowLayout,
+        isControlPolicyWithWideLayout,
         StyleUtils,
         invitedPrimaryToSecondaryLogins,
         policyOwner,
@@ -520,7 +521,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         // Show 4 columns only on wide screens for control policies
-        if (!shouldUseNarrowLayout && isControlPolicy(policy)) {
+        if (isControlPolicyWithWideLayout) {
             const header = (
                 <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
                     <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
