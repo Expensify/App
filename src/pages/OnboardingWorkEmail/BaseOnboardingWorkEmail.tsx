@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
@@ -121,21 +121,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         return errors;
     };
 
-    const section: Item[] = [
-        {
-            icon: illustrations.EnvelopeReceipt,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-            shouldRenderEmail: true,
-        },
-        {
-            icon: Illustrations.Profile,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-        },
-        {
-            icon: illustrations.Gears,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-        },
-    ];
+    const section: Item[] = useMemo(
+        () => [
+            {
+                icon: illustrations.EnvelopeReceipt,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+                shouldRenderEmail: true,
+            },
+            {
+                icon: Illustrations.Profile,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+            },
+            {
+                icon: illustrations.Gears,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+            },
+        ],
+        [illustrations.EnvelopeReceipt, illustrations.Gears],
+    );
 
     return (
         <ScreenWrapper

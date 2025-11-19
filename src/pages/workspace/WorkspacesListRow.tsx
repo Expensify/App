@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -130,16 +130,19 @@ function WorkspacesListRow({
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
     const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
 
-    const workspaceTypeIcon = (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
-        switch (type) {
-            case CONST.POLICY.TYPE.CORPORATE:
-                return Illustrations.ShieldYellow;
-            case CONST.POLICY.TYPE.TEAM:
-                return illustrations.Mailbox;
-            default:
-                return illustrations.Mailbox;
-        }
-    };
+    const workspaceTypeIcon = useCallback(
+        (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+            switch (type) {
+                case CONST.POLICY.TYPE.CORPORATE:
+                    return Illustrations.ShieldYellow;
+                case CONST.POLICY.TYPE.TEAM:
+                    return illustrations.Mailbox;
+                default:
+                    return illustrations.Mailbox;
+            }
+        },
+        [illustrations.Mailbox],
+    );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);

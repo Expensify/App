@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -31,20 +31,23 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
 
-    const samlFeatures: FeatureListItem[] = [
-        {
-            icon: OpenSafe,
-            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-        },
-        {
-            icon: ShieldYellow,
-            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-        },
-        {
-            icon: illustrations.LockClosed,
-            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-        },
-    ];
+    const samlFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: OpenSafe,
+                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+            },
+            {
+                icon: ShieldYellow,
+                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+            },
+            {
+                icon: illustrations.LockClosed,
+                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+            },
+        ],
+        [illustrations.LockClosed],
+    );
 
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
