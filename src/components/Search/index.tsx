@@ -940,12 +940,11 @@ function Search({
             });
             updatedTransactions = Object.fromEntries(allSelections);
         } else {
+            // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
             updatedTransactions = Object.fromEntries(
-                (data as TransactionGroupListItemType[]).flatMap((item) =>
-                    item.transactions
-                        .filter((t) => !isTransactionPendingDelete(t))
-                        .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
-                ),
+                (data as TransactionListItemType[])
+                    .filter((item) => !isTransactionPendingDelete(item))
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
             );
         }
 
