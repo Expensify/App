@@ -383,40 +383,39 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
-                rightElement:
-                    isControlPolicyWithWideLayout ? (
-                        <>
-                            <View style={[styles.flex1, styles.pr3]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
-                                >
-                                    {policyEmployee.employeeUserID}
-                                </Text>
-                            </View>
-                            <View style={[styles.flex1, styles.pr3]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textSupporting, styles.label, styles.alignSelfStart]}
-                                >
-                                    {policyEmployee.employeePayrollID}
-                                </Text>
-                            </View>
-                            <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
-                                <MemberRightIcon
-                                    role={policyEmployee.role}
-                                    owner={policy?.owner}
-                                    login={details.login}
-                                />
-                            </View>
-                        </>
-                    ) : (
-                        <MemberRightIcon
-                            role={policyEmployee.role}
-                            owner={policy?.owner}
-                            login={details.login}
-                        />
-                    ),
+                rightElement: isControlPolicyWithWideLayout ? (
+                    <>
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.alignSelfStart]}
+                            >
+                                {policyEmployee.employeeUserID}
+                            </Text>
+                        </View>
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.alignSelfStart]}
+                            >
+                                {policyEmployee.employeePayrollID}
+                            </Text>
+                        </View>
+                        <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
+                            <MemberRightIcon
+                                role={policyEmployee.role}
+                                owner={policy?.owner}
+                                login={details.login}
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <MemberRightIcon
+                        role={policyEmployee.role}
+                        owner={policy?.owner}
+                        login={details.login}
+                    />
+                ),
                 icons: [
                     {
                         source: details.avatar ?? icons.FallbackAvatar,
@@ -442,8 +441,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.cursorDefault,
         styles.flex1,
         styles.pr3,
-        styles.textSupporting,
-        styles.label,
         styles.alignSelfStart,
         formatPhoneNumber,
         isControlPolicyWithWideLayout,
