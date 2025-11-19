@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import openSearchReport from '@components/Search/openSearchReport';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -61,6 +60,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -92,6 +92,12 @@ type MoneyRequestReportTransactionListProps = {
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
+
+    /** Whether the report that these transactions belong to has any chat comments */
+    hasComments: boolean;
+
+    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
+    isLoadingInitialReportActions?: boolean;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -147,6 +153,8 @@ function MoneyRequestReportTransactionList({
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
     policy,
+    hasComments,
+    isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -280,7 +288,7 @@ function MoneyRequestReportTransactionList({
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                openSearchReport(routeParams.reportID, backTo);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [report, reportActions, sortedTransactions, markReportIDAsExpense],
@@ -349,6 +357,8 @@ function MoneyRequestReportTransactionList({
                     totalDisplaySpend={totalDisplaySpend}
                     report={report}
                     hasPendingAction={hasPendingAction}
+                    hasComments={hasComments}
+                    isLoadingReportActions={isLoadingInitialReportActions}
                 />
             </>
         );

@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
@@ -108,6 +109,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -180,7 +182,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
+                        isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
