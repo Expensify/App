@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
@@ -23,18 +22,12 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DomainSettings} from '@src/types/onyx';
+import {domainMemberSamlSettingsSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
 import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
 
 type DomainSamlPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
-
-const domainSamlSettingsSelector = (domainSettings: OnyxEntry<DomainSettings>) => ({
-    isSamlEnabled: domainSettings?.settings.samlEnabled,
-    isSamlRequired: domainSettings?.settings.samlRequired,
-    oktaSCIM: domainSettings?.settings.oktaSCIM,
-});
 
 function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
@@ -48,7 +41,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
         canBeMissing: false,
-        selector: domainSamlSettingsSelector,
+        selector: domainMemberSamlSettingsSelector,
     });
     const isSamlEnabled = !!domainSettings?.isSamlEnabled;
     const isSamlRequired = !!domainSettings?.isSamlRequired;

@@ -8,11 +8,12 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Exclamation} from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -52,6 +53,8 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
+
+    const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
     useEffect(() => {
         if (!domain?.validated) {

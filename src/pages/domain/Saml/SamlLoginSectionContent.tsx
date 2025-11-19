@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -10,14 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
-
-const domainSettingsSelector = (domain: OnyxEntry<Domain>) =>
-    domain
-        ? {
-              settings: domain.settings,
-          }
-        : undefined;
+import {domainSettingsSelector} from '@src/selectors/Domain';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */

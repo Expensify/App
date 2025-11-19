@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
+import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -279,21 +281,30 @@ function resetSamlRequiredError(accountID: number) {
 /**
  * Fetches the decrypted Okta SCIM token for the domain
  */
-function getScimToken(domainName: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const genericError = "Couldn't fetch SCIM token";
+async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
+    const genericError = "Couldn't fetch SCIM token";
 
+    try {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method -- we cannot store the token in onyx for security reasons
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: domainName})
-            .then((response) => {
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject(response?.message ? response.message : genericError);
-                    return;
-                }
-                resolve((response as {SCIMToken: string}).SCIMToken);
-            })
-            .catch(() => reject(genericError));
-    });
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: domainName});
+
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return {
+                state: ScimTokenState.ERROR,
+                error: response?.message ? response.message : genericError,
+            };
+        }
+
+        return {
+            state: ScimTokenState.VALUE,
+            value: (response as {SCIMToken: string}).SCIMToken,
+        };
+    } catch (error) {
+        return {
+            state: ScimTokenState.ERROR,
+            error: genericError,
+        };
+    }
 }
 
 export {

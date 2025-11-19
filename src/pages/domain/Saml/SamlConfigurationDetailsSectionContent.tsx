@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
@@ -12,10 +11,8 @@ import {getSamlSettings, setSamlMetadata} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
+import {domainSamlMetadataErrorSelector} from '@src/selectors/Domain';
 import ScimTokenContent from './ScimTokenContent';
-
-const domainSamlMetadataErrorSelector = (domain: OnyxEntry<Domain>) => domain?.samlMetadataError;
 
 type SamlConfigurationDetailsSectionContentProps = {
     /** The unique identifier for the domain. */

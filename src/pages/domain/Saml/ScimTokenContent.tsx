@@ -5,12 +5,7 @@ import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessag
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getScimToken} from '@libs/actions/Domain';
-
-const ScimTokenState = {
-    VALUE: 'value',
-    LOADING: 'loading',
-    ERROR: 'error',
-} as const;
+import {ScimTokenState, ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
 
 type ScimTokenContentProps = {
     /** The domain name associated with the SCIM token. */
@@ -21,15 +16,11 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [oktaScimToken, setOktaScimToken] = useState<
-        {state: typeof ScimTokenState.VALUE; value: string} | {state: typeof ScimTokenState.ERROR; error: string} | {state: typeof ScimTokenState.LOADING} | undefined
-    >(undefined);
+    const [oktaScimToken, setOktaScimToken] = useState<ScimTokenWithState>(undefined);
 
-    const fetchOktaScimToken = () => {
+    const fetchOktaScimToken = async () => {
         setOktaScimToken({state: ScimTokenState.LOADING});
-        getScimToken(domainName ?? '')
-            .then((value) => setOktaScimToken({state: ScimTokenState.VALUE, value}))
-            .catch((error: string) => setOktaScimToken({state: ScimTokenState.ERROR, error}));
+        setOktaScimToken(await getScimToken(domainName ?? ''));
     };
 
     // token not fetched yet
