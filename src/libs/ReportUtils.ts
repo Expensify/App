@@ -2294,6 +2294,23 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 }
 
 /**
+ * Whether the report was created during harvesting
+ */
+function isHarvestCreatedExpenseReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+    return !!reportNameValuePairs?.originalID && reportNameValuePairs?.origin === 'harvest';
+}
+
+/**
+ * Returns the original reportID for a harvest-created report
+ */
+function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string | undefined {
+    if (!isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+        return undefined;
+    }
+    return reportNameValuePairs?.originalID;
+}
+
+/**
  * Whether the report with the provided reportID is an archived non-expense report
  */
 function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isReportArchived = false) {
@@ -10827,7 +10844,8 @@ function getReportActionActorAccountID(
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
-
+        case CONST.REPORT.ACTIONS.TYPE.CREATED:
+            return CONST.ACCOUNT_ID.CONCIERGE;
         default:
             return reportAction?.actorAccountID;
     }
@@ -12747,6 +12765,7 @@ export {
     goBackFromPrivateNotes,
     getInvoicePayerName,
     getInvoicesChatName,
+    getHarvestOriginalReportID,
     getPayeeName,
     getReportSummariesForEmptyCheck,
     reportSummariesOnyxSelector,
@@ -12808,6 +12827,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isHarvestCreatedExpenseReport,
     isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
