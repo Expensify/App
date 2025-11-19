@@ -54,8 +54,9 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
                 const domainID = onyxKey.split('_').at(-1);
+                const shouldAddFeed = domainID && (feedSettings.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
 
-                if ((feedSettings.preferredPolicy && feedSettings.preferredPolicy !== policyID) || !domainID) {
+                if (!shouldAddFeed) {
                     return;
                 }
 
