@@ -115,9 +115,10 @@ function AnimatedCollapsible({
     const descriptionAnimatedStyle = useAnimatedStyle(() => {
         return {
             opacity: descriptionOpacity.get(),
-            height: descriptionAnimatedHeight.get(),
+            // The row is collapsed by default, so we don't need to animate the height when it's not expanded
+            height: isRendered ? descriptionAnimatedHeight.get() : undefined,
         };
-    }, []);
+    }, [isRendered]);
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
         return {
@@ -152,7 +153,7 @@ function AnimatedCollapsible({
             <Animated.View style={descriptionAnimatedStyle}>
                 {!!description && !isExpanded && (
                     <Animated.View
-                        style={styles.stickToTop}
+                        style={isRendered && styles.stickToTop}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;
                             if (height) {
