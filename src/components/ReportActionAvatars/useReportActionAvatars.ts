@@ -33,7 +33,7 @@ function useReportActionAvatars({
     shouldUseCardFeed = false,
     accountIDs = [],
     policyID: passedPolicyID,
-    policy: passedPolicy,
+    policy: policyProp,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
@@ -97,7 +97,7 @@ function useReportActionAvatars({
     const policyFromSnapshot = usePolicy(policyID);
     // When the search hash changes, policy from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to passedPolicy while the data is being fetched.
-    const policy = policyFromSnapshot ?? passedPolicy;
+    const policy = policyFromSnapshot ?? policyProp;
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);

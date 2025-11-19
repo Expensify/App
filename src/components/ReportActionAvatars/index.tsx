@@ -82,11 +82,11 @@ type ReportActionAvatarsProps = {
  */
 function ReportActionAvatars({
     reportID: potentialReportID,
-    report: passedReport,
+    report: reportProp,
     action,
     accountIDs: passedAccountIDs = [],
     policyID,
-    policy: passedPolicy,
+    policy: policyProp,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
@@ -113,7 +113,7 @@ function ReportActionAvatars({
     const [reportFromSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
     // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to passedReport while the data is being fetched.
-    const report = reportFromSnapshot ?? passedReport;
+    const report = reportFromSnapshot ?? reportProp;
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
@@ -131,7 +131,7 @@ function ReportActionAvatars({
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
-        policy: passedPolicy,
+        policy: policyProp,
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
