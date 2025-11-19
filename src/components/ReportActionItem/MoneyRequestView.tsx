@@ -627,7 +627,7 @@ function MoneyRequestView({
 
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
-    const reportCopyValue = !canEditReport ? getReportName(actualParentReport, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, translate) || actualParentReport?.reportName : undefined;
+    const reportCopyValue = !canEditReport ? getReportName(translate, actualParentReport) || actualParentReport?.reportName : undefined;
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
