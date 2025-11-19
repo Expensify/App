@@ -1982,7 +1982,7 @@ function pushTransactionViolationsOnyxData(
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
-    const {policy, tagLists, categories} = policyData;
+    const {policy, tags: tagLists, categories} = policyData;
     if (policy === undefined) {
         return;
     }
