@@ -105,7 +105,9 @@ function ConsolePage() {
         const sanitizedInput = sanitizeConsoleInput(input);
 
         const output = createLog(sanitizedInput);
-        output.forEach((log) => addLog(log));
+        for (const log of output) {
+            addLog(log);
+        }
         setInput('');
     };
 

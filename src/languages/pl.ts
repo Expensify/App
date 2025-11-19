@@ -3596,7 +3596,7 @@ ${
             expensifyCard: 'Expensify Card',
             companyCards: 'Karty firmowe',
             workflows: 'Przepływy pracy',
-            workspace: 'Workspace',
+            workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',

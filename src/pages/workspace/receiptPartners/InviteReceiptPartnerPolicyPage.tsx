@@ -52,9 +52,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         // Get the list of employees from the U4B organization
         const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
-        Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList)) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             // Skip employees who are in the "Linked" section
@@ -64,7 +64,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
                 employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
             ) {
-                return;
+                continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
@@ -89,7 +89,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
                 membersList.push(memberForList);
             }
-        });
+        }
 
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
@@ -124,12 +124,12 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.has(login));
 
         const allMembersWithState: MemberForList[] = [];
-        filterSelectedOptions.forEach((member) => {
+        for (const member of filterSelectedOptions) {
             allMembersWithState.push({...member, isSelected: true});
-        });
-        unselectedMembers.forEach((member) => {
+        }
+        for (const member of unselectedMembers) {
             allMembersWithState.push({...member, isSelected: false});
-        });
+        }
 
         return [
             {

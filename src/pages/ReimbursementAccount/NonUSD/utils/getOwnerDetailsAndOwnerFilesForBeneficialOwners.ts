@@ -31,56 +31,56 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
     const ownerDetails: Record<BeneficialOwnerDataKey, string | FileObject[]> = {};
     const ownerFiles: Record<BeneficialOwnerDataKey, string | FileObject> = {};
 
-    ownerKeys.forEach((ownerKey) => {
+    for (const ownerKey of ownerKeys) {
         const ownerDetailsFullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
         const ownerDetailsResidentialAddressKey = `${PREFIX}_${ownerKey}_${RESIDENTIAL_ADDRESS}` as const;
         const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${COUNTRY}` as const;
 
-        ownerDetailsFields.forEach((fieldName) => {
+        for (const fieldName of ownerDetailsFields) {
             const ownerDetailsKey = `${PREFIX}_${ownerKey}_${fieldName}` as const;
 
             if (!reimbursementAccountDraft?.[ownerDetailsKey]) {
-                return;
+                continue;
             }
 
             if (fieldName === SSN_LAST_4 && SafeString(reimbursementAccountDraft?.[ownerDetailsNationalityKey]) !== CONST.COUNTRY.US) {
-                return;
+                continue;
             }
 
             if (fieldName === OWNERSHIP_PERCENTAGE) {
                 ownerDetails[ownerDetailsKey] = SafeString(reimbursementAccountDraft?.[ownerDetailsKey]);
-                return;
+                continue;
             }
 
             if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
                 ownerDetails[ownerDetailsFullNameKey] = ownerDetails[ownerDetailsFullNameKey]
                     ? `${SafeString(ownerDetails[ownerDetailsFullNameKey])} ${SafeString(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];
-                return;
+                continue;
             }
 
             if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
                 ownerDetails[ownerDetailsResidentialAddressKey] = ownerDetails[ownerDetailsResidentialAddressKey]
                     ? `${SafeString(ownerDetails[ownerDetailsResidentialAddressKey])}, ${SafeString(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];
-                return;
+                continue;
             }
 
             ownerDetails[ownerDetailsKey] = reimbursementAccountDraft?.[ownerDetailsKey];
-        });
+        }
 
-        ownerFilesFields.forEach((fieldName) => {
+        for (const fieldName of ownerFilesFields) {
             const ownerFilesKey = `${PREFIX}_${ownerKey}_${fieldName}` as const;
 
             if (!reimbursementAccountDraft?.[ownerFilesKey]) {
-                return;
+                continue;
             }
 
             // User can only upload one file per each field
             const [uploadedFile] = reimbursementAccountDraft?.[ownerFilesKey] || [];
             ownerFiles[ownerFilesKey] = uploadedFile;
-        });
-    });
+        }
+    }
 
     return {ownerDetails, ownerFiles};
 }
