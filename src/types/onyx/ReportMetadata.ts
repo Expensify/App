@@ -43,6 +43,12 @@ type ReportMetadata = {
 
     /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    errors?: OnyxCommon.Errors;
 };
 
 export default ReportMetadata;
