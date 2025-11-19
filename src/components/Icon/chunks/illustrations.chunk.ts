@@ -25,6 +25,7 @@ import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
@@ -65,6 +66,7 @@ const Illustrations = {
     MagnifyingGlassMoney,
     MoneyReceipts,
     MoneyWings,
+    MoneyIntoWallet,
     PerDiem,
     ReceiptWrangler,
     ReportReceipt,

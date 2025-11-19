@@ -603,7 +603,7 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = iconRight ?? (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {

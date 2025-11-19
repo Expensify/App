@@ -136,12 +136,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection
-            ? 'error'
-            : hasPartiallySetupBankAccount(bankAccountList)
-              ? 'info'
-              : undefined;
+
+    let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+        walletBrickRoadIndicator = 'error';
+    } else if (hasPartiallySetupBankAccount(bankAccountList)) {
+        walletBrickRoadIndicator = 'info';
+    }
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -244,7 +245,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        bankAccountList,
         styles.badgeSuccess,
         styles.accountSettingsSectionContainer,
         subscriptionPlan,
