@@ -398,7 +398,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
             let newlyEnabledFeature: PolicyFeatureName | null = null;
-            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
+            for (const key of Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]) {
                 const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
                 // Determine if this feature is newly enabled (wasn't enabled before but is now)
                 if (isFeatureEnabled && !currentFeatureStates[key]) {
@@ -406,7 +406,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 }
                 newFeatureStates[key] =
                     prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
-            });
+            }
 
             // Only highlight the newly enabled feature
             if (newlyEnabledFeature) {
@@ -478,7 +478,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                shouldShowNavigationTabBar &&
+                !shouldDisplayLHB && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}

@@ -55,11 +55,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     );
 
     const data = useMemo(() => {
-        if (!(policyData.policy && policyData.policy.mccGroup)) {
+        if (!(policyData.policy && policyData.policy?.mccGroup)) {
             return [];
         }
 
-        return Object.entries(policyData.policy.mccGroup).map(
+        return Object.entries(policyData.policy?.mccGroup).map(
             ([mccKey, mccGroup]): ListItem => ({
                 categoryID: mccGroup.category,
                 keyForList: mccKey,

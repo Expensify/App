@@ -239,7 +239,9 @@ function buildOptimisticMccGroup() {
     };
 
     const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
-    Object.keys(optimisticMccGroup.mccGroup).forEach((key) => (successMccGroup.mccGroup[key] = {pendingAction: null}));
+    for (const key of Object.keys(optimisticMccGroup.mccGroup)) {
+        successMccGroup.mccGroup[key] = {pendingAction: null};
+    }
 
     const mccGroupData = {
         optimisticData: optimisticMccGroup,
@@ -321,7 +323,7 @@ function setWorkspaceCategoryEnabled(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
@@ -467,7 +469,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
 }
 
 function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
         [categoryName]: {
@@ -532,7 +534,7 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
 }
 
 function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
     const policyCategoriesOptimisticData = {
         [categoryName]: {
@@ -912,7 +914,7 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
 }
 
 function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
         errors: {
@@ -999,7 +1001,7 @@ function deleteWorkspaceCategories(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
 ) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
@@ -1060,7 +1062,7 @@ function deleteWorkspaceCategories(
 }
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, shouldGoBack = true) {
-    const policyID = policyData.policy.id;
+    const policyID = policyData.policy?.id;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
         pendingFields: {
@@ -1193,9 +1195,9 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'Categories.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }

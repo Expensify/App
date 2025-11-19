@@ -268,7 +268,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        if (policy !== undefined && selectedCategories.length >= 0) {
+        if (selectedCategories.length > 0) {
             deleteWorkspaceCategories(
                 policyData,
                 selectedCategories,

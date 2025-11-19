@@ -214,8 +214,8 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
-            assignedCardsSorted.forEach((card) => {
-                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
+            for (const card of assignedCardsSorted) {
+                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card)) {
@@ -236,7 +236,7 @@ function PaymentMethodList({
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
@@ -258,7 +258,7 @@ function PaymentMethodList({
                                 cardID: card.cardID,
                             }),
                     });
-                    return;
+                    continue;
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
@@ -270,11 +270,15 @@ function PaymentMethodList({
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        if (
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
+                            Object.keys(assignedCardsGroupedItem.errors).length > 0
+                        ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }
-                    return;
+                    continue;
                 }
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
@@ -297,7 +301,7 @@ function PaymentMethodList({
                     errors: card.errors,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     icon,
@@ -305,7 +309,7 @@ function PaymentMethodList({
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
                 });
-            });
+            }
             return assignedCardsGrouped;
         }
 
@@ -436,6 +440,7 @@ function PaymentMethodList({
                     pendingAction={item.pendingAction}
                     errors={item.errors}
                     errorRowStyles={styles.ph6}
+                    shouldShowErrorMessages={false}
                     canDismissError={item.canDismissError}
                 >
                     <MenuItem

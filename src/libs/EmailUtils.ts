@@ -20,7 +20,7 @@ function trimMailTo(mailLink: string) {
  * @returns The email with inserted line break opportunities
  */
 function prefixMailSeparatorsWithBreakOpportunities(email: string) {
-    return email.replace(
+    return email.replaceAll(
         /([.@])/g,
         // below: zero-width space (U+200B) character
         '​$1',
