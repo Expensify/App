@@ -68,6 +68,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        route={route}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
@@ -119,6 +120,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        route={route}
                     />
                 );
         }
