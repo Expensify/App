@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,8 +38,8 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+    const searchResultsOptions = searchOptions(searchValue, countries);
+    const headerMessage = searchValue.trim() && !searchResultsOptions.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -72,16 +72,12 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             />
 
             <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={translate('common.country')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults}]}
+                data={searchResultsOptions}
+                textInputOptions={{headerMessage, label: translate('common.country'), value: searchValue, onChangeText: setSearchValue}}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 shouldSingleExecuteRowSelect
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentCountry}
-                shouldUseDynamicMaxToRenderPerBatch
+                initiallyFocusedItemKey={currentCountry}
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>
