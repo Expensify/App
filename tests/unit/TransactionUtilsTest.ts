@@ -459,7 +459,6 @@ describe('TransactionUtils', () => {
             const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
             const transaction1 = generateTransaction();
             const transaction2 = generateTransaction();
-            const transactionIDs = [transaction1.transactionID, transaction2.transactionID];
             const transactionViolations = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
                     {
@@ -469,7 +468,13 @@ describe('TransactionUtils', () => {
                     },
                 ],
             };
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction1, transaction2],
+                undefined,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+            );
 
             expect(showBrokenConnectionViolation).toBe(true);
         });

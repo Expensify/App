@@ -896,12 +896,12 @@ describe('hasVisibleViolationsForUser', () => {
         expect(result).toBe(false);
     });
 
-    it('should return false when transactions is null', () => {
+    it('should return false when transactions is empty', () => {
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, []);
         expect(result).toBe(false);
     });
 

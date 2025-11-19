@@ -275,7 +275,6 @@ function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTran
         return false;
     }
 
-    const transactionIDs = reportTransactions.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, report, policy);
 
     if (hasAllPendingRTERViolations) {
@@ -286,7 +285,7 @@ function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTran
     const isReportApprover = isApproverUtils(policy, currentUserEmail);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations, currentUserEmail);
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
