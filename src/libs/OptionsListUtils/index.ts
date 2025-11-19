@@ -1871,7 +1871,6 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        console.log({showChatPreviewLine, forcePolicyNamePreview});
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, policyTags, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
