@@ -46,41 +46,39 @@ jest.mock('@actions/github', () => ({
 const androidLink = 'https://expensify.app/ANDROID_LINK';
 const iOSLink = 'https://expensify.app/IOS_LINK';
 const webLink = 'https://expensify.app/WEB_LINK';
-const desktopLink = 'https://expensify.app/DESKTOP_LINK';
 
 const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
-const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
-const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing! :test_tube::test_tube:
 Built from App PR Expensify/App#12 Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ${iOSLink}  |
 | ${androidQRCode}  | ${iOSQRCode}  |
 
-| Desktop :computer: | Web :spider_web: |
-| ------------- | ------------- |
-| ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |
+| Web :spider_web: |
+| ------------- |
+| ${webLink}  |
+| ${webQRCode}  |
 
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
 `;
 
-const onlyAppMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+const onlyAppMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing! :test_tube::test_tube:
 Built from App PR Expensify/App#12.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ⏩ SKIPPED ⏩  |
 | ${androidQRCode}  | The build for iOS was skipped  |
 
-| Desktop :computer: | Web :spider_web: |
-| ------------- | ------------- |
-| ❌ FAILED ❌  | ⏩ SKIPPED ⏩  |
-| The QR code can't be generated, because the Desktop build failed  | The build for Web was skipped  |
+| Web :spider_web: |
+| ------------- |
+| ⏩ SKIPPED ⏩  |
+| The build for Web was skipped  |
 
 ---
 
@@ -94,10 +92,10 @@ Built from Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | ${androidLink}  | ${iOSLink}  |
 | ${androidQRCode}  | ${iOSQRCode}  |
 
-| Desktop :computer: | Web :spider_web: |
-| ------------- | ------------- |
-| ⏩ SKIPPED ⏩  | ⏩ SKIPPED ⏩  |
-| The build for Desktop was skipped  | The build for Web was skipped  |
+| Web :spider_web: |
+| ------------- |
+| ⏩ SKIPPED ⏩  |
+| The build for Web was skipped  |
 
 ---
 
@@ -119,16 +117,14 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
-        when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
         createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
                 {
-                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing!',
+                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'IC_abcd',
                 },
@@ -156,13 +152,12 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('skipped');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
-        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('failure');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
         createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
                 {
-                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing!',
+                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'IC_abcd',
                 },
@@ -192,7 +187,6 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
-        when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('skipped');
         createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
