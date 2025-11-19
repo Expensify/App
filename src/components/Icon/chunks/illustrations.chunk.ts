@@ -11,6 +11,7 @@ import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustra
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
+import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 // Simple Illustrations - Core ones that are actually used
@@ -29,10 +30,13 @@ import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustrati
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
+import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
+import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 
@@ -52,6 +56,7 @@ const Illustrations = {
     ExpensifyCardIllustration,
 
     // Product Illustrations
+    ModalHoldOrReject,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ToddBehindCloud,
@@ -68,11 +73,14 @@ const Illustrations = {
     MoneyReceipts,
     MoneyWings,
     PerDiem,
+    RealtimeReport,
     ReceiptWrangler,
     ReportReceipt,
     Rules,
+    Stopwatch,
     Tag,
     CompanyCard,
+    ThumbsDown,
     Workflows,
     CarIce,
     BlueShield,
