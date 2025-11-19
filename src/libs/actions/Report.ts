@@ -1388,16 +1388,20 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
-function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
-    if (!iouReportAction) {
-        Log.warn('Cannot build transaction thread report without iouReportAction parameter');
-        return;
-    }
+function createTransactionThreadReport(
+    iouReport?: OnyxEntry<Report>,
+    iouReportAction?: OnyxEntry<ReportAction>,
+    transaction?: Transaction,
+    transactionViolations?: TransactionViolations,
+): OptimisticChatReport | undefined {
+    // Determine if we need selfDM report (for track expenses or unreported transactions)
+    const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
+    const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
 
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
-    if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = findSelfDMReportID();
+    if (isTrackExpense && selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -1406,9 +1410,29 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
         return;
     }
 
+    // Sync fresh report data from snapshot to allReports. When navigating from search,
+    // allReports may be stale and missing parentReportID/parentReportActionID, causing
+    // getAllAncestorReportActionIDs() to fail when adding comments optimistically.
+    if (iouReport?.reportID && reportToUse.reportID === iouReport.reportID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+    }
+
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
-    openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
+    openReport(
+        optimisticTransactionThreadReportID,
+        undefined,
+        currentUserEmail ? [currentUserEmail] : [],
+        optimisticTransactionThread,
+        iouReportAction?.reportActionID,
+        false,
+        [],
+        undefined,
+        false,
+        transaction,
+        transactionViolations,
+        selfDMReportID,
+    );
     return optimisticTransactionThread;
 }
 
@@ -1523,7 +1547,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, undefined, true);
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
