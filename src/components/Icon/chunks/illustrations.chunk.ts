@@ -61,6 +61,7 @@ import PerDiem from '@assets/images/simple-illustrations/simple-illustration__pe
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
+import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -137,6 +138,7 @@ const Illustrations = {
     LockClosedOrange,
     LockOpen,
     Mailbox,
+    ShieldYellow,
 };
 
 /**

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -42,7 +41,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
         translate,
         subscriptionPlan,
@@ -50,7 +49,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         preferredCurrency,
         isFromComparisonModal,
         hasTeam2025Pricing,
-        {Mailbox: lazyIllustrations.Mailbox, ShieldYellow: Illustrations.ShieldYellow},
+        lazyIllustrations,
     );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
