@@ -1,5 +1,6 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
+import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
@@ -10,6 +11,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
+import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -50,6 +52,7 @@ const Illustrations = {
     // Product Illustrations
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
+    ToddBehindCloud,
 
     // Simple Illustrations
     Accounting,
@@ -82,66 +85,9 @@ const Illustrations = {
  * @param illustrationName - The name of the illustration to retrieve
  * @returns The illustration component or undefined if not found
  */
-function getIllustration(illustrationName: string): unknown {
-    // Direct return for known illustrations to preserve React component type
-    switch (illustrationName) {
-        case 'Building':
-            return Building;
-        case 'FolderOpen':
-            return FolderOpen;
-        case 'Accounting':
-            return Accounting;
-        case 'CompanyCard':
-            return CompanyCard;
-        case 'Workflows':
-            return Workflows;
-        case 'InvoiceBlue':
-            return InvoiceBlue;
-        case 'Rules':
-            return Rules;
-        case 'HandCard':
-            return HandCard;
-        case 'Tag':
-            return Tag;
-        case 'PerDiem':
-            return PerDiem;
-        case 'Coins':
-            return Coins;
-        case 'TeleScope':
-        case 'Telescope':
-            return TeleScope;
-        case 'CreditCardsNew':
-            return CreditCardsNew;
-        case 'MoneyWings':
-            return MoneyWings;
-        case 'MoneyReceipts':
-            return MoneyReceipts;
-        case 'ExpensifyCardIllustration':
-            return ExpensifyCardIllustration;
-        case 'ReceiptWrangler':
-            return ReceiptWrangler;
-        case 'ReportReceipt':
-            return ReportReceipt;
-        case 'MagnifyingGlassMoney':
-            return MagnifyingGlassMoney;
-        case 'CompanyCardsEmptyState':
-            return CompanyCardsEmptyState;
-        case 'Car': // Legacy fallback
-            return CompanyCard;
-        case 'CarIce':
-            return CarIce;
-        case 'BlueShield':
-            return BlueShield;
-        case 'Pencil':
-            return Pencil;
-        case 'Luggage':
-            return Luggage;
-        default:
-            // Fallback to object lookup for any other cases
-            return (Illustrations as Record<string, unknown>)[illustrationName];
-    }
+function getIllustration(illustrationName: IllustrationName): React.FC<SvgProps> {
+    return Illustrations[illustrationName];
 }
-
 /**
  * Get all available illustration names
  * @returns Array of available illustration names
