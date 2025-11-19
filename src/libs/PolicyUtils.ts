@@ -486,7 +486,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\:/g, CONST.COLON);
+    return tag?.replaceAll('\\:', CONST.COLON);
 }
 
 /**
@@ -670,9 +670,9 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
 
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
-function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    Object.values(allPolicies ?? {})?.forEach((policy) => {
+    Object.values(policies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }

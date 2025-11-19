@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -93,14 +93,16 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return [
         item.keyForList,
         {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -173,14 +175,16 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -371,6 +375,13 @@ function Search({
         openSearch();
     }, []);
 
+    useEffect(() => {
+        if (!prevIsOffline || isOffline) {
+            return;
+        }
+        openSearch();
+    }, [isOffline, prevIsOffline]);
+
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
@@ -466,11 +477,19 @@ function Search({
                         continue;
                     }
 
+                    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                        transactionItem.report,
+                        transactionItem.reportAction,
+                        transactionItem.holdReportAction,
+                        transactionItem,
+                        transactionItem.policy,
+                    );
+
                     newTransactionList[transactionItem.transactionID] = {
                         action: transactionItem.action,
-                        canHold: transactionItem.canHold,
+                        canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
-                        canUnhold: transactionItem.canUnhold,
+                        canUnhold: canUnholdRequest,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
                             CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -503,11 +522,19 @@ function Search({
                     continue;
                 }
 
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                    transactionItem.report,
+                    transactionItem.reportAction,
+                    transactionItem.holdReportAction,
+                    transactionItem,
+                    transactionItem.policy,
+                );
+
                 newTransactionList[transactionItem.transactionID] = {
                     action: transactionItem.action,
-                    canHold: transactionItem.canHold,
+                    canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
-                    canUnhold: transactionItem.canUnhold,
+                    canUnhold: canUnholdRequest,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
                         CONST.EDIT_REQUEST_FIELD.REPORT,
