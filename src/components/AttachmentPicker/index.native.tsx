@@ -188,10 +188,10 @@ function AttachmentPicker({
                         }
                     };
 
-                    assets.forEach((asset) => {
+                    for (const asset of assets) {
                         if (!asset.uri) {
                             checkAllProcessed();
-                            return;
+                            continue;
                         }
 
                         if (asset.type?.startsWith('image')) {
@@ -238,7 +238,7 @@ function AttachmentPicker({
                             processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }
-                    });
+                    }
                 });
             }),
         [fileLimit, showGeneralAlert, type],
