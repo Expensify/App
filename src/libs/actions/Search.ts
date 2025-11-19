@@ -33,12 +33,11 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {getSnapshotKeys, isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -667,7 +666,14 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], allSnapshotKeys: OnyxKey[], transactions: OnyxCollection<Transaction>, currentSearchResults?: SearchResults) {
+function deleteMoneyRequestOnSearch(
+    hash: number,
+    transactionIDList: string[],
+    allSnapshots: OnyxCollection<SearchResults>,
+    transactions: OnyxCollection<Transaction>,
+    currentSearchResults?: SearchResults,
+) {
+    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     const optimisticData: OnyxUpdate[] = [...loadingOptimisticData];
     const failureData: OnyxUpdate[] = [];
@@ -711,9 +717,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             },
-                        },
+                        } as Partial<SearchTransaction>,
                     },
-                } as unknown as OnyxUpdate);
+                });
 
                 failureData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -723,9 +729,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                                 pendingAction: null,
                             },
-                        },
+                        } as Partial<SearchTransaction>,
                     },
-                } as unknown as OnyxUpdate);
+                });
             });
 
             if (transactions) {

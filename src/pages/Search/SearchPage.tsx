@@ -80,7 +80,6 @@ import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
@@ -299,7 +298,7 @@ function SearchPage({route}: SearchPageProps) {
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
 
-    const Expensicons = useMemoizedLazyExpensifyIcons([
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowRight',
         'DocumentMerge',
         'Export',
@@ -327,7 +326,7 @@ function SearchPage({route}: SearchPageProps) {
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (isOffline) {
                             setIsOfflineModalVisible(true);
@@ -374,7 +373,7 @@ function SearchPage({route}: SearchPageProps) {
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -388,8 +387,8 @@ function SearchPage({route}: SearchPageProps) {
         };
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight as FC<SvgProps>,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight as FC<SvgProps>,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -414,7 +413,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowApproveOption) {
             options.push({
-                icon: Expensicons.ThumbsUp,
+                icon: expensifyIcons.ThumbsUp,
                 text: translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
@@ -460,7 +459,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowSubmitOption) {
             options.push({
-                icon: Expensicons.Send,
+                icon: expensifyIcons.Send,
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
@@ -491,9 +490,9 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowPayOption) {
             const payButtonOption = {
-                icon: Expensicons.MoneyBag,
+                icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
@@ -508,7 +507,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowHoldOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 shouldCloseModalOnSelect: true,
@@ -527,7 +526,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowUnholdOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
@@ -570,7 +569,7 @@ function SearchPage({route}: SearchPageProps) {
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
@@ -581,7 +580,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowDeleteOption) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
@@ -606,7 +605,7 @@ function SearchPage({route}: SearchPageProps) {
             };
 
             options.push({
-                icon: Expensicons.Exclamation,
+                icon: expensifyIcons.Exclamation,
                 text: translate('search.bulkActions.noOptionsAvailable'),
                 value: undefined,
                 ...emptyOptionStyle,
@@ -639,16 +638,8 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
-        Expensicons,
+        expensifyIcons,
     ]);
-
-    const allSnapshotKeys = useMemo(() => {
-        if (!allSnapshots) {
-            return [];
-        }
-
-        return Object.keys(allSnapshots || {}) as OnyxKey[];
-    }, [allSnapshots]);
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0 || !hash) {
@@ -661,7 +652,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, allSnapshotKeys, transactions, currentSearchResults);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, allSnapshots, transactions, currentSearchResults);
             clearSelectedTransactions();
         });
     };
@@ -844,7 +835,7 @@ function SearchPage({route}: SearchPageProps) {
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
-                            icon={Expensicons.SmartScan}
+                            icon={expensifyIcons.SmartScan}
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
@@ -979,7 +970,7 @@ function SearchPage({route}: SearchPageProps) {
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        icon={Expensicons.SmartScan}
+                                        icon={expensifyIcons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}

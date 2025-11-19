@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -6,7 +6,6 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useOnyx from './useOnyx';
@@ -35,14 +34,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-
-    const allSnapshotKeys = useMemo(() => {
-        if (!allSnapshots) {
-            return [];
-        }
-
-        return Object.keys(allSnapshots || {}) as OnyxKey[];
-    }, [allSnapshots]);
 
     /**
      * Delete transactions by IDs
@@ -154,7 +145,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived,
-                    allSnapshotKeys,
+                    allSnapshots,
                     isSingleTransactionView,
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
@@ -178,7 +169,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             archivedReportsIdSet,
             isBetaEnabled,
-            allSnapshotKeys,
+            allSnapshots,
         ],
     );
 

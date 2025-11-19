@@ -201,7 +201,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSnapshotKeys, getSuggestedSearches} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -238,7 +238,6 @@ import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -252,6 +251,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -782,7 +782,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
-    allSnapshotKeys: OnyxKey[];
+    allSnapshots?: OnyxCollection<SearchResults>;
 };
 
 type DeleteMoneyRequestInputParams = {
@@ -793,7 +793,7 @@ type DeleteMoneyRequestInputParams = {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived: boolean | undefined;
-    allSnapshotKeys: OnyxKey[];
+    allSnapshots?: OnyxCollection<SearchResults>;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
@@ -8703,7 +8703,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
         iouReport,
         chatReport,
         isChatIOUReportArchived,
-        allSnapshotKeys,
+        allSnapshots,
         isSingleTransactionView = false,
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
@@ -8728,6 +8728,8 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false, transactionIDsPendingDeletion, selectedTransactionIDs);
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+
+    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
@@ -8878,9 +8880,9 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
-                    },
+                    } as Partial<SearchTransaction>,
                 },
-            } as unknown as OnyxUpdate);
+            });
 
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -8890,9 +8892,9 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                             pendingAction: null,
                         },
-                    },
+                    } as Partial<SearchTransaction>,
                 },
-            } as unknown as OnyxUpdate);
+            });
         });
     }
 
@@ -9037,7 +9039,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
-    allSnapshotKeys,
+    allSnapshots,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -9056,7 +9058,7 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest({transactionID, reportAction, transactions, violations, iouReport, chatReport: chatIOUReport, isChatIOUReportArchived, allSnapshotKeys, isSingleTransactionView});
+        deleteMoneyRequest({transactionID, reportAction, transactions, violations, iouReport, chatReport: chatIOUReport, isChatIOUReportArchived, allSnapshots, isSingleTransactionView});
         return urlToNavigateBack;
     }
 
