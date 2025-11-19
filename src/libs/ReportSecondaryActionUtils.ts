@@ -596,6 +596,14 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
         return false;
     }
 
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserOwner = managerID === currentUserAccountID;
+    
+    if (!isCurrentUserOwner) {
+        return false;
+    }
+
     const reportTransaction = reportTransactions.at(0);
     const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
 
