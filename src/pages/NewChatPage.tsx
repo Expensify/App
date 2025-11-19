@@ -80,6 +80,7 @@ function useOptions() {
             },
             draftComments,
             nvpDismissedProductTraining,
+            undefined,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
@@ -90,9 +91,8 @@ function useOptions() {
     }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
-
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, undefined, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -141,6 +141,7 @@ function useOptions() {
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
+                    policyTags: undefined,
                 });
             }
             if (!participantOption) {
@@ -204,6 +205,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectedOptions as OptionData[],
             recentReports,
             personalDetails,
+            undefined,
             undefined,
             undefined,
             undefined,

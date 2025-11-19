@@ -264,9 +264,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, policyTags, reportAttributesDerived, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -605,24 +605,21 @@ function IOURequestStepConfirmation({
         },
         [
             transactions,
+            getMoneyRequestContextForParticipant,
+            report,
             receiptFiles,
             archivedReportsIdSet,
-            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            policy,
-            policyTags,
-            policyCategories,
-            policyRecentlyUsedCategories,
             action,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
+            isASAPSubmitBetaEnabled,
             viewTourTaskReport,
             viewTourTaskParentReport,
-            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
         ],
     );

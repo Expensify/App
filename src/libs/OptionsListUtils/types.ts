@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, PersonalDetails, PolicyTagLists, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -193,6 +193,7 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
+    policyTags: OnyxEntry<PolicyTagLists>;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;

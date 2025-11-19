@@ -91,6 +91,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
             draftComments,
             nvpDismissedProductTraining,
+            undefined,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -100,7 +101,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, undefined, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
