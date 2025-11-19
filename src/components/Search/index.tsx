@@ -399,7 +399,7 @@ function Search({
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const [filteredData, filteredDataLength, allLength] = useMemo(() => {
+    const [filteredData, filteredDataLength, allDataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
         }
@@ -411,7 +411,7 @@ function Search({
             return [[], 0, 0];
         }
 
-        const [filteredData, allLength] = getSections({
+        const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,
             currentAccountID: accountID,
@@ -424,7 +424,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
         });
-        return [filteredData, filteredData.length, allLength];
+        return [filteredData1, filteredData1.length, allLength];
     }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet]);
 
     useEffect(() => {
@@ -829,12 +829,12 @@ function Search({
 
     const fetchMoreResults = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
 
         setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allLength]);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!validGroupBy || isExpenseReportType;
