@@ -1,4 +1,5 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -23,6 +24,7 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -45,7 +47,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {shouldRenderSecondaryOverlay, isWideRHPFocused, shouldRenderTertiaryOverlay, isWideRHPClosing, dismissToFirstRHP, dismissToSecondRHP} = useContext(WideRHPContext);
+    const {
+        shouldRenderSecondaryOverlay,
+        isWideRHPFocused,
+        shouldRenderTertiaryOverlay,
+        isWideRHPClosing,
+        clearWideRHPKeys,
+        dismissToFirstRHP,
+        dismissToSecondRHP,
+        syncWideRHPKeys,
+        syncSuperWideRHPKeys,
+    } = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
@@ -60,6 +72,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             width: shouldUseNarrowLayout ? '100%' : animatedWidth,
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
+
+    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
     const screenListeners = useMemo(
         () => ({
@@ -93,10 +107,30 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, CONST.ANIMATED_TRANSITION);
     }, [navigation]);
 
+    useFocusEffect(
+        useCallback(() => {
+            syncWideRHPKeys();
+            syncSuperWideRHPKeys();
+
+            return () => {
+                const isRhpClosed = !navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
+                if (isRhpClosed) {
+                    return;
+                }
+                clearWideRHPKeys();
+            };
+        }, [syncWideRHPKeys, syncSuperWideRHPKeys, clearWideRHPKeys, route.key]),
+    );
+
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
-                {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
+                {!shouldUseNarrowLayout && (
+                    <Overlay
+                        positionLeftValue={overlayPositionLeft}
+                        onPress={handleOverlayPress}
+                    />
+                )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
                 <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>

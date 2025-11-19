@@ -48,6 +48,15 @@ type WideRHPContextType = {
 
     // Mark that wide rhp is being closed
     setIsWideRHPClosing: (isClosing: boolean) => void;
+
+    // Sync wide RHP keys with the visible RHP screens
+    syncWideRHPKeys: () => void;
+
+    // Sync super wide RHP keys with the visible RHP screens
+    syncSuperWideRHPKeys: () => void;
+
+    // Clear the arrays of wide and super wide rhp keys
+    clearWideRHPKeys: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

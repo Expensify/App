@@ -166,7 +166,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
     // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
+    const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);
     const [allSuperWideRHPRouteKeys, setAllSuperWideRHPRouteKeys] = useState<string[]>([]);
+    const [superWideRHPRouteKeys, setSuperWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [shouldRenderTertiaryOverlay, setShouldRenderTertiaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
@@ -175,11 +177,26 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const focusedRouteKey = useRootNavigationState((state) => (state ? findFocusedRoute(state)?.key : undefined));
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
-    // Return undefined if RHP is not the last route
-    const lastVisibleRHPRouteKey = useRootNavigationState((state) => getLastVisibleRHPRouteKey(state));
+    const syncWideRHPKeys = useCallback(() => {
+        setWideRHPRouteKeys(getCurrentWideRHPKeys(allWideRHPRouteKeys, getLastVisibleRHPRouteKey(navigationRef.getRootState())));
+    }, [allWideRHPRouteKeys]);
 
-    const wideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allWideRHPRouteKeys, lastVisibleRHPRouteKey), [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
-    const superWideRHPRouteKeys = useMemo(() => getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey), [allSuperWideRHPRouteKeys, lastVisibleRHPRouteKey]);
+    const syncSuperWideRHPKeys = useCallback(() => {
+        setSuperWideRHPRouteKeys(getCurrentWideRHPKeys(allSuperWideRHPRouteKeys, getLastVisibleRHPRouteKey(navigationRef.getRootState())));
+    }, [allSuperWideRHPRouteKeys]);
+
+    const clearWideRHPKeys = useCallback(() => {
+        setWideRHPRouteKeys([]);
+        setSuperWideRHPRouteKeys([]);
+    }, []);
+
+    useEffect(() => {
+        syncWideRHPKeys();
+    }, [allWideRHPRouteKeys, syncWideRHPKeys]);
+
+    useEffect(() => {
+        syncSuperWideRHPKeys();
+    }, [allSuperWideRHPRouteKeys, syncSuperWideRHPKeys]);
 
     const isWideRHPFocused = useMemo(() => {
         return !!focusedRouteKey && wideRHPRouteKeys.includes(focusedRouteKey);
@@ -567,6 +584,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isWideRHPFocused,
             isWideRHPClosing,
             setIsWideRHPClosing,
+            syncWideRHPKeys,
+            syncSuperWideRHPKeys,
+            clearWideRHPKeys,
         }),
         [
             wideRHPRouteKeys,
@@ -584,6 +604,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
             isWideRHPClosing,
+            syncWideRHPKeys,
+            syncSuperWideRHPKeys,
+            clearWideRHPKeys,
         ],
     );
 
