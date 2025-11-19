@@ -704,7 +704,7 @@ function SearchFiltersBar({
                 onPress={openAdvancedFilters}
             />
         ),
-        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters],
+        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
     );
 
     if (hasErrors) {
