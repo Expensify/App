@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,30 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';
 
-const ILLUSTRATION_NAMES = {
-    STOPWATCH: 'Stopwatch',
-    RULES: 'Rules',
-    REALTIME_REPORT: 'RealtimeReport',
-    THUMBS_DOWN: 'ThumbsDown',
-    MODAL_HOLD_OR_REJECT: 'ModalHoldOrReject',
-} as const;
-
-const illustrationNames = [
-    ILLUSTRATION_NAMES.STOPWATCH,
-    ILLUSTRATION_NAMES.RULES,
-    ILLUSTRATION_NAMES.REALTIME_REPORT,
-    ILLUSTRATION_NAMES.THUMBS_DOWN,
-    ILLUSTRATION_NAMES.MODAL_HOLD_OR_REJECT,
-] as const;
-type IllustrationName = TupleToUnion<typeof illustrationNames>;
-
 type SectionMenuItem = {
     /** The icon supplied with the section */
-    iconName: IllustrationName;
+    icon: IconAsset;
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;
@@ -45,38 +28,38 @@ type HoldOrRejectEducationalModalProps = {
     onConfirm: () => void;
 };
 
-const menuSections: SectionMenuItem[] = [
-    {
-        iconName: ILLUSTRATION_NAMES.STOPWATCH,
-        titleTranslationKey: 'iou.reject.holdExpenseTitle',
-    },
-    {
-        iconName: ILLUSTRATION_NAMES.RULES,
-        titleTranslationKey: 'iou.reject.approveExpenseTitle',
-    },
-    {
-        iconName: ILLUSTRATION_NAMES.REALTIME_REPORT,
-        titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
-    },
-    {
-        iconName: ILLUSTRATION_NAMES.THUMBS_DOWN,
-        titleTranslationKey: 'iou.reject.rejectExpenseTitle',
-    },
-];
-
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(illustrationNames);
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
 
     useBeforeRemove(onClose);
+
+    const menuSections: SectionMenuItem[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.Rules,
+            titleTranslationKey: 'iou.reject.approveExpenseTitle',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
+        },
+        {
+            icon: illustrations.ThumbsDown,
+            titleTranslationKey: 'iou.reject.rejectExpenseTitle',
+        },
+    ];
 
     return (
         <FeatureTrainingModal
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={illustrations[ILLUSTRATION_NAMES.MODAL_HOLD_OR_REJECT]}
+            image={illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
@@ -96,7 +79,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                         <Icon
                             width={variables.menuIconSize}
                             height={variables.menuIconSize}
-                            src={illustrations[section.iconName]}
+                            src={section.icon}
                             additionalStyles={[styles.mr4]}
                         />
                         <View style={[styles.mb1, styles.flex1]}>
