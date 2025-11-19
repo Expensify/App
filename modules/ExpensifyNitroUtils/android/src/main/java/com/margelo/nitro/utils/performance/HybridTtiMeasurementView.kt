@@ -1,4 +1,4 @@
-package com.margelo.nitro.utils.performance
+package com.margelo.nitro.utils
 
 import android.view.View
 import com.facebook.react.uimanager.ThemedReactContext
