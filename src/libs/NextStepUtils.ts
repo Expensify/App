@@ -1052,7 +1052,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
             if (
                 isInvoiceReport(report) ||
                 !isPayer(
@@ -1069,6 +1069,32 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 break;
             }
             // Self review
+            let waitingForText;
+            if (reimburserAccountID === -1) {
+                if (
+                    isPayer(
+                        {
+                            accountID: currentUserAccountIDParam,
+                            email: currentUserEmailParam,
+                        },
+                        report,
+                    )
+                ) {
+                    waitingForText = {
+                        text: 'you',
+                        type: 'strong',
+                    };
+                } else {
+                    waitingForText = {
+                        text: 'an admin',
+                    };
+                }
+            } else {
+                waitingForText = {
+                    text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                    type: 'strong',
+                };
+            }
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1076,14 +1102,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    waitingForText,
                     {
                         text: ' to ',
                     },
@@ -1096,6 +1115,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 ],
             };
             break;
+        }
 
         // Resets a nextStep
         default:
