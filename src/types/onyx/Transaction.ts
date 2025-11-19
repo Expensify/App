@@ -164,7 +164,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -405,6 +405,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Selected accountant */
         accountant?: Accountant;
+
+        /** The Transaction converted amount */
+        convertedAmount?: number;
 
         /** The transaction tax amount */
         taxAmount?: number;

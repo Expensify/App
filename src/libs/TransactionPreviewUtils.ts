@@ -27,7 +27,6 @@ import {
     compareDuplicateTransactionFields,
     getAmount,
     getFormattedCreated,
-    getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -187,6 +186,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
+    originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -197,6 +197,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -229,6 +230,16 @@ function getTransactionPreviewTextAndTranslationPaths({
     const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
+    }
+
+    if ((RBRMessage === undefined || RBRMessage.text === '') && isDistanceRequest(transaction) && violationMessage) {
+        const hasModifiedAmountViolation = violations?.some(
+            (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+        );
+
+        if (hasModifiedAmountViolation) {
+            RBRMessage = {text: violationMessage};
+        }
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
@@ -303,7 +314,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
+    const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -369,7 +380,11 @@ function createTransactionPreviewConditionals({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations) ||
-        hasViolation(transaction, violations, true);
+        hasViolation(transaction, violations, true) ||
+        (isDistanceRequest(transaction) &&
+            violations?.some(
+                (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+            ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);

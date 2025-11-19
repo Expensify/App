@@ -4,19 +4,22 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {runOnUI, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -148,6 +151,10 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
+        canBeMissing: true,
+    });
+    const ancestors = useAncestors(transactionThreadReport ?? report);
     /**
      * Updates the Highlight state of the composer
      */
@@ -288,7 +295,7 @@ function ReportActionCompose({
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        runOnUI(clear)();
+        scheduleOnUI(clear);
     }, []);
 
     /**
@@ -309,7 +316,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -317,7 +324,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -377,6 +384,22 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
+    const validateMaxLength = useCallback(
+        (value: string) => {
+            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+            if (taskCommentMatch) {
+                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
+                setHasExceededMaxCommentLength(false);
+                return validateTaskTitleMaxLength(title);
+            }
+            setHasExceededMaxTitleLength(false);
+            return validateCommentMaxLength(value, {reportID});
+        },
+        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
+    );
+
+    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
+
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
@@ -384,20 +407,23 @@ function ReportActionCompose({
     }>({clear: undefined});
 
     const handleSendMessage = useCallback(() => {
-        'worklet';
-
-        const clearComposer = composerRefShared.get().clear;
-        if (!clearComposer) {
-            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
-        }
-
-        if (isSendDisabled) {
+        if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        // This will cause onCleared to be triggered where we actually send the message
-        clearComposer();
-    }, [isSendDisabled, composerRefShared]);
+        scheduleOnUI(() => {
+            'worklet';
+
+            const {clear: clearComposer} = composerRefShared.get();
+
+            if (!clearComposer) {
+                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            }
+
+            // This will cause onCleared to be triggered where we actually send the message
+            clearComposer?.();
+        });
+    }, [isSendDisabled, debouncedValidate, composerRefShared]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
@@ -425,23 +451,6 @@ function ReportActionCompose({
         const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [emojiPositionValues]);
-
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-            if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
-                setHasExceededMaxCommentLength(false);
-                validateTaskTitleMaxLength(title);
-            } else {
-                setHasExceededMaxTitleLength(false);
-                validateCommentMaxLength(value, {reportID});
-            }
-        },
-        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
-    );
-
-    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
 
     const onValueChange = useCallback(
         (value: string) => {
@@ -624,4 +633,4 @@ ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};
-export type {SuggestionsRef, ComposerRef};
+export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};

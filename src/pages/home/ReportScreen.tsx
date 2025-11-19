@@ -278,6 +278,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                nextStep: reportOnyx.nextStep,
             },
         [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
@@ -345,7 +346,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
+    const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
@@ -521,12 +522,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
-            createOneTransactionThreadReport();
-            return;
-        }
-
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
@@ -542,20 +537,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [
-        reportMetadata.isOptimisticReport,
-        report,
-        isOffline,
-        transactionThreadReportID,
-        transactionThreadReport,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        createOneTransactionThreadReport,
-        isLoadingApp,
-        introSelected,
-        isOnboardingCompleted,
-        isInviteOnboardingComplete,
-    ]);
+    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -563,6 +545,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         prevIsAnonymousUser.current = true;
     }, [isAnonymousUser]);
+
+    useEffect(() => {
+        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReportID || !reportMetadata.hasOnceLoadedReportActions) {
+            return;
+        }
+
+        createOneTransactionThreadReport();
+    }, [reportMetadata.hasOnceLoadedReportActions, transactionThreadReportID, createOneTransactionThreadReport]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {

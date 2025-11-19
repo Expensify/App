@@ -139,6 +139,8 @@ function IOURequestStepScan({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -154,6 +156,8 @@ function IOURequestStepScan({
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -192,7 +196,9 @@ function IOURequestStepScan({
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
-                stream.getTracks().forEach((track) => track.stop());
+                for (const track of stream.getTracks()) {
+                    track.stop();
+                }
                 // Only Safari 17+ supports zoom constraint
                 if (isMobileWebKit() && stream.getTracks().length > 0) {
                     let deviceId;
@@ -358,7 +364,7 @@ function IOURequestStepScan({
         (
             files: ReceiptFile[],
             participant: Participant,
-            gpsPoints?: GpsPoint,
+            gpsPoint?: GpsPoint,
             policyParams?: {
                 policy: OnyxEntry<Policy>;
             },
@@ -386,10 +392,11 @@ function IOURequestStepScan({
                             receipt,
                             billable,
                             reimbursable,
-                            ...(gpsPoints ?? {}),
+                            gpsPoint,
                         },
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
+                        isASAPSubmitBetaEnabled,
                     });
                 } else {
                     requestMoney({
@@ -400,7 +407,7 @@ function IOURequestStepScan({
                             participant,
                         },
                         ...(policyParams ?? {}),
-                        ...(gpsPoints ?? {}),
+                        gpsPoint,
                         transactionParams: {
                             amount: 0,
                             attendees: transaction?.comment?.attendees,
@@ -414,11 +421,12 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -491,11 +499,11 @@ function IOURequestStepScan({
                         getCurrentPosition(
                             (successData) => {
                                 const policyParams = {policy};
-                                const gpsPoints = {
+                                const gpsPoint = {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 };
-                                createTransaction(files, participant, gpsPoints, policyParams, false, true);
+                                createTransaction(files, participant, gpsPoint, policyParams, false, true);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
@@ -591,10 +599,10 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source});
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
             navigateBack();
         },
-        [initialTransactionID, navigateBack],
+        [initialTransactionID, navigateBack, policyCategories],
     );
 
     const setReceiptFilesAndNavigate = (files: FileObject[]) => {
@@ -610,15 +618,15 @@ function IOURequestStepScan({
                 return;
             }
             const source = URL.createObjectURL(file as Blob);
-            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing, file.type);
             updateScanAndNavigate(file, source);
             return;
         }
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -628,8 +636,8 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source, transactionID});
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
-        });
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        }
 
         if (shouldSkipConfirmation) {
             setReceiptFiles(newReceiptFiles);
@@ -653,10 +661,10 @@ function IOURequestStepScan({
         if (files.length === 0) {
             return;
         }
-        files.forEach((file) => {
+        for (const file of files) {
             // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-        });
+        }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
@@ -740,7 +748,7 @@ function IOURequestStepScan({
             const transactionID = transaction?.transactionID ?? initialTransactionID;
             const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
             setReceiptFiles(newReceiptFiles);
 
             if (isMultiScanEnabled) {

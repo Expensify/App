@@ -18,7 +18,6 @@ import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -101,10 +100,12 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
@@ -317,7 +318,7 @@ type PureReportActionItemProps = {
         reportAction: OnyxTypes.ReportAction,
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number,
+        paramSkinTone: number | undefined,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
@@ -345,9 +346,7 @@ type PureReportActionItemProps = {
         reportId: string | undefined,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         isReportArchived: boolean,
-        policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -710,8 +709,8 @@ function PureReportActionItem({
     );
 
     const toggleReaction = useCallback(
-        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
+        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
         },
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
@@ -896,7 +895,6 @@ function PureReportActionItem({
                             reportActionReportID,
                             action,
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            formatPhoneNumber,
                             isOriginalReportArchived,
                         ),
                     isPrimary: true,
@@ -912,14 +910,7 @@ function PureReportActionItem({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
                 onPress: () =>
-                    resolveActionableMentionWhisper(
-                        reportActionReportID,
-                        action,
-                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
-                        formatPhoneNumber,
-                        isOriginalReportArchived,
-                        policy,
-                    ),
+                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
                 isMediumSized: true,
             });
         }
@@ -928,29 +919,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () =>
-                    resolveActionableMentionWhisper(
-                        reportActionReportID,
-                        action,
-                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
-                        formatPhoneNumber,
-                        isOriginalReportArchived,
-                        policy,
-                    ),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () =>
-                    resolveActionableMentionWhisper(
-                        reportActionReportID,
-                        action,
-                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
-                        formatPhoneNumber,
-                        isOriginalReportArchived,
-                        policy,
-                    ),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
                 isMediumSized: true,
             },
         );
@@ -1321,6 +1296,12 @@ function PureReportActionItem({
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
         ) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action, policy)} />;
+        } else if (
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX
+        ) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceTaxUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(action))} />;
         } else if (isTagModificationAction(action.actionName)) {
@@ -1341,6 +1322,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldDeleteMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -1530,7 +1513,7 @@ function PureReportActionItem({
                             reportAction={action}
                             emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
+                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -1539,7 +1522,7 @@ function PureReportActionItem({
                                         signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
+                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1682,6 +1665,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
+                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
                             {getChatListItemReportName(action, report as SearchReport)}
                         </TextLink>
                     </View>
