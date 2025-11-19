@@ -245,12 +245,12 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
 
-        participants.forEach((accountID) => {
+        for (const accountID of participants) {
             const details = personalDetails?.[accountID];
 
             // If search value is provided, filter out members that don't match the search value
             if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
-                return;
+                continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = isUserPolicyAdmin(policy, details.login);
@@ -280,7 +280,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 pendingAction: pendingChatMember?.pendingAction,
                 errors: pendingChatMember?.errors,
             });
-        });
+        }
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 

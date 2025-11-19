@@ -267,7 +267,7 @@ function SearchList({
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
