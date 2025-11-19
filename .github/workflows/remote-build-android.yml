@@ -61,9 +61,15 @@ jobs:
           comment-bot: false
 
       - name: Download Rock artifact
+        env:
+          ARTIFACT_URL: ${{ env.ARTIFACT_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Downloading artifact from: $ARTIFACT_URL"
-          curl -L "$ARTIFACT_URL" -o artifact.zip
+          curl -L \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            "$ARTIFACT_URL" -o artifact.zip
           unzip artifact.zip -d artifact_contents
 
       - name: Find APK
