@@ -1411,7 +1411,7 @@ function MoneyReportHeader({
                         {isReportInSearch && (
                             <MoneyRequestReportNavigation
                                 reportID={moneyRequestReport?.reportID}
-                                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
                             />
                         )}
                     </View>
