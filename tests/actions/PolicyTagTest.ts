@@ -452,13 +452,13 @@ describe('actions/Policy', () => {
                 callback: (val) => (optimisticPolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = optimisticPolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.enabled).toBeFalsy();
                 expect(updatedTag?.errors).toBeFalsy();
                 expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            });
+            }
 
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -470,12 +470,12 @@ describe('actions/Policy', () => {
                 callback: (val) => (successPolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = successPolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.errors).toBeFalsy();
                 expect(updatedTag?.pendingAction).toBeFalsy();
                 expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-            });
+            }
         });
 
         it('reset policy tag enable when api returns error', async () => {
@@ -512,12 +512,12 @@ describe('actions/Policy', () => {
                 callback: (val) => (failurePolicyTags = val),
             });
 
-            Object.keys(tagsToUpdate).forEach((key) => {
+            for (const key of Object.keys(tagsToUpdate)) {
                 const updatedTag = failurePolicyTags?.[tagListName]?.tags[key];
                 expect(updatedTag?.errors).toBeTruthy();
                 expect(updatedTag?.pendingAction).toBeFalsy();
                 expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-            });
+            }
         });
 
         it('should work with data from useOnyx hook', async () => {
@@ -932,9 +932,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            });
+            }
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -945,9 +945,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-            });
+            }
         });
 
         it('reset the deleted policy tag when api returns error', async () => {
@@ -980,10 +980,10 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
-            });
+            }
         });
 
         it('should work with data from useOnyx hook', async () => {
@@ -1009,9 +1009,9 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatePolicyTags = val),
             });
 
-            tagsToDelete.forEach((tagName) => {
+            for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-            });
+            }
         });
     });
 
@@ -1754,9 +1754,9 @@ describe('actions/Policy', () => {
             expect(policyData.current.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             // And all tags should be disabled
-            Object.keys(existingTags).forEach((tagName) => {
+            for (const tagName of Object.keys(existingTags)) {
                 expect(policyData.current?.tags?.[tagListName]?.tags[tagName]?.enabled).toBe(false);
-            });
+            }
 
             await mockFetch.resume();
 
