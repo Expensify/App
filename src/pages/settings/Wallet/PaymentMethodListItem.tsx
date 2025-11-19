@@ -2,11 +2,11 @@ import React, {useCallback, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
@@ -88,6 +88,7 @@ function isAccountInSetupState(account: PaymentMethodItem) {
 }
 
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
@@ -132,7 +133,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={getBadgeText(item)}
-                badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
+                badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
                 badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={item.iconRight}

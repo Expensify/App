@@ -7,10 +7,10 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -144,6 +144,7 @@ function PaymentMethodList({
     threeDotsMenuItems,
     onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -199,7 +200,7 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                        iconRight: itemIconRight ?? icons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                             pressHandler({
@@ -326,12 +327,13 @@ function PaymentMethodList({
                     : undefined,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
-                iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                iconRight: itemIconRight ?? icons.ThreeDots,
                 shouldShowRightIcon,
             };
         });
         return combinedPaymentMethods;
     }, [
+        icons,
         shouldShowAssignedCards,
         isLoadingBankAccountList,
         bankAccountList,
@@ -369,12 +371,12 @@ function PaymentMethodList({
             <MenuItem
                 onPress={onPressItem}
                 title={translate('bankAccount.addBankAccount')}
-                icon={Expensicons.Plus}
+                icon={icons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
             />
         ),
 
-        [onPressItem, translate, styles.paymentMethod, listItemStyle],
+        [icons, onPressItem, translate, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {
