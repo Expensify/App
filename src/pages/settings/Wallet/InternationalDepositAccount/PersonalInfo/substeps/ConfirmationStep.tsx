@@ -11,16 +11,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.PERSONAL_BANK_SUBSTEP_INDEXES;
 
 function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+
+    const isManual = bankAccountPersonalDetails?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
     const isLoading = privatePersonalDetails?.isLoading ?? false;
-    const error = ErrorUtils.getLatestErrorMessage(privatePersonalDetails ?? {});
+    const error = ErrorUtils.getLatestErrorMessage(personalBankAccount ?? {});
 
     const personalDetails = useMemo(() => {
         const currentAddress = getCurrentAddress(privatePersonalDetails);
@@ -36,32 +39,44 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         };
     }, [bankAccountPersonalDetails, privatePersonalDetails]);
 
-    const summaryItems = [
-        {
-            description: translate('personalInfoStep.legalName'),
-            title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(PERSONAL_INFO_STEP_INDEXES.LEGAL_NAME);
+    const summaryItems = useMemo(() => {
+        const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount?.plaidAccountID === bankAccountPersonalDetails?.selectedPlaidAccountID);
+
+        return [
+            {
+                description: isManual ? translate('bankAccount.accountNumber') : translate('common.bankAccount'),
+                title: isManual ? bankAccountPersonalDetails?.accountNumber : (selectedPlaidAccount?.addressName ?? ''),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(0);
+                },
             },
-        },
-        {
-            description: translate('personalInfoStep.address'),
-            title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
+            {
+                description: translate('personalInfoStep.legalName'),
+                title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
             },
-        },
-        {
-            description: translate('common.phoneNumber'),
-            title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(PERSONAL_INFO_STEP_INDEXES.PHONE_NUMBER);
+            {
+                description: translate('personalInfoStep.address'),
+                title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(2);
+                },
             },
-        },
-    ];
+            {
+                description: translate('common.phoneNumber'),
+                title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(3);
+                },
+            },
+        ];
+    }, [bankAccountPersonalDetails?.accountNumber, bankAccountPersonalDetails?.selectedPlaidAccountID, isManual, onMove, personalDetails, plaidData?.bankAccounts, translate]);
 
     return (
         <CommonConfirmationStep
