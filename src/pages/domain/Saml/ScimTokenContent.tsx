@@ -37,7 +37,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
         return (
             <Button
                 text={translate('domain.samlConfigurationDetails.revealToken')}
-                style={styles.wFitContent}
+                style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
             />
