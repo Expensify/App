@@ -565,6 +565,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
+
+    /** The name of the enabled/disabled feature */
+    featureName?: string;
 };
 
 /** Model of `join policy` report action */

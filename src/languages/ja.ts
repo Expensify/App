@@ -6175,6 +6175,34 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
+                case 'tags':
+                    return `${enabled ? '有効' : '無効'} 個のタグ`;
+                case 'workflows':
+                    return `${enabled ? '有効' : '無効'}件のワークフロー`;
+                case 'distance rates':
+                    return `${enabled ? '有効' : '無効'} の距離単価`;
+                case 'accounting':
+                    return `${enabled ? '有効' : '無効'} 会計`;
+                case 'Expensify Cards':
+                    return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'company cards':
+                    return `${enabled ? '有効' : '無効'} 枚の法人カード`;
+                case 'invoicing':
+                    return `${enabled ? '有効' : '無効'} 請求書発行`;
+                case 'per diem':
+                    return `${enabled ? '有効' : '無効'} 日当`;
+                case 'receipt partners':
+                    return `${enabled ? '有効' : '無効'} 領収書パートナー`;
+                case 'rules':
+                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                default:
+                    return `${enabled ? '有効' : '無効'} ${featureName}`;
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
