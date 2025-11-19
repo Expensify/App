@@ -25,6 +25,7 @@ import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import {isRouteActive} from './helpers/isRouteActive';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -150,15 +151,6 @@ function getReportRHPActiveRoute(): string {
 }
 
 /**
- * Cleans the route path by removing redundant slashes and query parameters.
- * @param routePath The route path to clean.
- * @returns The cleaned route path.
- */
-function cleanRoutePath(routePath: string): string {
-    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
-}
-
-/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -168,11 +160,7 @@ function cleanRoutePath(routePath: string): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    let activeRoute = getActiveRouteWithoutParams();
-    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
-
-    // We remove redundant (consecutive and trailing) slashes from path before matching
-    return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
+    return isRouteActive(getActiveRouteWithoutParams(), routePath);
 }
 
 /**
