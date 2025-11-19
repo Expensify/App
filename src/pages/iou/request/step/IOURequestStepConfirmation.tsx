@@ -317,14 +317,11 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
-            return;
-        }
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
+    }, [transactionIDs, policy, isPolicyExpenseChat]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -627,7 +624,6 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -756,7 +752,6 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -821,7 +816,6 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
