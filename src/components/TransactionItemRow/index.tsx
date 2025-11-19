@@ -123,7 +123,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
