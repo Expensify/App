@@ -965,7 +965,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
     } else {
         option.text = getPolicyName({report});
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        option.alternateText = translateLocal('workspace.common.workspace');
+        option.alternateText = translateLocal('common.workspace');
 
         if (report?.policyID) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1018,7 +1018,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     } else if (report?.ownerAccountID !== 0 || !option.text) {
         option.text = getPolicyName({report});
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        option.alternateText = translateLocal('workspace.common.workspace');
+        option.alternateText = translateLocal('common.workspace');
     }
     option.isDisabled = true;
     option.isSelected = false;
@@ -1050,7 +1050,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    option.alternateText = translateLocal('workspace.common.workspace');
+    option.alternateText = translateLocal('common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     return option;
@@ -1874,7 +1874,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
             newReportOption.text = getPolicyName({report});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            newReportOption.alternateText = translateLocal('workspace.common.workspace');
+            newReportOption.alternateText = translateLocal('common.workspace');
 
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];

@@ -228,7 +228,7 @@ const baseFilterConfig = {
     },
     policyID: {
         getTitle: getFilterWorkspaceDisplayTitle,
-        description: 'workspace.common.workspace' as const,
+        description: 'common.workspace' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID),
     },
     purchaseAmount: {

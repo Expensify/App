@@ -294,7 +294,7 @@ function MoneyRequestParticipantsSelector({
         newSections.push(formatResults.section);
 
         newSections.push({
-            title: translate('workspace.common.workspace'),
+            title: translate('common.workspace'),
             data: availableOptions.workspaceChats ?? [],
             shouldShow: (availableOptions.workspaceChats ?? []).length > 0,
         });

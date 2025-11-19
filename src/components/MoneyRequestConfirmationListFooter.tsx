@@ -954,7 +954,7 @@ function MoneyRequestConfirmationListFooter({
                     title={senderWorkspace?.name}
                     icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
-                    description={translate('workspace.common.workspace')}
+                    description={translate('common.workspace')}
                     label={translate('workspace.invoices.sendFrom')}
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}

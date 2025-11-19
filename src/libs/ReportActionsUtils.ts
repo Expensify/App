@@ -3077,7 +3077,7 @@ function getActionableCardFraudAlertMessage(
 function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyName = originalMessage?.policyName ?? translateLocal('workspace.common.workspace');
+    const policyName = originalMessage?.policyName ?? translateLocal('common.workspace');
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const oldRole = translateLocal('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated

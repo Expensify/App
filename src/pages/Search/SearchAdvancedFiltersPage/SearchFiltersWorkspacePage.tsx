@@ -86,7 +86,7 @@ function SearchFiltersWorkspacePage() {
             {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton
-                        title={translate('workspace.common.workspace')}
+                        title={translate('common.workspace')}
                         onBackButtonPress={() => {
                             Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}

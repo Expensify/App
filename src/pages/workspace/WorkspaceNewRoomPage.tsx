@@ -284,7 +284,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                         <InputWrapper
                             InputComponent={ValuePicker}
                             inputID={INPUT_IDS.POLICY_ID}
-                            label={translate('workspace.common.workspace')}
+                            label={translate('common.workspace')}
                             items={workspaceOptions}
                             value={policyID}
                             onValueChange={(value) => setPolicyID(value as typeof policyID)}

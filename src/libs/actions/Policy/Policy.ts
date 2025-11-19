@@ -1865,7 +1865,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
     const workspaceTranslations = Object.values(CONST.LOCALES)
-        .map((lang) => translate(lang, 'workspace.common.workspace'))
+        .map((lang) => translate(lang, 'common.workspace'))
         .join('|');
 
     const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
