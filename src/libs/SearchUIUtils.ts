@@ -640,7 +640,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem, policy);
-    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
         formattedFrom,
@@ -698,7 +698,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
-            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
     });
@@ -768,7 +768,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const amount = Math.abs(Number(transactionItem.modifiedAmount) || transactionItem.amount);
+    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
     return isAmountTooLong(amount);
 }
 
@@ -1371,69 +1371,14 @@ function getTaskSections(
     );
 }
 
-/**
- * @private
- *
- * Extracts the core Transaction fields from a TransactionListItemType
- * This removes UI-specific fields like formattedFrom, hash, violations, etc.
- */
-function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
-    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-        // Remove UI-specific fields
-        keyForList,
-        action,
-        allActions,
-        report,
-        from,
-        to,
-        formattedFrom,
-        formattedTo,
-        formattedTotal,
-        formattedMerchant,
-        date,
-        shouldShowMerchant,
-        shouldShowYear: shouldTransactionShowYear,
-        isAmountColumnWide,
-        isTaxAmountColumnWide,
-        violations,
-        hash,
-        moneyRequestReportActionID,
-        canDelete,
-        convertedAmount,
-        convertedCurrency,
-        transactionThreadReportID,
-        isFromOneTransactionReport,
-        accountID,
-        policyID,
-        transactionType,
-        // Keep all other fields (core Transaction fields)
-        ...transaction
-    } = item;
-
-    return transaction as OnyxTypes.Transaction;
-}
-
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
-    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
-    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
+    const previewData = transactionPreviewData
+        ? {...transactionPreviewData, hasTransactionThreadReport: true}
+        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+    setOptimisticDataForTransactionThreadPreview(item, previewData);
 
-    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
-    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
-    if (reportActionID) {
-        const previewData = transactionPreviewData
-            ? {...transactionPreviewData, hasTransactionThreadReport: true}
-            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-        setOptimisticDataForTransactionThreadPreview(item, previewData);
-    }
-
-    // For legacy transactions without an IOU action in the backend, pass transaction data
-    // This allows OpenReport to create the IOU action and transaction thread on the backend
-    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
-    const transactionViolations = !reportActionID ? item.violations : undefined;
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
@@ -2489,7 +2434,7 @@ function getColumnsToShow(
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
-        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) || isScanning(transaction)) {
+        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
         }
 

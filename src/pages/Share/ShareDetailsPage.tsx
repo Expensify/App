@@ -7,6 +7,7 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +66,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         () => getReportDisplayOption(report, unknownUserDetails, policyTags, reportAttributesDerived),
         [report, unknownUserDetails, policyTags, reportAttributesDerived],
     );
-
+    const ancestors = useAncestors(report);
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
     const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -112,14 +114,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
-
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -141,7 +142,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
