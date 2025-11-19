@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -110,10 +111,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
-
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
@@ -312,7 +310,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, policyTagLists, policyCategories, allTransactionViolations, true);
+                enablePolicyCategories(policyData, isEnabled, true);
             },
             onPress: () => {
                 if (!policyID) {
@@ -330,10 +328,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                enablePolicyTags({policyID, enabled: isEnabled, policyTags: policyTagLists});
+                enablePolicyTags(policyData, isEnabled);
             },
             onPress: () => {
                 if (!policyID) {
@@ -500,7 +495,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 )}
             </Hoverable>
         ),
-        [styles, StyleUtils, shouldUseNarrowLayout, translate, getItemStyle],
+        [styles, translate, getItemStyle],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
