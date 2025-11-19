@@ -415,7 +415,7 @@ function deletePaymentBankAccount(
         ],
     };
 
-    if (newBankAccountID && newFundID) {
+    if (newBankAccountID && !!newFundID) {
         const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID, newFundID);
         onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
     }

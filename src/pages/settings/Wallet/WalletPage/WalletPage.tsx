@@ -316,11 +316,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         paymentMethod.selectedPaymentMethodType,
         paymentMethod.isSelectedPaymentMethodDefault,
         paymentMethod.methodID,
-        lastUsedPaymentMethods,
-        bankAccountList,
         fundList,
+        bankAccountList,
         styles,
         translate,
+        lastUsedPaymentMethods,
     ]);
 
     /**
