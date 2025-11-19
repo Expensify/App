@@ -65,6 +65,7 @@ function BaseSelectionList<TItem extends ListItem>({
     showScrollIndicator = true,
     canSelectMultiple = false,
     disableKeyboardShortcuts = false,
+    disableMaintainingScrollPosition = false,
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
@@ -410,6 +411,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
+                        maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
                         ListHeaderComponent={
                             <>
                                 {customListHeaderContent}
