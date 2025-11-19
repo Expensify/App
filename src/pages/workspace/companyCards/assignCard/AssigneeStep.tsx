@@ -163,8 +163,8 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
 
     const textInputOptions = useMemo(
         () => ({
-            textInputLabel: shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined,
-            textInputValue: searchTerm,
+            label: shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined,
+            text: searchTerm,
             onChangeText: setSearchTerm,
             headerMessage,
         }),
@@ -189,6 +189,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 initiallyFocusedItemKey={selectedMember}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
+                disableMaintainingScrollPosition
                 footerContent={
                     <FormAlertWithSubmitButton
                         buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
