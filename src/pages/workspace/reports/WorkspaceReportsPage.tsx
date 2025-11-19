@@ -208,14 +208,14 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                errorRowStyles={styles.mh0}
+                                errorRowStyles={[styles.mh0, styles.mt2]}
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
@@ -223,7 +223,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={styles.pv2}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
