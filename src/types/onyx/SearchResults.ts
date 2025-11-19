@@ -173,14 +173,8 @@ type SearchTransaction = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
-
     /** The edited transaction amount */
-    modifiedAmount: number | string;
+    modifiedAmount: number;
 
     /** The transaction currency */
     currency: string;
@@ -213,13 +207,13 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
     category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
@@ -375,9 +369,6 @@ type SearchWithdrawalIDGroup = {
     debitPosted: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
@@ -413,7 +404,6 @@ export type {
     ListItemDataType,
     SearchTask,
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
