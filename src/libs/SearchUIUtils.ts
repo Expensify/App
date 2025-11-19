@@ -77,6 +77,7 @@ import {
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
+    isHoldAction,
     isMoneyRequestAction,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
@@ -919,10 +920,19 @@ function getTransactionViolations(
 
 /**
  * @private
- * Creates an optimized lookup map for report actions indexed by transaction ID.
+ * Creates optimized lookup maps:
+ * - Lookup money request action by transaction ID
+ * - Lookup hold action by transaction ID
  */
-function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
-    const reportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+function createReportActionsLookupMaps(data: OnyxTypes.SearchResults['data']): {
+    moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
+    holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
+} {
+    const moneyRequestReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    const holdReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+
+    // Helper to match report action entries ("HOLD" report action) with transaction entries
+    const allHoldReportActions = new Map<string, OnyxTypes.ReportAction>();
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
@@ -932,14 +942,32 @@ function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['da
                     const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
                     const transactionID = originalMessage?.IOUTransactionID;
                     if (transactionID) {
-                        reportActionsByTransactionID.set(transactionID, action);
+                        moneyRequestReportActionsByTransactionID.set(transactionID, action);
                     }
+                } else if (isHoldAction(action)) {
+                    allHoldReportActions.set(action.reportActionID, action);
+                }
+            }
+        }
+        // Optimization: We don't need to iterate over all the transactions.
+        // We can stop as soon as all found "HOLD" report actions are matched with their transactions.
+        // Note: This optimization is possible only because reportActions appear before transactions (alphabetical order) and this order is guaranteed.
+        else if (isTransactionEntry(key) && allHoldReportActions.size > holdReportActionsByTransactionID.size) {
+            const transaction = data[key];
+            const holdReportActionID = transaction?.comment?.hold;
+            if (holdReportActionID) {
+                const action = allHoldReportActions.get(holdReportActionID);
+                if (action) {
+                    holdReportActionsByTransactionID.set(transaction.transactionID, action);
                 }
             }
         }
     }
 
-    return reportActionsByTransactionID;
+    return {
+        moneyRequestReportActionsByTransactionID,
+        holdReportActionsByTransactionID,
+    };
 }
 
 /**
@@ -1000,7 +1028,7 @@ function getTransactionsSections(
 
     // Use Map for faster lookups of personal details and reportActions
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
-    const reportActionsByTransactionIDMap = createReportActionsByTransactionIDMap(data);
+    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -1030,7 +1058,7 @@ function getTransactionsSections(
         }
 
         if (shouldShow) {
-            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
+            const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
@@ -1055,6 +1083,7 @@ function getTransactionsSections(
                 report,
                 policy,
                 reportAction,
+                holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
                 from,
                 to,
                 formattedFrom,
@@ -1342,71 +1371,14 @@ function getTaskSections(
     );
 }
 
-/**
- * @private
- *
- * Extracts the core Transaction fields from a TransactionListItemType
- * This removes UI-specific fields like formattedFrom, hash, violations, etc.
- */
-function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
-    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-        // Remove UI-specific fields
-        keyForList,
-        action,
-        allActions,
-        report,
-        from,
-        to,
-        formattedFrom,
-        formattedTo,
-        formattedTotal,
-        formattedMerchant,
-        date,
-        shouldShowMerchant,
-        shouldShowYear: shouldTransactionShowYear,
-        isAmountColumnWide,
-        isTaxAmountColumnWide,
-        violations,
-        hash,
-        moneyRequestReportActionID,
-        canDelete,
-        canHold,
-        canUnhold,
-        convertedAmount,
-        convertedCurrency,
-        transactionThreadReportID,
-        isFromOneTransactionReport,
-        accountID,
-        policyID,
-        transactionType,
-        // Keep all other fields (core Transaction fields)
-        ...transaction
-    } = item;
-
-    return transaction as OnyxTypes.Transaction;
-}
-
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
-    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
-    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
+    const previewData = transactionPreviewData
+        ? {...transactionPreviewData, hasTransactionThreadReport: true}
+        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+    setOptimisticDataForTransactionThreadPreview(item, previewData);
 
-    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
-    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
-    if (reportActionID) {
-        const previewData = transactionPreviewData
-            ? {...transactionPreviewData, hasTransactionThreadReport: true}
-            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-        setOptimisticDataForTransactionThreadPreview(item, previewData);
-    }
-
-    // For legacy transactions without an IOU action in the backend, pass transaction data
-    // This allows OpenReport to create the IOU action and transaction thread on the backend
-    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
-    const transactionViolations = !reportActionID ? item.violations : undefined;
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
@@ -1494,7 +1466,7 @@ function getReportSections(
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
-    const reportActionsByTransactionIDMap = createReportActionsByTransactionIDMap(data);
+    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
@@ -1561,7 +1533,7 @@ function getReportSections(
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
-            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
+            const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
@@ -1588,6 +1560,7 @@ function getReportSections(
                 allActions,
                 report,
                 reportAction,
+                holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
                 policy,
                 from,
                 to,
@@ -2458,7 +2431,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
-    const reportActionsByTransactionIDMap = Array.isArray(data) ? undefined : createReportActionsByTransactionIDMap(data);
+    const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
@@ -2488,7 +2461,7 @@ function getColumnsToShow(
         if (!Array.isArray(data)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
-            const reportAction = reportActionsByTransactionIDMap?.get(transaction.transactionID);
+            const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
             // if From or To differ from current user in any transaction, show the columns
@@ -2507,12 +2480,12 @@ function getColumnsToShow(
     if (Array.isArray(data)) {
         data.forEach(updateColumns);
     } else {
-        Object.keys(data).forEach((key) => {
+        for (const key of Object.keys(data)) {
             if (!isTransactionEntry(key)) {
-                return;
+                continue;
             }
             updateColumns(data[key]);
-        });
+        }
     }
 
     return columns;
