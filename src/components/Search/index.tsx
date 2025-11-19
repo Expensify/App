@@ -148,12 +148,14 @@ function mapToTransactionItemWithAdditionalInfo(
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
 }
 
-function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType): [string, SelectedTransactionInfo] {
+function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType, currentUserAccountID: number | undefined): [string, SelectedTransactionInfo] {
+    const canDelete = item.ownerAccountID === currentUserAccountID;
+
     return [
         item.keyForList ?? '',
         {
             isSelected: true,
-            canDelete: true,
+            canDelete,
             canHold: false,
             isHeld: false,
             canUnhold: false,
@@ -488,7 +490,7 @@ function Search({
                         return;
                     }
                     if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
-                        const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
+                        const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup, accountID);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
                             isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
@@ -690,7 +692,7 @@ function Search({
                     return;
                 }
 
-                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item, accountID);
                 const updatedTransactions = {
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
@@ -723,7 +725,7 @@ function Search({
             setSelectedTransactions(updatedTransactions, data);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, data, updateSelectAllMatchingItemsState, outstandingReportsByPolicyID],
+        [selectedTransactions, setSelectedTransactions, data, updateSelectAllMatchingItemsState, outstandingReportsByPolicyID, accountID],
     );
 
     const onSelectRow = useCallback(
@@ -929,7 +931,7 @@ function Search({
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         return [];
                     }
-                    return [mapEmptyReportToSelectedEntry(item)];
+                    return [mapEmptyReportToSelectedEntry(item, accountID)];
                 }
 
                 return item.transactions
@@ -949,7 +951,17 @@ function Search({
 
         setSelectedTransactions(updatedTransactions, data);
         updateSelectAllMatchingItemsState(updatedTransactions);
-    }, [validGroupBy, isExpenseReportType, selectedTransactions, setSelectedTransactions, data, updateSelectAllMatchingItemsState, clearSelectedTransactions, outstandingReportsByPolicyID]);
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        selectedTransactions,
+        setSelectedTransactions,
+        data,
+        updateSelectAllMatchingItemsState,
+        clearSelectedTransactions,
+        outstandingReportsByPolicyID,
+        accountID,
+    ]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
