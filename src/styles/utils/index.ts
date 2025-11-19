@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -699,9 +699,9 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
  */
 function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
     let finalStyles: T[] = [];
-    allStyles.forEach((style) => {
+    for (const style of allStyles) {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
-    });
+    }
     return finalStyles;
 }
 
@@ -752,9 +752,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    // eslint-disable-next-line unicorn/prefer-set-has
-    const heightsIPhonesWithNotches = [812, 896, 844, 926];
-    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = new Set([812, 896, 844, 926]);
+    return heightsIPhonesWithNotches.has(windowHeight) || heightsIPhonesWithNotches.has(windowWidth);
 }
 
 /**
@@ -1845,13 +1844,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getCharacterPadding: (prefix: string): number => {
         let padding = 0;
-        prefix.split('').forEach((char) => {
+        for (const char of prefix.split('')) {
             if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
                 padding += 11;
             } else {
                 padding += 8;
             }
-        });
+        }
 
         return padding;
     },

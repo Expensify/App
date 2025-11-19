@@ -231,6 +231,7 @@ export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflo
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
+export type {default as OpenPolicyRulesPageParams} from './OpenPolicyRulesPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
 export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
@@ -376,6 +377,7 @@ export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
