@@ -513,6 +513,21 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
+    function getMoneyRequestContextForParticipant(participant: Participant | undefined, reportParam: Report | undefined) {
+        const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
+        return {
+            parentChatReport: isWorkspaceTarget ? reportParam : undefined,
+            policyParams: isWorkspaceTarget
+                ? {
+                      policy,
+                      policyTagList: policyTags,
+                      policyCategories,
+                      policyRecentlyUsedCategories,
+                  }
+                : {},
+        };
+    }
+
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
@@ -523,6 +538,8 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
@@ -542,7 +559,7 @@ function IOURequestStepConfirmation({
                 }
 
                 const {iouReport} = requestMoneyIOUActions({
-                    report,
+                    report: parentChatReport,
                     existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
@@ -552,12 +569,7 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams: {
-                        policy,
-                        policyTagList: policyTags,
-                        policyCategories,
-                        policyRecentlyUsedCategories,
-                    },
+                    policyParams,
                     gpsPoint,
                     action,
                     transactionParams: {
@@ -678,12 +690,13 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 trackExpenseIOUActions({
-                    report,
+                    report: parentChatReport,
                     isDraftPolicy,
                     action,
                     participantParams: {
@@ -691,11 +704,7 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                        policyTagList: policyTags,
-                    },
+                    policyParams,
                     transactionParams: {
                         amount: item.amount,
                         distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
@@ -752,19 +761,22 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
+
+            const participant = selectedParticipants.at(0);
+            if (!participant) {
+                return;
+            }
+
+            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
+
             createDistanceRequestIOUActions({
-                report,
+                report: parentChatReport,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
                 existingTransaction: transaction,
-                policyParams: {
-                    policy,
-                    policyCategories,
-                    policyTagList: policyTags,
-                    policyRecentlyUsedCategories,
-                },
+                policyParams,
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
@@ -1221,7 +1233,8 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
