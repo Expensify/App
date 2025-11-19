@@ -8649,7 +8649,10 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | un
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'> &
+type ReportEmptyStateSummary = Pick<
+    Report,
+    'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'pendingFields' | 'errors'
+> &
     Pick<Report, 'reportID'>;
 
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
@@ -8667,6 +8670,7 @@ function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | un
         total: report.total ?? undefined,
         nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
         pendingAction: report.pendingAction ?? undefined,
+        pendingFields: report.pendingFields ?? undefined,
         errors: report.errors ?? undefined,
     };
 }
@@ -8705,7 +8709,7 @@ function hasEmptyReportsForPolicy(
         }
 
         // Exclude reports that are being deleted or have errors
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             return false;
         }
 
@@ -8747,7 +8751,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
             continue;
         }
 
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             continue;
         }
 
