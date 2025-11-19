@@ -55,7 +55,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
         );
     }
 
-    // token succesfully fetched
+    // token successfully fetched
     return (
         <CopyableTextField
             value={oktaScimToken.value}
