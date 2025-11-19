@@ -596,7 +596,7 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
-                    shouldParseFullTitle={!shouldRenderAsHTML}
+                    shouldParseHtml={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
