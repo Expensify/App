@@ -133,14 +133,9 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-                isSelected: task?.assigneeAccountID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
-
-    const initiallyFocusedOptionKey = useMemo(() => {
-        return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
-    }, [sections]);
+    }, [optionsWithoutCurrentUser, translate]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -227,8 +222,6 @@ function TaskAssigneeSelectorModal() {
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
