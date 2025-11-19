@@ -559,7 +559,7 @@ function getSubscriptionPlanInfo(
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
     hasTeam2025Pricing: boolean,
-    illustrations: SubscriptionPlanIllustrations,
+    illustrations: Record<'Mailbox' | 'ShieldYellow', IconAsset>,
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
