@@ -4,11 +4,11 @@ import {InteractionManager, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -39,16 +39,15 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload', 'Abacus', 'PiggyBank', 'SplitBill', 'Binoculars']);
+const menuIcons = {
+    [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
+    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
+    [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
+    [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
+    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
+};
 
-    const menuIcons = {
-        [CONST.ONBOARDING_CHOICES.EMPLOYER]: lazyIllustrations.ReceiptUpload,
-        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: lazyIllustrations.Abacus,
-        [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: lazyIllustrations.PiggyBank,
-        [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: lazyIllustrations.SplitBill,
-        [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: lazyIllustrations.Binoculars,
-    };
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();

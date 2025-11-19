@@ -2,8 +2,8 @@
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
-import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
+import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
 // Educational Illustrations
@@ -24,9 +24,7 @@ import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Core ones that are actually used
-import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
-import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
@@ -42,11 +40,9 @@ import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustrati
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
-import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
-import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -88,9 +84,7 @@ const Illustrations = {
     TurtleInShell,
 
     // Simple Illustrations
-    Abacus,
     Accounting,
-    Binoculars,
     Building,
     Coins,
     CreditCardsNew,
@@ -102,11 +96,9 @@ const Illustrations = {
     MoneyReceipts,
     MoneyWings,
     PerDiem,
-    PiggyBank,
     ReceiptWrangler,
     ReportReceipt,
     Rules,
-    SplitBill,
     Tag,
     CompanyCard,
     Workflows,
