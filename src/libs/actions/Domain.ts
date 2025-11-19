@@ -263,7 +263,7 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAML_REQUIRED, {required, domainName}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_SAML_REQUIRED, {enabled: required, domainName}, {optimisticData, successData, failureData});
 }
 
 /**
