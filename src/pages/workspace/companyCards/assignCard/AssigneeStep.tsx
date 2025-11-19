@@ -144,7 +144,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         return membersList;
     }, [policy?.employeeList, localeCompare, isOffline, selectedMember, icons.FallbackAvatar, formatPhoneNumber]);
 
-    const asignees = useMemo(() => {
+    const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
             return membersDetails;
         }
@@ -158,8 +158,8 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(asignees.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, asignees, countryCode]);
+        return getHeaderMessage(assignees.length !== 0, false, searchValue, countryCode, false);
+    }, [debouncedSearchTerm, assignees, countryCode]);
 
     const textInputOptions = useMemo(
         () => ({
@@ -182,7 +182,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
-                data={asignees}
+                data={assignees}
                 ListItem={UserListItem}
                 onSelectRow={selectMember}
                 textInputOptions={textInputOptions}
