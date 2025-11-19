@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';

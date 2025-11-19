@@ -2,7 +2,6 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

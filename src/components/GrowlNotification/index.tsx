@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Growl from '@libs/Growl';
+import {setIsReady} from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -102,7 +102,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     );
 
     useEffect(() => {
-        Growl.setIsReady();
+        setIsReady();
     }, []);
 
     useEffect(() => {

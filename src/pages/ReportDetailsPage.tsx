@@ -559,6 +559,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isDeletedParentAction,
         isMoneyRequestReport,
         isInvoiceReport,
+        expensifyIcons.Bug,
         isTaskReport,
         isCanceledTaskReport,
         shouldShowGoToWorkspace,

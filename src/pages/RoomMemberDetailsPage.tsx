@@ -15,12 +15,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
+import {removeFromRoom} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,24 +39,24 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info'] as const);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', route.params.backTo);
+    const backTo = report?.reportID ? ROUTES.ROOM_MEMBERS.getRoute(report.reportID, route.params.backTo) : route.params.backTo;
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (ReportUtils.isPolicyExpenseChat(report) && PolicyUtils.isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
-        Report.removeFromRoom(report?.reportID, [accountID]);
+        removeFromRoom(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
     }, [backTo, report, accountID]);
 

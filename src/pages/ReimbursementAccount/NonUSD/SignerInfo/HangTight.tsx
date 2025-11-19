@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
