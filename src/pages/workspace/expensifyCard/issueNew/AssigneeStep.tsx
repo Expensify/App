@@ -135,7 +135,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         () => ({
             label: textInputLabel,
             value: searchTerm,
-            onChange: setSearchTerm,
+            onChangeText: setSearchTerm,
             headerMessage,
         }),
         [headerMessage, searchTerm, setSearchTerm, textInputLabel],
