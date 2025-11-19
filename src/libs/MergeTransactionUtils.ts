@@ -201,7 +201,12 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * @param sourceTransaction - The source transaction
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
+function getMergeableDataAndConflictFields(
+    targetTransaction: OnyxEntry<Transaction>,
+    sourceTransaction: OnyxEntry<Transaction>,
+    originalSourceTransaction: OnyxEntry<Transaction>,
+    localeCompare: (a: string, b: string) => number,
+) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -219,7 +224,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(targetTransaction);
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(targetTransaction, originalSourceTransaction);
             if (isManagedCardTransaction(targetTransaction) || isExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
@@ -370,12 +375,16 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * @param sourceTransaction - The second transaction in the merge operation
  * @returns An object containing the determined targetTransactionID and sourceTransactionID
  */
-function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(
+    originalTargetTransaction: OnyxEntry<Transaction>,
+    originalSourceTransaction: OnyxEntry<Transaction>,
+    originalTransactionForSourceTransaction?: OnyxEntry<Transaction>,
+) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
     if (
         isManagedCardTransaction(originalSourceTransaction) ||
-        (getOriginalTransactionWithSplitInfo(originalSourceTransaction).isExpenseSplit && !isManagedCardTransaction(originalTargetTransaction))
+        (getOriginalTransactionWithSplitInfo(originalSourceTransaction, originalTransactionForSourceTransaction).isExpenseSplit && !isManagedCardTransaction(originalTargetTransaction))
     ) {
         return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }

@@ -57,14 +57,14 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
     API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
 }
 
-function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
+function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction, originalTransaction1?: Transaction, originalTransaction2?: Transaction) {
     // Do not allow merging two card transactions
     if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
     }
 
     // Do not allow merging two split expenses
-    if (getOriginalTransactionWithSplitInfo(transaction1).isExpenseSplit && getOriginalTransactionWithSplitInfo(transaction2).isExpenseSplit) {
+    if (getOriginalTransactionWithSplitInfo(transaction1, originalTransaction1).isExpenseSplit && getOriginalTransactionWithSplitInfo(transaction2, originalTransaction2).isExpenseSplit) {
         return false;
     }
 
@@ -97,15 +97,19 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
  */
 function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
     const transactionsArray = Object.values(transactions ?? {});
+    const targetOriginalTransactionID = targetTransaction?.comment?.originalTransactionID;
+    const targetOriginalTransaction = targetOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetOriginalTransactionID}`] : undefined;
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
         if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
             return false;
         }
 
+        const originalTransactionID = transaction.comment?.originalTransactionID;
+        const originalTransaction = originalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return (
-            areTransactionsEligibleForMerge(targetTransaction, transaction) &&
+            areTransactionsEligibleForMerge(targetTransaction, transaction, targetOriginalTransaction, originalTransaction) &&
             !isTransactionPendingDelete(transaction) &&
             (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
         );
@@ -144,12 +148,16 @@ function getTransactionsForMerging({
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
+        const targetOriginalTransactionID = targetTransaction?.comment?.originalTransactionID;
+        const targetOriginalTransaction = targetOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetOriginalTransactionID}`] : undefined;
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;
             }
 
-            return areTransactionsEligibleForMerge(targetTransaction, transaction);
+            const originalTransactionID = transaction.comment?.originalTransactionID;
+            const originalTransaction = originalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
+            return areTransactionsEligibleForMerge(targetTransaction, transaction, targetOriginalTransaction, originalTransaction);
         });
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
