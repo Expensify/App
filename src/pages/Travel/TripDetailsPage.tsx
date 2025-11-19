@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +41,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone'] as const);
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
@@ -59,7 +61,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(tripReservations, Number(sequenceIndex));
+    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(expensifyIcons, tripReservations, Number(sequenceIndex));
     const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation), [reservation]);
 
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector, canBeMissing: true}, [travelerPersonalDetailsSelector]);
@@ -113,7 +115,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     )}
                     <MenuItem
                         title={translate('travel.modifyTrip')}
-                        icon={Expensicons.Pencil}
+                        icon={expensifyIcons.Pencil}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
@@ -128,7 +130,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
-                        icon={Expensicons.Phone}
+                        icon={expensifyIcons.Phone}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {

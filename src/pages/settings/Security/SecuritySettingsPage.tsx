@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -66,6 +67,7 @@ function SecuritySettingsPage() {
     const privateSubscription = usePrivateSubscription();
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
@@ -292,7 +294,7 @@ function SecuritySettingsPage() {
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {
             text: translate('delegate.changeAccessLevel'),
-            icon: Expensicons.Pencil,
+            icon: expensifyIcons.Pencil,
             onPress: () => {
                 if (isDelegateAccessRestricted) {
                     modalClose(() => showDelegateNoAccessModal());

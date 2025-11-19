@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -35,12 +36,13 @@ type DomainsListRowProps = {
 function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems, rightIcon}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.pr3, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
             <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Icon
-                    src={Expensicons.Globe}
+                    src={expensifyIcons.Globe}
                     fill={theme.icon}
                     additionalStyles={styles.domainIcon}
                 />

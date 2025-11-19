@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,6 +57,7 @@ type WorkspaceConfirmationFormProps = {
 
 function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -142,7 +144,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    editIcon={Expensicons.Camera}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}

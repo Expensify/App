@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -112,6 +113,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock'] as const);
 
     const shouldLogout = useRef(false);
 
@@ -191,7 +193,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'initialSettingsPage.security',
-                icon: Expensicons.Lock,
+                icon: expensifyIcons.Lock,
                 screenName: SCREENS.SETTINGS.SECURITY,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
             },
@@ -234,6 +236,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         billingDisputePending,
         retryBillingFailed,
         freeTrialText,
+        expensifyIcons.Lock,
     ]);
 
     /**
@@ -276,7 +279,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
+                    icon: expensifyIcons.Lightbulb,
                     screenName: SCREENS.SETTINGS.TROUBLESHOOT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
                 },
@@ -293,7 +296,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, signOut, expensifyIcons.Lightbulb]);
 
     /**
      * Return JSX.Element with menu items

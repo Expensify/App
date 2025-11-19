@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -98,7 +99,7 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
     const styles = useThemeStyles();
@@ -115,6 +116,7 @@ function AvatarWithImagePicker({
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -263,7 +265,7 @@ function AvatarWithImagePicker({
                                         fallbackIcon={fallbackIcon}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
-                                        editIcon={editIcon}
+                                        editIcon={editIcon ?? expensifyIcons.Pencil}
                                         size={size}
                                         type={type}
                                         disabledStyle={disabledStyle}

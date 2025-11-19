@@ -27,6 +27,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -170,6 +171,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Pencil'] as const);
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -469,7 +472,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
-                icon: Expensicons.Pencil,
+                icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
@@ -578,6 +581,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        expensifyIcons.Pencil,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -637,7 +641,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     updateGroupChatAvatar(report.reportID);
                 }}
                 onImageSelected={(file) => updateGroupChatAvatar(report.reportID, file)}
-                editIcon={Expensicons.Camera}
+                editIcon={expensifyIcons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 pendingAction={report.pendingFields?.avatar ?? undefined}
                 errors={report.errorFields?.avatar ?? null}
@@ -660,6 +664,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         policy,
         participants,
         moneyRequestReport?.reportID,
+        expensifyIcons.Camera,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);

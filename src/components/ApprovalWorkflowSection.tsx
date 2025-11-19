@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +27,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -54,7 +56,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 {approvalWorkflow.isDefault && (
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                         <Icon
-                            src={Expensicons.Lightbulb}
+                            src={expensifyIcons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
                             small

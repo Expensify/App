@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -127,6 +128,7 @@ function AttachmentPicker({
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<(() => void) | undefined>(undefined);
@@ -295,7 +297,7 @@ function AttachmentPicker({
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: expensifyIcons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });

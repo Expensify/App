@@ -11,6 +11,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -73,6 +74,8 @@ function SuggestionMention({
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     const policy = usePolicy(policyID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone'] as const);
+
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
@@ -270,7 +273,7 @@ function SuggestionMention({
                     alternateText: translate('mentionSuggestions.hereAlternateText'),
                     icons: [
                         {
-                            source: Expensicons.Megaphone,
+                            source: expensifyIcons.Megaphone,
                             type: CONST.ICON_TYPE_AVATAR,
                         },
                     ],
@@ -332,7 +335,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare, expensifyIcons.Megaphone],
     );
 
     const getRoomMentionOptions = useCallback(

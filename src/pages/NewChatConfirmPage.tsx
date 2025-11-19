@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +38,7 @@ function NewChatConfirmPage() {
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -144,7 +145,7 @@ function NewChatConfirmPage() {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
-                    editIcon={Expensicons.Camera}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}
                 />

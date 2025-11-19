@@ -8,6 +8,7 @@ import type {MenuItemProps} from '@components/MenuItem';
 import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -26,6 +27,7 @@ function AppDownloadLinksPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Monitor'] as const);
 
     const menuItems: DownloadMenuItem[] = [
         {
@@ -52,7 +54,7 @@ function AppDownloadLinksPage() {
                 openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: Expensicons.Monitor,
+            icon: expensifyIcons.Monitor,
             iconRight: Expensicons.NewWindow,
         },
     ];

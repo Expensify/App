@@ -17,6 +17,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -117,6 +118,7 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Binoculars', 'Car', 'Location', 'Suitcase'] as const);
     const {translate} = useLocalize();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -436,7 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: getQuickActionIcon(quickAction?.action),
+                    icon: getQuickActionIcon(expensifyIcons, quickAction?.action),
                     text: quickActionTitle,
                     rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
@@ -496,6 +498,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         showDelegateNoAccessModal,
         reportID,
         allTransactionDrafts,
+        expensifyIcons,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -519,7 +522,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const menuItems = [
         ...expenseMenuItems,
         {
-            icon: Expensicons.Location,
+            icon: expensifyIcons.Location,
             text: translate('iou.trackDistance'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => {
@@ -596,7 +599,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             : []),
         ...[
             {
-                icon: Expensicons.Suitcase,
+                icon: expensifyIcons.Suitcase,
                 text: translate('travel.bookTravel'),
                 rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
@@ -605,7 +608,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ...(!hasSeenTour
             ? [
                   {
-                      icon: Expensicons.Binoculars,
+                      icon: expensifyIcons.Binoculars,
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),

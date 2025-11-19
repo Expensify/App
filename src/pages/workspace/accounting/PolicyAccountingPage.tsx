@@ -22,7 +22,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -91,6 +91,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Key', 'Pencil'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -132,7 +133,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowEnterCredentials
                 ? [
                       {
-                          icon: Expensicons.Key,
+                          icon: expensifyIcons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
@@ -155,7 +156,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow, expensifyIcons.Key],
     );
 
     useFocusEffect(
@@ -324,7 +325,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         const configurationOptions = [
             {
-                icon: Expensicons.Pencil,
+                icon: expensifyIcons.Pencil,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
@@ -420,6 +421,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        expensifyIcons.Pencil,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

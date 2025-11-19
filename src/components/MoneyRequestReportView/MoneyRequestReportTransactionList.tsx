@@ -67,6 +67,7 @@ import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
@@ -159,6 +160,7 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -175,7 +177,7 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy), [report?.reportID, policy]);
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);

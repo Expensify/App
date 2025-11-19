@@ -24,6 +24,7 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -142,6 +143,7 @@ function MoneyRequestReportPreviewContent({
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -514,7 +516,7 @@ function MoneyRequestReportPreviewContent({
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        () => getAddExpenseDropdownOptions(expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
         [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType],
     );
 

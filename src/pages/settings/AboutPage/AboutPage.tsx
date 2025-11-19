@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +55,7 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Keyboard'] as const);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -64,7 +66,7 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-                icon: Expensicons.Keyboard,
+                icon: expensifyIcons.Keyboard,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
@@ -114,7 +116,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [styles, translate, waitForNavigate]);
+    }, [styles, translate, waitForNavigate, expensifyIcons.Keyboard]);
 
     const overlayContent = useCallback(
         () => (

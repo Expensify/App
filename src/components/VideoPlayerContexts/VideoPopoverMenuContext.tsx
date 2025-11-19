@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -19,6 +20,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {isOffline} = useNetwork();
     const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Meter'] as const);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
@@ -50,7 +52,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         }
 
         items.push({
-            icon: Expensicons.Meter,
+            icon: expensifyIcons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
@@ -63,7 +65,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile, expensifyIcons.Meter]);
 
     const contextValue = useMemo(
         () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),

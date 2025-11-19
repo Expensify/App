@@ -118,7 +118,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Tag', 'PerDiem', 'HandCard', 'Coins'] as const);
+    const illustrations = useMemoizedLazyIllustrations([
+        'FolderOpen',
+        'Accounting',
+        'CompanyCard',
+        'Workflows',
+        'InvoiceBlue',
+        'Rules',
+        'Tag',
+        'PerDiem',
+        'HandCard',
+        'Coins',
+        'Car',
+    ] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -136,7 +148,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const spendItems: Item[] = [
         {
-            icon: Illustrations.Car,
+            icon: illustrations.Car,
             titleTranslationKey: 'workspace.moreFeatures.distanceRates.title',
             subtitleTranslationKey: 'workspace.moreFeatures.distanceRates.subtitle',
             isActive: policy?.areDistanceRatesEnabled ?? false,

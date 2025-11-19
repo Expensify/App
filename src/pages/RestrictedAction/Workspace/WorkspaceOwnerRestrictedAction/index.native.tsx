@@ -4,11 +4,11 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock'] as const);
 
     const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const goToSubscription = useCallback(() => {
@@ -43,7 +44,7 @@ function WorkspaceOwnerRestrictedAction() {
                             width={variables.iconHeader}
                         />
                         <Badge
-                            icon={Expensicons.Unlock}
+                            icon={expensifyIcons.Unlock}
                             success
                             text={translate('workspace.restrictedAction.addPaymentCardToUnlock')}
                             badgeStyles={styles.alignSelfStart}

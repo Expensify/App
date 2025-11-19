@@ -14,6 +14,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -138,6 +139,7 @@ function AttachmentPickerWithMenuItems({
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -212,7 +214,7 @@ function AttachmentPickerWithMenuItems({
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
                 {
-                    icon: Expensicons.Location,
+                    icon: expensifyIcons.Location,
                     text: translate('quickAction.recordDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
@@ -242,7 +244,7 @@ function AttachmentPickerWithMenuItems({
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
                 {
-                    icon: Expensicons.Location,
+                    icon: expensifyIcons.Location,
                     text: translate('iou.trackDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),

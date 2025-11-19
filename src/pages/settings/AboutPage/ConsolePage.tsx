@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -51,6 +52,7 @@ function ConsolePage() {
     const theme = useTheme();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
     const isAuthenticated = useIsAuthenticated();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -70,7 +72,7 @@ function ConsolePage() {
                 },
             },
             {
-                icon: Expensicons.Globe,
+                icon: expensifyIcons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
@@ -81,7 +83,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate, expensifyIcons.Globe],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
