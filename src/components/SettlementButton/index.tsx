@@ -121,10 +121,8 @@ function SettlementButton({
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
@@ -327,24 +325,28 @@ function SettlementButton({
             const isInvoiceReceiverPolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(invoiceReceiverPolicy?.outputCurrency ?? '');
 
             const canUseActivePolicy = hasActivePolicyAsAdmin && isActivePolicyCurrencySupported;
+            // For business invoice receivers, we use the receiver policy to pay, so validate the receiver policy's currency
+            // For individual receivers, allow if user has an active admin policy with supported currency OR user's local currency is supported
             const isPolicyCurrencySupported = invoiceReceiverPolicy ? isInvoiceReceiverPolicyCurrencySupported : canUseActivePolicy || isUserCurrencySupported;
 
             const getInvoicesOptions = (payAsBusiness: boolean) => {
+                const getPolicyID = () => {
+                    if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+                        return chatReport?.invoiceReceiver?.policyID;
+                    }
+
+                    if (canUseActivePolicy) {
+                        return activePolicy.id;
+                    }
+
+                    return createWorkspace().policyID;
+                };
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: Expensicons.Bank,
                     onSelected: () => {
                         if (payAsBusiness) {
-                            if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-                                navigateToBankAccountRoute(chatReport?.invoiceReceiver?.policyID);
-                            } else {
-                                if (!canUseActivePolicy) {
-                                    const {policyID} = createWorkspace();
-                                    navigateToBankAccountRoute(policyID);
-                                } else {
-                                    navigateToBankAccountRoute(activePolicy.id);
-                                }
-                            }
+                            navigateToBankAccountRoute(getPolicyID());
                         } else {
                             Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
                         }
