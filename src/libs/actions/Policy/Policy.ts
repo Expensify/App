@@ -1224,7 +1224,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
 function createPolicyExpenseChats(
-    policyID: string | undefined,
+    policyID: string,
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -3369,6 +3369,9 @@ function updateMemberCustomField(policyID: string, login: string, customFieldTyp
 }
 
 function setWorkspaceInviteMessageDraft(policyID: string | undefined, message: string | null) {
+    if (!policyID) {
+        return;
+    }
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 
