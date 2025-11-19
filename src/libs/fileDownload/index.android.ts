@@ -46,7 +46,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string,
 
         const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath = isLocalFile ? url : undefined;
+        let attachmentPath = isLocalFile ? decodeURI(url) : undefined;
         let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {
