@@ -1245,7 +1245,6 @@ const staticStyles = (theme: ThemeColors) =>
         optionRowAmountInputContainer: {
             width: variables.splitExpenseAmountWidth,
             lineHeight: undefined,
-            marginLeft: 1,
             padding: 0,
             flexDirection: 'row',
             alignItems: 'center',

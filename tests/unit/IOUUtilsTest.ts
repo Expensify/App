@@ -187,13 +187,25 @@ describe('IOUUtils', () => {
     });
 
     describe('calculateSplitPercentagesFromAmounts', () => {
-        test('Distributes percentages proportionally and adjusts remainder on last item', () => {
+        test('Distributes percentages proportionally and adjusts remainder across rows while preserving ordering', () => {
             // 23.00 split as 7.66, 7.66, 7.68 → 3x ~33% but must sum to 100
             const totalInCents = 2300;
             const amounts = [766, 766, 768];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
 
             expect(percentages).toEqual([33, 33, 34]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+
+        test('Ensures larger amounts receive the full remainder so first N are even and the last is highest', () => {
+            // 2.00 split as 0.33, 0.33, 0.33, 0.33, 0.33, 0.35
+            const totalInCents = 200;
+            const amounts = [33, 33, 33, 33, 33, 35];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // The first 5 rows share the same base percentage and the last one gets the full remainder.
+            // eslint-disable-next-line rulesdir/prefer-at
+            expect(percentages).toEqual([16, 16, 16, 16, 16, 20]);
             expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
         });
 

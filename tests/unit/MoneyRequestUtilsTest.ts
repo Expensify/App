@@ -1,4 +1,4 @@
-import {handleNegativeAmountFlipping, validateAmount} from '@libs/MoneyRequestUtils';
+import {handleNegativeAmountFlipping, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -17,6 +17,33 @@ describe('ReportActionsUtils', () => {
             expect(validateAmount('123456789.12', 2, 8)).toBe(false);
             expect(validateAmount('123456789.1234', 3, 8)).toBe(false);
             expect(validateAmount('1234.12345', 4, 4)).toBe(false);
+        });
+    });
+
+    describe('validatePercentage', () => {
+        it('defaults to allowing whole numbers between 0 and 100', () => {
+            expect(validatePercentage('')).toBe(true);
+            expect(validatePercentage('0')).toBe(true);
+            expect(validatePercentage('10')).toBe(true);
+            expect(validatePercentage('99')).toBe(true);
+            expect(validatePercentage('100')).toBe(true);
+
+            expect(validatePercentage('150')).toBe(false);
+            expect(validatePercentage('101')).toBe(false);
+        });
+
+        it('allows digit-only values above 100 when allowExceedingHundred is true', () => {
+            expect(validatePercentage('', true)).toBe(true);
+            expect(validatePercentage('0', true)).toBe(true);
+            expect(validatePercentage('100', true)).toBe(true);
+            expect(validatePercentage('150', true)).toBe(true);
+        });
+
+        it('rejects non-numeric characters even when allowExceedingHundred is true', () => {
+            expect(validatePercentage('1.5', true)).toBe(false);
+            expect(validatePercentage('abc', true)).toBe(false);
+            expect(validatePercentage('10%', true)).toBe(false);
+            expect(validatePercentage('-10', true)).toBe(false);
         });
     });
 

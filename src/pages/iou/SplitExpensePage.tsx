@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import type {ValueOf} from 'type-fest';
@@ -13,9 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
-import getBackgroundColor from '@components/TabSelector/getBackground';
-import getOpacity from '@components/TabSelector/getOpacity';
-import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -24,7 +22,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
@@ -91,13 +88,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
 
-    const affectedAnimatedTabs = useMemo(() => Array.from({length: tabs.length}, (v, i) => i), []);
-    const [selectorWidth, setSelectorWidth] = React.useState(0);
-    const [selectorX, setSelectorX] = React.useState(0);
-    const tabSelectorViewRef = useRef<View | null>(null);
     const [isPercentageMode, setIsPercentageMode] = useState(false);
     const {currentSearchHash} = useSearchContext();
-    const theme = useTheme();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
@@ -133,16 +125,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
-
-    const measure = useCallback(() => {
-        tabSelectorViewRef.current?.measureInWindow((x, _y, width) => {
-            setSelectorX(x);
-            setSelectorWidth(width);
-        });
-    }, [tabSelectorViewRef]);
-
-    // Measure on mount and when layout changes
-    useEffect(() => measure(), [measure]);
 
     const {isBetaEnabled} = usePermissions();
 
@@ -421,36 +403,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (!shouldShowMakeSplitsEven) {
             return;
         }
+
+        const activeTabKey = isPercentageMode ? CONST.IOU.SPLIT_TYPE.PERCENTAGE : CONST.IOU.SPLIT_TYPE.AMOUNT;
+
         return (
-            <View
-                ref={tabSelectorViewRef}
-                style={[styles.tabSelector]}
-            >
-                {tabs.map((tab, index) => {
-                    const isActive = tab.key === (isPercentageMode ? CONST.IOU.SPLIT_TYPE.PERCENTAGE : CONST.IOU.SPLIT_TYPE.AMOUNT);
-                    const activeOpacity = getOpacity({routesLength: tabs.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position: undefined, isActive});
-                    const inactiveOpacity = getOpacity({routesLength: tabs.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position: undefined, isActive});
-                    const backgroundColor = getBackgroundColor({routesLength: tabs.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position: undefined, isActive});
-                    return (
-                        <TabSelectorItem
-                            key={tab.key}
-                            testID={tab.testID}
-                            icon={tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? MoneyCircle : Percent}
-                            title={translate(tab.titleKey)}
-                            isActive={isActive}
-                            onPress={() => setIsPercentageMode(tab.key === CONST.IOU.SPLIT_TYPE.PERCENTAGE)}
-                            shouldShowLabelWhenInactive
-                            backgroundColor={backgroundColor}
-                            inactiveOpacity={inactiveOpacity}
-                            activeOpacity={activeOpacity}
-                            parentWidth={selectorWidth}
-                            parentX={selectorX}
-                        />
-                    );
-                })}
-            </View>
+            <TabSelectorBase
+                tabs={tabs.map((tab) => ({
+                    key: tab.key,
+                    title: translate(tab.titleKey),
+                    icon: tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? MoneyCircle : Percent,
+                    testID: tab.testID,
+                }))}
+                activeTabKey={activeTabKey}
+                onTabPress={(key) => setIsPercentageMode(key === CONST.IOU.SPLIT_TYPE.PERCENTAGE)}
+                shouldShowLabelWhenInactive
+                equalWidth
+            />
         );
-    }, [isPercentageMode, styles, theme, affectedAnimatedTabs, selectorWidth, selectorX, shouldShowMakeSplitsEven, translate, MoneyCircle, Percent]);
+    }, [MoneyCircle, Percent, isPercentageMode, shouldShowMakeSplitsEven, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {

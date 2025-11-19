@@ -47,6 +47,7 @@ function SplitListItem<TItem extends ListItem>({
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
             return;
@@ -125,21 +126,32 @@ function SplitListItem<TItem extends ListItem>({
     ]);
 
     const SplitPercentageComponent = useMemo(() => {
+        const displayedPercentage = percentageDraft ?? String(splitItem.percentage ?? 0);
+
         if (splitItem.isEditable) {
             return (
                 <PercentageForm
-                    onInputChange={onSplitExpenseValueChange}
-                    value={String(splitItem.percentage ?? 0)}
+                    onInputChange={(value) => {
+                        setPercentageDraft(value);
+                        onSplitExpenseValueChange(value);
+                    }}
+                    value={displayedPercentage}
                     textInputContainerStyles={StyleUtils.splitPercentageInputStyles(styles)}
                     containerStyles={styles.optionRowPercentInputContainer}
                     inputStyle={[styles.optionRowPercentInput, styles.lineHeightUndefined]}
                     onFocus={focusHandler}
-                    onBlur={onInputBlur}
+                    onBlur={(event) => {
+                        setPercentageDraft(undefined);
+                        if (onInputBlur) {
+                            onInputBlur(event);
+                        }
+                    }}
+                    allowExceedingHundred
                 />
             );
         }
         return <Text style={[styles.optionRowAmountInput, styles.pl3]}>{`${splitItem.percentage ?? 0}%`}</Text>;
-    }, [StyleUtils, styles, splitItem.isEditable, splitItem.percentage, onSplitExpenseValueChange, focusHandler, onInputBlur]);
+    }, [StyleUtils, styles, splitItem.isEditable, splitItem.percentage, percentageDraft, onSplitExpenseValueChange, focusHandler, onInputBlur]);
 
     return (
         <BaseListItem

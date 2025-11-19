@@ -107,10 +107,12 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
  * for each split so that:
  * - Each row is a whole-number percentage of the original total
  * - When the sum of split amounts exactly matches the original total, percentages are proportional to the amounts
- *   and rounded so that the sum of percentages is exactly 100 (any rounding remainder is applied to the last row)
+ *   and rounded so that the sum of percentages is exactly 100. Any rounding remainder is allocated entirely to the
+ *   row with the largest amount (breaking ties by using the last such row), so the first N rows share the same
+ *   base percentage and any leftover remainder is applied to the last row.
  * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
  *   each amount as a percentage of the original total and may sum to something other than 100; this keeps
- *   user-entered percentages stable while a validation error highlights the mismatch
+ *   user-entered percentages stable while a validation error highlights the mismatch.
  */
 function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
     const totalAbs = Math.abs(totalInCents);
@@ -120,26 +122,49 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
     }
 
     const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
-    const rawPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
-    const sumOfPercentages = rawPercentages.reduce((sum, current) => sum + current, 0);
+
+    // First compute rounded percentages used when we want to preserve the user's distribution, e.g. when the
+    // split amounts do not add up to the original total.
+    const roundedPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
+    const sumOfRoundedPercentages = roundedPercentages.reduce((sum, current) => sum + current, 0);
     const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
 
-    // If the split amounts don't add up to the original total, or the rounded percentages already sum to 100,
-    // return the raw percentages. This allows user-entered percentages (and their corresponding amounts) to
-    // remain stable even when the splits are over/under the original total.
-    if (amountsTotal !== totalAbs || sumOfPercentages === 100) {
-        return rawPercentages;
+    // If the split amounts don't add up to the original total, return rounded percentages as-is so user-entered
+    // percentages and amounts remain stable while a validation error highlights the mismatch.
+    if (amountsTotal !== totalAbs) {
+        return roundedPercentages;
     }
 
-    const remainder = 100 - sumOfPercentages;
+    // If rounded percentages already sum to 100, we can also return them directly.
+    if (sumOfRoundedPercentages === 100) {
+        return roundedPercentages;
+    }
 
-    return rawPercentages.map((percentage, index) => {
-        if (index !== rawPercentages.length - 1) {
-            return percentage;
+    // Otherwise, compute base percentages by flooring the exact percentages and then allocating the full remainder
+    // to the row with the largest amount (last one in case of ties). This ensures the first N rows share the same
+    // base percentage and any leftover is applied entirely to the last row, matching how we treat remainder in
+    // split amounts.
+    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.floor((amount / totalAbs) * 100) : 0));
+    const sumOfFlooredPercentages = flooredPercentages.reduce((sum, current) => sum + current, 0);
+    const remainder = 100 - sumOfFlooredPercentages;
+
+    if (remainder === 0) {
+        return flooredPercentages;
+    }
+
+    const maxAmount = Math.max(...amountsAbs);
+    let lastMaxIndex = 0;
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs.at(i) === maxAmount) {
+            lastMaxIndex = i;
         }
-        const updatedPercentage = percentage + remainder;
-        return Math.max(0, updatedPercentage);
-    });
+    }
+
+    const adjustedPercentages = [...flooredPercentages];
+    const baseValue = adjustedPercentages.at(lastMaxIndex) ?? 0;
+    adjustedPercentages[lastMaxIndex] = Math.max(0, baseValue + remainder);
+
+    return adjustedPercentages;
 }
 
 /**

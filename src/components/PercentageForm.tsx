@@ -19,11 +19,14 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether to allow values greater than 100 (e.g. split expenses in percentage mode). */
+    allowExceedingHundred?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, ref, ...rest}: PercentageFormProps) {
+function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, ref, ...rest}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -31,7 +34,7 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ref, ..
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     /**
-     * Sets the selection and the amount accordingly to the value passed to the input
+     * Sets the amount according to the value passed to the input
      * @param newAmount - Changed amount from user input
      */
     const setNewAmount = useCallback(
@@ -39,16 +42,14 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ref, ..
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            if (!validatePercentage(newAmountWithoutSpaces)) {
+            if (!validatePercentage(newAmountWithoutSpaces, allowExceedingHundred)) {
                 return;
             }
 
             const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
             onInputChange?.(strippedAmount);
         },
-        [onInputChange],
+        [allowExceedingHundred, onInputChange],
     );
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
