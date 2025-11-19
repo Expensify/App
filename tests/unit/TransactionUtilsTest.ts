@@ -456,7 +456,11 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
-            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            } as Policy;
             const transaction1 = generateTransaction();
             const transaction2 = generateTransaction();
             const transactionViolations = {
