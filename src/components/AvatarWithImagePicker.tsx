@@ -266,6 +266,7 @@ function AvatarWithImagePicker({
                                         editIcon={editIcon}
                                         size={size}
                                         type={type}
+                                        disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}
