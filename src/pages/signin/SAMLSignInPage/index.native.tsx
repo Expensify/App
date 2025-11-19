@@ -1,5 +1,5 @@
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
-import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
+import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

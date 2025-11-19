@@ -1,4 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
+import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
@@ -66,6 +68,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -163,6 +166,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: true,
+                signedInWithSAML: isSAML,
                 isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
@@ -183,6 +187,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
+                signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
             },
@@ -237,8 +242,23 @@ function signOut(): Promise<void | Response> {
         skipReauthentication: true,
     };
 
+    if (session.signedInWithSAML) {
+        return callSAMLSignOut(params);
+    }
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
+}
+
+function callSAMLSignOut(params: LogOutParams): Promise<void | Response> {
+    const queryString = `appversion=${pkg.version}&referer=ecash&authToken=${session.authToken}`;
+    return openAuthSessionAsync(`https://www.expensify.com/authentication/saml/logout?${queryString}`, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
+        // if (response.type !== 'success') {
+        //     return;
+        // }
+
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
+    });
 }
 
 /**
