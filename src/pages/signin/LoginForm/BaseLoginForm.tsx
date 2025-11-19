@@ -40,7 +40,7 @@ import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
+function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
@@ -175,7 +175,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     }, [account?.isLoading]);
 
     useEffect(() => {
-        if (submitBehavior === 'blurAndSubmit') {
+        if (blurOnSubmit) {
             input.current?.blur();
         }
 
@@ -184,7 +184,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
             return;
         }
         input.current?.focus();
-    }, [submitBehavior, isVisible, prevIsVisible]);
+    }, [blurOnSubmit, isVisible, prevIsVisible]);
 
     useImperativeHandle(ref, () => ({
         isInputFocused() {
