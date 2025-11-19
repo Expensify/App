@@ -48,6 +48,7 @@ const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: Locale
                 phone: phoneNumber,
                 avatar: avatarSource,
                 countryCode,
+                policyTags: undefined,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);

@@ -108,6 +108,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -151,8 +152,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (!report) {
                     return undefined;
                 }
-
-                const option = createOptionFromReport(report, personalDetails);
+                const reportPolicyTags = policyTags?.[report.policyID ?? ''];
+                const option = createOptionFromReport(report, personalDetails, reportPolicyTags);
                 reportForContextualSearch = option;
             }
 
