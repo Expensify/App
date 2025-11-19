@@ -223,7 +223,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={styles.pv2}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
