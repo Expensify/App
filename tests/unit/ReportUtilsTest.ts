@@ -1669,7 +1669,6 @@ describe('ReportUtils', () => {
                         amount: 1000,
                         currency: 'USD',
                         merchant: 'Test Merchant',
-                        transactionType: 'cash',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
                     } as SearchTransaction;
