@@ -86,6 +86,14 @@ function ChooseTransferAccountPage() {
         return options;
     }, [bankAccountsList, selectedAccountID, styles, translate]);
 
+    const initiallyFocusedItemKey = useMemo(() => {
+        if (!selectedAccountID) {
+            return undefined;
+        }
+        const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === selectedAccountID.toString());
+        return selectedOption?.keyForList;
+    }, [bankAccountOptions, selectedAccountID]);
+
     if (isLoadingOnyxValue(walletTransferResult)) {
         return <FullscreenLoadingIndicator />;
     }
@@ -107,7 +115,7 @@ function ChooseTransferAccountPage() {
                 }}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
-                initiallyFocusedItemKey={walletTransfer?.selectedAccountID?.toString()}
+                initiallyFocusedItemKey={initiallyFocusedItemKey}
                 listFooterContent={
                     <MenuItem
                         onPress={navigateToAddPaymentMethodPage}
