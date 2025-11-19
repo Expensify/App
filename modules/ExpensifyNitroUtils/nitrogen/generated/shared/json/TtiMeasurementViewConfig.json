@@ -1,0 +1,10 @@
+{
+  "uiViewClassName": "TtiMeasurementView",
+  "supportsRawText": false,
+  "bubblingEventTypes": {},
+  "directEventTypes": {},
+  "validAttributes": {
+    "onMeasurement": true,
+    "hybridRef": true
+  }
+}
