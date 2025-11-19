@@ -118,11 +118,11 @@ const createNormalizedConfigs = (
                 });
             }
 
-            Object.keys(config.screens).forEach((nestedConfig) => {
+            for (const nestedConfig of Object.keys(config.screens)) {
                 const result = createNormalizedConfigs(nestedConfig, config.screens as PathConfigMap<object>, routeNames, initials, [...parentScreens], pattern ?? parentPattern);
 
                 configs.push(...result);
-            });
+            }
         }
     }
 

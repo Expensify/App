@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -64,6 +64,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -92,14 +93,16 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return [
         item.keyForList,
         {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -172,14 +175,16 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -257,6 +262,7 @@ function Search({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -405,9 +411,21 @@ function Search({
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, email ?? '', formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections({
+            type,
+            data: searchResults.data,
+            currentAccountID: accountID,
+            currentUserEmail: email ?? '',
+            formatPhoneNumber,
+            groupBy: validGroupBy,
+            reportActions: exportReportActions,
+            currentSearch: searchKey,
+            archivedReportsIDList: archivedReportsIdSet,
+            queryJSON,
+            isActionLoadingSet,
+        });
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email]);
+    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -443,20 +461,28 @@ function Search({
         }
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            data.forEach((transactionGroup) => {
+            for (const transactionGroup of data) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    return;
+                    continue;
                 }
-                transactionGroup.transactions.forEach((transactionItem) => {
+                for (const transactionItem of transactionGroup.transactions) {
                     if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                        return;
+                        continue;
                     }
+
+                    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                        transactionItem.report,
+                        transactionItem.reportAction,
+                        transactionItem.holdReportAction,
+                        transactionItem,
+                        transactionItem.policy,
+                    );
 
                     newTransactionList[transactionItem.transactionID] = {
                         action: transactionItem.action,
-                        canHold: transactionItem.canHold,
+                        canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
-                        canUnhold: transactionItem.canUnhold,
+                        canUnhold: canUnholdRequest,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
                             CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -478,22 +504,30 @@ function Search({
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
-                });
-            });
+                }
+            }
         } else {
-            data.forEach((transactionItem) => {
+            for (const transactionItem of data) {
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
-                    return;
+                    continue;
                 }
                 if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                    return;
+                    continue;
                 }
+
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                    transactionItem.report,
+                    transactionItem.reportAction,
+                    transactionItem.holdReportAction,
+                    transactionItem,
+                    transactionItem.policy,
+                );
 
                 newTransactionList[transactionItem.transactionID] = {
                     action: transactionItem.action,
-                    canHold: transactionItem.canHold,
+                    canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
-                    canUnhold: transactionItem.canUnhold,
+                    canUnhold: canUnholdRequest,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
                         CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -515,7 +549,7 @@ function Search({
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
-            });
+            }
         }
         if (isEmptyObject(newTransactionList)) {
             return;
@@ -593,9 +627,9 @@ function Search({
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                currentTransactions.forEach((transaction) => {
+                for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
-                });
+                }
 
                 setSelectedTransactions(reducedSelectedTransactions, data);
                 return;
@@ -719,7 +753,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [accountID, searchResults?.data, searchResults?.search?.type]);
@@ -897,10 +931,10 @@ function Search({
         navigation.setParams({q: newQuery});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
 
     return (

@@ -378,6 +378,8 @@ type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldVal
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
+type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -423,6 +425,8 @@ type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string}
 type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
+
+type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -1210,6 +1214,7 @@ export type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,
@@ -1225,6 +1230,7 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
