@@ -9,6 +9,7 @@ import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -93,13 +94,17 @@ jest.mock('react-native-reanimated', () => ({
     makeShareableCloneRecursive: jest.fn,
 }));
 
+setupMockReactNativeWorklets();
+
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
-jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
-    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
-    return runOnLiveMarkdownRuntime;
+jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
+    const scheduleOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args): void => {
+        worklet(...args);
+    };
+    return scheduleOnLiveMarkdownRuntime;
 });
 
 jest.mock('@src/libs/actions/Timing', () => ({
@@ -152,27 +157,27 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
     useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
         // Return a Record with all requested illustration names
         const mockIllustrations: Record<string, unknown> = {};
-        names.forEach((name) => {
+        for (const name of names) {
             mockIllustrations[name] = {
                 src: `mock-${name}`,
                 testID: `mock-illustration-${name}`,
                 height: 20,
                 width: 20,
             };
-        });
+        }
         return mockIllustrations;
     }),
     useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
         // Return a Record with all requested icon names
         const mockIcons: Record<string, unknown> = {};
-        names.forEach((name) => {
+        for (const name of names) {
             mockIcons[name] = {
                 src: `mock-${name}`,
                 testID: `mock-expensify-icon-${name}`,
                 height: 20,
                 width: 20,
             };
-        });
+        }
         return mockIcons;
     }),
     default: jest.fn(() => {
@@ -223,15 +228,15 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
 
-        Object.keys(data).forEach((key) => {
+        for (const key of Object.keys(data)) {
             const value = data[key];
 
             if (value === undefined) {
-                return;
+                continue;
             }
 
             formData.append(key, value as string | Blob);
-        });
+        }
 
         return Promise.resolve(formData);
     }),
@@ -240,7 +245,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
 
-jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
+jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
