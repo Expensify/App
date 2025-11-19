@@ -708,7 +708,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        PAYMENT_BUTTONS: 'paymentButtons',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
     },
     BUTTON_STATES: {
@@ -1036,10 +1035,14 @@ const CONST = {
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
+        ADMIN_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
+        ADMIN_MIGRATED_MOBILE: 'https://app.storylane.io/share/fgireksbt2oh',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
         EMPLOYEE_TOUR: 'https://app.storylane.io/share/izmryscwurdd?embed=inline',
         EMPLOYEE_TOUR_MOBILE: 'https://app.storylane.io/share/wckqdetaacgy?embed=inline',
+        EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
+        EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1324,6 +1327,7 @@ const CONST = {
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
+                    UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
@@ -1654,6 +1658,7 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         SPAN_OPEN_REPORT: 'ManualOpenReport',
+        SPAN_APP_STARTUP: 'ManualAppStartup',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3725,7 +3730,7 @@ const CONST = {
             return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
 
-        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+        MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/g,
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,

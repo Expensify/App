@@ -69,7 +69,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-                    companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
+                    companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
                     website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },

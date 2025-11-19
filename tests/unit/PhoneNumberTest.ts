@@ -15,29 +15,29 @@ describe('PhoneNumber', () => {
                 '+1 ( 2 3 4 ) 5 6 7 - 8 9 0 1',
             ];
 
-            validNumbers.forEach((givenPhone) => {
+            for (const givenPhone of validNumbers) {
                 const parsedPhone = parsePhoneNumber(givenPhone);
                 expect(parsedPhone.valid).toBe(true);
                 expect(parsedPhone.possible).toBe(true);
-            });
+            }
         });
         it('Should return invalid phone number if US number has extra 1 after country code', () => {
             const validNumbers = ['+1 1 (234) 567-8901', '+112345678901', '+115550123355', '+ 1 1 5 5 5 0 1 2 3 3 5 5'];
 
-            validNumbers.forEach((givenPhone) => {
+            for (const givenPhone of validNumbers) {
                 const parsedPhone = parsePhoneNumber(givenPhone);
                 expect(parsedPhone.valid).toBe(false);
                 expect(parsedPhone.possible).toBe(false);
-            });
+            }
         });
         it('Should return invalid phone number', () => {
             const invalidNumbers = ['+165025300001', 'John Doe', '123', '0945789083', 'email@domain.com'];
 
-            invalidNumbers.forEach((givenPhone) => {
+            for (const givenPhone of invalidNumbers) {
                 const parsedPhone = parsePhoneNumber(givenPhone);
                 expect(parsedPhone.valid).toBe(false);
                 expect(parsedPhone.possible).toBe(false);
-            });
+            }
         });
     });
 });
