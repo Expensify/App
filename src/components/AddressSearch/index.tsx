@@ -228,13 +228,13 @@ function AddressSearch({
         }
 
         if (inputID) {
-            Object.entries(values).forEach(([key, inputValue]) => {
+            for (const [key, inputValue] of Object.entries(values)) {
                 const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
-                    return;
+                    continue;
                 }
                 onInputChange?.(inputValue, inputKey);
-            });
+            }
         } else {
             onInputChange?.(values);
         }

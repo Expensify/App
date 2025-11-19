@@ -18,7 +18,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
@@ -1123,6 +1123,33 @@ describe('ReportUtils', () => {
                 );
             });
         });
+
+        describe('Unreported transaction thread', () => {
+            test('HTML is stripped from unreported transaction message', () => {
+                const transactionThread = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '123',
+                    parentReportID: '456',
+                };
+
+                const unreportedTransactionAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                    originalMessage: {
+                        fromReportID: '789',
+                    },
+                } as ReportAction;
+
+                const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
+
+                // Should NOT contain HTML tags
+                expect(reportName).not.toContain('<a href');
+                expect(reportName).not.toContain('</a>');
+                // Should contain the text content
+                expect(reportName).toContain('moved this expense');
+                expect(reportName).toContain('personal space');
+            });
+        });
     });
 
     // Need to merge the same tests
@@ -2091,13 +2118,13 @@ describe('ReportUtils', () => {
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
             const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
-            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
             const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, false);
-            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
     });
@@ -3514,13 +3541,48 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
 
             putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
+            const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            const expenseCreatedActionUpdated = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportActions?.[expenseCreatedAction.reportActionID]);
+                    },
+                });
+            });
+            const expenseTransactionUpdated = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`,
+                    callback: (transaction) => {
+                        Onyx.disconnect(connection);
+                        resolve(transaction);
+                    },
+                });
+            });
+            const transactionThreadReportHoldReportAction = getReportAction(transactionThreadReport.reportID, `${expenseTransactionUpdated?.comment?.hold ?? ''}`);
+
             // canUnholdRequest should be true after the transaction is held.
-            expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: false, canUnholdRequest: true});
+            expect(canHoldUnholdReportAction(expenseReportUpdated, expenseCreatedActionUpdated, transactionThreadReportHoldReportAction, expenseTransactionUpdated, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: true,
+            });
         });
     });
 

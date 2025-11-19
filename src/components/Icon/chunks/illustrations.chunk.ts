@@ -12,6 +12,7 @@ import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.
 // Product Illustrations
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
+import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -56,6 +57,7 @@ const Illustrations = {
     ModalHoldOrReject,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
+    ToddBehindCloud,
 
     // Simple Illustrations
     Accounting,

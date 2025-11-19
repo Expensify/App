@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -34,7 +34,7 @@ type ConfirmationStepProps = {
     backTo?: Route;
 
     /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
+    feed: CompanyCardFeed;
 };
 
 function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
@@ -46,7 +46,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
+    const bankName = (assignCard?.data?.bankName as CompanyCardFeed | undefined) ?? feed;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
@@ -74,7 +74,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
+        const isFeedExpired = isSelectedFeedExpired(bankName ? cardFeeds?.settings?.oAuthAccountDetails?.[bankName] : undefined);
         const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
