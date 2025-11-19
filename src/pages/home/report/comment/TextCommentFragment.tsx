@@ -15,9 +15,9 @@ import {containsCustomEmoji, containsOnlyCustomEmoji as containsOnlyCustomEmojiU
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
-import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
