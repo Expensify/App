@@ -204,28 +204,28 @@ function MoneyReportHeader({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
+        'Plus',
         'Hourglass',
+        'Cash',
         'Box',
         'Stopwatch',
         'Flag',
         'CreditCardHourglass',
-        'ReceiptScan',
-        'Table',
-        'Info',
-        'Export',
-        'ArrowRight',
-        'Document',
         'Send',
-        'ThumbsUp',
-        'ThumbsDown',
-        'CircularArrowBackwards',
         'Clear',
+        'ReceiptScan',
+        'ThumbsUp',
+        'CircularArrowBackwards',
         'ArrowSplit',
         'ArrowCollapse',
         'Workflows',
         'Trashcan',
-        'Plus',
-        'Cash',
+        'ArrowRight',
+        'ThumbsDown',
+        'Table',
+        'Info',
+        'Export',
+        'Document',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -285,6 +285,9 @@ function MoneyReportHeader({
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const currentTransaction = transactions.at(0);
+    const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -297,7 +300,7 @@ function MoneyReportHeader({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -761,18 +764,7 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [
-        translate,
-        connectedIntegrationFallback,
-        connectedIntegration,
-        moneyRequestReport,
-        isOffline,
-        transactionIDs,
-        isExported,
-        beginExportWithTemplate,
-        exportTemplates,
-        expensifyIcons.Table,
-    ]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -857,7 +849,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
 
-                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions);
+                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
                         IOUActions.forEach(changeMoneyRequestHoldStatus);
@@ -925,6 +917,7 @@ function MoneyReportHeader({
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
+            originalTransaction: originalIOUTransaction,
             violations,
             policy,
             reportNameValuePairs,
@@ -932,7 +925,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
+    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -1105,7 +1098,6 @@ function MoneyReportHeader({
                     return;
                 }
 
-                const currentTransaction = transactions.at(0);
                 initSplitExpense(allTransactions, allReports, currentTransaction);
             },
         },
@@ -1114,7 +1106,6 @@ function MoneyReportHeader({
             icon: expensifyIcons.ArrowCollapse,
             value: CONST.REPORT.SECONDARY_ACTIONS.MERGE,
             onSelected: () => {
-                const currentTransaction = transactions.at(0);
                 if (!currentTransaction) {
                     return;
                 }
