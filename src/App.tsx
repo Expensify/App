@@ -1,8 +1,8 @@
+import type {OnTtiMeasurement, TtiMeasurementValue} from '@expensify/nitro-utils';
+import {TtiMeasurementView} from '@expensify/nitro-utils';
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import TTIMeasurement from 'modules/ExpensifyNitroUtils/src/specs/TtiMeasurementView.nitro';
-import type {OnTtiMeasurement} from 'modules/ExpensifyNitroUtils/src/specs/TtiMeasurementView.nitro';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {callback} from 'react-native-nitro-modules';
@@ -80,8 +80,20 @@ function App() {
         HermesInternal?.ttiReached?.();
     }, []);
 
+    const [ttiMeasurement, setTtiMeasurement] = useState<TtiMeasurementValue | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const handleTtiMeasurement: OnTtiMeasurement = (measurement) => {
-        console.log('TTI measurement:', measurement);
+        intervalRef.current?.close();
+
+        if (!measurement) {
+            return;
+        }
+
+        setTtiMeasurement(measurement);
+
+        intervalRef.current = setInterval(() => {
+            console.log('[PERF_CHRIS] TTI measurement:', ttiMeasurement);
+        }, 3000);
     };
 
     return (
@@ -151,7 +163,7 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
-                                    <TTIMeasurement onMeasurement={callback(handleTtiMeasurement)} />
+                                    <TtiMeasurementView onMeasurement={callback(handleTtiMeasurement)} />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
