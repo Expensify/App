@@ -95,14 +95,14 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         };
 
         const startSearchRouterOpenSpan = () => {
-          startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
-              name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-              op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-              attributes: {
-                  trigger: 'keyboard',
-              },
-          });
-        }
+            startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    trigger: 'keyboard',
+                },
+            });
+        };
 
         // There are callbacks that live outside of React render-loop and interact with SearchRouter
         // So we need a function that is based on ref to correctly open/close it
