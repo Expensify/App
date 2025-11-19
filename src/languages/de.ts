@@ -6276,6 +6276,8 @@ ${
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
                 case 'rules':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
                 default:
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
             }

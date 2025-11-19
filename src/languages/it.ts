@@ -6263,6 +6263,8 @@ ${
                     return `${enabled ? 'abilitato' : 'disabilitato'} partner per le ricevute`;
                 case 'rules':
                     return `${enabled ? 'abilitato' : 'disabilitato'} regole`;
+                case 'tax tracking':
+                    return `${enabled ? 'abilitato' : 'disabilitato'} monitoraggio delle tasse`;
                 default:
                     return `${enabled ? 'abilitato' : 'disabilitato'} ${featureName}`;
             }

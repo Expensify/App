@@ -5969,6 +5969,8 @@ ${amount} para ${merchant} - ${date}`,
                     return `${enabled ? 'habilitó' : 'deshabilitó'} los socios de recibos`;
                 case 'rules':
                     return `${enabled ? 'habilitó' : 'deshabilitó'} las reglas`;
+                case 'tax tracking':
+                    return `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos`;
                 default:
                     return `${enabled ? 'habilitó' : 'deshabilitó'} ${featureName}`;
             }

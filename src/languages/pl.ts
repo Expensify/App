@@ -6233,6 +6233,8 @@ ${
                     return `${enabled ? 'włączone' : 'wyłączone'} partnerzy paragonów`;
                 case 'rules':
                     return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
+                case 'tax tracking':
+                    return `${enabled ? 'włączone' : 'wyłączone'} śledzenie podatków`;
                 default:
                     return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }

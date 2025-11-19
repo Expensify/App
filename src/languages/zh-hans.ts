@@ -6110,6 +6110,8 @@ ${
                     return `${enabled ? '已启用' : '已禁用'} 收据合作伙伴`;
                 case 'rules':
                     return `${enabled ? '已启用' : '已禁用'} 条规则`;
+                case 'tax tracking':
+                    return `${enabled ? '已启用' : '已禁用'} 税务追踪`;
                 default:
                     return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }

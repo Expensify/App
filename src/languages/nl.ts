@@ -6246,6 +6246,8 @@ ${
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} partners voor bonnetjes`;
                 case 'rules':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} regels`;
+                case 'tax tracking':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
                 default:
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
             }

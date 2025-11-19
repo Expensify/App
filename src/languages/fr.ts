@@ -6284,6 +6284,8 @@ ${
                     return `${enabled ? 'activé' : 'désactivé'} partenaires de reçus`;
                 case 'rules':
                     return `${enabled ? 'activé' : 'désactivé'} règles`;
+                case 'tax tracking':
+                    return `${enabled ? 'activé' : 'désactivé'} suivi des taxes`;
                 default:
                     return `${enabled ? 'activé' : 'désactivé'} ${featureName}`;
             }

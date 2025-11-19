@@ -6199,6 +6199,8 @@ ${
                     return `${enabled ? '有効' : '無効'} 領収書パートナー`;
                 case 'rules':
                     return `${enabled ? '有効' : '無効'} 件のルール`;
+                case 'tax tracking':
+                    return `${enabled ? '有効' : '無効'} 税金追跡`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }

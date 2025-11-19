@@ -6310,6 +6310,8 @@ const translations = {
                     return `${enabled ? 'enabled' : 'disabled'} receipt partners`;
                 case 'rules':
                     return `${enabled ? 'enabled' : 'disabled'} rules`;
+                case 'tax tracking':
+                    return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
                 default:
                     return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
             }

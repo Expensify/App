@@ -6245,6 +6245,8 @@ ${
                     return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
                 case 'rules':
                     return `${enabled ? 'ativado' : 'desativado'} regras`;
+                case 'tax tracking':
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
