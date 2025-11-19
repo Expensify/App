@@ -3482,6 +3482,9 @@ const CONST = {
             LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
             CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
+        CARD_NAME: {
+            CASH: '__CASH__',
+        },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
