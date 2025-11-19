@@ -5,8 +5,6 @@ import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -21,6 +19,7 @@ import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -38,10 +37,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | IconAsset;
     action: () => void | Promise<void>;
 };
 
@@ -65,6 +65,9 @@ function TroubleshootPage() {
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'Bug', 'RotateLeft', 'Download'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
+
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
         if (!tryNewDot?.classicRedirect?.dismissed) {
@@ -98,7 +101,7 @@ function TroubleshootPage() {
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: expensifyIcons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -120,24 +123,24 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, expensifyIcons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: Expensicons.Bug,
+            icon: expensifyIcons.Bug,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
-                icon: Expensicons.RotateLeft,
+                icon: expensifyIcons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
-                icon: Expensicons.Download,
+                icon: expensifyIcons.Download,
                 action: exportOnyxState,
             },
         ];
@@ -157,7 +160,17 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
+    }, [
+        expensifyIcons.Bug,
+        expensifyIcons.RotateLeft,
+        expensifyIcons.Download,
+        waitForNavigate,
+        exportOnyxState,
+        shouldStoreLogs,
+        classicRedirectMenuItem,
+        translate,
+        styles.sectionMenuItemTopDescription,
+    ]);
 
     return (
         <ScreenWrapper
@@ -170,7 +183,7 @@ function TroubleshootPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={Navigation.popToSidebar}
-                icon={Illustrations.Lightbulb}
+                icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
             {isLoading && <FullScreenLoadingIndicator />}
