@@ -80,7 +80,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * Since options might use report attributes, it's necessary to call this after report attributes are loaded with the new locale to make sure the options are generated in a proper language
      */
     useEffect(() => {
-        if (reportAttributes?.locale === prevReportAttributesLocale) {
+        if (!areOptionsInitialized.current || reportAttributes?.locale === prevReportAttributesLocale) {
             return;
         }
 

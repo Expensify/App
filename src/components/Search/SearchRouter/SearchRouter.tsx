@@ -19,7 +19,6 @@ import type {SearchQueryItem} from '@components/SelectionListWithSections/Search
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -490,7 +489,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-    const autoFocus = useFocusAfterNav(textInputRef);
 
     return (
         <View
@@ -529,7 +527,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
-                    autoFocus={autoFocus}
+                    shouldDelayFocus
                 />
             </View>
             {shouldShowList && (
