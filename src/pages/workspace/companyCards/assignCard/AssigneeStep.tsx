@@ -2,15 +2,15 @@ import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +47,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const isEditing = assignCard?.isEditing;
 
@@ -107,7 +108,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
     const membersDetails = useMemo(() => {
         let membersList: ListItem[] = [];
@@ -130,7 +130,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 isSelected: selectedMember === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -142,35 +142,34 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
+    }, [policy?.employeeList, localeCompare, isOffline, selectedMember, icons.FallbackAvatar, formatPhoneNumber]);
 
-    const sections = useMemo(() => {
+    const asignees = useMemo(() => {
         if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
+            return membersDetails;
         }
 
         const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        return [
-            {
-                title: undefined,
-                data: filteredOptions,
-                shouldShow: true,
-            },
-        ];
+        return filteredOptions;
     }, [membersDetails, debouncedSearchTerm, countryCode]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, sections, countryCode]);
+        return getHeaderMessage(asignees.length !== 0, false, searchValue, countryCode, false);
+    }, [debouncedSearchTerm, asignees, countryCode]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            textInputLabel: shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined,
+            textInputValue: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, shouldShowSearchInput, translate],
+    );
 
     return (
         <InteractiveStepWrapper
@@ -183,14 +182,11 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
+                data={asignees}
                 ListItem={UserListItem}
                 onSelectRow={selectMember}
-                initiallyFocusedOptionKey={selectedMember}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={selectedMember}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
                 footerContent={
