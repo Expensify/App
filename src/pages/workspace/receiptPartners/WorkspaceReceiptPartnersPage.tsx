@@ -147,7 +147,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, expensifyIcons.Key],
     );
 
     const onCloseModal = useCallback(() => {

@@ -277,6 +277,7 @@ function AttachmentPickerWithMenuItems({
         shouldUseNarrowLayout,
         showDelegateNoAccessModal,
         translate,
+        expensifyIcons.Location,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

@@ -17,6 +17,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -67,7 +68,6 @@ import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
@@ -177,7 +177,7 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy), [report?.reportID, policy]);
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy), [report?.reportID, policy, expensifyIcons]);
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);

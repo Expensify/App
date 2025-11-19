@@ -67,9 +67,12 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.get() * 100}%`}));
 
-    const updateIcon = useCallback((vol: number) => {
-        setVolumeIcon({icon: getVolumeIcon(expensifyIcons, vol)});
-    }, []);
+    const updateIcon = useCallback(
+        (vol: number) => {
+            setVolumeIcon({icon: getVolumeIcon(expensifyIcons, vol)});
+        },
+        [expensifyIcons],
+    );
 
     useDerivedValue(() => {
         scheduleOnRN(updateVolume, volume.get());

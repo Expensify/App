@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
+import {CalendarSolid, Close} from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {
@@ -41,6 +42,7 @@ const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePair
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Monitor'] as const);
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: reportNameValuePartsSelector,
@@ -109,7 +111,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     if (shouldShowRegisterForWebinar) {
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
-            icon: Monitor,
+            icon: expensifyIcons.Monitor,
             shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {
