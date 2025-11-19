@@ -538,7 +538,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
     /** Configuration of the export */
-    export?: {
+    export: {
         /** E-mail of the exporter */
         exporter?: string;
     };
@@ -1310,7 +1310,7 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** Sage Intacct export configs */
-        export?: SageIntacctExportConfig;
+        export: SageIntacctExportConfig;
 
         /** Whether employees should be imported from Sage Intacct */
         importEmployees: boolean;
@@ -1415,7 +1415,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         importItems: boolean;
 
         /** Configuration of the export */
-        export?: QBDExportConfig;
+        export: QBDExportConfig;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
