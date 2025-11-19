@@ -9,7 +9,7 @@ import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
 function ValuePicker(
-    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true}: ValuePickerProps,
+    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, forwardedFSClass}: ValuePickerProps,
     forwardedRef: ForwardedRef<View>,
 ) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -45,6 +45,7 @@ function ValuePicker(
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
+                        forwardedFSClass={forwardedFSClass}
                     />
                     <ValueSelectorModal
                         isVisible={isPickerVisible}

@@ -8,52 +8,54 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The title of the form */
-    formTitle: string;
+        /** The title of the form */
+        formTitle: string;
 
-    /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The validation function to call when the form is submitted */
+        customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<TFormID>>;
+        /** Fields list of the form */
+        stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /** The ID of the first name input */
-    firstNameInputID: string;
+        /** The ID of the first name input */
+        firstNameInputID: string;
 
-    /** The ID of the last name input */
-    lastNameInputID: string;
+        /** The ID of the last name input */
+        lastNameInputID: string;
 
-    /** The default values for the form */
-    defaultValues: {
-        firstName: string;
-        lastName: string;
+        /** The default values for the form */
+        defaultValues: {
+            firstName: string;
+            lastName: string;
+        };
+
+        /** Should show the help link or not */
+        shouldShowHelpLinks?: boolean;
+
+        /** Custom label of the first name input  */
+        customFirstNameLabel?: string;
+
+        /** Custom label of the last name input */
+        customLastNameLabel?: string;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
     };
-
-    /** Should show the help link or not */
-    shouldShowHelpLinks?: boolean;
-
-    /** Custom label of the first name input  */
-    customFirstNameLabel?: string;
-
-    /** Custom label of the last name input */
-    customLastNameLabel?: string;
-
-    /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    shouldShowPatriotActLink?: boolean;
-};
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
@@ -69,6 +71,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     customFirstNameLabel,
     customLastNameLabel,
     shouldShowPatriotActLink = false,
+    forwardedFSClass,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -141,6 +144,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues.firstName}
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
+                    forwardedFSClass={forwardedFSClass}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -151,6 +155,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues.lastName}
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
+                    forwardedFSClass={forwardedFSClass}
                 />
                 {shouldShowHelpLinks && (
                     <>

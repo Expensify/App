@@ -31,6 +31,7 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    forwardedFSClass,
     ref,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
@@ -142,6 +143,7 @@ function DatePicker({
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    forwardedFSClass={forwardedFSClass}
                 />
             </View>
 
@@ -155,6 +157,7 @@ function DatePicker({
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
+                forwardedFSClass={forwardedFSClass}
             />
         </>
     );

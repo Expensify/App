@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -27,7 +26,6 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import FS from '@libs/Fullstory';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -184,7 +182,6 @@ function MoneyRequestReportTransactionList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const personalDetailsList = usePersonalDetails();
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -343,8 +340,6 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
-    const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
-
     if (isEmptyTransactions) {
         return (
             <>
@@ -422,7 +417,6 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                            forwardedFSClass={transactionItemFSClass}
                             onArrowRightPress={handleArrowRightPress}
                         />
                     );

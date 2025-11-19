@@ -78,6 +78,7 @@ function AddressSearch({
     value,
     locationBias,
     caretHidden,
+    forwardedFSClass,
     ref,
 }: AddressSearchProps) {
     const theme = useTheme();
@@ -363,6 +364,7 @@ function AddressSearch({
                 <View
                     style={styles.w100}
                     ref={containerRef}
+                    fsClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll

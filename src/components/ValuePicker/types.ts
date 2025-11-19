@@ -1,4 +1,5 @@
 import type {ListItem} from '@components/SelectionList/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -41,7 +42,7 @@ type ValueSelectorModalProps = {
 
 type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
 
-type ValuePickerProps = {
+type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
     value?: string;
 
