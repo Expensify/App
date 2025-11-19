@@ -4,6 +4,7 @@ import android.view.View
 import com.facebook.react.uimanager.ThemedReactContext
 import com.margelo.nitro.utils.HybridTtiMeasurementViewSpec
 import com.margelo.nitro.utils.TtiMeasurementValue
+import com.margelo.nitro.utils.performance.FirstDrawDoneListener
 
 internal typealias OnMeasurementListener = (measurement: TtiMeasurementValue) -> Unit
 
