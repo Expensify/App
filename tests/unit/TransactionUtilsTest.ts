@@ -10,6 +10,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Report, Transaction} from '../../src/types/onyx';
+import type {CardList} from '../../src/types/onyx/Card';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -399,13 +400,64 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getTransactionType', () => {
+        it('returns card when the transaction is null', () => {
+            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns distance when the transaction has a distance custom unit', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
+        });
+
+        it('returns per diem when the transaction has an international per diem custom unit', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
+        });
+
+        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
+            const cardID = 101;
+            const cardList = {
+                [cardID]: {
+                    cardName: '__CASH__',
+                },
+            } as unknown as CardList;
+            const transaction = generateTransaction({
+                cardID,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns cash when the transaction card name includes the cash card name substring', () => {
+            const transaction = generateTransaction({
+                cardName: `Example ${CONST.EXPENSE.TYPE.CASH_CARD_NAME}`,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+    });
+
     describe('shouldShowRTERViolationMessage', () => {
         it('should return true if transaction is receipt being scanned', () => {
             const transaction = generateTransaction({
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
-                merchant: '(none)',
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
         });
@@ -522,7 +574,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('Expense');
+            expect(merchant).toBe('(none)');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
