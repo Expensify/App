@@ -18,6 +18,7 @@
 
 #include "TtiMeasurementValue.hpp"
 #include <functional>
+#include <optional>
 #include <memory>
 #include "HybridTtiMeasurementViewSpec.hpp"
 #include <functional>
@@ -44,7 +45,7 @@ namespace margelo::nitro::utils::views {
                                   const react::RawProps& rawProps);
 
   public:
-    CachedProp<std::function<void(const TtiMeasurementValue& /* measurement */)>> onMeasurement;
+    CachedProp<std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>> onMeasurement;
     CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridTtiMeasurementViewSpec>& /* ref */)>>> hybridRef;
 
   private:

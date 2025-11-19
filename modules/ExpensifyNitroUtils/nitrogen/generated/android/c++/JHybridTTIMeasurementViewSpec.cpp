@@ -12,6 +12,7 @@ namespace margelo::nitro::utils { struct TtiMeasurementValue; }
 
 #include "TtiMeasurementValue.hpp"
 #include <functional>
+#include <optional>
 #include "JFunc_void_TtiMeasurementValue.hpp"
 #include "JTtiMeasurementValue.hpp"
 
@@ -38,10 +39,10 @@ namespace margelo::nitro::utils {
   }
 
   // Properties
-  std::function<void(const TtiMeasurementValue& /* measurement */)> JHybridTtiMeasurementViewSpec::getOnMeasurement() {
+  std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> JHybridTtiMeasurementViewSpec::getOnMeasurement() {
     static const auto method = javaClassStatic()->getMethod<jni::local_ref<JFunc_void_TtiMeasurementValue::javaobject>()>("getOnMeasurement_cxx");
     auto __result = method(_javaPart);
-    return [&]() -> std::function<void(const TtiMeasurementValue& /* measurement */)> {
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const TtiMeasurementValue& /* measurement */)> {
       if (__result->isInstanceOf(JFunc_void_TtiMeasurementValue_cxx::javaClassStatic())) [[likely]] {
         auto downcast = jni::static_ref_cast<JFunc_void_TtiMeasurementValue_cxx::javaobject>(__result);
         return downcast->cthis()->getFunction();
@@ -51,11 +52,11 @@ namespace margelo::nitro::utils {
           return __resultRef->invoke(measurement);
         };
       }
-    }();
+    }()) : std::nullopt;
   }
-  void JHybridTtiMeasurementViewSpec::setOnMeasurement(const std::function<void(const TtiMeasurementValue& /* measurement */)>& onMeasurement) {
+  void JHybridTtiMeasurementViewSpec::setOnMeasurement(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& onMeasurement) {
     static const auto method = javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_TtiMeasurementValue::javaobject> /* onMeasurement */)>("setOnMeasurement_cxx");
-    method(_javaPart, JFunc_void_TtiMeasurementValue_cxx::fromCpp(onMeasurement));
+    method(_javaPart, onMeasurement.has_value() ? JFunc_void_TtiMeasurementValue_cxx::fromCpp(onMeasurement.value()) : nullptr);
   }
 
   // Methods

@@ -18,6 +18,7 @@ namespace margelo::nitro::utils { struct TtiMeasurementValue; }
 
 #include "TtiMeasurementValue.hpp"
 #include <functional>
+#include <optional>
 
 namespace margelo::nitro::utils {
 
@@ -46,8 +47,8 @@ namespace margelo::nitro::utils {
 
     public:
       // Properties
-      virtual std::function<void(const TtiMeasurementValue& /* measurement */)> getOnMeasurement() = 0;
-      virtual void setOnMeasurement(const std::function<void(const TtiMeasurementValue& /* measurement */)>& onMeasurement) = 0;
+      virtual std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> getOnMeasurement() = 0;
+      virtual void setOnMeasurement(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& onMeasurement) = 0;
 
     public:
       // Methods

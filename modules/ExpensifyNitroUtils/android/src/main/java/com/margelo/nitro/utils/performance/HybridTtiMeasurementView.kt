@@ -30,8 +30,10 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
         }
     }
 
-    override var onMeasurement: OnMeasurementListener
-        get() = TODO("Not yet implemented")
+    override var onMeasurement: OnMeasurementListener?
+        get() {
+            return measurementListener
+        }
         set(listener) {
             measurementListener = listener
             registerDrawListener()
