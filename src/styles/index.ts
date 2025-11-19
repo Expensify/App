@@ -4088,7 +4088,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorButton: {
-            height: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
