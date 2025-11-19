@@ -415,6 +415,31 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
         },
     ];
 
+    const parentReportAction = getParentReportAction(taskReport);
+    if (parentReportAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            },
+        });
+    }
+
     if (parentReport?.hasOutstandingChildTask) {
         const hasOutstandingChildTask = getOutstandingChildTask(taskReport);
         optimisticData.push({
@@ -1132,12 +1157,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        optimisticParentReportData.forEach((parentReportData) => {
+        for (const parentReportData of optimisticParentReportData) {
             if (isEmptyObject(parentReportData)) {
-                return;
+                continue;
             }
             optimisticData.push(parentReportData);
-        });
+        }
     }
 
     const successData: OnyxUpdate[] = [

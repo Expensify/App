@@ -150,6 +150,7 @@ function KYCWall({
                                 });
                             }
                         }
+                        return;
                     }
 
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};

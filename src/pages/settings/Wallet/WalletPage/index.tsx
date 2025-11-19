@@ -9,7 +9,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -70,7 +69,16 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'MoneySearch',
+        'Wallet',
+        'Transfer',
+        'Hourglass',
+        'Exclamation',
+        'Star',
+        'Trashcan',
+        'Globe',
+    ] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -304,7 +312,7 @@ function WalletPage() {
                 ? [
                       {
                           text: translate('walletPage.setDefaultConfirmation'),
-                          icon: Expensicons.Star,
+                          icon: icons.Star,
                           onSelected: () => {
                               if (isAccountLocked) {
                                   closeModal(() => showLockedAccountModal());
@@ -318,7 +326,7 @@ function WalletPage() {
                 : []),
             {
                 text: translate('common.delete'),
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 onSelected: () => {
                     if (isAccountLocked) {
                         closeModal(() => showLockedAccountModal());
@@ -331,7 +339,7 @@ function WalletPage() {
                 ? [
                       {
                           text: translate('common.enableGlobalReimbursements'),
-                          icon: Expensicons.Globe,
+                          icon: icons.Globe,
                           onSelected: () => {
                               if (isAccountLocked) {
                                   closeModal(() => showLockedAccountModal());
@@ -344,6 +352,7 @@ function WalletPage() {
                 : []),
         ],
         [
+            icons,
             shouldUseNarrowLayout,
             bottomMountItem,
             shouldShowMakeDefaultButton,
@@ -361,7 +370,7 @@ function WalletPage() {
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
                 text: translate('workspace.common.viewTransactions'),
-                icon: expensifyIcons.MoneySearch,
+                icon: icons.MoneySearch,
                 onSelected: () => {
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
@@ -375,7 +384,7 @@ function WalletPage() {
                 },
             },
         ],
-        [bottomMountItem, expensifyIcons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
+        [bottomMountItem, icons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
     );
 
     if (isLoadingApp) {
@@ -508,7 +517,7 @@ function WalletPage() {
                                                     <MenuItem
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
+                                                        icon={icons.Transfer}
                                                         onPress={(event) => {
                                                             triggerKYCFlow({event});
                                                         }}
@@ -526,7 +535,7 @@ function WalletPage() {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Hourglass}
+                                                            src={icons.Hourglass}
                                                             fill={theme.icon}
                                                         />
 
@@ -539,7 +548,7 @@ function WalletPage() {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Exclamation}
+                                                            src={icons.Exclamation}
                                                             fill={theme.icon}
                                                         />
 
@@ -551,7 +560,7 @@ function WalletPage() {
                                             return (
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
-                                                    icon={Expensicons.Wallet}
+                                                    icon={icons.Wallet}
                                                     ref={buttonRef as ForwardedRef<View>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
