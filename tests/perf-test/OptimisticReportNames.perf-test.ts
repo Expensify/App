@@ -153,7 +153,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
         });
     });
 
@@ -167,7 +167,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
             // This should trigger name computation for all reports using policy1
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], mockContext));
         });
 
         test('[OptimisticReportNames] multiple policy updates', async () => {
@@ -178,7 +178,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
         });
     });
 
@@ -209,7 +209,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             }));
 
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, undefined, undefined, mockContext));
+            await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
         });
     });
 
