@@ -1123,7 +1123,7 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
             text: isDuplicateActive ? translate('common.duplicate') : translate('common.duplicated'),
-            icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
+            icon: isDuplicateActive ? expensifyIcons.ReceiptMultiple : expensifyIcons.CheckmarkCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (!isDuplicateActive) {
@@ -1361,7 +1361,7 @@ function MoneyReportHeader({
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
 
     const duplicateTransaction = useCallback(
-        (transactions) => {
+        (transactions: OnyxEntry<OnyxTypes.Transaction>[]) => {
             if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
                 return;
             }

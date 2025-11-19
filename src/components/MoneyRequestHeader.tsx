@@ -1,5 +1,4 @@
 import {useRoute} from '@react-navigation/native';
-import {format} from 'date-fns';
 import type {ReactNode} from 'react';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -161,7 +160,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [reportID, transaction?.transactionID]);
 
     const duplicateTransaction = useCallback(
-        (transactions) => {
+        (transactions: OnyxEntry<OnyxTypes.Transaction>[]) => {
             if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
                 return;
             }
@@ -170,7 +169,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             const optimisticIOUReportID = generateReportID();
 
             transactions.forEach((item) => {
-                duplicateTransactionIOUAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
+                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
             });
         },
         [activePolicyExpenseChat, defaultExpensePolicy],
