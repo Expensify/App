@@ -131,8 +131,8 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toBeCalledTimes(1);
-        expect(mockGraphql).toBeCalledWith(`
+        expect(mockGraphql).toHaveBeenCalledTimes(1);
+        expect(mockGraphql).toHaveBeenCalledWith(`
             mutation {
               minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
                 minimizedComment {
@@ -141,8 +141,8 @@ describe('Post test build comments action tests', () => {
               }
             }
         `);
-        expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith(CONST.APP_REPO, 12, message);
+        expect(createCommentMock).toHaveBeenCalledTimes(1);
+        expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, message);
     });
 
     test('Test GH action when only App PR number is provided', async () => {
@@ -164,8 +164,8 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toBeCalledTimes(1);
-        expect(mockGraphql).toBeCalledWith(`
+        expect(mockGraphql).toHaveBeenCalledTimes(1);
+        expect(mockGraphql).toHaveBeenCalledWith(`
             mutation {
               minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
                 minimizedComment {
@@ -174,8 +174,8 @@ describe('Post test build comments action tests', () => {
               }
             }
         `);
-        expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith(CONST.APP_REPO, 12, onlyAppMessage);
+        expect(createCommentMock).toHaveBeenCalledTimes(1);
+        expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, onlyAppMessage);
     });
 
     test('Test GH action when only Mobile-Expensify PR number is provided', async () => {
@@ -198,8 +198,8 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toBeCalledTimes(1);
-        expect(mockGraphql).toBeCalledWith(`
+        expect(mockGraphql).toHaveBeenCalledTimes(1);
+        expect(mockGraphql).toHaveBeenCalledWith(`
             mutation {
               minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
                 minimizedComment {
@@ -208,7 +208,7 @@ describe('Post test build comments action tests', () => {
               }
             }
         `);
-        expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith(CONST.MOBILE_EXPENSIFY_REPO, 13, onlyMobileExpensifyMessage);
+        expect(createCommentMock).toHaveBeenCalledTimes(1);
+        expect(createCommentMock).toHaveBeenCalledWith(CONST.MOBILE_EXPENSIFY_REPO, 13, onlyMobileExpensifyMessage);
     });
 });
