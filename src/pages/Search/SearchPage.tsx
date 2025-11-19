@@ -816,11 +816,16 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.filter((key) => {
+                  const item = selectedTransactions[key];
+                  return !(item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID);
+              }).length
+            : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
 
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+        return {count: numberOfExpense, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
 
     if (shouldUseNarrowLayout) {
         return (
