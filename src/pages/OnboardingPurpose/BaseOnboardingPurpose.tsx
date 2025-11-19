@@ -40,7 +40,7 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
 }
 
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload', 'Abacus', 'PiggyBank', 'SplitBill', 'Binoculars'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload', 'Abacus', 'PiggyBank', 'SplitBill', 'Binoculars']);
 
     const menuIcons = {
         [CONST.ONBOARDING_CHOICES.EMPLOYER]: lazyIllustrations.ReceiptUpload,

@@ -1272,20 +1272,14 @@ describe('CardUtils', () => {
 
     describe('getCardFeedIcon - Lazy Loaded ExpensifyCardImage', () => {
         it('should return ExpensifyCardImage for Expensify card feed', () => {
-            // Test that getCardFeedIcon correctly returns ExpensifyCardImage for Expensify cards
             const feed = CONST.EXPENSIFY_CARD.BANK;
             const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
-
-            // Verify it returns the ExpensifyCardImage (now sourced from Illustrations.ts via chunk)
             expect(illustration).toBe('ExpensifyCardImage');
         });
 
         it('should return ExpensifyCardImage for Expensify card feed variations', () => {
-            // Test with feed name that starts with EXPENSIFY_CARD.BANK
             const feedVariation = `${CONST.EXPENSIFY_CARD.BANK}_variant` as typeof CONST.EXPENSIFY_CARD.BANK;
             const illustration = getCardFeedIcon(feedVariation, mockIllustrations as unknown as IllustrationsType);
-
-            // Should still return ExpensifyCardImage for any feed starting with expensify
             expect(illustration).toBe('ExpensifyCardImage');
         });
     });

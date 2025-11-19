@@ -38,7 +38,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
 
     const iconToDisplay = getIntegrationIcon(connectionName);
     const canBeExported = canBeExportedUtil(report);

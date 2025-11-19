@@ -93,8 +93,7 @@ describe('IOURequestStartPage', () => {
     });
 
     it('should load IOURequestStepScan illustrations via lazy loading', () => {
-        // Test that IOURequestStepScan's lazy-loaded illustrations are available
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Hand', 'MultiScan', 'Shutter', 'ReceiptUpload'] as const));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Hand', 'MultiScan', 'Shutter', 'ReceiptUpload']));
 
         expect(result.current.Hand).toBeDefined();
         expect(result.current.MultiScan).toBeDefined();
@@ -103,8 +102,7 @@ describe('IOURequestStartPage', () => {
     });
 
     it('should load IOURequestStepScan icons via lazy loading', () => {
-        // Test that IOURequestStepScan's lazy-loaded Expensify icons are available
-        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash'] as const));
+        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']));
 
         expect(result.current.Bolt).toBeDefined();
         expect(result.current.Gallery).toBeDefined();

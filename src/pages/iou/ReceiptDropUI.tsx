@@ -19,7 +19,7 @@ type ReceiptDropUIProps = {
 function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>

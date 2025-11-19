@@ -239,7 +239,7 @@ describe('ExpensifyCardPage', () => {
 
     it('should load ExpensifyCardImage via lazy loading in CardPreview', () => {
         // Test that CardPreview's lazy-loaded ExpensifyCardImage icon is available
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['ExpensifyCardImage']));
 
         // Verify the lazy-loaded icon is defined
         expect(result.current.ExpensifyCardImage).toBeDefined();

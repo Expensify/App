@@ -10,7 +10,7 @@ import Text from './Text';
 
 function CardPreview() {
     const styles = useThemeStyles();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
