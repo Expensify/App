@@ -31,10 +31,13 @@ namespace margelo::nitro::utils {
     [[nodiscard]]
     TtiMeasurementValue toCpp() const {
       static const auto clazz = javaClassStatic();
-      static const auto fieldTimestamp = clazz->getField<double>("timestamp");
-      double timestamp = this->getFieldValue(fieldTimestamp);
+      static const auto fieldStartup = clazz->getField<double>("startup");
+      double startup = this->getFieldValue(fieldStartup);
+      static const auto fieldFirstDraw = clazz->getField<double>("firstDraw");
+      double firstDraw = this->getFieldValue(fieldFirstDraw);
       return TtiMeasurementValue(
-        timestamp
+        startup,
+        firstDraw
       );
     }
 
@@ -44,12 +47,13 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JTtiMeasurementValue::javaobject> fromCpp(const TtiMeasurementValue& value) {
-      using JSignature = JTtiMeasurementValue(double);
+      using JSignature = JTtiMeasurementValue(double, double);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
         clazz,
-        value.timestamp
+        value.startup,
+        value.firstDraw
       );
     }
   };

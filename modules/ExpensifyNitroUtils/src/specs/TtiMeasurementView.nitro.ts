@@ -1,7 +1,8 @@
 import type {HybridView, HybridViewMethods, HybridViewProps} from 'react-native-nitro-modules';
 
 type TtiMeasurementValue = {
-    timestamp: number;
+    startup: number;
+    firstDraw: number;
 };
 
 type OnTtiMeasurement = (measurement: TtiMeasurementValue) => void;

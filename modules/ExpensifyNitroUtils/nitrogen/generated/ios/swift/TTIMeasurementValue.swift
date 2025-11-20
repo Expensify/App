@@ -19,18 +19,29 @@ public extension TtiMeasurementValue {
   /**
    * Create a new instance of `TtiMeasurementValue`.
    */
-  init(timestamp: Double) {
-    self.init(timestamp)
+  init(startup: Double, firstDraw: Double) {
+    self.init(startup, firstDraw)
   }
 
-  var timestamp: Double {
+  var startup: Double {
     @inline(__always)
     get {
-      return self.__timestamp
+      return self.__startup
     }
     @inline(__always)
     set {
-      self.__timestamp = newValue
+      self.__startup = newValue
+    }
+  }
+  
+  var firstDraw: Double {
+    @inline(__always)
+    get {
+      return self.__firstDraw
+    }
+    @inline(__always)
+    set {
+      self.__firstDraw = newValue
     }
   }
 }

@@ -34,11 +34,12 @@ namespace margelo::nitro::utils {
    */
   struct TtiMeasurementValue {
   public:
-    double timestamp     SWIFT_PRIVATE;
+    double startup     SWIFT_PRIVATE;
+    double firstDraw     SWIFT_PRIVATE;
 
   public:
     TtiMeasurementValue() = default;
-    explicit TtiMeasurementValue(double timestamp): timestamp(timestamp) {}
+    explicit TtiMeasurementValue(double startup, double firstDraw): startup(startup), firstDraw(firstDraw) {}
   };
 
 } // namespace margelo::nitro::utils
@@ -51,12 +52,14 @@ namespace margelo::nitro {
     static inline margelo::nitro::utils::TtiMeasurementValue fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::utils::TtiMeasurementValue(
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, "timestamp"))
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, "startup")),
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, "firstDraw"))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::utils::TtiMeasurementValue& arg) {
       jsi::Object obj(runtime);
-      obj.setProperty(runtime, "timestamp", JSIConverter<double>::toJSI(runtime, arg.timestamp));
+      obj.setProperty(runtime, "startup", JSIConverter<double>::toJSI(runtime, arg.startup));
+      obj.setProperty(runtime, "firstDraw", JSIConverter<double>::toJSI(runtime, arg.firstDraw));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -67,7 +70,8 @@ namespace margelo::nitro {
       if (!nitro::isPlainObject(runtime, obj)) {
         return false;
       }
-      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, "timestamp"))) return false;
+      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, "startup"))) return false;
+      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, "firstDraw"))) return false;
       return true;
     }
   };

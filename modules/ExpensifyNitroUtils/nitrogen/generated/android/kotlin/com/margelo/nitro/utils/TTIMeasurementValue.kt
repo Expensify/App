@@ -19,7 +19,10 @@ import com.facebook.proguard.annotations.DoNotStrip
 data class TtiMeasurementValue(
   @DoNotStrip
   @Keep
-  val timestamp: Double
+  val startup: Double,
+  @DoNotStrip
+  @Keep
+  val firstDraw: Double
 ) {
   /* primary constructor */
 
@@ -31,8 +34,8 @@ data class TtiMeasurementValue(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(timestamp: Double): TtiMeasurementValue {
-      return TtiMeasurementValue(timestamp)
+    private fun fromCpp(startup: Double, firstDraw: Double): TtiMeasurementValue {
+      return TtiMeasurementValue(startup, firstDraw)
     }
   }
 }
