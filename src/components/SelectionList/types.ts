@@ -38,7 +38,7 @@ type SelectionListProps<TItem extends ListItem> = {
     onEndReachedThreshold?: number;
 
     /** Configuration for the confirm button */
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
@@ -110,6 +110,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
+
+    /** Whether scroll position should change when focused item changes */
+    disableMaintainingScrollPosition?: boolean;
 
     /** Whether to use the user skeleton view */
     shouldUseUserSkeletonView?: boolean;
