@@ -11635,7 +11635,6 @@ async function run() {
         userPrompt: prompt,
         systemPrompt: proposalPolice_1.PROPOSAL_POLICE_BASE_PROMPT,
         responseFormat: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             type: 'json_object',
         },
     });
@@ -12978,6 +12977,7 @@ class OpenAIUtils {
         const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
             model,
             messages,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             ...(responseFormat ? { response_format: responseFormat } : {}),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             reasoning_effort: 'low',
