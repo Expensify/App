@@ -1,20 +1,14 @@
 import type {HybridView, HybridViewMethods, HybridViewProps} from 'react-native-nitro-modules';
-
-type TtiMeasurementValue = {
-    startup: number;
-    firstDraw: number;
-};
-
-type OnTtiMeasurement = (measurement: TtiMeasurementValue) => void;
+import type TtiLogger from './TtiLogger.nitro';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface TtiMeasurementViewProps extends HybridViewProps {
-    onMeasurement?: OnTtiMeasurement;
+    ttiLogger: TtiLogger;
 }
 
 type TtiMeasurementViewMethods = HybridViewMethods;
 
 type TtiMeasurementView = HybridView<TtiMeasurementViewProps, TtiMeasurementViewMethods>;
 
-export type {TtiMeasurementView, TtiMeasurementViewProps, TtiMeasurementViewMethods, TtiMeasurementValue, OnTtiMeasurement};
+export type {TtiMeasurementView, TtiMeasurementViewProps, TtiMeasurementViewMethods};
 export {default as TtiMeasurementViewConfig} from '../../nitrogen/generated/shared/json/TtiMeasurementViewConfig.json';
