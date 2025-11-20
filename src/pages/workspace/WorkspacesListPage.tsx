@@ -472,6 +472,7 @@ function WorkspacesListPage() {
             policies,
             fundList,
             styles,
+            icons,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
             setIsDeletingPaidWorkspace,
@@ -568,7 +569,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace, icons]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);

@@ -9,7 +9,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -22,7 +21,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -69,16 +68,9 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons([
-        'MoneySearch',
-        'Wallet',
-        'Transfer',
-        'Hourglass',
-        'Exclamation',
-        'Star',
-        'Trashcan',
-        'Globe',
-    ] as const);
+
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -282,7 +274,7 @@ function WalletPage() {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={Illustrations.MoneyIntoWallet}
+            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
