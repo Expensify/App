@@ -280,7 +280,7 @@ function MoneyRequestConfirmationListFooter({
 
     const formattedCreatedDate = useMemo(() => {
         const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-        return formatter.format(new Date(iouCreated ?? ''));
+        return formatter.format(new Date(iouCreated ?? Date.now()));
     }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
