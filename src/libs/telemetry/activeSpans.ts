@@ -31,6 +31,8 @@ function endSpan(spanId: string) {
 function cancelSpan(spanId: string) {
     const span = activeSpans.get(spanId);
     span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
+    // Sentry assumes that we have OK or ERROR status codes.
+    // We treat canceled spans as OK so we have ability to properly track spans that are not finished at all (their status would be different)
     span?.setStatus({code: 1})
     endSpan(spanId);
 }
