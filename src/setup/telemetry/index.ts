@@ -10,9 +10,9 @@ import CONST from '@src/CONST';
 import pkg from '../../../package.json';
 
 export default function (): void {
-    // if (isDevelopment()) {
-    //     return;
-    // }
+    if (isDevelopment()) {
+        return;
+    }
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         tracesSampleRate: 1.0,
