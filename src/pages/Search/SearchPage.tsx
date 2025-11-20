@@ -106,19 +106,6 @@ function SearchPage({route}: SearchPageProps) {
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Table',
-        'Export',
-        'ArrowRight',
-        'ThumbsUp',
-        'Send',
-        'Stopwatch',
-        'MoneyBag',
-        'Trashcan',
-        'DocumentMerge',
-        'Exclamation',
-        'SmartScan',
-    ] as const);
     const personalPolicy = usePersonalPolicy();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -133,6 +120,19 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Export',
+        'Table',
+        'DocumentMerge',
+        'Send',
+        'Trashcan',
+        'ThumbsUp',
+        'ArrowRight',
+        'Stopwatch',
+        'Exclamation',
+        'SmartScan',
+        'MoneyBag',
+    ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -215,7 +215,6 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             const activeRoute = Navigation.getActiveRoute();
-            const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
             for (const item of selectedOptions) {
@@ -300,7 +299,7 @@ function SearchPage({route}: SearchPageProps) {
                       }))
             ) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            payMoneyRequestOnSearch(hash, paymentData);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -385,7 +384,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.Export,
-            rightIcon: expensifyIcons.ArrowRight as unknown as FC<SvgProps>,
+            rightIcon: expensifyIcons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -434,11 +433,10 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -471,10 +469,7 @@ function SearchPage({route}: SearchPageProps) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            const reportTransactionIDs = selectedReports.length
-                                ? undefined
-                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
-                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
+                            submitMoneyRequestOnSearch(hash, [item], [policy]);
                         }
                     }
                     clearSelectedTransactions();
