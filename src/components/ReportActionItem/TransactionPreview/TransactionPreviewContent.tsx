@@ -216,6 +216,7 @@ function TransactionPreviewContent({
         shouldHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.cardBG,
+        shouldApplyHeightStyle: false,
     });
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
