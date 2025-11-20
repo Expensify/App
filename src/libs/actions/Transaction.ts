@@ -780,7 +780,6 @@ function changeTransactionsReport(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                 value: {
-                    // created self DM action has different ID so we have to clean it
                     [selfDMCreatedReportAction.reportActionID]: {
                         pendingAction: null,
                     },
