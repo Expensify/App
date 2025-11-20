@@ -55,6 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -65,10 +66,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -276,7 +278,8 @@ function Search({
         const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 
         for (const key of transactionKeys) {
-            const transaction = searchResults.data[key as keyof typeof searchResults.data] as Transaction;
+            // eslint-disable-next-line
+            const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
             if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
                 continue;
             }
@@ -885,12 +888,19 @@ function Search({
         );
     }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
+
+    const onLayoutSkeleton = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+    }, []);
 
     if (shouldShowLoadingState) {
         return (
@@ -898,6 +908,7 @@ function Search({
                 entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1]}
+                onLayout={onLayoutSkeleton}
             >
                 <SearchRowSkeleton
                     shouldAnimate
