@@ -18,7 +18,7 @@ import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -41,10 +41,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
-}));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
@@ -392,7 +388,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID,
             tag: '',
             transactionID,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -425,7 +420,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID2,
             tag: '',
             transactionID: transactionID2,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -460,7 +454,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID3,
-            transactionThreadReportID: '8287398995021380',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -494,7 +487,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID4,
-            transactionThreadReportID: '1014872441234902',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -803,7 +795,6 @@ const transactionsListItems = [
             login: undefined,
         },
         transactionID: '1',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -863,7 +854,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         transactionID: '2',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -907,7 +897,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '3',
-        transactionThreadReportID: '8287398995021380',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -968,7 +957,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '4',
-        transactionThreadReportID: '1014872441234902',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -1088,7 +1076,6 @@ const transactionReportGroupListItems = [
                     login: undefined,
                 },
                 transactionID: '1',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1191,7 +1178,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 transactionID: '2',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1784,7 +1770,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1817,7 +1803,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2396,7 +2382,6 @@ describe('SearchUIUtils', () => {
                         reportID: '6523565988285061',
                         tag: '',
                         transactionID: '1805965960759424086',
-                        transactionThreadReportID: '4139222832581831',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         convertedAmount: -5000,
                         convertedCurrency: 'USD',
@@ -2523,7 +2508,6 @@ describe('SearchUIUtils', () => {
                     reportID: '6523565988285061',
                     tag: '',
                     transactionID: '1805965960759424086',
-                    transactionThreadReportID: '4139222832581831',
                     convertedAmount: -5000,
                     convertedCurrency: 'USD',
                 },
@@ -2826,20 +2810,19 @@ describe('SearchUIUtils', () => {
             const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
             expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
-            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
     });
@@ -2886,11 +2869,11 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData, '456');
 
             await waitForBatchedUpdates();
 
-            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
         });
