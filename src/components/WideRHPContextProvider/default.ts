@@ -7,6 +7,7 @@ const defaultWideRHPContextValue: WideRHPContextType = {
     cleanWideRHPRouteKey: () => {},
     markReportIDAsExpense: () => {},
     markReportIDAsMultiTransactionExpense: () => {},
+    unmarkReportIDAsMultiTransactionExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
     isReportIDMarkedAsMultiTransactionExpense: () => false,
     dismissToFirstRHP: () => {},

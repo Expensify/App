@@ -464,6 +464,19 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, []);
 
     /**
+     * Removes a report ID from the multi-transaction expense reports set.
+     * This disables optimistic super wide RHP display for that specific report
+     * (e.g., when transactions are deleted or report no longer qualifies as multi-transaction)
+     */
+    const unmarkReportIDAsMultiTransactionExpense = useCallback((reportID: string) => {
+        setMultiTransactionExpenseReportIDs((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(reportID);
+            return newSet;
+        });
+    }, []);
+
+    /**
      * Checks if a report ID is marked as a multi-transaction expense report.
      * Used to determine if super wide RHP should be displayed optimistically.
      * It helps us open expense as super wide, before it fully loads.
@@ -579,6 +592,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToSecondRHP,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
@@ -600,6 +614,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             dismissToSecondRHP,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
