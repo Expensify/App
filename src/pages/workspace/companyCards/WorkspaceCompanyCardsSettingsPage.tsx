@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -45,10 +45,9 @@ function WorkspaceCompanyCardsSettingsPage({
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
-    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
-    const [cardsList] = useCardsList(selectedFeed);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const [cardsList] = useCardsList(policyID, selectedFeed);
+    const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const liabilityType = selectedFeedData?.liabilityType;
@@ -78,27 +77,27 @@ function WorkspaceCompanyCardsSettingsPage({
     const deleteCompanyCardFeed = () => {
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.goBack();
-        if (feed) {
+        if (selectedFeed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
-            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
-                (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).find(
+                (feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, feed, cardIDs, feedToOpen);
+                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, selectedFeed, cardIDs, feedToOpen);
             });
         }
     };
 
     const onToggleLiability = (isOn: boolean) => {
-        if (!feed) {
+        if (!selectedFeed) {
             return;
         }
         setWorkspaceCompanyCardTransactionLiability(
             domainOrWorkspaceAccountID,
             policyID,
-            feed,
+            selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
         );
     };

@@ -6,7 +6,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -21,6 +20,7 @@ import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +46,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -96,7 +97,7 @@ function TroubleshootPage() {
 
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
                                   return;
                               }
                               Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
@@ -154,7 +155,7 @@ function TroubleshootPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={Navigation.popToSidebar}
-                icon={Illustrations.Lightbulb}
+                icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
             {isLoading && <FullScreenLoadingIndicator />}

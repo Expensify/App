@@ -247,6 +247,7 @@ type ListItem<K extends string | number = string> = {
 };
 
 type TransactionListItemType = ListItem &
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
@@ -256,6 +257,9 @@ type TransactionListItemType = ListItem &
 
         /** Report IOU action to which the transaction belongs */
         reportAction: ReportAction | undefined;
+
+        /** Transaction thread HOLD action if the transaction is on hold */
+        holdReportAction: ReportAction | undefined;
 
         /** The personal details of the user requesting money */
         from: PersonalDetails;

@@ -8,7 +8,6 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,6 +23,7 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -118,6 +118,19 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Export',
+        'Table',
+        'DocumentMerge',
+        'Send',
+        'Trashcan',
+        'ThumbsUp',
+        'ArrowRight',
+        'Stopwatch',
+        'Exclamation',
+        'SmartScan',
+        'MoneyBag',
+    ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -200,7 +213,6 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             const activeRoute = Navigation.getActiveRoute();
-            const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
             for (const item of selectedOptions) {
@@ -285,7 +297,7 @@ function SearchPage({route}: SearchPageProps) {
                       }))
             ) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            payMoneyRequestOnSearch(hash, paymentData);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -308,7 +320,7 @@ function SearchPage({route}: SearchPageProps) {
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (isOffline) {
                             setIsOfflineModalVisible(true);
@@ -355,7 +367,7 @@ function SearchPage({route}: SearchPageProps) {
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -369,8 +381,8 @@ function SearchPage({route}: SearchPageProps) {
         };
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -395,7 +407,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowApproveOption) {
             options.push({
-                icon: Expensicons.ThumbsUp,
+                icon: expensifyIcons.ThumbsUp,
                 text: translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
@@ -419,11 +431,10 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -441,7 +452,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowSubmitOption) {
             options.push({
-                icon: Expensicons.Send,
+                icon: expensifyIcons.Send,
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
@@ -453,15 +464,12 @@ function SearchPage({route}: SearchPageProps) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    itemList.forEach((item) => {
+                    for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            const reportTransactionIDs = selectedReports.length
-                                ? undefined
-                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
-                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
+                            submitMoneyRequestOnSearch(hash, [item], [policy]);
                         }
-                    });
+                    }
                     clearSelectedTransactions();
                 },
             });
@@ -472,9 +480,9 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowPayOption) {
             const payButtonOption = {
-                icon: Expensicons.MoneyBag,
+                icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
@@ -489,7 +497,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowHoldOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 shouldCloseModalOnSelect: true,
@@ -508,7 +516,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowUnholdOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
@@ -551,7 +559,7 @@ function SearchPage({route}: SearchPageProps) {
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
@@ -562,7 +570,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowDeleteOption) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
@@ -592,7 +600,7 @@ function SearchPage({route}: SearchPageProps) {
             };
 
             options.push({
-                icon: Expensicons.Exclamation,
+                icon: expensifyIcons.Exclamation,
                 text: translate('search.bulkActions.noOptionsAvailable'),
                 value: undefined,
                 ...emptyOptionStyle,
@@ -625,6 +633,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
+        expensifyIcons,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -656,7 +665,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const newReceiptFiles: ReceiptFile[] = [];
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
                 index === 0
@@ -673,7 +682,7 @@ function SearchPage({route}: SearchPageProps) {
                 transactionID,
             });
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        });
+        }
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
@@ -706,10 +715,10 @@ function SearchPage({route}: SearchPageProps) {
         if (files.length === 0) {
             return;
         }
-        files.forEach((file) => {
+        for (const file of files) {
             // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-        });
+        }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
@@ -821,7 +830,7 @@ function SearchPage({route}: SearchPageProps) {
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
-                            icon={Expensicons.SmartScan}
+                            icon={expensifyIcons.SmartScan}
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
@@ -956,7 +965,7 @@ function SearchPage({route}: SearchPageProps) {
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        icon={Expensicons.SmartScan}
+                                        icon={expensifyIcons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
