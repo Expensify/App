@@ -1661,6 +1661,8 @@ const CONST = {
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        ATTRIBUTE_REPORT_ID: 'report_id',
+        ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

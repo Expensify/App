@@ -326,8 +326,8 @@ function ReportActionCompose({
                     name: 'send-message',
                     op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                     attributes: {
-                        reportID,
-                        messageLength: newCommentTrimmed.length,
+                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
                     },
                 });
                 onSubmit(newCommentTrimmed);
