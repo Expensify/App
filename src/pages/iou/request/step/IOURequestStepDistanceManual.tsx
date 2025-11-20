@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -46,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {isParticipantP2P} from './IOURequestStepAmount';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -321,14 +322,14 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        const isPolicyExpenseChat = isPolicyExpenseChatUtils(report);
+        const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report).at(0));
         
         if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
         
-        if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(value) === 0 && !isPolicyExpenseChat) {
+        if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(value) === 0 && isP2P) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }

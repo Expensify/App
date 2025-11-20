@@ -407,7 +407,7 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isPolicyExpenseChat={isPolicyExpenseChat(report)}
+                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(report).at(0))}
             />
         </StepScreenWrapper>
     );
