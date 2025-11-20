@@ -973,6 +973,7 @@ function clearAvatarErrors(reportID: string) {
  * @param transactionViolations The violations for the transaction, if any
  * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
