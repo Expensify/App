@@ -68,6 +68,7 @@ import type {
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
@@ -1126,6 +1127,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transaction: OnyxEntry<Transaction | SearchTransaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail?: string,
@@ -1159,6 +1161,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasBrokenConnectionViolation(transaction: Transaction | SearchTransaction, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
@@ -1271,6 +1274,7 @@ function shouldShowViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | SearchTransaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     if (!transactions) {
         return false;
@@ -1293,6 +1297,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasAnyTransactionWithoutRTERViolation(transactions: Transaction[] | SearchTransaction[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     return (
         transactions.length > 0 &&
@@ -1448,6 +1453,7 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
