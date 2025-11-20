@@ -781,7 +781,9 @@ function changeTransactionsReport(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                 value: {
                     // created self DM action has different ID so we have to clean it
-                    [selfDMCreatedReportAction.reportActionID]: null,
+                    [selfDMCreatedReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         );
