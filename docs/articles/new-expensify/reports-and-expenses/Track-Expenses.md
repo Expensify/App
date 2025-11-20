@@ -18,12 +18,9 @@ Use this guide to create expenses that stay in your account for later reference.
 
 **Follow these steps to create an expense that stays in your records but isn't submitted:**
 
-1. Click the **big green + button**.
-2. Select **Create Expense**.
-3. Choose how to create the expense:
-   - **Scan a receipt**
-   - **Enter mileage**
-   - **Enter manually**
+1. On mobile, tap the green camera button and take a photo of each receipt or select **Manual**.
+2. On desktop, click the green add receipt button and drag and drop the receipt, click **Choose File** to upload or select **Manual**.
+3. To create a mileage expense, click the grey **+** button and select **Track distance**.
 4. Fill in the required details based on your selection.
 5. Click **Next**.
 6. Choose yourself under Personal.
