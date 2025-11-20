@@ -28,7 +28,6 @@ type EmptyCardViewProps = {
 function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {CompanyCardsPendingState, EmptyCardState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState', 'EmptyCardState'] as const);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
