@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -440,13 +440,13 @@ function getForReportAction({
  */
 function getForReportActionTemp({
     reportAction,
-    policyID,
+    policy,
     movedFromReport,
     movedToReport,
     policyTags,
 }: {
     reportAction: OnyxEntry<ReportAction>;
-    policyID?: string | undefined;
+    policy?: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -536,8 +536,6 @@ function getForReportActionTemp({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policy = getPolicy(policyID);
             const isAdmin = isPolicyAdmin(policy, currentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page

@@ -213,6 +213,7 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
 };
@@ -537,6 +538,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 movedToReport,
                 childReport,
                 getLocalDateFromDatetime,
+                policy,
                 policyTags,
                 translate,
             },
@@ -559,7 +561,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
                         reportAction,
-                        policyID: report?.policyID,
+                        policy,
                         movedFromReport,
                         movedToReport,
                         policyTags,
