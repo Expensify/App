@@ -23,6 +23,7 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -47,7 +48,7 @@ function Finish() {
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('finishStep.letsFinish')}
-                    icon={Illustrations.ConciergeBubble}
+                    icon={illustrations.ConciergeBubble}
                     containerStyles={[styles.mb8, styles.mh5]}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >

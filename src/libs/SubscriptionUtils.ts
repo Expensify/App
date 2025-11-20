@@ -2,10 +2,7 @@ import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -46,8 +43,13 @@ type SubscriptionPlanInfo = {
     subtitle: string;
     note: string | undefined;
     benefits: string[];
-    src: React.FC<SvgProps>;
+    src: IconAsset;
     description: string;
+};
+
+type SubscriptionPlanIllustrations = {
+    Mailbox: IconAsset;
+    ShieldYellow: IconAsset;
 };
 
 let currentUserAccountID = -1;
@@ -557,7 +559,7 @@ function getSubscriptionPlanInfo(
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
     hasTeam2025Pricing: boolean,
-    illustrations: Partial<Record<IllustrationName, IconAsset>>,
+    illustrations: Record<'Mailbox' | 'ShieldYellow', IconAsset>,
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
@@ -590,7 +592,7 @@ function getSubscriptionPlanInfo(
                 translate('subscription.yourPlan.collect.benefit7'),
                 translate('subscription.yourPlan.collect.benefit8'),
             ],
-            src: Illustrations.Mailbox,
+            src: illustrations.Mailbox,
             description: translate('subscription.yourPlan.collect.description'),
         };
     }
@@ -609,7 +611,7 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit7'),
             translate('subscription.yourPlan.control.benefit8'),
         ],
-        src: illustrations.ShieldYellow as React.FC<SvgProps>,
+        src: illustrations.ShieldYellow,
         description: translate('subscription.yourPlan.control.description'),
     };
 }
@@ -637,3 +639,5 @@ export {
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
 };
+
+export type {SubscriptionPlanIllustrations};

@@ -52,57 +52,21 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
-import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
-import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
-import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
-import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
-import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
-import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
-import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
-import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
-import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
-import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
-import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
-import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
-import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
-import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
-import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
-import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
-import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
-import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
-import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
-import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
-import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
-import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
-import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
-import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
-import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
-import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
-import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
-import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
-import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
-    Encryption,
     BrokenMagnifyingGlass,
-    ChatBubbles,
-    PinkCar,
     Computer,
-    EmailAddress,
     EmptyCardState,
     EmptyStateExpenses,
-    EnvelopeReceipt,
     ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     MagnifyingGlassReceipt,
-    Mailbox,
     MushroomTopHat,
     RocketBlue,
     RocketDude,
@@ -111,39 +75,17 @@ export {
     ToddWithPhones,
     ToddInCar,
     BrokenCompanyCardBankConnection,
-    CreditCardsNewGreen,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
-    LockOpen,
-    Luggage,
-    ConciergeBubble,
     Hands,
-    HeadSet,
     SmartScan,
-    Hourglass,
-    CommentBubbles,
-    Puzzle,
-    LockClosed,
-    Gears,
     HoldExpense,
     ReceiptFairy,
-    Approval,
     PendingBank,
     ThreeLeggedLaptopWoman,
-    House,
-    Buildings,
-    Alert,
-    Abacus,
-    Binoculars,
-    Car,
-    Lightbulb,
     ExpensifyApprovedLogo,
-    CheckmarkCircle,
-    CreditCardEyes,
-    LockClosedOrange,
     FolderWithPapers,
-    Filters,
     RunningTurtle,
     CompanyCardsPendingState,
     VisaCompanyCardDetail,
@@ -167,13 +109,11 @@ export {
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
-    Flash,
     ModalHoldOrReject,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,
     CardReplacementSuccess,
-    EmptyShelves,
     OpenSafe,
     LaptopOnDeskWithCoffeeAndKey,
 };

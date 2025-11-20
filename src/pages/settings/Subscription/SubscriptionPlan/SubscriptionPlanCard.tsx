@@ -41,8 +41,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const illustrations = useMemoizedLazyIllustrations(['ShieldYellow'] as const);
-
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
         translate,
         subscriptionPlan,
@@ -50,7 +49,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         preferredCurrency,
         isFromComparisonModal,
         hasTeam2025Pricing,
-        illustrations,
+        lazyIllustrations,
     );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;

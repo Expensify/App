@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -21,6 +21,21 @@ function ManageTrips() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+    const illustrations = useMemoizedLazyIllustrations(['Alert'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: Illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.Alert],
+    );
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
     const tripsFeatures: FeatureListItem[] = [

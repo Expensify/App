@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
@@ -9,7 +9,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,6 +45,7 @@ type Item = {
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile'] as const);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
@@ -59,7 +59,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
     const isFocused = useIsFocused();
-    const illustrations = useMemoizedLazyIllustrations(['Profile'] as const);
 
     useEffect(() => {
         setOnboardingErrorMessage(null);
@@ -121,21 +120,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         return errors;
     };
 
-    const section: Item[] = [
-        {
-            icon: Illustrations.EnvelopeReceipt,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-            shouldRenderEmail: true,
-        },
-        {
-            icon: illustrations.Profile,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-        },
-        {
-            icon: Illustrations.Gears,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-        },
-    ];
+    const section: Item[] = useMemo(
+        () => [
+            {
+                icon: illustrations.EnvelopeReceipt,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+                shouldRenderEmail: true,
+            },
+            {
+                icon: illustrations.Profile,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+            },
+            {
+                icon: illustrations.Gears,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+            },
+        ],
+        [illustrations.EnvelopeReceipt, illustrations.Profile, illustrations.Gears],
+    );
 
     return (
         <ScreenWrapper

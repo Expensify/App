@@ -10,7 +10,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type SectionMenuItem = {
@@ -32,12 +31,18 @@ type HoldOrRejectEducationalModalProps = {
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch', 'ThumbsDown'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject'] as const);
+
+    useBeforeRemove(onClose);
 
     const menuSections: SectionMenuItem[] = [
         {
             icon: illustrations.Stopwatch,
             titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.Rules,
+            titleTranslationKey: 'iou.reject.approveExpenseTitle',
         },
         {
             icon: illustrations.RealtimeReport,
@@ -49,14 +54,12 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
         },
     ];
 
-    useBeforeRemove(onClose);
-
     return (
         <FeatureTrainingModal
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ModalHoldOrReject}
+            image={illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}

@@ -11,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -148,6 +147,21 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.PiggyBank, illustrations.Alert],
+    );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
@@ -166,17 +180,6 @@ function EmptySearchViewContent({
         canBeMissing: true,
         selector: hasExpenseReportsSelector,
     });
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank'] as const);
-    const tripsFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.PiggyBank,
-            translationKey: 'travel.features.saveMoney',
-        },
-        {
-            icon: Alert,
-            translationKey: 'travel.features.alerts',
-        },
-    ];
 
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 

@@ -1,11 +1,11 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {LaptopOnDeskWithCoffeeAndKey, LockClosed, OpenSafe} from '@components/Icon/Illustrations';
+import {LaptopOnDeskWithCoffeeAndKey, OpenSafe} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -29,23 +29,25 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed', 'ShieldYellow'] as const);
 
-    const illustrations = useMemoizedLazyIllustrations(['ShieldYellow'] as const);
-
-    const samlFeatures: FeatureListItem[] = [
-        {
-            icon: OpenSafe,
-            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-        },
-        {
-            icon: illustrations.ShieldYellow,
-            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-        },
-        {
-            icon: LockClosed,
-            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-        },
-    ];
+    const samlFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: OpenSafe,
+                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+            },
+            {
+                icon: illustrations.ShieldYellow,
+                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+            },
+            {
+                icon: illustrations.LockClosed,
+                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+            },
+        ],
+        [illustrations.LockClosed],
+    );
 
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
@@ -68,7 +70,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={LockClosed}
+                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
