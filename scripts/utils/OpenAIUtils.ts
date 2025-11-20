@@ -38,6 +38,7 @@ class OpenAIUtils {
                 this.client.chat.completions.create({
                     model,
                     messages,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     ...(responseFormat ? {response_format: responseFormat} : {}),
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     reasoning_effort: 'low',
