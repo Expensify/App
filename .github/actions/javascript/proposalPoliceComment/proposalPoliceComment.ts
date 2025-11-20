@@ -76,7 +76,6 @@ async function run() {
             userPrompt: prompt,
             systemPrompt: PROPOSAL_POLICE_BASE_PROMPT,
             responseFormat: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 type: 'json_object',
             },
         });
