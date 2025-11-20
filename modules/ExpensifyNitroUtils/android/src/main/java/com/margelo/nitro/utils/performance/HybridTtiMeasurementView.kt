@@ -10,12 +10,16 @@ import com.margelo.nitro.utils.performance.FirstDrawDoneListener
 
 internal typealias OnMeasurementListener = (measurement: TtiMeasurementValue) -> Unit
 
-val programStartTimestamp = System.currentTimeMillis().toDouble()
-
 class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasurementViewSpec() {
     // Props
     var measurementListener: OnMeasurementListener? = null
     var measurementSent = false
+
+    companion object {
+        var applicationStartedTimestamp: Long? = null
+    }
+
+
 
     // View
     override val view: View = View(context)
@@ -28,10 +32,9 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
             }
             measurementSent = true
 
-            val onDrawTimestamp = System.currentTimeMillis().toDouble()
             val measurement = TtiMeasurementValue(
-                startup = programStartTimestamp,
-                firstDraw = onDrawTimestamp
+                startup = applicationStartedTimestamp?.toDouble() ?: 0.0,
+                firstDraw = System.currentTimeMillis().toDouble()
             )
 
             measurementListener?.invoke(measurement)

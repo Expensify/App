@@ -23,8 +23,11 @@ import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.margelo.nitro.utils.HybridTtiMeasurementView
 
 class MainApplication : MultiDexApplication(), ReactApplication {
+    val applicationStartedTimestamp = System.currentTimeMillis()
+
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
@@ -75,6 +78,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // module in the JS so we can measure total time starting in the native layer and ending in
         // the JS layer.
         StartupTimer.start()
+
+        HybridTtiMeasurementView.applicationStartedTimestamp = applicationStartedTimestamp
 
         // Increase SQLite DB write size
         try {
