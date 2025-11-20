@@ -269,6 +269,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -1488,6 +1489,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Devi trattenere o rifiutare?',
             educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi trattenerla o rifiutarla.',
             holdExpenseTitle: 'Trattieni una spesa per chiedere maggiori dettagli prima dell’approvazione o del pagamento.',
+            approveExpenseTitle: 'Approva altre spese mentre quelle trattenute rimangono assegnate a te.',
             heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
             rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
@@ -5218,6 +5220,7 @@ ${
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
+                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
@@ -6216,6 +6219,7 @@ ${
             `ha cambiato la percentuale di rapporti instradati casualmente per l'approvazione manuale a ${Math.round(newAuditRate * 100)}% (precedentemente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `ha cambiato il limite di approvazione manuale per tutte le spese a ${newLimit} (precedentemente ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi per questo spazio di lavoro`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l'imposta "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7421,13 +7425,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Benvenuto in New Expensify!',
-        subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
+        subtitle: 'Ha tutto ciò che ami della nostra esperienza classica, con un sacco di aggiornamenti per rendere la tua vita ancora più facile:',
         confirmText: 'Andiamo!',
         features: {
-            chat: '<strong>Chatta direttamente su qualsiasi spesa</strong>, report o spazio di lavoro',
-            scanReceipt: '<strong>Scansiona le ricevute</strong> e ricevi il rimborso',
-            crossPlatform: 'Fai <strong>tutto</strong> dal tuo telefono o browser',
+            chat: 'Chatta su qualsiasi spesa per rispondere rapidamente alle domande',
+            search: 'Ricerca più potente su dispositivi mobili, web e desktop',
+            concierge: 'Intelligenza artificiale Concierge integrata per aiutarti ad automatizzare le tue spese',
         },
+        helpText: 'Prova la demo di 2 minuti',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
