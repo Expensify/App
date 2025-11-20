@@ -59,8 +59,8 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ## Option 3: Create a Distance Expense
 
-1. From the navigation tabs, click the grey **+** button and select **Track distance**.
-2. Select **Distance**.
+1. From the navigation tabs, click the grey **+** button.
+2. Select **Track distance**.
 3. Enter start and stop locations.
 4. (Optional) Add additional stops.
 5. Click **Next**.
