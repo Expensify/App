@@ -4,9 +4,13 @@
 // import of polyfills should always be first
 import './src/polyfills/PromiseWithResolvers';
 import {AppRegistry} from 'react-native';
+import {startProfiling} from "react-native-release-profiler"
 import App from './src/App';
 import Config from './src/CONFIG';
 import additionalAppSetup from './src/setup';
+
+
+startProfiling();
 
 // Define EXPO_OS before any imports to prevent console errors from Expo DOM components
 if (!process.env.EXPO_OS && __DEV__) {

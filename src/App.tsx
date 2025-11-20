@@ -5,6 +5,7 @@ import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import performance from 'react-native-performance';
 import {PickerStateProvider} from 'react-native-picker-select';
+import {stopProfiling} from 'react-native-release-profiler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
@@ -81,6 +82,10 @@ function App() {
         // @ts-expect-error HermesInternal is not typed
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         HermesInternal?.ttiReached?.();
+
+        setTimeout(() => {
+            stopProfiling(true, 'Margelo_perf.cpuprofile');
+        }, 10000);
     }, []);
 
     return (
