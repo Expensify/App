@@ -7401,6 +7401,10 @@ const CONST = {
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
     },
+
+    PERFORMANCE: {
+        HERMES_YOUNG_GC_START_MARKER_NAME: 'hermesYoungGcStart',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

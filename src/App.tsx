@@ -1,8 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import performance from 'react-native-performance';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -73,10 +74,14 @@ function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
-    // useEffect(() => {
-    //     gc();
-    //     HermesInternal?.ttiReached?.();
-    // }, []);
+    useEffect(() => {
+        performance.mark(CONST.PERFORMANCE.HERMES_YOUNG_GC_START_MARKER_NAME);
+
+        gc?.();
+        // @ts-expect-error HermesInternal is not typed
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        HermesInternal?.ttiReached?.();
+    }, []);
 
     return (
         <StrictModeWrapper>
