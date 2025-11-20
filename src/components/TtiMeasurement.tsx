@@ -7,7 +7,7 @@ import Text from './Text';
 
 const IS_TTI_MEASURMENT_ENABLED = true;
 
-function TtiMeasurment() {
+function TtiMeasurement() {
     const [ttiMeasurement, setTtiMeasurement] = useState<TtiMeasurementValue | null>(null);
 
     const firstDrawTime = useMemo(() => {
@@ -37,4 +37,4 @@ function TtiMeasurment() {
     );
 }
 
-export default TtiMeasurment;
+export default TtiMeasurement;
