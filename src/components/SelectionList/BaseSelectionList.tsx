@@ -257,11 +257,8 @@ function BaseSelectionList<TItem extends ListItem>({
     }, []);
 
     const focusTextInput = useCallback(() => {
-        if (!innerTextInputRef) {
-            return;
-        }
         innerTextInputRef.current?.focus();
-    }, [innerTextInputRef]);
+    }, []);
 
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
