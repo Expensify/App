@@ -157,6 +157,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        });
         Navigation.navigate(ROUTES.HOME);
     }, [selectedTab]);
 
