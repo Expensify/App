@@ -319,14 +319,11 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
-            return;
-        }
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
+    }, [transactionIDs, policy, isPolicyExpenseChat]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -517,21 +514,6 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
-    function getMoneyRequestContextForParticipant(participant: Participant | undefined, reportParam: Report | undefined) {
-        const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
-        return {
-            parentChatReport: isWorkspaceTarget ? reportParam : undefined,
-            policyParams: isWorkspaceTarget
-                ? {
-                      policy,
-                      policyTagList: policyTags,
-                      policyCategories,
-                      policyRecentlyUsedCategories,
-                  }
-                : {},
-        };
-    }
-
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
@@ -542,8 +524,6 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-
-            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
 
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
@@ -563,7 +543,7 @@ function IOURequestStepConfirmation({
                 }
 
                 const {iouReport} = requestMoneyIOUActions({
-                    report: parentChatReport,
+                    report,
                     existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
@@ -573,7 +553,12 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams,
+                    policyParams: {
+                        policy,
+                        policyTagList: policyTags,
+                        policyCategories,
+                        policyRecentlyUsedCategories,
+                    },
                     gpsPoint,
                     action,
                     transactionParams: {
@@ -629,7 +614,6 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -695,13 +679,12 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 trackExpenseIOUActions({
-                    report: parentChatReport,
+                    report,
                     isDraftPolicy,
                     action,
                     participantParams: {
@@ -709,7 +692,11 @@ function IOURequestStepConfirmation({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    policyParams,
+                    policyParams: {
+                        policy,
+                        policyCategories,
+                        policyTagList: policyTags,
+                    },
                     transactionParams: {
                         amount: item.amount,
                         distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
@@ -758,7 +745,6 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -767,22 +753,19 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-
-            const participant = selectedParticipants.at(0);
-            if (!participant) {
-                return;
-            }
-
-            const {parentChatReport, policyParams} = getMoneyRequestContextForParticipant(participant, report);
-
             createDistanceRequestIOUActions({
-                report: parentChatReport,
+                report,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
                 existingTransaction: transaction,
-                policyParams,
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                    policyRecentlyUsedCategories,
+                },
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
@@ -823,7 +806,6 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 

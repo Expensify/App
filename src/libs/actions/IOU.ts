@@ -6589,7 +6589,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 optimisticReportActionID,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
-                reimbursable,
                 category,
                 tag,
                 taxCode,
