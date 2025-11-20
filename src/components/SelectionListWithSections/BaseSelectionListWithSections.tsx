@@ -143,6 +143,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -419,8 +421,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     }, []);
 
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -436,6 +442,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        onArrowUpDownCallback,
     });
 
     useEffect(() => {
@@ -636,6 +643,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
+    const setCurrentHoverIndex = useCallback(
+        (hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            currentHoverIndexRef.current = hoverIndex;
+        },
+        [currentHoverIndexRef, shouldDisableHoverStyle],
+    );
+
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -644,7 +661,15 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
+            <View
+                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
+                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseLeave={(e) => {
+                    e.stopPropagation();
+                    setCurrentHoverIndex(null);
+                }}
+            >
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -680,6 +705,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
+                    shouldDisableHoverStyle={shouldDisableHoverStyle}
+                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
