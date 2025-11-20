@@ -67,10 +67,12 @@ import {
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
@@ -160,7 +162,7 @@ type MiniReport = {
 };
 
 function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+    return text.replaceAll(CONST.REGEX.WHITESPACE, ' ').trim();
 }
 
 function shouldDisplayReportInLHN(
@@ -248,9 +250,9 @@ function getReportsToDisplayInLHN(
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
-    Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
+    for (const [reportID, report] of Object.entries(allReportsDictValues)) {
         if (!report) {
-            return;
+            continue;
         }
 
         const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
@@ -270,7 +272,7 @@ function getReportsToDisplayInLHN(
         if (shouldDisplay) {
             reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
         }
-    });
+    }
 
     return reportsToDisplay;
 }
@@ -301,10 +303,10 @@ function updateReportsToDisplayInLHN({
     draftComments,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
-    updatedReportsKeys.forEach((reportID) => {
+    for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
-            return;
+            continue;
         }
 
         // Get the specific draft comment for this report instead of using a single draft comment for all reports
@@ -328,7 +330,7 @@ function updateReportsToDisplayInLHN({
         } else {
             delete displayedReportsCopy[reportID];
         }
-    });
+    }
 
     return displayedReportsCopy;
 }
@@ -853,6 +855,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
         ) {
             result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
+        } else if (
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
+        ) {
+            result.alternateText = getWorkspaceTaxUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -873,6 +881,8 @@ function getOptionData({
             result.alternateText = getWorkspaceReportFieldDeleteMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
             result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
+            result.alternateText = getWorkspaceReimbursementUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {

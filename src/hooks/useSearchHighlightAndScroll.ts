@@ -183,11 +183,11 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
-            newReportActionIDs.forEach((id) => {
+            for (const id of newReportActionIDs) {
                 const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
                 highlightedIDs.current.add(newReportActionKey);
                 newKeys.add(newReportActionKey);
-            });
+            }
             setNewSearchResultKeys(newKeys);
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
@@ -201,11 +201,11 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
-            newTransactionIDs.forEach((id) => {
+            for (const id of newTransactionIDs) {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
                 highlightedIDs.current.add(newTransactionKey);
                 newKeys.add(newTransactionKey);
-            });
+            }
             setNewSearchResultKeys(newKeys);
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
@@ -281,7 +281,7 @@ function useSearchHighlightAndScroll({
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
-    Object.values(searchResultsData).forEach((item) => {
+    for (const item of Object.values(searchResultsData)) {
         // Check for transactionID directly on the item (TransactionListItemType)
         if ((item as TransactionListItemType)?.transactionID) {
             transactionIDs.push((item as TransactionListItemType).transactionID);
@@ -289,14 +289,14 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
 
         // Check for transactions array within the item (TransactionGroupListItemType)
         if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
-            (item as TransactionGroupListItemType).transactions.forEach((transaction) => {
+            for (const transaction of (item as TransactionGroupListItemType).transactions) {
                 if (!transaction?.transactionID) {
-                    return;
+                    continue;
                 }
                 transactionIDs.push(transaction.transactionID);
-            });
+            }
         }
-    });
+    }
 
     return transactionIDs;
 }
