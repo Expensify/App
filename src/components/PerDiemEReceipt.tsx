@@ -109,6 +109,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
                     <Icon
                         width={variables.eReceiptWordmarkWidth}
                         height={variables.eReceiptWordmarkHeight}
+                        fill={secondaryColor}
                         src={icons.ExpensifyWordmark}
                     />
                     <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
