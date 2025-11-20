@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -21,7 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import {transactionDraftValuesSelector} from '@src/selectors/TransactionDraft';
+import type {Report, Transaction} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -61,6 +62,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: transactionDraftValuesSelector,
+        canBeMissing: true,
+    });
+    const transactions = useMemo(() => {
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [transaction];
+        return allTransactions.filter((value): value is Transaction => !!value);
+    }, [transaction, optimisticTransactions]);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -85,13 +94,15 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             },
         ];
 
-        setTransactionReport(
-            transaction.transactionID,
-            {
-                reportID: item.value,
-                participants,
-            },
-            true,
+        transactions.forEach((transactionItem) =>
+            setTransactionReport(
+                transactionItem.transactionID,
+                {
+                    reportID: item.value,
+                    participants,
+                },
+                true,
+            ),
         );
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
