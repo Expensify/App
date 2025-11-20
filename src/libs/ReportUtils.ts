@@ -1867,12 +1867,11 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-
-    // If we found the self DM report, set the self DM report ID in Onyx for quicker access
-    if (selfDMReport) {
-        Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+    if (selfDMReportID) {
+        return selfDMReportID;
     }
+
+    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
 
     return selfDMReport?.reportID;
 }
@@ -1881,6 +1880,7 @@ function findSelfDMReportID(): string | undefined {
  * Returns the self DM report ID
  */
 function getSelfDMReportID(): string | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return selfDMReportID ?? findSelfDMReportID();
 }
 
