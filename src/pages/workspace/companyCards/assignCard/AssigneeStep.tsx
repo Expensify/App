@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -44,10 +44,10 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
-    const [list] = useCardsList(feed);
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
+    const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
 
@@ -118,9 +118,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
             return membersList;
         }
 
-        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
@@ -140,7 +140,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     },
                 ],
             });
-        });
+        }
 
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 

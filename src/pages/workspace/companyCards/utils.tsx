@@ -10,7 +10,7 @@ import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultS
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type AssignCardRoute =
@@ -386,7 +386,7 @@ function getExportMenuItem(
     }
 }
 
-function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | CompanyCardFeedWithDomainID | undefined, isStartStep = false) {
+function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | undefined, isStartStep = false) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
     const previousStepRef = useRef(currentStep);

@@ -78,7 +78,9 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
         subscribedKeyboardShortcuts.current = [];
     };
 

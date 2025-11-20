@@ -215,6 +215,7 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
     isExportIntegrationAction,
@@ -1107,14 +1108,14 @@ Onyx.connect({
         }
         allReportMetadata = value;
 
-        Object.entries(value).forEach(([reportID, reportMetadata]) => {
+        for (const [reportID, reportMetadata] of Object.entries(value)) {
             if (!reportMetadata) {
-                return;
+                continue;
             }
 
             const [, id] = reportID.split('_');
             allReportMetadataKeyValue[id] = reportMetadata;
-        });
+        }
     },
 });
 
@@ -1650,6 +1651,15 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     }
 
     return false;
+}
+
+/**
+ * Checks if an invoice report's receiver matches a given participant.
+ * Used to validate that an invoice chat report corresponds to the correct recipient
+ * when the recipient may have been changed (e.g., while offline).
+ */
+function doesReportReceiverMatchParticipant(report: OnyxEntry<Report>, receiverParticipantAccountID: number | undefined): boolean {
+    return !!(report?.invoiceReceiver && receiverParticipantAccountID && 'accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverParticipantAccountID);
 }
 
 /**
@@ -3018,7 +3028,7 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxEntry<PersonalDeta
  */
 function formatReportLastMessageText(lastMessageText: string | undefined, isModifiedExpenseMessage = false): string {
     if (isModifiedExpenseMessage) {
-        return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
+        return String(lastMessageText).trim().replaceAll(CONST.REGEX.LINE_BREAK, '').trim();
     }
 
     return formatLastMessageText(lastMessageText);
@@ -3035,7 +3045,7 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
     // Remove all chars not A-Z or 0-9 including underscore
     const alphaNumeric = workspaceName
         .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
+        .replaceAll(/[^0-9a-z]/gi, '')
         .toUpperCase();
 
     const workspace = `Workspace${alphaNumeric[0]}` as keyof typeof defaultWorkspaceAvatars;
@@ -3055,7 +3065,7 @@ function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
     // Remove all chars not A-Z or 0-9 including underscore
     const alphaNumeric = workspaceName
         .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
+        .replaceAll(/[^0-9a-z]/gi, '')
         .toLowerCase();
 
     return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
@@ -4771,65 +4781,33 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
     );
 }
 
-/**
- * This function is needed due to the fact that when we first create an empty report, its preview action has an actorAccountID of '0'.
- * This is not the case when the report is automatically created by adding expenses to the chat where no open report is available.
- * Can be simplified by comparing actorAccountID to accountID when mentioned issue is no longer a thing on a BE side.
- */
-function isActionOrReportPreviewOwner(report: Report) {
-    const parentAction = getReportAction(report.parentReportID, report.parentReportActionID);
-    const {accountID} = currentUserPersonalDetails ?? {};
-    const {actorAccountID, actionName, childOwnerAccountID} = parentAction ?? {};
-    if (typeof accountID === 'number' && typeof actorAccountID === 'number' && accountID === actorAccountID) {
-        return true;
-    }
-    return actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && childOwnerAccountID === accountID;
-}
-
-function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
-    if (!isMoneyRequestAction(reportAction)) {
+function canHoldUnholdReportAction(
+    report: OnyxEntry<Report>,
+    reportAction: OnyxEntry<ReportAction>,
+    holdReportAction: OnyxEntry<ReportAction>,
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+): {canHoldRequest: boolean; canUnholdRequest: boolean} {
+    if (!report || !reportAction || !isMoneyRequestAction(reportAction) || isInvoiceReport(report)) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
-
-    if (!moneyRequestReportID || !moneyRequestReport) {
-        return {canHoldRequest: false, canUnholdRequest: false};
-    }
-
-    if (isInvoiceReport(moneyRequestReport)) {
-        return {
-            canHoldRequest: false,
-            canUnholdRequest: false,
-        };
-    }
-
-    const isRequestSettled = isSettled(moneyRequestReport?.reportID);
-    const isApproved = isReportApproved({report: moneyRequestReport});
-    const transactionID = moneyRequestReport ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-
-    const parentReportAction = isThread(moneyRequestReport)
-        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`]?.[moneyRequestReport.parentReportActionID]
-        : undefined;
-
-    const isRequestIOU = isIOUReport(moneyRequestReport);
-    const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID);
-
-    const isTrackExpenseMoneyReport = isTrackExpenseReport(moneyRequestReport);
-    const isActionOwner = isActionOrReportPreviewOwner(moneyRequestReport);
-    const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
-    const isAdmin = isPolicyAdmin(moneyRequestReport.policyID, allPolicies);
+    const isRequestSettled = isSettled(report);
+    const isApproved = isReportApproved({report});
+    const isRequestIOU = isIOUReport(report);
+    const isHoldActionCreator = isActionCreator(holdReportAction);
+    const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
+    const isActionOwner = isActionCreator(reportAction);
+    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isClosed = isClosedReport(moneyRequestReport);
+    const isClosed = isClosedReport(report);
+    const isSubmitted = isProcessingReport(report);
 
-    const isSubmitted = isProcessingReport(moneyRequestReport);
     const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
-    const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
-    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
+    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning(transaction) && (isSubmitted || isActionOwner);
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
@@ -5461,12 +5439,12 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = getLoginsByAccountIDs(accountIDs);
-    accountIDs.forEach((id, index) => {
+    for (const [index, id] of accountIDs.entries()) {
         const login = logins.at(index);
         const user = allPersonalDetails?.[id];
         const displayName = formatPhoneNumber(login ?? '') || getDisplayNameOrDefault(user);
         accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), currentUserPersonalDetails, login) ?? '';
-    });
+    }
 
     const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
     parsedReportActionMessageCache[key] = textMessage;
@@ -5704,7 +5682,7 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return getUnreportedTransactionMessage();
+        return Parser.htmlToText(getUnreportedTransactionMessage());
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -5845,7 +5823,7 @@ function getReportName(
             childReportID: report?.reportID,
             reports,
             personalDetails,
-        }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
+        }).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `[${translateLocal('common.attachment')}]`;
@@ -7002,9 +6980,9 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
         if (isSendMoneyFlow) {
             const keys = ['amount', 'comment', 'currency'] as const;
-            keys.forEach((key) => {
+            for (const key of keys) {
                 delete originalMessage[key];
-            });
+            }
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
@@ -8733,13 +8711,13 @@ function getPolicyIDsWithEmptyReportsForAccount(
     const summaries = getReportSummariesForEmptyCheck(reports);
     const policyLookup: Record<string, boolean> = {};
 
-    summaries.forEach((report) => {
+    for (const report of summaries) {
         if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
-            return;
+            continue;
         }
 
         if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
-            return;
+            continue;
         }
 
         const isOutstandingExpense =
@@ -8747,7 +8725,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
             (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED &&
             (report.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) <= CONST.REPORT.STATUS_NUM.SUBMITTED;
         if (!isOutstandingExpense) {
-            return;
+            continue;
         }
 
         // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
@@ -8757,7 +8735,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
         if (transactions.length === 0) {
             policyLookup[report.policyID] = true;
         }
-    });
+    }
 
     return policyLookup;
 }
@@ -8854,28 +8832,6 @@ function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, is
 // eslint-disable-next-line rulesdir/no-negated-variables
 function isReportNotFound(report: OnyxEntry<Report>): boolean {
     return !!report?.errorFields?.notFound;
-}
-
-/**
- * The <ReportActionsListItemRenderer> does not render some ancestor report actions in a thread.
- * So we exclude report-preview action, transaction-thread action unless it is a sent-money action and
- * trip-preview action that is the first ancestor report action in the hierarchy.
- *
- * @param ancestorReportAction - The ancestor report action we determine whether it should be excluded
- * @param isFirstAncestor - Whether it is the first report action in the hierarchy
- * @returns boolean - true if the ancestor report action should be excluded, false otherwise
- */
-function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
-    if (isTripPreview(ancestorReportAction)) {
-        return !isFirstAncestor;
-    }
-
-    // Exclude transaction threads except sent-money actions
-    if (isTransactionThread(ancestorReportAction)) {
-        return !isSentMoneyReportAction(ancestorReportAction);
-    }
-
-    return isReportPreviewAction(ancestorReportAction);
 }
 
 /**
@@ -9410,7 +9366,7 @@ function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, rep
  */
 function getCommentLength(textComment: string, parsingDetails?: ParsingDetails): number {
     return getParsedComment(textComment, parsingDetails)
-        .replace(/[^ -~]/g, '\\u????')
+        .replaceAll(/[^ -~]/g, '\\u????')
         .trim().length;
 }
 
@@ -9422,25 +9378,25 @@ function getRouteFromLink(url: string | null): string {
     // Get the reportID from URL
     let route = url;
     const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
-    linkingConfig.prefixes.forEach((prefix) => {
+    for (const prefix of linkingConfig.prefixes) {
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
             route = route.replace(localWebAndroidRegEx, '');
         } else {
-            return;
+            continue;
         }
 
         // Remove the port if it's a localhost URL
         if (/^:\d+/.test(route)) {
-            route = route.replace(/:\d+/, '');
+            route = route.replaceAll(/:\d+/g, '');
         }
 
         // Remove the leading slash if exists
         if (route.startsWith('/')) {
             route = route.replace('/', '');
         }
-    });
+    }
     return route;
 }
 
@@ -10477,6 +10433,28 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
     );
 }
 
+/**
+ * The <ReportActionsListItemRenderer> does not render some ancestor report actions in a thread.
+ * So we exclude report-preview action, transaction-thread action unless it is a sent-money action and
+ * trip-preview action that is the first ancestor report action in the hierarchy.
+ *
+ * @param ancestorReportAction - The ancestor report action we determine whether it should be excluded
+ * @param isFirstAncestor - Whether it is the first report action in the hierarchy
+ * @returns boolean - true if the ancestor report action should be excluded, false otherwise
+ */
+function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
+    if (isTripPreview(ancestorReportAction)) {
+        return !isFirstAncestor;
+    }
+
+    // Exclude transaction threads except sent-money actions
+    if (isTransactionThread(ancestorReportAction)) {
+        return !isSentMoneyReportAction(ancestorReportAction);
+    }
+
+    return isReportPreviewAction(ancestorReportAction);
+}
+
 function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread = false): AncestorIDs {
     if (!report) {
         return {
@@ -10517,6 +10495,53 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
     }
 
     return allAncestorIDs;
+}
+
+/**
+ * Traverses up the report hierarchy with the `parentReportID` until the root report,
+ * then returns the ancestor reports and their associated actions based on `parentReportActionID`.
+ *
+ * @param report - The report for which to fetch ancestor reports and actions.
+ * @param reportCollection - Collection of reports.
+ * @param reportDraftCollection - Collection of report drafts.
+ * @param reportActionsCollection - Collection of report actions.
+ * @param shouldExcludeAncestorReportActionCallback - Callback to determine if an ancestor should be excluded. Check shouldExcludeAncestorReportAction for example.
+ * @returns An array of ancestor reports and their associated actions.
+ */
+function getAncestors(
+    report: OnyxEntry<Report>,
+    reportCollection: OnyxCollection<Report>,
+    reportDraftCollection: OnyxCollection<Report>,
+    reportActionsCollection: OnyxCollection<ReportActions>,
+    shouldExcludeAncestorReportActionCallback: (reportAction: ReportAction, isFirstAncestor: boolean) => boolean = () => false,
+): Ancestor[] {
+    const ancestors: Ancestor[] = [];
+    let currentReport = report;
+
+    // Traverse up the report hierarchy until current report has no parent
+    while (currentReport?.parentReportID && currentReport?.parentReportActionID) {
+        const currentReportAction = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`]?.[`${currentReport.parentReportActionID}`];
+        if (!currentReportAction) {
+            return ancestors;
+        }
+
+        // As we traverse up the report hierarchy, we need to reassign `currentReport` to the parent's own report.
+        currentReport =
+            reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`] ??
+            reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentReport.parentReportID}`];
+        if (!currentReport || shouldExcludeAncestorReportActionCallback(currentReportAction, ancestors.length === 0)) {
+            return ancestors;
+        }
+        // To maintain the order from the top-most ancestor down to the immediate parent
+        // we `unshift` (push) each ancestor to the start of the array.
+        ancestors.unshift({
+            report: currentReport,
+            reportAction: currentReportAction,
+            shouldDisplayNewMarker: isCurrentActionUnread(currentReport, currentReportAction),
+        });
+    }
+
+    return ancestors;
 }
 
 /**
@@ -10569,9 +10594,7 @@ function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionC
     let previousActionDeleted = false;
     return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
-
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
-
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
@@ -12035,13 +12058,13 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
 
     // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
-    ruleApprovers.forEach((ruleApprover) => {
+    for (const ruleApprover of ruleApprovers) {
         // Don't push submitter to approve as a rule approver
         if (fullApprovalChain.includes(ruleApprover) || ruleApprover === submitterEmail) {
-            return;
+            continue;
         }
         fullApprovalChain.push(ruleApprover);
-    });
+    }
 
     let nextApproverEmail = getManagerAccountEmail(policy, expenseReport);
 
@@ -12050,13 +12073,13 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
     }
 
-    approvalChain.forEach((approver) => {
+    for (const approver of approvalChain) {
         if (fullApprovalChain.includes(approver)) {
-            return;
+            continue;
         }
 
         fullApprovalChain.push(approver);
-    });
+    }
 
     if (fullApprovalChain.at(-1) === submitterEmail && policy?.preventSelfApproval) {
         fullApprovalChain.pop();
@@ -12642,7 +12665,6 @@ export {
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,
-    getAllAncestorReportActionIDs,
     getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
@@ -12770,6 +12792,7 @@ export {
     isCompletedTaskReport,
     isConciergeChatReport,
     isControlPolicyExpenseChat,
+    doesReportReceiverMatchParticipant,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
@@ -12958,6 +12981,7 @@ export {
     getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
+    getAncestors,
     getReportName,
     doesReportContainRequestsFromMultipleUsers,
     hasUnresolvedCardFraudAlert,

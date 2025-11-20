@@ -13,12 +13,13 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
+
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
 

@@ -24,7 +24,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -1175,7 +1175,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeed;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -1185,7 +1185,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeed;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP]: {
         policyID: string;
@@ -1197,11 +1197,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeed;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeed;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
