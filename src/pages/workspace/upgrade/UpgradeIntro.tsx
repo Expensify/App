@@ -47,6 +47,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
         return `${convertToShortDisplayString(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
