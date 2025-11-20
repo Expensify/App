@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {ValidateCodeCountdownHandle, ValidateCodeCountdownProps} from './types';
 
-const ValidateCodeCountdown = forwardRef<ValidateCodeCountdownHandle, ValidateCodeCountdownProps>(({onCountdownFinish}, ref) => {
+function ValidateCodeCountdown({onCountdownFinish}: ValidateCodeCountdownProps, ref: React.ForwardedRef<ValidateCodeCountdownHandle>) {
     const {translate} = useLocalize();
 
     const [timeRemaining, setTimeRemaining] = useState<number>(CONST.REQUEST_CODE_DELAY);
@@ -34,6 +34,8 @@ const ValidateCodeCountdown = forwardRef<ValidateCodeCountdownHandle, ValidateCo
             })}
         />
     );
-});
+}
 
-export default ValidateCodeCountdown;
+ValidateCodeCountdown.displayName = 'ValidateCodeCountdown';
+
+export default forwardRef(ValidateCodeCountdown);
