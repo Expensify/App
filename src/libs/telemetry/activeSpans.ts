@@ -23,6 +23,7 @@ function endSpan(spanId: string) {
     if (!span) {
         return;
     }
+    span.setStatus({code: 1})
     span.end();
     activeSpans.delete(spanId);
 }
