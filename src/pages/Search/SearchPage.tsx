@@ -1,7 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {FC} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';

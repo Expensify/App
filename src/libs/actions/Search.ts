@@ -711,7 +711,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 value: {
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    } as Partial<SearchTransaction>,
+                    },
                 },
             },
         ];
@@ -723,7 +723,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 value: {
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
-                    } as Partial<SearchTransaction>,
+                    },
                 },
             },
         ];
