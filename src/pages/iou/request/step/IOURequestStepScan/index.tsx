@@ -53,7 +53,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
@@ -156,7 +156,7 @@ function IOURequestStepScan({
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
