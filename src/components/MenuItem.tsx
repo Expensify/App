@@ -1,42 +1,42 @@
-import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type { ImageContentFit } from 'expo-image';
+import type { ReactElement, ReactNode, Ref } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
+import type { GestureResponderEvent, StyleProp, TextStyle, ViewStyle } from 'react-native';
+import { View } from 'react-native';
+import type { ValueOf } from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
-import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import { canUseTouchScreen, hasHoverSupport } from '@libs/DeviceCapabilities';
+import { containsCustomEmoji, containsOnlyCustomEmoji } from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
+import type { AvatarSource } from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import { showContextMenu } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import { callFunctionIfActionIsAllowed } from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+import type { Icon as IconType } from '@src/types/onyx/OnyxCommon';
+import type { TooltipAnchorAlignment } from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
-import type {DisplayNameWithTooltip} from './DisplayNames/types';
+import type { DisplayNameWithTooltip } from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {MenuItemGroupContext} from './MenuItemGroup';
+import { MenuItemGroupContext } from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
-import type {PressableRef} from './Pressable/GenericPressable/types';
+import type { PressableRef } from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
@@ -512,8 +512,8 @@ function MenuItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const { isExecuting, singleExecution, waitForNavigate } = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
 
@@ -529,7 +529,7 @@ function MenuItem({
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
             shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : {},
+            interactive && disabled ? { ...styles.userSelectNone } : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
@@ -551,14 +551,14 @@ function MenuItem({
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+        return Parser.replace(title, { shouldEscapeText, disabledRules: excludedMarkdownRules });
     }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
             return '';
         }
-        return Parser.replace(helperText, {shouldEscapeText});
+        return Parser.replace(helperText, { shouldEscapeText });
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
@@ -572,7 +572,7 @@ function MenuItem({
         }
 
         if (shouldTruncateTitle) {
-            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, { ellipsis: '...' });
             return titleToWrap;
         }
 
@@ -685,7 +685,7 @@ function MenuItem({
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
                                 testID={pressableTestID}
-                                style={({pressed}) =>
+                                style={({ pressed }) =>
                                     [
                                         containerStyle,
                                         combinedStyle,
@@ -693,7 +693,7 @@ function MenuItem({
                                         isCompact && styles.alignItemsCenter,
                                         isCompact && styles.optionRowCompact,
                                         !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
@@ -707,7 +707,7 @@ function MenuItem({
                                 accessible
                                 onFocus={onFocus}
                             >
-                                {({pressed}) => (
+                                {({ pressed }) => (
                                     <View style={[styles.flex1]}>
                                         <View style={[styles.flexRow]}>
                                             <View style={[styles.flexColumn, styles.flex1]}>
@@ -767,13 +767,13 @@ function MenuItem({
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
                                                                                 : typeof iconFill === 'function'
-                                                                                  ? iconFill(isHovered)
-                                                                                  : (iconFill ??
-                                                                                    StyleUtils.getIconFillColor(
-                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                        true,
-                                                                                        isPaneMenu,
-                                                                                    ))
+                                                                                    ? iconFill(isHovered)
+                                                                                    : (iconFill ??
+                                                                                        StyleUtils.getIconFillColor(
+                                                                                            getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                            true,
+                                                                                            isPaneMenu,
+                                                                                        ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -845,7 +845,7 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled }}
                                                                     >
                                                                         {renderTitleContent()}
                                                                     </Text>
@@ -1019,5 +1019,5 @@ function MenuItem({
 
 MenuItem.displayName = 'MenuItem';
 
-export type {MenuItemBaseProps, MenuItemProps};
+export type { MenuItemBaseProps, MenuItemProps };
 export default MenuItem;

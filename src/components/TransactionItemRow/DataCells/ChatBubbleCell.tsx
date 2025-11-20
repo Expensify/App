@@ -1,9 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, { useCallback, useMemo } from 'react';
+import { View } from 'react-native';
+import type { ViewStyle } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
 import Icon from '@components/Icon';
-import {ChatBubbleCounter} from '@components/Icon/Expensicons';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,20 +11,20 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isChatThread} from '@libs/ReportUtils';
+import { getIOUActionForTransactionID } from '@libs/ReportActionsUtils';
+import { isChatThread } from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type { Report, ReportAction, ReportActions } from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
-const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
+const isReportUnread = ({ lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = '' }: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
+function ChatBubbleCell({ transaction, containerStyles, isInSingleTransactionReport }: { transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
     const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
 
     const getIOUActionForTransactionIDSelector = useCallback(
@@ -62,6 +62,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     );
 
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter'] as const);
 
     const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
@@ -70,7 +71,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
         threadMessages.count > 0 && (
             <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
                 <Icon
-                    src={ChatBubbleCounter}
+                    src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
                     width={iconSize}
@@ -82,7 +83,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
                         StyleUtils.getLineHeightStyle(variables.lineHeightXSmall),
                         StyleUtils.getColorStyle(theme.appBG),
                         StyleUtils.getFontSizeStyle(fontSize),
-                        {top: -1},
+                        { top: -1 },
                     ]}
                 >
                     {threadMessages.count > 99 ? '99+' : threadMessages.count}

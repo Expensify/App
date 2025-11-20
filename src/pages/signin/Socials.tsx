@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -9,31 +9,33 @@ import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import { ExpensifyIconName } from '@components/Icon/ExpensifyIconLoader';
 
 type Social = {
-    iconURL: IconAsset;
+    iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
     link: string;
 };
 
 const socialList: Social[] = [
     {
-        iconURL: Expensicons.Podcast,
+        iconURL: 'Podcast',
         link: CONST.SOCIALS.PODCAST,
     },
     {
-        iconURL: Expensicons.Twitter,
+        iconURL: 'Twitter',
         link: CONST.SOCIALS.TWITTER,
     },
     {
-        iconURL: Expensicons.Instagram,
+        iconURL: 'Instagram',
         link: CONST.SOCIALS.INSTAGRAM,
     },
     {
-        iconURL: Expensicons.Facebook,
+        iconURL: 'Facebook',
         link: CONST.SOCIALS.FACEBOOK,
     },
     {
-        iconURL: Expensicons.Linkedin,
+        iconURL: 'Linkedin',
         link: CONST.SOCIALS.LINKEDIN,
     },
 ];
@@ -41,6 +43,8 @@ const socialList: Social[] = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Podcast', 'Twitter', 'Instagram', 'Facebook', 'Linkedin'] as const);
+
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {socialList.map((social: Social) => (
@@ -55,9 +59,9 @@ function Socials() {
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
                 >
-                    {({hovered, pressed}) => (
+                    {({ hovered, pressed }) => (
                         <Icon
-                            src={social.iconURL}
+                            src={icons[social.iconURL]}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
                             fill={hovered || pressed ? theme.link : theme.textLight}

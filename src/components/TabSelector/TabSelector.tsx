@@ -1,10 +1,10 @@
-import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
-import {TabActions} from '@react-navigation/native';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import type { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
+import { TabActions } from '@react-navigation/native';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type { LocaleContextProps } from '@components/LocaleContextProvider';
 import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
@@ -41,34 +42,34 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate'], icons: Record<"ReceiptScan", IconAsset>): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
-            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
+            return { title: translate('workspace.receiptPartners.uber.all'), testID: 'all' };
         case CONST.TAB.RECEIPT_PARTNERS.LINKED:
-            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
+            return { title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked' };
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
-            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
+            return { title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding' };
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
+            return { icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual' };
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
+            return { icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan' };
         case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
+            return { icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat' };
         case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
+            return { icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room' };
         case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
+            return { icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance' };
         case CONST.TAB.SHARE.SHARE:
-            return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
+            return { icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share' };
         case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+            return { icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit' };
         case CONST.TAB_REQUEST.PER_DIEM:
-            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+            return { icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem' };
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+            return { icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap' };
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+            return { icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual' };
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -77,7 +78,7 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
 function TabSelector({
     state,
     navigation,
-    onTabPress = () => {},
+    onTabPress = () => { },
     position,
     onFocusTrapContainerElementChanged,
     shouldShowLabelWhenInactive = true,
@@ -85,15 +86,15 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
+    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({ length: state.routes.length }, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
     const viewRef = useRef<View>(null);
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
-
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan'] as const);
     const isResizing = useIsResizing();
 
     useEffect(() => {
@@ -134,10 +135,10 @@ function TabSelector({
             >
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
-                    const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
-                    const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
+                    const activeOpacity = getOpacity({ routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive });
+                    const inactiveOpacity = getOpacity({ routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive });
+                    const backgroundColor = getBackgroundColor({ routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive });
+                    const { icon, title, testID } = getIconTitleAndTestID(route.name, translate, icons);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -187,4 +188,4 @@ TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;
 
-export type {TabSelectorProps};
+export type { TabSelectorProps };

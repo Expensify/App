@@ -1,15 +1,15 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
-import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import { getCardDescription, getCompanyCardDescription } from '@libs/CardUtils';
+import { convertToDisplayString, getCurrencySymbol } from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import { getTransactionDetails } from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,8 +17,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
-import type {TransactionListItemType} from './SelectionListWithSections/types';
+import type { TransactionListItemType } from './SelectionListWithSections/types';
 import Text from './Text';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+
 
 type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -36,17 +38,18 @@ type EReceiptProps = {
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
+function EReceipt({ transactionID, transactionItem, onLoad, isThumbnail = false }: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const theme = useTheme();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, { canBeMissing: true });
 
-    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+    const { primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage } = useEReceipt(transactionItem ?? transaction);
 
     const isLoadedRef = useRef(false);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody'] as const);
 
     const {
         amount: transactionAmount,
@@ -87,7 +90,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                 <View style={styles.eReceiptContentContainer}>
                     <View>
                         <ImageSVG
-                            src={Expensicons.ReceiptBody}
+                            src={icons.ReceiptBody}
                             fill={theme.textColorfulBackground}
                             contentFit="fill"
                         />
@@ -174,4 +177,4 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
 EReceipt.displayName = 'EReceipt';
 
 export default EReceipt;
-export type {EReceiptProps};
+export type { EReceiptProps };

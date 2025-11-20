@@ -1,8 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {ChatBubble} from '@components/Icon/Expensicons';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,16 +13,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {navigateToConciergeChat} from '@userActions/Report';
+import { navigateToConciergeChat } from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function Finish() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const { translate } = useLocalize();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'NewWindow'] as const);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, { canBeMissing: true });
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
@@ -51,7 +50,7 @@ function Finish() {
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
                     <MenuItem
-                        icon={ChatBubble}
+                        icon={icons.ChatBubble}
                         title={translate('finishStep.iHaveA')}
                         onPress={handleNavigateToConciergeChat}
                         outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -69,9 +68,9 @@ function Finish() {
                             onPress: () => {
                                 Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                             },
-                            icon: Expensicons.Shield,
+                            icon: icons.ChatBubble,
                             shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
+                            iconRight: icons.NewWindow,
                             outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}

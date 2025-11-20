@@ -1,15 +1,15 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import { Str } from 'expensify-common';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import { LockedAccountContext } from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,26 +25,26 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import { setPolicyPreventSelfApproval } from '@libs/actions/Policy/Policy';
+import { removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow } from '@libs/actions/Workflow';
+import { getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber } from '@libs/CardUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import { getDisplayNameOrDefault, getPhoneNumber } from '@libs/PersonalDetailsUtils';
+import { isControlPolicy } from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import { convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval } from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type { SettingsNavigatorParamList } from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
+import type { ListItemType } from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
-import {setIssueNewCardStepAndData} from '@userActions/Card';
+import { setIssueNewCardStepAndData } from '@userActions/Card';
 import {
     clearWorkspaceOwnerChangeFlow,
     isApprover as isApproverUserAction,
@@ -57,7 +57,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import type { CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList } from '@src/types/onyx';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -68,19 +69,20 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({ personalDetails, policy, route }: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
+    const { formatPhoneNumber, translate, localeCompare } = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['Transfer'] as const);
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, { canBeMissing: true });
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, { canBeMissing: true });
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, { canBeMissing: true });
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
@@ -105,9 +107,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const isReimburser = policy?.achAccount?.reimburser === memberLogin;
     const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const { isAccountLocked, showLockedAccountModal } = useContext(LockedAccountContext);
 
-    const {approvalWorkflows} = useMemo(
+    const { approvalWorkflows } = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 policy,
@@ -161,7 +163,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
 
         if (!isApprover) {
-            return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+            return translate('workspace.people.removeMemberPrompt', { memberName: displayName });
         }
 
         if (isApprover) {
@@ -225,7 +227,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+        removeMembers(policyID, [memberLogin], { [memberLogin]: accountID });
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
@@ -254,7 +256,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
         updatedWorkflows.forEach((workflow) => {
             if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                const { removeApprovalWorkflow, ...updatedWorkflow } = workflow;
 
                 removeApprovalWorkflowAction(updatedWorkflow, policy);
             } else {
@@ -310,7 +312,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, []);
 
     const changeRole = useCallback(
-        ({value}: ListItemType) => {
+        ({ value }: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
             if (value !== member?.role) {
                 updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
@@ -375,7 +377,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={Expensicons.Transfer}
+                                        icon={icons.Transfer}
                                         style={styles.mb5}
                                     />
                                 )
@@ -420,7 +422,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={translate(`workspace.common.roleName`, {role: member?.role})}
+                                title={translate(`workspace.common.roleName`, { role: member?.role })}
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}

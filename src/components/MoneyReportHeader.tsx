@@ -1,16 +1,15 @@
-import {useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
+import { useRoute } from '@react-navigation/native';
+import { isUserValidatedSelector } from '@selectors/Account';
 import getArchiveReason from '@selectors/Report';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -30,26 +29,26 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {openOldDotLink} from '@libs/actions/Link';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
-import {setNameValuePair} from '@libs/actions/User';
+import { openOldDotLink } from '@libs/actions/Link';
+import { setupMergeTransactionData } from '@libs/actions/MergeTransaction';
+import { turnOffMobileSelectionMode } from '@libs/actions/MobileSelectionMode';
+import { createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported } from '@libs/actions/Report';
+import { getExportTemplates, queueExportSearchWithTemplate, search } from '@libs/actions/Search';
+import { setNameValuePair } from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import { getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton } from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
-import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
-import {selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
+import type { PlatformStackRouteProp } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList } from '@libs/Navigation/types';
+import { buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations } from '@libs/NextStepUtils';
+import type { KYCFlowEvent, TriggerKYCFlow } from '@libs/PaymentUtils';
+import { selectPaymentType } from '@libs/PaymentUtils';
+import { getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow } from '@libs/PolicyUtils';
+import { getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction } from '@libs/ReportActionsUtils';
+import { getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction } from '@libs/ReportPrimaryActionUtils';
+import { getSecondaryExportReportActions, getSecondaryReportActions } from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
     getAddExpenseDropdownOptions,
@@ -73,7 +72,7 @@ import {
     rejectMoneyRequestReason,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -85,7 +84,7 @@ import {
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type { ExportType } from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -104,47 +103,49 @@ import {
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
+import { markAsCash as markAsCashAction } from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type { DropdownOption } from './ButtonWithDropdownMenu/types';
 import DecisionModal from './DecisionModal';
-import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
+import { DelegateNoAccessContext } from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {KYCWallContext} from './KYCWall/KYCWallContext';
-import type {PaymentMethod} from './KYCWall/types';
+import { KYCWallContext } from './KYCWall/KYCWallContext';
+import type { PaymentMethod } from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
-import {ModalActions} from './Modal/Global/ModalContext';
+import { ModalActions } from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
+import type { MoneyRequestHeaderStatusBarProps } from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
-import type {PopoverMenuItem} from './PopoverMenu';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
+import type { PopoverMenuItem } from './PopoverMenu';
+import type { ActionHandledType } from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import {useSearchContext} from './Search/SearchContext';
+import { useSearchContext } from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
-import {WideRHPContext} from './WideRHPContextProvider';
+import { WideRHPContext } from './WideRHPContextProvider';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -181,37 +182,38 @@ function MoneyReportHeader({
 }: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const { shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth } = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'CreditCardHourglass', 'ReceiptScan', 'ReceiptPlus'] as const);
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
+    const { login: currentUserLogin, accountID, email } = useCurrentUserPersonalDetails();
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, { canBeMissing: true });
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, { canBeMissing: true });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, { selector: isUserValidatedSelector, canBeMissing: true });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, { canBeMissing: true });
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, { canBeMissing: true }) ?? null;
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, { canBeMissing: true });
     const isDownloadingPDF = download?.isDownloading ?? false;
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: false });
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, { canBeMissing: true });
     const activePolicy = usePolicy(activePolicyID);
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, { canBeMissing: true });
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, { canBeMissing: true });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings'] as const);
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
-    const {translate} = useLocalize();
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, { canBeMissing: true });
+    const { translate } = useLocalize();
 
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
     );
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const { areStrictPolicyRulesEnabled } = useStrictPolicyRules();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, { canBeMissing: false });
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: false });
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -220,9 +222,9 @@ function MoneyReportHeader({
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
 
-    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const { iouReport, chatReport: chatIOUReport, isChatIOUReportArchived } = useGetIOUReportFromReportAction(requestParentReportAction);
 
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const { transactions: reportTransactions, violations } = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const transactions = useMemo(() => {
         return Object.values(reportTransactions);
@@ -237,16 +239,16 @@ function MoneyReportHeader({
         canBeMissing: true,
     });
 
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, { canBeMissing: true });
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, { canBeMissing: true });
 
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
+        { canBeMissing: true },
     );
 
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
-    const {deleteTransactions} = useDeleteTransactions({report: chatReport, reportActions, policy});
+    const { duplicateTransactions, duplicateTransactionViolations } = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
+    const { deleteTransactions } = useDeleteTransactions({ report: chatReport, reportActions, policy });
     const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
@@ -259,22 +261,22 @@ function MoneyReportHeader({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, { canBeMissing: true });
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
+    const { isBetaEnabled } = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
-    const {showConfirmModal} = useConfirmModal();
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
+    const { showConfirmModal } = useConfirmModal();
+    const { isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation } =
         usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const { isOffline } = useNetwork();
+    const { isExpenseSplit } = getOriginalTransactionWithSplitInfo(transaction);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -305,9 +307,9 @@ function MoneyReportHeader({
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, { selector: getArchiveReason, canBeMissing: true });
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, { canBeMissing: true });
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
             canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
@@ -322,11 +324,11 @@ function MoneyReportHeader({
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
 
-    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
+    const { selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash } = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const { wideRHPRouteKeys } = useContext(WideRHPContext);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, { canBeMissing: true });
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const showExportProgressModal = useCallback(() => {
@@ -363,7 +365,7 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
+    const { options: originalSelectedTransactionsOptions, handleDeleteTransactions } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -412,11 +414,12 @@ function MoneyReportHeader({
     }
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
+    const { nonHeldAmount, fullAmount, hasValidNonHeldAmount } = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const { isDelegateAccessRestricted, showDelegateNoAccessModal } = useContext(DelegateNoAccessContext);
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const kycWallRef = useContext(KYCWallContext);
+
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -527,24 +530,24 @@ function MoneyReportHeader({
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (shouldShowMarkAsResolved) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus')};
+            return { icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus') };
         }
 
         if (isPayAtEndExpense) {
             if (!isArchivedReport) {
-                return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.bookingPendingDescription')};
+                return { icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.bookingPendingDescription') };
             }
             if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
-                return {icon: getStatusIcon(Expensicons.Box), description: translate('iou.bookingArchivedDescription')};
+                return { icon: getStatusIcon(Expensicons.Box), description: translate('iou.bookingArchivedDescription') };
             }
         }
 
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
+            return { icon: getStatusIcon(Expensicons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold') };
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
+            return { icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', { isSubmitted: isProcessingReport(moneyRequestReport) }) };
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
@@ -560,13 +563,13 @@ function MoneyReportHeader({
             };
         }
         if (hasAllPendingRTERViolations) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return { icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription') };
         }
         if (hasOnlyPendingTransactions) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return { icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription') };
         }
         if (hasScanningReceipt) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return { icon: getStatusIcon(icons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription') };
         }
     };
 
@@ -652,7 +655,7 @@ function MoneyReportHeader({
         formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
     });
 
-    const {formattedAmount: totalAmount} = hasOnlyHeldExpenses ? getAmount(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW) : getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const { formattedAmount: totalAmount } = hasOnlyHeldExpenses ? getAmount(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW) : getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,
@@ -668,7 +671,7 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        () => getAddExpenseDropdownOptions(icons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
         [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
     );
 
@@ -686,14 +689,14 @@ function MoneyReportHeader({
                         setOfflineModalVisible(true);
                         return;
                     }
-                    exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
+                    exportReportToCSV({ reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs }, () => {
                         setDownloadErrorModalVisible(true);
                     });
                 },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
+                text: translate('workspace.common.exportIntegrationSelected', { connectionName: connectedIntegrationFallback! }),
                 icon: getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback),
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 onSelected: () => {
@@ -800,7 +803,7 @@ function MoneyReportHeader({
             <Button
                 success
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
+                text={translate('workspace.common.exportIntegrationSelected', { connectionName: connectedIntegration! })}
                 onPress={() => {
                     if (!connectedIntegration || !moneyRequestReport) {
                         return;
@@ -876,7 +879,7 @@ function MoneyReportHeader({
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
-        exportReportToPDF({reportID});
+        exportReportToPDF({ reportID });
     };
 
     const secondaryActions = useMemo(() => {
@@ -904,12 +907,12 @@ function MoneyReportHeader({
         return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
     }, [moneyRequestReport, policy, exportTemplates]);
 
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', { connectionName: connectedIntegration }) : '';
     const unapproveWarningText = useMemo(
         () => (
             <Text>
                 <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
-                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+                <Text>{translate('iou.unapproveWithIntegrationWarning', { accountingIntegration: connectedIntegrationName })}</Text>
             </Text>
         ),
         [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
@@ -918,7 +921,7 @@ function MoneyReportHeader({
     const reopenExportedReportWarningText = (
         <Text>
             <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
-            <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: integrationNameFromExportMessage ?? ''})}</Text>
+            <Text>{translate('iou.reopenExportedReportConfirmation', { connectionName: integrationNameFromExportMessage ?? '' })}</Text>
         </Text>
     );
 
@@ -1082,7 +1085,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionData(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
+                setupMergeTransactionData(currentTransaction.transactionID, { targetTransactionID: currentTransaction.transactionID });
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getActiveRoute()));
             },
         },
@@ -1118,8 +1121,8 @@ function MoneyReportHeader({
 
                 if (transactionCount === 1) {
                     const result = await showConfirmModal({
-                        title: translate('iou.deleteExpense', {count: 1}),
-                        prompt: translate('iou.deleteConfirmation', {count: 1}),
+                        title: translate('iou.deleteExpense', { count: 1 }),
+                        prompt: translate('iou.deleteConfirmation', { count: 1 }),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -1231,10 +1234,10 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
-            text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-            icon: Expensicons.Cash,
+            text: translate('iou.settlePayment', { formattedAmount: totalAmount }),
+            icon: icons.Cash,
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
-            backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
+            backButtonText: translate('iou.settlePayment', { formattedAmount: totalAmount }),
             subMenuItems: Object.values(paymentButtonOptions),
         },
     };
@@ -1271,8 +1274,8 @@ function MoneyReportHeader({
 
     const showDeleteModal = useCallback(() => {
         showConfirmModal({
-            title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+            title: translate('iou.deleteExpense', { count: selectedTransactionIDs.length }),
+            prompt: translate('iou.deleteConfirmation', { count: selectedTransactionIDs.length }),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -1400,7 +1403,7 @@ function MoneyReportHeader({
                                 <ButtonWithDropdownMenu
                                     onPress={() => null}
                                     options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                    customText={translate('workspace.common.selected', { count: selectedTransactionIDs.length })}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
                                 />
@@ -1415,7 +1418,7 @@ function MoneyReportHeader({
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            customText={translate('workspace.common.selected', { count: selectedTransactionIDs.length })}
                             isSplitButton={false}
                             shouldAlwaysShowDropdownMenu
                             wrapperStyle={styles.w100}

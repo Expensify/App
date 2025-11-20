@@ -1,19 +1,19 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import { accountIDSelector } from '@selectors/Session';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { View } from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
+import type { ScrollView as RNScrollView, ScrollViewProps } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
-import type {MenuItemWithLink} from '@components/MenuItemList';
+import type { MenuItemWithLink } from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import { usePersonalDetails } from '@components/OnyxListItemProvider';
+import { useProductTrainingContext } from '@components/ProductTrainingContext';
+import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchQueryJSON} from '@components/Search/types';
+import { useSearchContext } from '@components/Search/SearchContext';
+import type { SearchQueryJSON } from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
@@ -21,33 +21,35 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import { clearAllFilters } from '@libs/actions/Search';
+import { mergeCardListWithWorkspaceFeeds } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
-import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import { getAllTaxRates } from '@libs/PolicyUtils';
+import { buildSearchQueryJSON, buildUserReadableQueryString } from '@libs/SearchQueryUtils';
+import type { SavedSearchMenuItem } from '@libs/SearchUIUtils';
+import { createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil } from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type { SaveSearchItem } from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {hash, similarSearchHash} = queryJSON ?? {};
+function SearchTypeMenu({ queryJSON }: SearchTypeMenuProps) {
+    const { hash, similarSearchHash } = queryJSON ?? {};
 
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
-    const {translate} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections, CreateReportConfirmationModal} = useSearchTypeMenuSections();
+    const { singleExecution } = useSingleExecution();
+    const { translate } = useLocalize();
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, { canBeMissing: true });
+    const { typeMenuSections, CreateReportConfirmationModal } = useSearchTypeMenuSections();
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ChatBubbles', 'MoneyBag', 'CreditCard', 'MoneyHourglass', 'CreditCardHourglass', 'Bank'] as const)
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -57,17 +59,17 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const { showDeleteModal, DeleteConfirmModal } = useDeleteSavedSearch();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: true });
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, { canBeMissing: true });
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, { canBeMissing: true });
     const taxRates = getAllTaxRates();
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const {clearSelectedTransactions} = useSearchContext();
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, { selector: accountIDSelector, canBeMissing: false });
+    const { clearSelectedTransactions } = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
 
     // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
@@ -98,7 +100,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 ...baseMenuItem,
                 onPress: () => {
                     clearAllFilters();
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({ query: item?.query ?? '', name: item?.name }));
                 },
                 rightComponent: (
                     <SavedSearchItemThreeDotMenu
@@ -142,7 +144,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const { saveScrollOffset, getScrollOffset } = useContext(ScrollOffsetContext);
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
             // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
@@ -160,10 +162,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!scrollOffset || !scrollViewRef.current) {
             return;
         }
-        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
+        scrollViewRef.current.scrollTo({ y: scrollOffset, animated: false });
     }, [getScrollOffset, route]);
 
-    const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
+    const { savedSearchesMenuItems, isSavedSearchActive } = useMemo(() => {
         let savedSearchFocused = false;
 
         if (!savedSearches) {
@@ -240,11 +242,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                         const onPress = singleExecution(() => {
                                             clearAllFilters();
                                             clearSelectedTransactions();
-                                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({ query: item.searchQuery }));
                                         });
 
                                         const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
-
+                                        const icon = typeof item.icon === "string" ? icons[item.icon] : item.icon;
                                         return (
                                             <Animated.View
                                                 key={item.translationPath}
@@ -255,7 +257,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     disabled={false}
                                                     interactive
                                                     title={translate(item.translationPath)}
-                                                    icon={item.icon}
+                                                    icon={icon}
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}

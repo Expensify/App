@@ -1,30 +1,32 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import { canAddTransaction, isArchivedReport } from '@libs/ReportUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
-import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
-import {openUnreportedExpense} from '@userActions/Report';
+import { startDistanceRequest, startMoneyRequest } from '@userActions/IOU';
+import { openUnreportedExpense } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const minModalHeight = 380;
 
-function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy}) {
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
-    const {translate} = useLocalize();
+function SearchMoneyRequestReportEmptyState({ report, policy }: { report: OnyxTypes.Report; policy?: OnyxTypes.Policy }) {
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, { canBeMissing: true });
+    const { translate } = useLocalize();
     const styles = useThemeStyles();
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, { canBeMissing: true });
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
     const addExpenseDropdownOptions = [
         {
@@ -60,7 +62,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             text: translate('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
+            icon: icons.ReceiptPlus,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -85,7 +87,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport
-                        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+                        ? [{ buttonText: translate('iou.addExpense'), buttonAction: () => { }, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions }]
                         : []
                 }
             />

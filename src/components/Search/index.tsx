@@ -1,17 +1,17 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import { findFocusedRoute, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import SearchTableHeader, { getExpenseHeaders } from '@components/SelectionListWithSections/SearchTableHeader';
+import type { ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType } from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import { WideRHPContext } from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,18 +23,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openOldDotLink} from '@libs/actions/Link';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import type {TransactionPreviewData} from '@libs/actions/Search';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import { openOldDotLink } from '@libs/actions/Link';
+import { turnOffMobileSelectionMode, turnOnMobileSelectionMode } from '@libs/actions/MobileSelectionMode';
+import type { TransactionPreviewData } from '@libs/actions/Search';
+import { openSearch, setOptimisticDataForTransactionThreadPreview } from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type { PlatformStackNavigationProp } from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import { canEditFieldOfMoneyRequest, selectFilteredReportActions } from '@libs/ReportUtils';
+import { buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString } from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -55,28 +55,29 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
-import Navigation, {navigationRef} from '@navigation/Navigation';
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+import { isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation } from '@libs/TransactionUtils';
+import Navigation, { navigationRef } from '@navigation/Navigation';
+import type { SearchFullscreenNavigatorParamList } from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
+import { isActionLoadingSetSelector } from '@src/selectors/ReportMetaData';
+import type { OutstandingReportsByPolicyIDDerivedValue } from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
-import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { SearchTransaction } from '@src/types/onyx/SearchResults';
+import type { TransactionViolation } from '@src/types/onyx/TransactionViolation';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
-import {useSearchContext} from './SearchContext';
+import { useSearchContext } from './SearchContext';
 import SearchList from './SearchList';
-import {SearchScopeProvider} from './SearchScopeProvider';
-import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import { SearchScopeProvider } from './SearchScopeProvider';
+import type { SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder } from './types';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -131,7 +132,7 @@ function mapToTransactionItemWithAdditionalInfo(
     shouldAnimateInHighlight: boolean,
     hash?: number,
 ) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
+    return { ...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash };
 }
 
 function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
@@ -154,21 +155,21 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
     return isTransactionListItemType(item)
         ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
         : {
-              ...item,
-              shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
-              isSelected:
-                  item?.transactions?.length > 0 &&
-                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-              hash,
-          };
+            ...item,
+            shouldAnimateInHighlight,
+            transactions: item.transactions?.map((transaction) =>
+                mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
+            ),
+            isSelected:
+                item?.transactions?.length > 0 &&
+                item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+            hash,
+        };
 }
 
 function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
-        const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
+        const { [item.keyForList]: omittedTransaction, ...transactions } = selectedTransactions;
 
         return transactions;
     }
@@ -215,10 +216,10 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
-    const {isOffline} = useNetwork();
+    const { type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy } = queryJSON;
+    const { isOffline } = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
     const styles = useThemeStyles();
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
 
@@ -231,10 +232,10 @@ function Search({
     }, [onDEWModalOpen]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const { isSmallScreenWidth, isLargeScreenWidth } = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const {markReportIDAsExpense} = useContext(WideRHPContext);
+    const { markReportIDAsExpense } = useContext(WideRHPContext);
     const {
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
@@ -252,13 +253,13 @@ function Search({
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, { canBeMissing: true });
     const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {accountID, email} = useCurrentUserPersonalDetails();
-    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, { canBeMissing: true });
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, { canBeMissing: true });
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
+    const { accountID, email } = useCurrentUserPersonalDetails();
+    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, { canBeMissing: true, selector: isActionLoadingSetSelector });
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -304,7 +305,7 @@ function Search({
         selector: selectFilteredReportActions,
     });
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const { defaultCardFeed } = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
@@ -312,7 +313,7 @@ function Search({
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const { translate, localeCompare, formatPhoneNumber } = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
@@ -371,7 +372,7 @@ function Search({
         openSearch();
     }, []);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
+    const { newSearchResultKeys, handleSelectionListScroll, newTransactions } = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -437,7 +438,7 @@ function Search({
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
+        handleSearch({ queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength });
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
@@ -605,7 +606,7 @@ function Search({
 
             const currentTransactions = itemTransactions ?? item.transactions;
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
-                const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                const reducedSelectedTransactions: SelectedTransactions = { ...selectedTransactions };
 
                 currentTransactions.forEach((transaction) => {
                     delete reducedSelectedTransactions[transaction.keyForList];
@@ -648,40 +649,40 @@ function Search({
 
             if (isTransactionMemberGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID }] });
+                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false });
                 return;
             }
 
             if (isTransactionCardGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID }] });
+                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false });
                 return;
             }
 
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
-                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
-                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID }] });
+                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
+                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false });
                 return;
             }
 
@@ -708,13 +709,13 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
                 }
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({ reportID, backTo })));
                 return;
             }
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({ reportID, reportActionID, backTo }));
                 return;
             }
 
@@ -724,7 +725,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({ reportID, backTo })));
         },
         [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
@@ -755,9 +756,9 @@ function Search({
         }
 
         opacity.set(
-            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
+            withTiming(0, { duration: CONST.SEARCH.ANIMATION.FADE_DURATION }, () => {
                 setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
+                opacity.set(withTiming(1, { duration: CONST.SEARCH.ANIMATION.FADE_DURATION }));
             }),
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
@@ -799,7 +800,7 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
+                Navigation.setParams({ q: buildCannedSearchQuery() });
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -884,7 +885,7 @@ function Search({
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                    title={translate('errorPage.title', { isBreakLine: shouldUseNarrowLayout })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
@@ -906,13 +907,13 @@ function Search({
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
+        const newQuery = buildSearchQueryString({ ...queryJSON, sortBy: column, sortOrder: order });
         onSortPressedCallback?.();
-        navigation.setParams({q: newQuery});
+        navigation.setParams({ q: newQuery });
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
+    const { shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn } = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
@@ -993,7 +994,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps};
+export type { SearchProps };
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 export default WrappedSearch;

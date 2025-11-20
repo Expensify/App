@@ -1,7 +1,7 @@
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import { transactionDraftValuesSelector } from '@selectors/TransactionDraft';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -11,7 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
+import { usePersonalDetails, usePolicyCategories } from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -28,10 +28,10 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import { completeTestDriveTask } from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import { isLocalFile as isLocalFileFileUtils } from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -45,11 +45,11 @@ import {
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import { rand64 } from '@libs/NumberUtils';
+import { getParticipantsOption, getReportOption } from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import { isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest } from '@libs/ReportUtils';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -61,7 +61,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import type {GpsPoint} from '@userActions/IOU';
+import type { GpsPoint } from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
@@ -82,25 +82,26 @@ import {
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
-import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import { openDraftWorkspaceRequest } from '@userActions/Policy/Policy';
+import { removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction } from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {InvoiceReceiver} from '@src/types/onyx/Report';
+import type { RecentlyUsedCategories, Report } from '@src/types/onyx';
+import type { Participant } from '@src/types/onyx/IOU';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
+import type { InvoiceReceiver } from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Receipt } from '@src/types/onyx/Transaction';
+import type { FileObject } from '@src/types/utils/Attachment';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import type { WithFullTransactionOrNotFoundProps } from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -109,7 +110,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport, backTo},
+        params: { iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport, backTo },
     },
     transaction: initialTransaction,
     isLoadingTransaction,
@@ -117,6 +118,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
+    const icons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt'] as const);
 
     const [isRemoveConfirmModalVisible, setRemoveConfirmModalVisible] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -135,27 +137,27 @@ function IOURequestStepConfirmation({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
     const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
-    const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`, {canBeMissing: true});
-    const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`, {canBeMissing: true});
+    const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`, { canBeMissing: true });
+    const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`, { canBeMissing: true });
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
     const transaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
     const transactionsCategories = useDeepCompareRef(
-        transactions.map(({transactionID, category}) => ({
+        transactions.map(({ transactionID, category }) => ({
             transactionID,
             category,
         })),
     );
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
-    const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const { policyForMovingExpenses, policyForMovingExpensesID } = usePolicyForMovingExpenses();
     const realPolicyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
-    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, { canBeMissing: true });
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, { canBeMissing: true });
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, { canBeMissing: true });
 
     /*
      * We want to use a report from the transaction if it exists
@@ -178,13 +180,13 @@ function IOURequestStepConfirmation({
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
     const isDraftPolicy = policy === policyDraft;
 
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, { canBeMissing: true });
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, { canBeMissing: true });
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, { canBeMissing: true });
 
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, { canBeMissing: true });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, { canBeMissing: true, selector: reportsSelector });
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, { canBeMissing: true });
 
     const policyCategories = useMemo(() => {
         if (isDraftPolicy && draftPolicyID) {
@@ -207,9 +209,9 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const {isOffline} = useNetwork();
+    const { translate } = useLocalize();
+    const { isBetaEnabled } = usePermissions();
+    const { isOffline } = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -219,7 +221,7 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, { canBeMissing: true });
     const {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
@@ -467,7 +469,7 @@ function IOURequestStepConfirmation({
 
                 if (!isLocalFile) {
                     if (item.receipt) {
-                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                        newReceiptFiles = { ...newReceiptFiles, [item.transactionID]: item.receipt };
                     }
                     return Promise.resolve();
                 }
@@ -484,7 +486,7 @@ function IOURequestStepConfirmation({
                         receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
+                    newReceiptFiles = { ...newReceiptFiles, [item.transactionID]: receipt };
                 };
 
                 const onFailure = () => {
@@ -538,7 +540,7 @@ function IOURequestStepConfirmation({
                     completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
                 }
 
-                const {iouReport} = requestMoneyIOUActions({
+                const { iouReport } = requestMoneyIOUActions({
                     report,
                     existingIOUReport,
                     optimisticChatReportID,
@@ -1172,7 +1174,7 @@ function IOURequestStepConfirmation({
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptOnDrop);
+    const { validateFiles, PDFValidationComponent, ErrorModal } = useFilesValidation(setReceiptOnDrop);
 
     const handleDroppingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
@@ -1247,7 +1249,7 @@ function IOURequestStepConfirmation({
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI
-                            icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                            icon={isEditingReceipt ? icons.ReplaceReceipt : Expensicons.SmartScan}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}

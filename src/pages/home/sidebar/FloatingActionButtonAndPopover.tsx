@@ -1,18 +1,18 @@
-import {useIsFocused} from '@react-navigation/native';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {createPoliciesSelector} from '@selectors/Policy';
-import {Str} from 'expensify-common';
-import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import { useIsFocused } from '@react-navigation/native';
+import { hasSeenTourSelector, tryNewDotOnyxSelector } from '@selectors/Onboarding';
+import { createPoliciesSelector } from '@selectors/Policy';
+import { Str } from 'expensify-common';
+import type { ImageContentFit } from 'expo-image';
+import type { ForwardedRef } from 'react';
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type { PopoverMenuItem } from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -28,17 +28,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
-import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
-import {createNewReport, startNewChat} from '@libs/actions/Report';
-import {startTestDrive} from '@libs/actions/Tour';
+import { startDistanceRequest, startMoneyRequest } from '@libs/actions/IOU';
+import { openOldDotLink } from '@libs/actions/Link';
+import { navigateToQuickAction } from '@libs/actions/QuickActionNavigation';
+import { createNewReport, startNewChat } from '@libs/actions/Report';
+import { startTestDrive } from '@libs/actions/Tour';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
+import { openTravelDotLink, shouldOpenTravelDotLinkWeb } from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
@@ -48,7 +48,7 @@ import {
     isPaidGroupPolicy,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
-import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import { getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed } from '@libs/QuickActionUtils';
 import {
     generateReportID,
     getDisplayNameForParticipant,
@@ -60,20 +60,21 @@ import {
     isPolicyExpenseChat,
     reportSummariesOnyxSelector,
 } from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
-import {closeReactNativeApp} from '@userActions/HybridApp';
-import {clearLastSearchParams} from '@userActions/ReportNavigation';
+import { closeReactNativeApp } from '@userActions/HybridApp';
+import { clearLastSearchParams } from '@userActions/ReportNavigation';
 import Tab from '@userActions/Tab';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {QuickActionName} from '@src/types/onyx/QuickAction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { QuickActionName } from '@src/types/onyx/QuickAction';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -106,7 +107,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
 
 const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
 
-const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
+const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({ email: session?.email, accountID: session?.accountID });
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
@@ -114,25 +115,26 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
+function FloatingActionButtonAndPopover({ onHideCreateMenu, onShowCreateMenu, ref }: FloatingActionButtonAndPopoverProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric', 'ReceiptScan', 'ChatBubble', 'Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const theme = useTheme();
-    const {translate} = useLocalize();
-    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const { translate } = useLocalize();
+    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, { canBeMissing: true });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: true });
+    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: false, selector: sessionSelector });
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, { canBeMissing: true });
+    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, { canBeMissing: true });
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, { canBeMissing: true });
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: true });
     const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {isRestrictedToPreferredPolicy, isRestrictedPolicyCreation} = usePreferredPolicy();
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, { canBeMissing: true });
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, { canBeMissing: true });
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
+    const { isRestrictedToPreferredPolicy, isRestrictedPolicyCreation } = usePreferredPolicy();
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
             return {} as OnyxTypes.Report;
@@ -140,38 +142,38 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
-    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, { canBeMissing: true });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { selector: policiesSelector, canBeMissing: true });
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, { canBeMissing: true });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const { isDelegateAccessRestricted, showDelegateNoAccessModal } = useContext(DelegateNoAccessContext);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { windowHeight } = useWindowDimensions();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
-    const {isOffline} = useNetwork();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const { isOffline } = useNetwork();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, { canBeMissing: true });
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
-    const {isBetaEnabled} = usePermissions();
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
+    const { isBetaEnabled } = usePermissions();
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, { selector: accountPrimaryLoginSelector, canBeMissing: true });
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, { canBeMissing: true });
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, { canBeMissing: true });
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, { selector: tryNewDotOnyxSelector, canBeMissing: true });
 
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const reportID = useMemo(() => generateReportID(), []);
@@ -210,18 +212,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             clearLastSearchParams();
         }
 
-        const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
+        const { reportID: createdReportID } = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({ reportID: createdReportID, backTo: Navigation.getActiveRoute() })
                     : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                {forceReplace: isReportInSearch},
+                { forceReplace: isReportInSearch },
             );
         });
     }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch]);
 
-    const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const { openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal } = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -249,8 +251,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
-            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true}) ?? '';
-            return translate('quickAction.paySomeone', {name});
+            const name = getDisplayNameForParticipant({ accountID: Number(accountID), shouldUseShortForm: true }) ?? '';
+            return translate('quickAction.paySomeone', { name });
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
@@ -378,7 +380,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         return [
             {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 testID: 'create-expense',
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
@@ -436,7 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: getQuickActionIcon(quickAction?.action),
+                    icon: getQuickActionIcon(quickAction?.action, icons),
                     text: quickActionTitle,
                     rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
@@ -462,7 +464,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: Expensicons.ReceiptScan,
+                    icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
@@ -535,64 +537,64 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         },
         ...(shouldShowCreateReportOption
             ? [
-                  {
-                      icon: Expensicons.Document,
-                      text: translate('report.newReport.createReport'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => {
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
+                {
+                    icon: Expensicons.Document,
+                    text: translate('report.newReport.createReport'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => {
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToExpensifyClassic) {
+                                setModalVisible(true);
+                                return;
+                            }
 
-                              const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+                            const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                              if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                                  // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                  return;
-                              }
+                            if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                                // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                return;
+                            }
 
-                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  // Check if empty report confirmation should be shown
-                                  if (hasEmptyReportForDefaultChatEnabledPolicy) {
-                                      openFabCreateReportConfirmation();
-                                  } else {
-                                      handleCreateWorkspaceReport();
-                                  }
-                                  return;
-                              }
+                            if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                // Check if empty report confirmation should be shown
+                                if (hasEmptyReportForDefaultChatEnabledPolicy) {
+                                    openFabCreateReportConfirmation();
+                                } else {
+                                    handleCreateWorkspaceReport();
+                                }
+                                return;
+                            }
 
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                          });
-                      },
-                  },
-              ]
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                        });
+                    },
+                },
+            ]
             : []),
         {
-            icon: Expensicons.ChatBubble,
+            icon: icons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
         },
         ...(canSendInvoice
             ? [
-                  {
-                      icon: Expensicons.InvoiceGeneric,
-                      text: translate('workspace.invoices.sendInvoice'),
-                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
-                      onSelected: () =>
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
+                {
+                    icon: icons.InvoiceGeneric,
+                    text: translate('workspace.invoices.sendInvoice'),
+                    shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
+                    onSelected: () =>
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToExpensifyClassic) {
+                                setModalVisible(true);
+                                return;
+                            }
 
-                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
-                          }),
-                  },
-              ]
+                            startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
+                        }),
+                },
+            ]
             : []),
         ...[
             {
@@ -604,29 +606,29 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ],
         ...(!hasSeenTour
             ? [
-                  {
-                      icon: Expensicons.Binoculars,
-                      iconStyles: styles.popoverIconCircle,
-                      iconFill: theme.icon,
-                      text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
-                  },
-              ]
+                {
+                    icon: Expensicons.Binoculars,
+                    iconStyles: styles.popoverIconCircle,
+                    iconFill: theme.icon,
+                    text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
+                    onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
+                },
+            ]
             : []),
         ...(!isLoading && shouldShowNewWorkspaceButton
             ? [
-                  {
-                      displayInDefaultIconColor: true,
-                      contentFit: 'contain' as ImageContentFit,
-                      icon: Expensicons.NewWorkspace,
-                      iconWidth: variables.w46,
-                      iconHeight: variables.h40,
-                      text: translate('workspace.new.newWorkspace'),
-                      description: translate('workspace.new.getTheExpensifyCardAndMore'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
-                  },
-              ]
+                {
+                    displayInDefaultIconColor: true,
+                    contentFit: 'contain' as ImageContentFit,
+                    icon: Expensicons.NewWorkspace,
+                    iconWidth: variables.w46,
+                    iconHeight: variables.h40,
+                    text: translate('workspace.new.newWorkspace'),
+                    description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
+                },
+            ]
             : []),
         ...quickActionMenuItems,
     ];
@@ -662,7 +664,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 onConfirm={() => {
                     setModalVisible(false);
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
+                        closeReactNativeApp({ shouldSetNVP: true });
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);
@@ -695,4 +697,4 @@ FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
 export default FloatingActionButtonAndPopover;
 
-export type {PolicySelector};
+export type { PolicySelector };

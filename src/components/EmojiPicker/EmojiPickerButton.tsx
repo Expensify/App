@@ -1,8 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useContext, useEffect, useRef} from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import React, { memo, useContext, useEffect, useRef } from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -10,8 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
-import type {EmojiPickerOnModalHide, OnEmojiSelected} from '@userActions/EmojiPickerAction';
+import { emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker } from '@userActions/EmojiPickerAction';
+import type { EmojiPickerOnModalHide, OnEmojiSelected } from '@userActions/EmojiPickerAction';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonProps = {
@@ -32,13 +32,14 @@ type EmojiPickerButtonProps = {
     onEmojiSelected: OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({ isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected }: EmojiPickerButtonProps) {
     const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const isFocused = useIsFocused();
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji'] as const);
 
     const openEmojiPicker: PressableProps['onPress'] = (e) => {
         if (!isFocused) {
@@ -73,15 +74,15 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
         <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({ hovered, pressed }) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >
-                {({hovered, pressed}) => (
+                {({ hovered, pressed }) => (
                     <Icon
-                        src={Expensicons.Emoji}
+                        src={icons.Emoji}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}

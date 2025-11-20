@@ -1,9 +1,9 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type { ForwardedRef, RefObject } from 'react';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,9 +12,9 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
-import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {PaymentMethodType, Source} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import { KYCWallContext } from '@components/KYCWall/KYCWallContext';
+import type { PaymentMethodType, Source } from '@components/KYCWall/types';
+import { LockedAccountContext } from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -24,35 +24,35 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
-import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import type { FormattedSelectedPaymentMethod } from '@hooks/usePaymentMethodState/types';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {maskCardNumber} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import { maskCardNumber } from '@libs/CardUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import { formatPaymentMethods, getPaymentMethodDescription } from '@libs/PaymentUtils';
+import { getDescriptionForPolicyDomainCard } from '@libs/PolicyUtils';
+import { buildCannedSearchQuery } from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
-import {close as closeModal} from '@userActions/Modal';
-import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import { deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess } from '@userActions/BankAccounts';
+import { close as closeModal } from '@userActions/Modal';
+import { clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods } from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
+import { getEmptyObject } from '@src/types/utils/EmptyObject';
+import type { CardPressHandlerParams, PaymentMethodPressHandlerParams } from './types';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */
@@ -62,32 +62,32 @@ type WalletPageProps = {
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
-function WalletPage({shouldListenForResize = false}: WalletPageProps) {
-    const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+function WalletPage({ shouldListenForResize = false }: WalletPageProps) {
+    const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
         selector: fundListSelector,
     });
-    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, { canBeMissing: true });
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, { canBeMissing: true });
+    const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, { canBeMissing: true });
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, { canBeMissing: false });
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, { canBeMissing: true });
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, { canBeMissing: true });
     const isUserValidated = userAccount?.validated ?? false;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const { isAccountLocked, showLockedAccountModal } = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
-    const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const { isBetaEnabled } = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Wallet'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const network = useNetwork();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
+    const { windowWidth, windowHeight } = useWindowDimensions();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const { paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData } = usePaymentMethodState();
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowCardMenu, setShouldShowCardMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -148,7 +148,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     /**
      * Display the delete/default menu, or the add payment method menu
      */
-    const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
+    const paymentMethodPressed = ({ event, accountData, accountType, methodID, isDefault, icon, description }: PaymentMethodPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
@@ -187,7 +187,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
     };
 
-    const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
+    const assignedCardPressed = ({ event, cardData, icon, cardID }: CardPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
@@ -408,7 +408,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             titleStyles={styles.accountSettingsSectionTitle}
                             illustration={LottieAnimations.BankVault}
                             illustrationStyle={styles.walletIllustration}
-                            illustrationContainerStyle={{height: 220}}
+                            illustrationContainerStyle={{ height: 220 }}
                             illustrationBackgroundColor="#411103"
                         >
                             <PaymentMethodList
@@ -416,7 +416,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 onAddBankAccountPress={addBankAccountPressed}
                                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                 activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                onListContentSizeChange={shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                onListContentSizeChange={shouldShowDefaultDeleteMenu ? setMenuPosition : () => { }}
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
@@ -439,7 +439,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     actionPaymentMethodType={shouldShowCardMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                     activePaymentMethodID={shouldShowCardMenu ? paymentMethod.methodID : ''}
-                                    onListContentSizeChange={shouldShowCardMenu ? setMenuPosition : () => {}}
+                                    onListContentSizeChange={shouldShowCardMenu ? setMenuPosition : () => { }}
                                 />
                             </Section>
                         ) : null}
@@ -504,9 +504,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     <MenuItem
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
+                                                        icon={expensifyIcons.Transfer}
                                                         onPress={(event) => {
-                                                            triggerKYCFlow({event});
+                                                            triggerKYCFlow({ event });
                                                         }}
                                                         shouldShowRightIcon
                                                         wrapperStyle={[
@@ -547,7 +547,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             return (
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
-                                                    icon={Expensicons.Wallet}
+                                                    icon={expensifyIcons.Wallet}
                                                     ref={buttonRef as ForwardedRef<View>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
@@ -590,9 +590,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         style={[
                             !shouldUseNarrowLayout
                                 ? {
-                                      ...styles.sidebarPopover,
-                                      ...styles.pv4,
-                                  }
+                                    ...styles.sidebarPopover,
+                                    ...styles.pv4,
+                                }
                                 : styles.pt5,
                         ]}
                     >
@@ -667,9 +667,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     style={[
                         !shouldUseNarrowLayout
                             ? {
-                                  ...styles.sidebarPopover,
-                                  ...styles.pv4,
-                              }
+                                ...styles.sidebarPopover,
+                                ...styles.pv4,
+                            }
                             : styles.pt5,
                     ]}
                 >

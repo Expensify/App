@@ -1,11 +1,10 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,30 +21,32 @@ import {
     saveWalletTransferMethodType,
     transferWalletBalance,
 } from '@libs/actions/PaymentMethods';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
+import { getLatestErrorMessage } from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import { calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod } from '@libs/PaymentUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
-import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { FilterMethodPaymentType } from '@src/types/onyx/WalletTransfer';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const TRANSFER_TIER_NAMES = new Set<string>([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM]);
 
 function TransferBalancePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const {paddingBottom} = useSafeAreaPaddings();
+    const { translate } = useLocalize();
+    const { isOffline } = useNetwork();
+    const { paddingBottom } = useSafeAreaPaddings();
+    const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, { canBeMissing: true });
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, { canBeMissing: true });
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, { canBeMissing: true });
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -64,7 +65,7 @@ function TransferBalancePage() {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
             title: translate('transferAmountPage.ach'),
             description: translate('transferAmountPage.achSummary'),
-            icon: Expensicons.Bank,
+            icon: icons.Bank,
             type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
     ];

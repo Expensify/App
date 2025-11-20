@@ -3,6 +3,7 @@
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+import ChatBubbles from '@assets/images/chatbubbles.svg'
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
@@ -75,6 +76,7 @@ const Illustrations = {
     Luggage,
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
+    ChatBubbles,
 };
 
 /**
@@ -85,6 +87,8 @@ const Illustrations = {
 function getIllustration(illustrationName: string): unknown {
     // Direct return for known illustrations to preserve React component type
     switch (illustrationName) {
+        case 'ChatBubbles':
+            return ChatBubbles;
         case 'Building':
             return Building;
         case 'FolderOpen':
@@ -154,5 +158,5 @@ const AVAILABLE_ILLUSTRATIONS = Object.keys(Illustrations);
 type IllustrationName = keyof typeof Illustrations;
 
 export default Illustrations;
-export {getIllustration, AVAILABLE_ILLUSTRATIONS};
-export type {IllustrationName};
+export { getIllustration, AVAILABLE_ILLUSTRATIONS };
+export type { IllustrationName };

@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,18 +15,18 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestRefund as requestRefundByUser} from '@libs/actions/User';
+import { requestRefund as requestRefundByUser } from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {hasCardAuthenticatedError, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner} from '@libs/SubscriptionUtils';
-import {verifySetupIntent} from '@userActions/PaymentMethods';
-import {clearOutstandingBalance} from '@userActions/Subscription';
+import { getPaymentMethodDescription } from '@libs/PaymentUtils';
+import { buildQueryStringFromFilterFormValues } from '@libs/SearchQueryUtils';
+import { hasCardAuthenticatedError, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner } from '@libs/SubscriptionUtils';
+import { verifySetupIntent } from '@userActions/PaymentMethods';
+import { clearOutstandingBalance } from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
@@ -37,38 +37,40 @@ import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import getSectionSubtitle from './CardSectionSubtitle';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
-import type {BillingStatusResult} from './utils';
+import type { BillingStatusResult } from './utils';
 import CardSectionUtils from './utils';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['Bill', 'CreditCard'] as const);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, { canBeMissing: true });
     const privateSubscription = usePrivateSubscription();
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, { canBeMissing: true });
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, { canBeMissing: true });
+    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: true });
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, { canBeMissing: true });
+    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST, { canBeMissing: true });
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, { canBeMissing: true });
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
-    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING, {canBeMissing: true});
-    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
-    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
-    const {isOffline} = useNetwork();
+    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING, { canBeMissing: true });
+    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, { canBeMissing: true });
+    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, { canBeMissing: true });
+    const { isOffline } = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
     const hasFailedLastBilling = useMemo(
         () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
     );
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, { canBeMissing: true });
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, { canBeMissing: true });
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, { canBeMissing: true });
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, { canBeMissing: true });
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
@@ -76,8 +78,8 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        const query = buildQueryStringFromFilterFormValues({ merchant: CONST.EXPENSIFY_MERCHANT });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({ query }));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
@@ -180,7 +182,7 @@ function CardSection() {
                     {!isEmptyObject(defaultCard?.accountData) && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
-                                src={Expensicons.CreditCard}
+                                src={icons.CreditCard}
                                 additionalStyles={styles.subscriptionAddedCardIcon}
                                 fill={theme.icon}
                                 medium
@@ -236,7 +238,7 @@ function CardSection() {
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
-                        icon={Expensicons.Bill}
+                        icon={icons.Bill}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}

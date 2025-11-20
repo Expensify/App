@@ -5,10 +5,12 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import { isExpensifyCardTransaction, isPending } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import type TransactionDataCellProps from './TransactionDataCellProps';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 // If the transaction is cash, it has the type CONST.EXPENSE.TYPE.CASH_CARD_NAME.
 // If there is no credit card name, it means it couldn't be a card transaction,
@@ -21,15 +23,15 @@ const getType = (cardName?: string) => {
     return CONST.SEARCH.TRANSACTION_TYPE.CARD;
 };
 
-const getTypeIcon = (type?: string) => {
+const getTypeIcon = (icons: Record<"CreditCard" | "Cash", IconAsset>, type?: string) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return Expensicons.CreditCard;
+            return icons.CreditCard;
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
             return Expensicons.Car;
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
-            return Expensicons.Cash;
+            return icons.Cash;
     }
 };
 
@@ -45,12 +47,13 @@ const getTypeText = (type?: string): TranslationPaths => {
     }
 };
 
-function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
-    const {translate} = useLocalize();
+function TypeCell({ transactionItem, shouldUseNarrowLayout, shouldShowTooltip }: TransactionDataCellProps) {
+    const { translate } = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'CreditCardHourglass', "Cash"] as const);
     const theme = useTheme();
     const type = transactionItem.transactionType ?? getType(transactionItem.cardName);
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(type);
+    const typeIcon = isPendingExpensifyCardTransaction ? icons.CreditCardHourglass : getTypeIcon(icons, type);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
     const styles = useThemeStyles();
 
