@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -33,6 +34,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     /**
      * Delete transactions by IDs
@@ -124,6 +126,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    currentUserPersonalDetails,
                 });
             }
 
@@ -156,7 +159,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             return Array.from(deletedTransactionThreadReportIDs);
         },
-        [reportActions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, policyCategories, policy, archivedReportsIdSet, isBetaEnabled],
+        [
+            reportActions,
+            allTransactions,
+            allReports,
+            report,
+            allReportNameValuePairs,
+            allPolicyRecentlyUsedCategories,
+            policyCategories,
+            policy,
+            archivedReportsIdSet,
+            isBetaEnabled,
+            currentUserPersonalDetails,
+        ],
     );
 
     return {
