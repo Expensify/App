@@ -56,6 +56,9 @@ type PolicyOption = ListItem & {
 
     /** rateID is used as a key for identification of the entry */
     rateID: string;
+
+    /** subRateName is used for filters */
+    subRateName: string;
 };
 
 type SubRateData = {
@@ -164,6 +167,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     keyForList: value.subRateID,
                     isDisabled,
                     pendingAction: value.pendingAction,
+                    subRateName: value.subRateName,
                     rightElement: (
                         <>
                             <View style={styles.flex2}>
@@ -190,7 +194,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     );
 
     const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
-        const results = tokenizedSearch([rate], searchInput, (option) => [option.text ?? '']);
+        const results = tokenizedSearch([rate], searchInput, (option) => [option.text ?? '', option.subRateName ?? '']);
         return results.length > 0;
     }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), [localeCompare]);
