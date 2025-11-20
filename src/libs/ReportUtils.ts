@@ -1859,9 +1859,6 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeReportID;
 }
 
-/**
- * @deprecated Finds the self DM report ID by searching through all reports and returning the first one that is a self DM and not a thread.
- */
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
         return;
@@ -1874,14 +1871,6 @@ function findSelfDMReportID(): string | undefined {
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
 
     return selfDMReport?.reportID;
-}
-
-/**
- * Returns the self DM report ID
- */
-function getSelfDMReportID(): string | undefined {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return selfDMReportID ?? findSelfDMReportID();
 }
 
 /**
@@ -2502,7 +2491,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-        return !isEmptyObject(parentReportAction) && getSelfDMReportID() === report.parentReportID && isTrackExpenseAction(parentReportAction);
+        return !isEmptyObject(parentReportAction) && findSelfDMReportID() === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
     return false;
 }
@@ -6466,7 +6455,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: getSelfDMReportID() ?? generateReportID(),
+        reportID: findSelfDMReportID() ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6821,7 +6810,7 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const reportUrl = `${environmentURL}/r/${getSelfDMReportID()}`;
+    const reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
         reportUrl,
@@ -11649,7 +11638,7 @@ function prepareOnboardingOnyxData(
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getSelfDMReportID()}`];
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
         let createdAction: ReportAction;
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
@@ -12689,7 +12678,7 @@ export {
     doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
-    getSelfDMReportID,
+    findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,

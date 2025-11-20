@@ -150,6 +150,7 @@ import {
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportReceiverMatchParticipant,
+    findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getApprovalChain,
@@ -165,7 +166,6 @@ import {
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
-    getSelfDMReportID,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
@@ -3967,7 +3967,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // STEP 1: Get existing chat report
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
 
-    const selfDMReportID = getSelfDMReportID();
+    const selfDMReportID = findSelfDMReportID();
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
         chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? null;
@@ -5586,7 +5586,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
     }
 
     const payerEmail = personalDetailsList?.[payerAccountID]?.login ?? '';
-    const selfDMReportID = getSelfDMReportID();
+    const selfDMReportID = findSelfDMReportID();
 
     if (!selfDMReportID) {
         Log.warn('[convertBulkTrackedExpensesToIOU] Self DM not found');

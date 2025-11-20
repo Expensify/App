@@ -138,7 +138,7 @@ import {
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
-    getSelfDMReportID,
+    findSelfDMReportID,
     getTitleReportField,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
@@ -1067,7 +1067,7 @@ function openReport(
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction) {
-            const selfDMReportID = getSelfDMReportID();
+            const selfDMReportID = findSelfDMReportID();
 
             if (selfDMReportID) {
                 const generatedReportActionID = rand64();
@@ -1357,7 +1357,7 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
-        const selfDMReportID = getSelfDMReportID();
+        const selfDMReportID = findSelfDMReportID();
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -4809,7 +4809,7 @@ function deleteAppReport(reportID: string | undefined) {
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    let selfDMReportID = getSelfDMReportID();
+    let selfDMReportID = findSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let selfDMCreatedReportActionID: string | undefined;
     let createdAction: ReportAction;

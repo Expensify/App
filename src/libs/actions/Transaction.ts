@@ -22,8 +22,8 @@ import {
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
+    findSelfDMReportID,
     getReportTransactions,
-    getSelfDMReportID,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
@@ -719,7 +719,7 @@ function changeTransactionsReport(
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    let selfDMReportID = getSelfDMReportID();
+    let selfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let selfDMCreatedReportAction: ReportAction | undefined;
 
