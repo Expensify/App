@@ -38,14 +38,14 @@ type SelectedTransactionInfo = {
     /** The transaction amount */
     amount: number;
 
-    /** The converted transaction amount into either group currency, or the active policy currency */
-    convertedAmount: number;
-
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
-
     /** The transaction currency */
     currency: string;
+
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
+
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;

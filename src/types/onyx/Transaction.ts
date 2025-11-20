@@ -442,6 +442,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The name of the file used for a receipt (formerly receiptFilename) */
         filename?: string;
 
+        /** The transaction converted amount in `groupCurrency` currency */
+        groupAmount?: number;
+
+        /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+        groupCurrency?: string;
+
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
 
