@@ -131,6 +131,7 @@ import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1663,6 +1664,7 @@ describe('ReportUtils', () => {
                         },
                     };
 
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const transaction: SearchTransaction = {
                         transactionID: 'txn1',
                         reportID: '2',
