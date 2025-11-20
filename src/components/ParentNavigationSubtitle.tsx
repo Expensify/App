@@ -53,6 +53,9 @@ type ParentNavigationSubtitleProps = {
 
     /** The style of the status text container */
     statusTextContainerStyles?: StyleProp<ViewStyle>;
+
+    /** The number of lines for the subtitle */
+    subtitleNumberOfLines?: number;
 };
 
 function ParentNavigationSubtitle({
@@ -66,6 +69,7 @@ function ParentNavigationSubtitle({
     statusTextBackgroundColor,
     statusTextColor,
     statusTextContainerStyles,
+    subtitleNumberOfLines = 1,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -135,7 +139,7 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
             {!!statusText && (
                 <View
                     style={[
@@ -152,7 +156,7 @@ function ParentNavigationSubtitle({
             )}
             <Text
                 style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}
-                numberOfLines={1}
+                numberOfLines={subtitleNumberOfLines}
             >
                 {!!reportName && (
                     <>
