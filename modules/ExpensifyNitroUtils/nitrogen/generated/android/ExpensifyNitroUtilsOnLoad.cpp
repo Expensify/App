@@ -16,8 +16,9 @@
 #include <NitroModules/HybridObjectRegistry.hpp>
 
 #include "JHybridContactsModuleSpec.hpp"
-#include "JHybridTtiMeasurementViewSpec.hpp"
+#include "JHybridTtiLoggerSpec.hpp"
 #include "JFunc_void_TtiMeasurementValue.hpp"
+#include "JHybridTtiMeasurementViewSpec.hpp"
 #include "views/JHybridTtiMeasurementViewStateUpdater.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
@@ -31,8 +32,9 @@ int initialize(JavaVM* vm) {
   return facebook::jni::initialize(vm, [] {
     // Register native JNI methods
     margelo::nitro::utils::JHybridContactsModuleSpec::registerNatives();
-    margelo::nitro::utils::JHybridTtiMeasurementViewSpec::registerNatives();
+    margelo::nitro::utils::JHybridTtiLoggerSpec::registerNatives();
     margelo::nitro::utils::JFunc_void_TtiMeasurementValue_cxx::registerNatives();
+    margelo::nitro::utils::JHybridTtiMeasurementViewSpec::registerNatives();
     margelo::nitro::utils::views::JHybridTtiMeasurementViewStateUpdater::registerNatives();
 
     // Register Nitro Hybrid Objects
@@ -40,6 +42,14 @@ int initialize(JavaVM* vm) {
       "ContactsModule",
       []() -> std::shared_ptr<HybridObject> {
         static DefaultConstructableObject<JHybridContactsModuleSpec::javaobject> object("com/margelo/nitro/utils/HybridContactsModule");
+        auto instance = object.create();
+        return instance->cthis()->shared();
+      }
+    );
+    HybridObjectRegistry::registerHybridObjectConstructor(
+      "TtiLogger",
+      []() -> std::shared_ptr<HybridObject> {
+        static DefaultConstructableObject<JHybridTtiLoggerSpec::javaobject> object("com/margelo/nitro/utils/HybridTtiLogger");
         auto instance = object.create();
         return instance->cthis()->shared();
       }

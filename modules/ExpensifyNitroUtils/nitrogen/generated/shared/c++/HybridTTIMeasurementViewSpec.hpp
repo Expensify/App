@@ -13,12 +13,11 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `TtiMeasurementValue` to properly resolve imports.
-namespace margelo::nitro::utils { struct TtiMeasurementValue; }
+// Forward declaration of `HybridTtiLoggerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiLoggerSpec; }
 
-#include "TtiMeasurementValue.hpp"
-#include <functional>
-#include <optional>
+#include <memory>
+#include "HybridTtiLoggerSpec.hpp"
 
 namespace margelo::nitro::utils {
 
@@ -47,8 +46,8 @@ namespace margelo::nitro::utils {
 
     public:
       // Properties
-      virtual std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> getOnMeasurement() = 0;
-      virtual void setOnMeasurement(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& onMeasurement) = 0;
+      virtual std::shared_ptr<HybridTtiLoggerSpec> getTtiLogger() = 0;
+      virtual void setTtiLogger(const std::shared_ptr<HybridTtiLoggerSpec>& ttiLogger) = 0;
 
     public:
       // Methods

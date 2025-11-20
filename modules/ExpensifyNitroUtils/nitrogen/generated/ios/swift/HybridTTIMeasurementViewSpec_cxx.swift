@@ -114,34 +114,20 @@ open class HybridTtiMeasurementViewSpec_cxx {
   }
 
   // Properties
-  public final var onMeasurement: bridge.std__optional_std__function_void_const_TtiMeasurementValue_____measurement______ {
+  public final var ttiLogger: bridge.std__shared_ptr_HybridTtiLoggerSpec_ {
     @inline(__always)
     get {
-      return { () -> bridge.std__optional_std__function_void_const_TtiMeasurementValue_____measurement______ in
-        if let __unwrappedValue = self.__implementation.onMeasurement {
-          return bridge.create_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______({ () -> bridge.Func_void_TtiMeasurementValue in
-            let __closureWrapper = Func_void_TtiMeasurementValue(__unwrappedValue)
-            return bridge.create_Func_void_TtiMeasurementValue(__closureWrapper.toUnsafe())
-          }())
-        } else {
-          return .init()
-        }
+      return { () -> bridge.std__shared_ptr_HybridTtiLoggerSpec_ in
+        let __cxxWrapped = self.__implementation.ttiLogger.getCxxWrapper()
+        return __cxxWrapped.getCxxPart()
       }()
     }
     @inline(__always)
     set {
-      self.__implementation.onMeasurement = { () -> ((_ measurement: TtiMeasurementValue) -> Void)? in
-        if bridge.has_value_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(newValue) {
-          let __unwrapped = bridge.get_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(newValue)
-          return { () -> (TtiMeasurementValue) -> Void in
-            let __wrappedFunction = bridge.wrap_Func_void_TtiMeasurementValue(__unwrapped)
-            return { (__measurement: TtiMeasurementValue) -> Void in
-              __wrappedFunction.call(__measurement)
-            }
-          }()
-        } else {
-          return nil
-        }
+      self.__implementation.ttiLogger = { () -> HybridTtiLoggerSpec in
+        let __unsafePointer = bridge.get_std__shared_ptr_HybridTtiLoggerSpec_(newValue)
+        let __instance = HybridTtiLoggerSpec_cxx.fromUnsafe(__unsafePointer)
+        return __instance.getHybridTtiLoggerSpec()
       }()
     }
   }

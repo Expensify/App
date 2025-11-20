@@ -19,18 +19,29 @@ public extension TtiMeasurementValue {
   /**
    * Create a new instance of `TtiMeasurementValue`.
    */
-  init(startup: Double, firstDraw: Double) {
-    self.init(startup, firstDraw)
+  init(applicationStartup: Double, bundleExecution: Double, firstDraw: Double) {
+    self.init(applicationStartup, bundleExecution, firstDraw)
   }
 
-  var startup: Double {
+  var applicationStartup: Double {
     @inline(__always)
     get {
-      return self.__startup
+      return self.__applicationStartup
     }
     @inline(__always)
     set {
-      self.__startup = newValue
+      self.__applicationStartup = newValue
+    }
+  }
+  
+  var bundleExecution: Double {
+    @inline(__always)
+    get {
+      return self.__bundleExecution
+    }
+    @inline(__always)
+    set {
+      self.__bundleExecution = newValue
     }
   }
   

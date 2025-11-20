@@ -12,12 +12,11 @@
 // Forward declaration of `HybridTtiMeasurementViewSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridTtiMeasurementViewSpec_cxx; }
 
-// Forward declaration of `TtiMeasurementValue` to properly resolve imports.
-namespace margelo::nitro::utils { struct TtiMeasurementValue; }
+// Forward declaration of `HybridTtiLoggerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiLoggerSpec; }
 
-#include "TtiMeasurementValue.hpp"
-#include <functional>
-#include <optional>
+#include <memory>
+#include "HybridTtiLoggerSpec.hpp"
 
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 
@@ -59,12 +58,12 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    inline std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> getOnMeasurement() noexcept override {
-      auto __result = _swiftPart.getOnMeasurement();
+    inline std::shared_ptr<HybridTtiLoggerSpec> getTtiLogger() noexcept override {
+      auto __result = _swiftPart.getTtiLogger();
       return __result;
     }
-    inline void setOnMeasurement(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& onMeasurement) noexcept override {
-      _swiftPart.setOnMeasurement(onMeasurement);
+    inline void setTtiLogger(const std::shared_ptr<HybridTtiLoggerSpec>& ttiLogger) noexcept override {
+      _swiftPart.setTtiLogger(ttiLogger);
     }
 
   public:

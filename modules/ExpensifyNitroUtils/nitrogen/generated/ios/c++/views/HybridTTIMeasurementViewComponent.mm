@@ -71,10 +71,10 @@ using namespace margelo::nitro::utils::views;
   // 2. Update each prop individually
   swiftPart.beforeUpdate();
 
-  // onMeasurement: optional
-  if (newViewProps.onMeasurement.isDirty) {
-    swiftPart.setOnMeasurement(newViewProps.onMeasurement.value);
-    newViewProps.onMeasurement.isDirty = false;
+  // ttiLogger: hybrid-object
+  if (newViewProps.ttiLogger.isDirty) {
+    swiftPart.setTtiLogger(newViewProps.ttiLogger.value);
+    newViewProps.ttiLogger.isDirty = false;
   }
 
   swiftPart.afterUpdate();

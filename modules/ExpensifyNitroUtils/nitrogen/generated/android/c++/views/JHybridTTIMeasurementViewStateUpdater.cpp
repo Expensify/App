@@ -36,8 +36,8 @@ void JHybridTtiMeasurementViewStateUpdater::updateViewProps(jni::alias_ref<jni::
     throw std::runtime_error("HybridTtiMeasurementViewState's data doesn't contain any props!");
   }
   const HybridTtiMeasurementViewProps& props = maybeProps.value();
-  if (props.onMeasurement.isDirty) {
-    view->setOnMeasurement(props.onMeasurement.value);
+  if (props.ttiLogger.isDirty) {
+    view->setTtiLogger(props.ttiLogger.value);
     // TODO: Set isDirty = false
   }
 

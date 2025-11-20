@@ -7,14 +7,12 @@
 
 #include "JHybridTtiMeasurementViewSpec.hpp"
 
-// Forward declaration of `TtiMeasurementValue` to properly resolve imports.
-namespace margelo::nitro::utils { struct TtiMeasurementValue; }
+// Forward declaration of `HybridTtiLoggerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiLoggerSpec; }
 
-#include "TtiMeasurementValue.hpp"
-#include <functional>
-#include <optional>
-#include "JFunc_void_TtiMeasurementValue.hpp"
-#include "JTtiMeasurementValue.hpp"
+#include <memory>
+#include "HybridTtiLoggerSpec.hpp"
+#include "JHybridTtiLoggerSpec.hpp"
 
 namespace margelo::nitro::utils {
 
@@ -45,24 +43,14 @@ namespace margelo::nitro::utils {
   }
 
   // Properties
-  std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> JHybridTtiMeasurementViewSpec::getOnMeasurement() {
-    static const auto method = javaClassStatic()->getMethod<jni::local_ref<JFunc_void_TtiMeasurementValue::javaobject>()>("getOnMeasurement_cxx");
+  std::shared_ptr<HybridTtiLoggerSpec> JHybridTtiMeasurementViewSpec::getTtiLogger() {
+    static const auto method = javaClassStatic()->getMethod<jni::local_ref<JHybridTtiLoggerSpec::javaobject>()>("getTtiLogger");
     auto __result = method(_javaPart);
-    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const TtiMeasurementValue& /* measurement */)> {
-      if (__result->isInstanceOf(JFunc_void_TtiMeasurementValue_cxx::javaClassStatic())) [[likely]] {
-        auto downcast = jni::static_ref_cast<JFunc_void_TtiMeasurementValue_cxx::javaobject>(__result);
-        return downcast->cthis()->getFunction();
-      } else {
-        auto __resultRef = jni::make_global(__result);
-        return [__resultRef](TtiMeasurementValue measurement) -> void {
-          return __resultRef->invoke(measurement);
-        };
-      }
-    }()) : std::nullopt;
+    return __result->cthis()->shared_cast<JHybridTtiLoggerSpec>();
   }
-  void JHybridTtiMeasurementViewSpec::setOnMeasurement(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& onMeasurement) {
-    static const auto method = javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_TtiMeasurementValue::javaobject> /* onMeasurement */)>("setOnMeasurement_cxx");
-    method(_javaPart, onMeasurement.has_value() ? JFunc_void_TtiMeasurementValue_cxx::fromCpp(onMeasurement.value()) : nullptr);
+  void JHybridTtiMeasurementViewSpec::setTtiLogger(const std::shared_ptr<HybridTtiLoggerSpec>& ttiLogger) {
+    static const auto method = javaClassStatic()->getMethod<void(jni::alias_ref<JHybridTtiLoggerSpec::javaobject> /* ttiLogger */)>("setTtiLogger");
+    method(_javaPart, std::dynamic_pointer_cast<JHybridTtiLoggerSpec>(ttiLogger)->getJavaPart());
   }
 
   // Methods

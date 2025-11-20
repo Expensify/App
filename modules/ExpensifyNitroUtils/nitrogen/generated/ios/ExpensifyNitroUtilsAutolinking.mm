@@ -11,6 +11,7 @@
 #import <type_traits>
 
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridTtiLoggerSpecSwift.hpp"
 #include "HybridTtiMeasurementViewSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
@@ -26,6 +27,13 @@
     "ContactsModule",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridContactsModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createContactsModule();
+      return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "TtiLogger",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridTtiLoggerSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createTtiLogger();
       return hybridObject;
     }
   );

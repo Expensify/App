@@ -4,7 +4,7 @@
   "bubblingEventTypes": {},
   "directEventTypes": {},
   "validAttributes": {
-    "onMeasurement": true,
+    "ttiLogger": true,
     "hybridRef": true
   }
 }

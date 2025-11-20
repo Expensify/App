@@ -14,6 +14,8 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridTtiLoggerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiLoggerSpec; }
 // Forward declaration of `HybridTtiMeasurementViewSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridTtiMeasurementViewSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
@@ -24,6 +26,8 @@ namespace margelo::nitro::utils { struct TtiMeasurementValue; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridTtiLoggerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridTtiLoggerSpec_cxx; }
 // Forward declaration of `HybridTtiMeasurementViewSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridTtiMeasurementViewSpec_cxx; }
 
@@ -31,6 +35,7 @@ namespace ExpensifyNitroUtils { class HybridTtiMeasurementViewSpec_cxx; }
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridTtiLoggerSpec.hpp"
 #include "HybridTtiMeasurementViewSpec.hpp"
 #include "StringHolder.hpp"
 #include "TtiMeasurementValue.hpp"
@@ -225,6 +230,27 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline std::function<void(const TtiMeasurementValue& /* measurement */)> get_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& optional) noexcept {
     return *optional;
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTtiLoggerSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridTtiLoggerSpec>`.
+   */
+  using std__shared_ptr_HybridTtiLoggerSpec_ = std::shared_ptr<HybridTtiLoggerSpec>;
+  std::shared_ptr<HybridTtiLoggerSpec> create_std__shared_ptr_HybridTtiLoggerSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridTtiLoggerSpec_(std__shared_ptr_HybridTtiLoggerSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridTtiLoggerSpec>
+  using std__weak_ptr_HybridTtiLoggerSpec_ = std::weak_ptr<HybridTtiLoggerSpec>;
+  inline std__weak_ptr_HybridTtiLoggerSpec_ weakify_std__shared_ptr_HybridTtiLoggerSpec_(const std::shared_ptr<HybridTtiLoggerSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
   }
   
   // pragma MARK: std::shared_ptr<HybridTtiMeasurementViewSpec>

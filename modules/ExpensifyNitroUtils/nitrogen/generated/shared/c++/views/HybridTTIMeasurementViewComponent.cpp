@@ -25,14 +25,14 @@ namespace margelo::nitro::utils::views {
                                                                const HybridTtiMeasurementViewProps& sourceProps,
                                                                const react::RawProps& rawProps):
     react::ViewProps(context, sourceProps, rawProps, filterObjectKeys),
-    onMeasurement([&]() -> CachedProp<std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>> {
+    ttiLogger([&]() -> CachedProp<std::shared_ptr<HybridTtiLoggerSpec>> {
       try {
-        const react::RawValue* rawValue = rawProps.at("onMeasurement", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onMeasurement;
+        const react::RawValue* rawValue = rawProps.at("ttiLogger", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.ttiLogger;
         const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, "f"), sourceProps.onMeasurement);
+        return CachedProp<std::shared_ptr<HybridTtiLoggerSpec>>::fromRawValue(*runtime, value, sourceProps.ttiLogger);
       } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("TtiMeasurementView.onMeasurement: ") + exc.what());
+        throw std::runtime_error(std::string("TtiMeasurementView.ttiLogger: ") + exc.what());
       }
     }()),
     hybridRef([&]() -> CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridTtiMeasurementViewSpec>& /* ref */)>>> {
@@ -48,12 +48,12 @@ namespace margelo::nitro::utils::views {
 
   HybridTtiMeasurementViewProps::HybridTtiMeasurementViewProps(const HybridTtiMeasurementViewProps& other):
     react::ViewProps(),
-    onMeasurement(other.onMeasurement),
+    ttiLogger(other.ttiLogger),
     hybridRef(other.hybridRef) { }
 
   bool HybridTtiMeasurementViewProps::filterObjectKeys(const std::string& propName) {
     switch (hashString(propName)) {
-      case hashString("onMeasurement"): return true;
+      case hashString("ttiLogger"): return true;
       case hashString("hybridRef"): return true;
       default: return false;
     }

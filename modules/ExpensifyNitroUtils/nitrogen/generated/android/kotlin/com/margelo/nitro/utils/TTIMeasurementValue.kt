@@ -19,7 +19,10 @@ import com.facebook.proguard.annotations.DoNotStrip
 data class TtiMeasurementValue(
   @DoNotStrip
   @Keep
-  val startup: Double,
+  val applicationStartup: Double,
+  @DoNotStrip
+  @Keep
+  val bundleExecution: Double,
   @DoNotStrip
   @Keep
   val firstDraw: Double
@@ -34,8 +37,8 @@ data class TtiMeasurementValue(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(startup: Double, firstDraw: Double): TtiMeasurementValue {
-      return TtiMeasurementValue(startup, firstDraw)
+    private fun fromCpp(applicationStartup: Double, bundleExecution: Double, firstDraw: Double): TtiMeasurementValue {
+      return TtiMeasurementValue(applicationStartup, bundleExecution, firstDraw)
     }
   }
 }
