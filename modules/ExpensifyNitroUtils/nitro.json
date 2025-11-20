@@ -12,6 +12,10 @@
             "swift": "HybridContactsModule",
             "kotlin": "HybridContactsModule"
         },
+        "TtiLogger": {
+            "swift": "HybridTtiLogger",
+            "kotlin": "HybridTtiLogger"
+        },
         "TtiMeasurementView": {
             "swift": "HybridTtiMeasurementView",
             "kotlin": "HybridTtiMeasurementView"

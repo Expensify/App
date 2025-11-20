@@ -23,7 +23,7 @@ import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
-import com.margelo.nitro.utils.HybridTtiMeasurementView
+import com.margelo.nitro.utils.HybridTtiLogger
 
 class MainApplication : MultiDexApplication(), ReactApplication {
     val applicationStartedTimestamp = System.currentTimeMillis()
@@ -79,7 +79,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // the JS layer.
         StartupTimer.start()
 
-        HybridTtiMeasurementView.applicationStartedTimestamp = applicationStartedTimestamp
+        HybridTtiLogger.applicationStartupTimestamp = applicationStartedTimestamp.toDouble()
 
         // Increase SQLite DB write size
         try {
