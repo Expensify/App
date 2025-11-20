@@ -5588,6 +5588,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
  * Get the title for a report.
  */
 function getReportName(
+    translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
