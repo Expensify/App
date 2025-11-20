@@ -8,12 +8,13 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import type {IllustrationName} from './Icon/IllustrationLoader';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
 type FeatureListItem = {
-    icon: IconAsset;
+    icon: IconAsset | Extract<IllustrationName, 'ChatBubbles'>;
     translationKey: TranslationPaths;
 };
 
