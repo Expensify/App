@@ -151,23 +151,6 @@ function SearchPageNarrow({
         }
     }, []);
 
-    if (!queryJSON) {
-        return (
-            <ScreenWrapper
-                testID={SearchPageNarrow.displayName}
-                style={styles.pv0}
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldShowOfflineIndicator={!!searchResults}
-            >
-                <FullPageNotFoundView
-                    shouldShow={!queryJSON}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowLink={false}
-                />
-            </ScreenWrapper>
-        );
-    }
-
     const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
