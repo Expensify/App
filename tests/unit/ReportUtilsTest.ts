@@ -8177,6 +8177,20 @@ describe('ReportUtils', () => {
                 expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
             });
 
+            it('should return true when report is null and iouType is SUBMIT', () => {
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT)).toBe(true);
+            });
+
+            it("should return true when report is null, the iouType is SUBMIT, and the receipts do not include a user", () => {
+                const participants = [{accountID: 0, isPolicyExpenseChat: true, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(true);
+            });
+
+            it("should return false when report is null, the iouType is SUBMIT, and the receipts include a user", () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: false, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(false);
+            });
+
             it('should handle undefined policy type gracefully', () => {
                 const policyWithUndefinedType = {
                     ...createRandomPolicy(4),
