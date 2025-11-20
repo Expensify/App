@@ -32,6 +32,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['EmptyCardState', 'CompanyCardsPendingState']);
 
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
@@ -44,7 +45,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                    headerMedia={isBankAccountVerified ? EmptyCardState : CompanyCardsPendingState}
+                    headerMedia={isBankAccountVerified ? lazyIllustrations.EmptyCardState : lazyIllustrations.CompanyCardsPendingState}
                     headerStyles={
                         isBankAccountVerified
                             ? [

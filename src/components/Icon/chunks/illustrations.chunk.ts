@@ -30,14 +30,24 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+// Educational Illustrations
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
+import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+// Other Images
+import Hand from '@assets/images/hand.svg';
+import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
+import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -94,6 +104,8 @@ import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.sv
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
@@ -128,7 +140,9 @@ const Illustrations = {
 
     // Other assets
     Computer,
+    EmptyCardState,
     ExpensifyCardImage,
+    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
 
@@ -141,7 +155,18 @@ const Illustrations = {
     Telescope: TeleScope, // Alias for consistency
     ToddBehindCloud,
 
-    // Simple Illustrations - Original
+    // Educational Illustrations
+    MultiScan,
+
+    // Other Images
+    Hand,
+    ReceiptUpload,
+    RunningTurtle,
+    Shutter,
+    ExpensifyApprovedLogo,
+    TurtleInShell,
+
+    // Simple Illustrations
     Accounting,
     Building,
     Coins,
@@ -166,8 +191,6 @@ const Illustrations = {
     BlueShield,
     Pencil,
     Luggage,
-
-    // Simple Illustrations - Bucket 3 (Common)
     Puzzle,
     Abacus,
     Alert,
