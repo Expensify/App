@@ -3,6 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
+apply plugin: "io.sentry.android.gradle"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
@@ -68,6 +69,32 @@ react {
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
     cliFile = file("../../node_modules/rock/dist/src/bin.js")
     bundleCommand = "bundle"
+}
+
+sentry {
+    // Disable automatic upload of ProGuard mapping files (we only want JS source maps)
+    autoUploadProguardMapping = false
+    
+    // Disable automatic upload of native debug symbols (using Firebase Crashlytics for native crashes)
+    autoUploadNativeSymbols = false
+    uploadNativeSymbols = false
+    includeNativeSources = false
+    
+    tracingInstrumentation {
+        enabled = false
+    }
+    
+    // Disable auto installation since SDK is already manually installed
+    autoInstallation {
+        enabled = false
+    }
+    
+    // Enable source map upload for React Native JS bundles
+    autoUploadSourceContext = true
+    
+    org = System.getenv("SENTRY_ORG") ?: "expensify"
+    project = System.getenv("SENTRY_PROJECT") ?: "app"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 project.ext.envConfigFiles = [
