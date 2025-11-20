@@ -274,15 +274,35 @@ If the similarity is below 90, respond with:
 - NO_ACTION
 `;
 
+const PROPOSAL_POLICE_RESPONSE_INSTRUCTIONS = `
+OUTPUT FORMAT REQUIREMENTS:
+- Respond with a single, valid JSON object. Do not wrap it in code fences or add commentary before or after.
+- The JSON object MUST contain:
+    - "action": one of "${CONST.NO_ACTION}", "${CONST.ACTION_REQUIRED}", "${CONST.ACTION_EDIT}", "${CONST.ACTION_HIDE_DUPLICATE}"
+    - "message": a string (use "" if no message should be posted)
+    - "similarity": a number from 0-100 ONLY when performing duplicate proposal checks. Omit this field otherwise.
+- Never invent new keys. Never include markdown or prose outside of the JSON payload.
+`;
+
+const formatProposalPolicePrompt = (promptBody: string): string => {
+    return `${promptBody}\n\n${PROPOSAL_POLICE_RESPONSE_INSTRUCTIONS}`;
+};
+
 const PROPOSAL_POLICE_TEMPLATES = {
     getPromptForNewProposalTemplateCheck: (commentBody: string): string => {
-        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
+        return formatProposalPolicePrompt(
+            `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`,
+        );
     },
     getPromptForNewProposalDuplicateCheck: (newProposalBody: string | undefined, existingProposal: string): string => {
-        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
+        return formatProposalPolicePrompt(
+            `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`,
+        );
     },
     getPromptForEditedProposal: (previousBody: string | undefined, editedBody: string): string => {
-        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
+        return formatProposalPolicePrompt(
+            `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`,
+        );
     },
     getDuplicateCheckWithdrawMessage: (): string => {
         return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
@@ -293,4 +313,5 @@ const PROPOSAL_POLICE_TEMPLATES = {
     },
 };
 
+export {PROPOSAL_POLICE_BASE_PROMPT, PROPOSAL_POLICE_TEMPLATES};
 export default PROPOSAL_POLICE_TEMPLATES;

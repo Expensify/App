@@ -8,7 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import PROPOSAL_POLICE_TEMPLATES from '@prompts/proposalPolice';
+import {PROPOSAL_POLICE_BASE_PROMPT, PROPOSAL_POLICE_TEMPLATES} from '@prompts/proposalPolice';
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 
 type AssistantResponse = {
@@ -70,8 +70,16 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const assistantID = getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
     const openAI = new OpenAIUtils(apiKey);
+    const getProposalPoliceResponse = (prompt: string) =>
+        openAI.promptChatCompletions({
+            userPrompt: prompt,
+            systemPrompt: PROPOSAL_POLICE_BASE_PROMPT,
+            responseFormat: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                type: 'json_object',
+            },
+        });
 
     /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
@@ -107,7 +115,7 @@ async function run() {
             }
 
             const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
-            const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
+            const duplicateCheckResponse = await getProposalPoliceResponse(duplicateCheckPrompt);
             let similarityPercentage = 0;
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
@@ -148,7 +156,7 @@ async function run() {
         ? PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalTemplateCheck(payload.comment?.body)
         : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
-    const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    const assistantResponse = await getProposalPoliceResponse(prompt);
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);

@@ -11588,7 +11588,7 @@ const date_fns_tz_1 = __nccwpck_require__(99297);
 const ActionUtils_1 = __nccwpck_require__(96981);
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
-const proposalPolice_1 = __importDefault(__nccwpck_require__(67282));
+const proposalPolice_1 = __nccwpck_require__(67282);
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(23956));
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
@@ -11630,8 +11630,15 @@ async function run() {
         return;
     }
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
-    const assistantID = (0, core_1.getInput)('PROPOSAL_POLICE_ASSISTANT_ID', { required: true });
     const openAI = new OpenAIUtils_1.default(apiKey);
+    const getProposalPoliceResponse = (prompt) => openAI.promptChatCompletions({
+        userPrompt: prompt,
+        systemPrompt: proposalPolice_1.PROPOSAL_POLICE_BASE_PROMPT,
+        responseFormat: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            type: 'json_object',
+        },
+    });
     /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
     /* eslint-disable rulesdir/no-default-id-values */
@@ -11662,8 +11669,8 @@ async function run() {
             if (isAuthorBot) {
                 continue;
             }
-            const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
-            const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
+            const duplicateCheckPrompt = proposalPolice_1.PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
+            const duplicateCheckResponse = await getProposalPoliceResponse(duplicateCheckPrompt);
             let similarityPercentage = 0;
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
@@ -11681,8 +11688,8 @@ async function run() {
             }
         }
         if (didFindDuplicate) {
-            const duplicateCheckWithdrawMessage = proposalPolice_1.default.getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = proposalPolice_1.default.getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+            const duplicateCheckWithdrawMessage = proposalPolice_1.PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckWithdrawMessage();
+            const duplicateCheckNoticeMessage = proposalPolice_1.PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
             // If a duplicate proposal is detected, update the comment to withdraw it
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils_1.default.octokit.issues.updateComment({
@@ -11699,9 +11706,9 @@ async function run() {
         }
     }
     const prompt = isCommentCreatedEvent(payload)
-        ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
-        : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
-    const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+        ? proposalPolice_1.PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalTemplateCheck(payload.comment?.body)
+        : proposalPolice_1.PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
+    const assistantResponse = await getProposalPoliceResponse(prompt);
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
@@ -12628,16 +12635,303 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PROPOSAL_POLICE_TEMPLATES = exports.PROPOSAL_POLICE_BASE_PROMPT = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
+const PROPOSAL_POLICE_BASE_PROMPT = `
+You are a GitHub bot using AI capabilities to monitor and enforce proposal comments on GitHub repository issues.
+
+I. PROPOSAL TEMPLATE (starts and ends at "___"):
+___
+
+## Proposal  (mandatory line)
+
+### Please re-state the problem that we are trying to solve in this issue. - (mandatory line)
+
+{user content here}
+
+### What is the root cause of that problem? - (mandatory line)
+
+{user content here}
+
+### What changes do you think we should make in order to solve the problem? - (mandatory line)
+
+{user content here}
+
+### What alternative solutions did you explore? (Optional) - (optional line)
+
+{optional user content here}
+___
+
+II. IMPORTANT NOTES ON THE PROPOSAL TEMPLATE:
+- the "###" are optional, it can be just one #, two ## or 3 ### but these are OPTIONAL and the proposal should still be classified as VALID with different levels of markdown bold or none;
+- besides the "#" mentioned above, also adding emojis in between the bold markdown notation and the mandatory lines should still be classified as VALID with different levels of markdown bold or none; example: ## 🤖 Proposal - should be valid;
+- the last proposal optional line (What alternative solutions did you explore? (Optional)) can exist or not and no matter its {optional user content here}, the proposal should still be classified as VALID;
+
+
+III. PROPOSAL TEMPLATE VALIDATION EXAMPLES (starts and ends at "___"):
+___
+Valid Proposal Examples:
+
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+The app crashes when uploading large images
+
+### What is the root cause of that problem?
+The image processing library isn't handling memory efficiently
+
+### What changes do you think we should make in order to solve the problem?
+Implement image compression before upload
+
+# 🔧 Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+Users can't find the settings menu
+
+### What is the root cause of that problem?
+Settings are buried too deep in the navigation
+
+### What changes do you think we should make in order to solve the problem?
+Add a settings shortcut to the main menu
+
+### What alternative solutions did you explore? (Optional)
+Considered adding a floating settings button
+
+Invalid Proposal Examples:
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+Login issues
+
+### What changes do you think we should make in order to solve the problem?
+Fix the login system
+
+[INVALID: Missing "What is the root cause of that problem?" section]
+
+Bug Report:
+The app is crashing when uploading images
+We should fix this by implementing compression
+
+[INVALID: Not following proposal template format at all]
+___
+
+IV. EDIT CLASSIFICATION EXAMPLES (starts and ends at "___"):
+___
+MINOR Edit Examples:
+
+Original:
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+The app crashes when uploading images
+
+### What is the root cause of that problem?
+Memory management issues during image upload
+
+### What changes do you think we should make in order to solve the problem?
+Implement better memory handling during uploads
+
+Edited (MINOR):
+## 📸 Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+The app crashes when uploading images (see screenshot: link.to/screenshot)
+
+### What is the root cause of that problem?
+Memory management issues during image upload
+
+### What changes do you think we should make in order to solve the problem?
+Implement better memory handling during uploads
+
+### What alternative solutions did you explore? (Optional)
+We could also consider using a third-party upload service
+[MINOR: Added screenshot link, emoji, and optional section without changing core content]
+
+SUBSTANTIAL Edit Examples:
+Original:
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+Users can't find the settings menu
+
+### What is the root cause of that problem?
+Settings are buried in submenus
+
+### What changes do you think we should make in order to solve the problem?
+Move settings to main navigation
+
+Edited (SUBSTANTIAL):
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+Users can't find the settings menu
+
+### What is the root cause of that problem?
+After analysis, the real issue is that users expect settings in the profile page
+
+### What changes do you think we should make in order to solve the problem?
+Redesign the profile page to include settings section and add clear navigation paths
+
+[SUBSTANTIAL: Changed root cause understanding and proposed solution significantly]
+___
+
+V. PROPOSAL IDENTIFICATION EXAMPLES (starts and ends at "___"):
+___
+Valid Proposal Comments:
+## Proposal
+
+### Please re-state the problem that we are trying to solve in this issue.
+The app crashes when uploading large images
+
+### What is the root cause of that problem?
+The image processing library isn't handling memory efficiently
+
+### What changes do you think we should make in order to solve the problem?
+Implement image compression before upload
+
+[VALID: Contains "Proposal" and follows template structure with all mandatory sections]
+
+Not Actually Proposals (Even Though They Contain "Proposal" Word):
+## Proposal Review Status
+I've looked at the proposal above and it needs more details about the implementation.
+[NOT A PROPOSAL: Just discussing a proposal]
+
+The previous proposal was rejected because it didn't address the core issue. Here's my thoughts on what we should do instead...
+[NOT A PROPOSAL: Mentions proposal but doesn't follow template]
+
+## Proposal
+I think we should fix the login system. It's not working properly right now.
+[NOT A PROPOSAL: Has "Proposal" header but doesn't follow required template structure]
+
+## Proposal Feedback
+@username Your proposal looks good, but could you clarify the testing strategy?
+[NOT A PROPOSAL: Just commenting on someone else's proposal]
+___
+
+VI. DECISION TREE (starts and ends at "___"):
+___
+For each new comment:
+Does it contain the word "Proposal"?
+
+No → NO_ACTION
+Yes → Continue to 2
+
+
+Is it actually a proposal template implementation?
+
+Check if it follows the structured format with sections
+Check if it's not just discussing/referring to other proposals
+Check if it's not just feedback on proposals
+If NOT following template → NO_ACTION
+If following template → Continue to 3
+
+
+Does it contain ALL mandatory sections?
+
+No → ACTION_REQUIRED with template message
+Yes → NO_ACTION
+
+___
+
+VII. CHANGES CLASSIFICATION:
+
+When comparing an initial proposal (non-edited) with the latest edit of a proposal comment, ONLY consider the following 'CHANGES' CLASSIFICATIONS:
+
+a. MINOR: These will be small differences like correcting typos, adding permalinks, videos, screenshots to either the first, second, third or fourth proposal template mandatory lines or adding the (Optional) alternative - all these without considerable changes to the initial text of the ROOT CAUSE aka (### What is the root cause of that problem?), SOLUTION aka (### What changes do you think we should make in order to solve the problem?).
+
+b. SUBSTANTIAL: With focus on the ROOT CAUSE and SOLUTION sections, these will be accounted for significant differences on the ROOT CAUSE and SOLUTION sections (either one of them, or all three of them) - meaning if initially the proposal's ROOT CAUSE and SOLUTION user content was mentioning a certain root cause or suggesting a certain solution and the latest edit is mentioning a completely different ROOT CAUSE and / or considerable SOLUTION changes.
+
+VIII. BOT ACTIONS:
+
+1. NEW COMMENTS: For each new comment, check if it's a proposal by verifying the PROPOSAL TEMPLATE and the presence of mandatory lines in the proposal template - user content is allowed here.
+
+- If any proposal template MANDATORY LINE is missing, respond with:
+
+ATTENTION BELOW, mandatory maintain the "{}" brackets around {user} as that will be used for variable extraction.
+
+- ACTION_REQUIRED
+- MESSAGE: ⚠️ {user} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).
+
+- If all mandatory lines are present OR the comment does not contain (## Proposal), respond with:
+
+- NO_ACTION
+
+2. EDITED COMMENTS: For each edited proposal comment containing the (## Proposal) template title, compare the given initial proposal with the latest edit.
+
+- If changes are SUBSTANTIAL, respond with:
+
+ATTENTION BELOW, mandatory maintain the "{}" brackets around {updated_timestamp} as that will be used for variable extraction.
+
+- ACTION_EDIT
+- MESSAGE: 🚨 Edited by **proposal-police**: This proposal was **edited** at {updated_timestamp}.
+
+- If changes are MINOR, respond with:
+
+- NO_ACTION
+
+IX. DUPLICATE PROPOSAL DETECTION:
+
+When a new proposal is posted, compare it to existing proposals in the same issue that were posted by different users. Consider ONLY these two proposal template sections:
+
+- What is the root cause of that problem?
+- What changes do you think we should make in order to solve the problem?
+
+Instructions for Similarity Calculation:
+Give at least 80% weight to the “What changes do you think we should make in order to solve the problem?” section (the solution section) when calculating similarity.
+- If the solution section in both proposals describes the same or nearly the same technical approach, code, or implementation - even if worded differently - consider them highly similar.
+- If the solution section describes a different technical approach, code, or implementation, consider them dissimilar, even if the problem and root cause are similar.
+- The “What is the root cause of that problem?” section should be considered, but only as a secondary factor (at most 20% of the similarity score).
+- If both the root cause and solution are nearly identical, the similarity should be very high (close to 100).
+- If the solution is the same but the root cause is different, the similarity should still be high (over 90).
+- If the solution is different - even if the root cause is the same - the similarity should be much lower (well below 90).
+
+IMPORTANT: When comparing the “What changes do you think we should make in order to solve the problem?” section:
+- If the mechanism or approach to solving the problem is different, the proposals are NOT duplicates, even if they mention similar files, variables, or error messages.
+- For example, if one proposal suggests “clear the error in the selection handler” and another suggests “disable the confirm button to prevent the error,” these are fundamentally different solutions and should have a LOW similarity score (well below 90).
+- Only consider proposals as duplicates (similarity >= 90) if they propose the same technical approach (e.g., both say to clear the error in the same handler, or both say to disable the button in the same way).
+- If the solutions are mutually exclusive or would not be implemented together, they are NOT duplicates.
+- Do NOT base similarity on the presence of the same keywords, file names, or error messages alone—focus on the actual change being proposed.
+
+EXAMPLES:
+1. If Proposal A says “clear the error in onSelectRow” and Proposal B says “disable the confirm button so the error never appears,” these are NOT duplicates (similarity < 50).
+2. If Proposal A and Proposal B both say “clear the error in onSelectRow” (even if worded differently), these ARE duplicates (similarity >= 90).
+
+Summary:
+- Only assign a high similarity score if the core technical solution is the same.
+- If the solutions are different approaches—even if the problem and files are the same—assign a low similarity score.
+
+Use your best judgment as a Senior React Engineer and code reviewer to determine if the technical solution is the same or different.
+
+IMPORTANT - HOW TO RESPOND:
+Only if the similarity is 90 or above, respond with:
+- ACTION_HIDE_DUPLICATE
+- SIMILARITY: (the calculated similarity, 0-100)
+
+If the similarity is below 90, respond with:
+- NO_ACTION
+`;
+exports.PROPOSAL_POLICE_BASE_PROMPT = PROPOSAL_POLICE_BASE_PROMPT;
+const PROPOSAL_POLICE_RESPONSE_INSTRUCTIONS = `
+OUTPUT FORMAT REQUIREMENTS:
+- Respond with a single, valid JSON object. Do not wrap it in code fences or add commentary before or after.
+- The JSON object MUST contain:
+    - "action": one of "${CONST_1.default.NO_ACTION}", "${CONST_1.default.ACTION_REQUIRED}", "${CONST_1.default.ACTION_EDIT}", "${CONST_1.default.ACTION_HIDE_DUPLICATE}"
+    - "message": a string (use "" if no message should be posted)
+    - "similarity": a number from 0-100 ONLY when performing duplicate proposal checks. Omit this field otherwise.
+- Never invent new keys. Never include markdown or prose outside of the JSON payload.
+`;
+const formatProposalPolicePrompt = (promptBody) => {
+    return `${promptBody}\n\n${PROPOSAL_POLICE_RESPONSE_INSTRUCTIONS}`;
+};
 const PROPOSAL_POLICE_TEMPLATES = {
     getPromptForNewProposalTemplateCheck: (commentBody) => {
-        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
+        return formatProposalPolicePrompt(`I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`);
     },
     getPromptForNewProposalDuplicateCheck: (newProposalBody, existingProposal) => {
-        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
+        return formatProposalPolicePrompt(`I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`);
     },
     getPromptForEditedProposal: (previousBody, editedBody) => {
-        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
+        return formatProposalPolicePrompt(`I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`);
     },
     getDuplicateCheckWithdrawMessage: () => {
         return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
@@ -12647,6 +12941,7 @@ const PROPOSAL_POLICE_TEMPLATES = {
         return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already ${existingProposalWithURL} and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
     },
 };
+exports.PROPOSAL_POLICE_TEMPLATES = PROPOSAL_POLICE_TEMPLATES;
 exports["default"] = PROPOSAL_POLICE_TEMPLATES;
 
 
@@ -12666,30 +12961,6 @@ const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
 const retryWithBackoff_1 = __importDefault(__nccwpck_require__(54583));
 class OpenAIUtils {
     /**
-     * How frequently to poll a thread to wait for it to be done.
-     */
-    static POLL_RATE = 1500;
-    /**
-     * The maximum amount of time to wait for a thread to produce a response.
-     */
-    static POLL_TIMEOUT = 90000;
-    /**
-     * The role of the `user` in the OpenAI model.
-     */
-    static USER = 'user';
-    /**
-     * The role of the `assistant` in the OpenAI model.
-     */
-    static ASSISTANT = 'assistant';
-    /**
-     * The status of a completed run in the OpenAI model.
-     */
-    static OPENAI_RUN_COMPLETED = 'completed';
-    /**
-     * The maximum number of requests to make when polling for thread completion.
-     */
-    static MAX_POLL_COUNT = Math.floor(OpenAIUtils.POLL_TIMEOUT / OpenAIUtils.POLL_RATE);
-    /**
      * OpenAI API client.
      */
     client;
@@ -12699,7 +12970,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5' }) {
+    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5', responseFormat, }) {
         const messages = [{ role: 'user', content: userPrompt }];
         if (systemPrompt) {
             messages.unshift({ role: 'system', content: systemPrompt });
@@ -12707,6 +12978,7 @@ class OpenAIUtils {
         const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
             model,
             messages,
+            ...(responseFormat ? { response_format: responseFormat } : {}),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             reasoning_effort: 'low',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
@@ -12715,56 +12987,6 @@ class OpenAIUtils {
             throw new Error('Error getting chat completion response from OpenAI');
         }
         return result;
-    }
-    /**
-     * Prompt a pre-defined assistant.
-     */
-    async promptAssistant(assistantID, userMessage) {
-        // 1. Create a thread
-        const thread = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.create({
-            messages: [{ role: OpenAIUtils.USER, content: userMessage }],
-        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        // 2. Create a run on the thread
-        let run = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.runs.create(thread.id, {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            assistant_id: assistantID,
-        }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        // 3. Poll for completion
-        let response = '';
-        let count = 0;
-        while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
-            run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
-            if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
-                count++;
-                await new Promise((resolve) => {
-                    setTimeout(resolve, OpenAIUtils.POLL_RATE);
-                });
-                continue;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            for await (const message of this.client.beta.threads.messages.list(thread.id)) {
-                if (message.role !== OpenAIUtils.ASSISTANT) {
-                    continue;
-                }
-                response += message.content
-                    .map((contentBlock) => OpenAIUtils.isTextContentBlock(contentBlock) && contentBlock.text.value)
-                    .join('\n')
-                    .trim();
-                console.log('Parsed assistant response:', response);
-            }
-            if (!response) {
-                throw new Error('Assistant response is empty or had no text content. This is unexpected.');
-            }
-        }
-        return response;
-    }
-    static isTextContentBlock(block) {
-        return block.type === 'text';
     }
     static isRetryableError(error) {
         // Handle known/predictable API errors
