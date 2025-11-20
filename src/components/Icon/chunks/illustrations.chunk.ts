@@ -143,8 +143,6 @@ const Illustrations = {
     BlueShield,
     Pencil,
     Luggage,
-
-    // Simple Illustrations - Bucket 3 (Common)
     Puzzle,
     Abacus,
     Alert,
