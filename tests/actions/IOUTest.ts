@@ -7794,6 +7794,7 @@ describe('actions/IOU', () => {
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: 'merchant',
                     billable: false,
+                    reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
             });

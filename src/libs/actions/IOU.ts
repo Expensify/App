@@ -685,6 +685,7 @@ type GetTrackExpenseInformationTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
     distance?: number;
@@ -3962,7 +3963,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
+    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees} =
+        transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -4138,7 +4140,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             taxAmount,
             billable,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-            reimbursable: false,
+            reimbursable,
             filename,
             attendees,
         },
@@ -6379,6 +6381,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             validWaypoints,
             gpsPoint,
             actionableWhisperReportActionID,
@@ -6429,6 +6432,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxCode,
                 taxAmount,
                 billable,
+                reimbursable,
                 linkedTrackedExpenseReportAction,
                 attendees,
             },
@@ -6583,6 +6587,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 optimisticReportActionID,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
+                reimbursable,
                 category,
                 tag,
                 taxCode,
