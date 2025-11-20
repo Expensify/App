@@ -195,11 +195,11 @@ describe('getSettlementButtonPaymentMethods', () => {
     ])('should use correct icon and value for $description regardless of hasActivatedWallet', ({method, expectedIcon, expectedValue}) => {
         const resultWithWallet = getSettlementButtonPaymentMethods(true, translate);
         const resultWithoutWallet = getSettlementButtonPaymentMethods(false, translate);
-        [resultWithWallet, resultWithoutWallet].forEach((result) => {
+        for (const result of [resultWithWallet, resultWithoutWallet]) {
             const paymentMethod = result[method];
             expect(paymentMethod.icon).toBe(expectedIcon);
             expect(paymentMethod.value).toBe(expectedValue);
-        });
+        }
     });
 
     it('should only set shouldUpdateSelectedIndex for elsewhere payment type', () => {
