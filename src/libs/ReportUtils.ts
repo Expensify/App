@@ -8914,7 +8914,6 @@ function hasViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8929,7 +8928,6 @@ function hasWarningTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8964,7 +8962,6 @@ function hasNoticeTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8975,7 +8972,6 @@ function hasNoticeTypeViolations(
  * Checks to see if a report contains any type of violation
  */
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-
 function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: SearchTransaction[]) {
     return (
         hasViolations(reportID, transactionViolations, undefined, reportTransactions) ||
