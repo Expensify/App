@@ -242,6 +242,14 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
+}
+
+function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
+}
+
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
@@ -3437,6 +3445,8 @@ export {
     isApprovedAction,
     isUnapprovedAction,
     isForwardedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    isDynamicExternalWorkflowApproveFailedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
