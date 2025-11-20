@@ -3,17 +3,27 @@
 import type {SvgProps} from 'react-native-svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
+import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+// Educational Illustrations
+import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
+import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+// Other Images
+import Hand from '@assets/images/hand.svg';
+import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
+import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -72,7 +82,6 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
-import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
@@ -91,16 +100,21 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
     CompanyCardsEmptyState,
+    CompanyCardsPendingState,
     PendingBank,
 
     // Other assets
     Computer,
+    EmptyCardState,
     ExpensifyCardImage,
+    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
 
@@ -113,7 +127,18 @@ const Illustrations = {
     Telescope: TeleScope, // Alias for consistency
     ToddBehindCloud,
 
-    // Simple Illustrations - Original
+    // Educational Illustrations
+    MultiScan,
+
+    // Other Images
+    Hand,
+    ReceiptUpload,
+    RunningTurtle,
+    Shutter,
+    ExpensifyApprovedLogo,
+    TurtleInShell,
+
+    // Simple Illustrations
     Accounting,
     Building,
     Coins,
@@ -138,8 +163,6 @@ const Illustrations = {
     BlueShield,
     Pencil,
     Luggage,
-
-    // Simple Illustrations - Bucket 3 (Common)
     Puzzle,
     Abacus,
     Alert,
@@ -180,7 +203,6 @@ const Illustrations = {
     QRCode,
     ReceiptLocationMarker,
     ReceiptPartners,
-    ReceiptUpload,
     SendMoney,
     SplitBill,
     SubscriptionAnnual,

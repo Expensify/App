@@ -23,10 +23,8 @@ import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
-import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -52,18 +50,18 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
+import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
-import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 
 export {
     Abracadabra,
     BrokenMagnifyingGlass,
     Computer,
-    EmptyCardState,
     EmptyStateExpenses,
-    ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     MagnifyingGlassReceipt,
@@ -75,7 +73,6 @@ export {
     ToddWithPhones,
     ToddInCar,
     BrokenCompanyCardBankConnection,
-    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     Hands,
@@ -84,14 +81,15 @@ export {
     ReceiptFairy,
     PendingBank,
     ThreeLeggedLaptopWoman,
-    ExpensifyApprovedLogo,
+    Pencil,
+    ExpensifyCardImage,
+    CarIce,
     FolderWithPapers,
     RunningTurtle,
     CompanyCardsPendingState,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
-    TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,
     CapitalOneCompanyCardDetail,
@@ -114,6 +112,8 @@ export {
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,
     CardReplacementSuccess,
+    BlueShield,
     OpenSafe,
     LaptopOnDeskWithCoffeeAndKey,
+    Rules,
 };
