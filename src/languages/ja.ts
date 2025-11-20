@@ -119,6 +119,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -975,6 +976,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'このルームでは管理者のみがメッセージを送信できます。',
     reportAction: {
         asCopilot: 'のコパイロットとして',
+        harvestCreatedExpenseReport: ({reportID}: HarvestCreatedExpenseReportParams) =>
+            `選択した頻度では提出できなかった #${reportID} のすべての経費をまとめるためにこのレポートを作成しました`,
     },
     mentionSuggestions: {
         hereAlternateText: 'この会話の全員に通知する',
