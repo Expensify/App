@@ -650,8 +650,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('preserves policyID casing when generating workspace rules link for admin', () => {
-                // This test verifies that the policyID casing is preserved in the generated URL.
+            it('returns the correct workspace rules link for admin', () => {
                 // The shouldConvertToLowercase: !source parameter prevents buildMessageFragmentForValue
                 // from calling .toLowerCase() on the entire HTML anchor tag, which would corrupt
                 // the policyID in the href attribute and cause navigation to fail.
