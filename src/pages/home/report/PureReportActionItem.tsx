@@ -1141,7 +1141,7 @@ function PureReportActionItem({
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-            
+
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>

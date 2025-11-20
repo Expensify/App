@@ -9020,7 +9020,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
             // Check if there's a more recent SUBMITTED action
             const submittedAction = reportActionsArray.find((action) => isSubmittedAction(action));
             const shouldShowDEWError = !submittedAction || (submittedAction && dewSubmitFailedAction.created > submittedAction.created);
-            
+
             if (shouldShowDEWError) {
                 reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
                 if (!reportAction) {

@@ -1298,7 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `soumis${memo ? `, en disant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>`,
-        queuedToSubmitViaDEW: 'en file d\'attente pour être soumis via le workflow d\'approbation personnalisé',
+        queuedToSubmitViaDEW: "en file d'attente pour être soumis via le workflow d'approbation personnalisé",
         dynamicExternalWorkflowCannotSubmit: 'Ce rapport ne peut pas être soumis. Veuillez consulter les commentaires pour résoudre.',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `suivi ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
