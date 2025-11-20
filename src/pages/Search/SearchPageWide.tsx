@@ -2,6 +2,7 @@ import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -16,6 +17,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import Navigation from '@navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
@@ -73,11 +77,26 @@ function SearchPageWide({
     const {translate} = useLocalize();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     if (!queryJSON) {
-        return null;
+        return (
+            <View style={styles.searchSplitContainer}>
+                <ScreenWrapper
+                    testID={Search.displayName}
+                    shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicator}
+                    offlineIndicatorStyle={offlineIndicatorStyle}
+                >
+                    <FullPageNotFoundView
+                        shouldShow={!queryJSON}
+                        onBackButtonPress={handleOnBackButtonPress}
+                        shouldShowLink={false}
+                    />
+                </ScreenWrapper>
+            </View>
+        );
     }
+
     return (
         <View style={styles.searchSplitContainer}>
             <ScreenWrapper

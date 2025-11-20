@@ -155,6 +155,23 @@ function SearchPageNarrow({
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
+    if (!queryJSON) {
+        return (
+            <ScreenWrapper
+                testID={SearchPageNarrow.displayName}
+                style={styles.pv0}
+                offlineIndicatorStyle={styles.mtAuto}
+                shouldShowOfflineIndicator={!!searchResults}
+            >
+                <FullPageNotFoundView
+                    shouldShow={!queryJSON}
+                    onBackButtonPress={handleOnBackButtonPress}
+                    shouldShowLink={false}
+                />
+            </ScreenWrapper>
+        );
+    }
+
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
