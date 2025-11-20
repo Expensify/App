@@ -63,7 +63,7 @@ const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>
         return true;
     }
 
-    if (iouType === CONST.IOU.TYPE.REQUEST && parseFloat(amount) < 0.01 && !isPolicyExpenseChat) {
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && !isPolicyExpenseChat) {
         return true;
     }
 

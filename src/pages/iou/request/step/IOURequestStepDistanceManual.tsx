@@ -321,13 +321,20 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
+        const isPolicyExpenseChat = isPolicyExpenseChatUtils(report);
+        
         if (!value.length || parseFloat(value) < 0) {
+            setFormError(translate('iou.error.invalidDistance'));
+            return;
+        }
+        
+        if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(value) === 0 && !isPolicyExpenseChat) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate]);
+    }, [navigateToNextPage, translate, report, iouType]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
