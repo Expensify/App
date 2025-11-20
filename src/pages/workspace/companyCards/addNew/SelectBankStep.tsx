@@ -94,7 +94,7 @@ function SelectBankStep() {
             text: translate('common.next'),
             onConfirm: submit,
             isDisabled: isOffline,
-            styles: !hasError && styles.mt5,
+            style: !hasError && styles.mt5,
         }),
         [hasError, isOffline, styles.mt5, submit, translate],
     );
