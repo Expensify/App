@@ -24,7 +24,7 @@ function PersonalInfoPage() {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
@@ -78,8 +78,6 @@ function PersonalInfoPage() {
             wrapperID={PersonalInfoPage.displayName}
             headerTitle={translate('personalInfoStep.personalInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.WALLET.STEP_NAMES}
         >
             <SubStep
                 isEditing={isEditing}

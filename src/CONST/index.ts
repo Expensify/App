@@ -2727,11 +2727,6 @@ const CONST = {
             PAY_SOMEONE: 'start/pay/manual',
             SPLIT_EXPENSE: 'start/split/manual',
         },
-        PERSONAL_BANK_SUBSTEP_INDEXES: {
-            LEGAL_NAME: 0,
-            ADDRESS: 1,
-            PHONE_NUMBER: 2,
-        },
     },
 
     PLAID: {

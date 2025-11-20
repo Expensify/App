@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Bank, Connect, Lightbulb, Lock} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -11,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +36,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock'] as const);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
 
@@ -77,7 +78,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                 >
                     <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                         <Icon
-                            src={Lightbulb}
+                            src={expensifyIcons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
                             medium
@@ -92,7 +93,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                     <View style={styles.mt4}>
                         <MenuItem
                             title={translate('bankAccount.connectOnlineWithPlaid')}
-                            icon={Bank}
+                            icon={expensifyIcons.Bank}
                             disabled={!!isPlaidDisabled}
                             onPress={handleConnectPlaid}
                             shouldShowRightIcon
@@ -100,7 +101,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                         />
                         <MenuItem
                             title={translate('bankAccount.connectManually')}
-                            icon={Connect}
+                            icon={expensifyIcons.Connect}
                             onPress={handleConnectManually}
                             shouldShowRightIcon
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -117,7 +118,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                         <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                         <View style={styles.ml1}>
                             <Icon
-                                src={Lock}
+                                src={expensifyIcons.Lock}
                                 fill={theme.link}
                             />
                         </View>
