@@ -96,9 +96,6 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
 
-    /** Whether to include padding bottom */
-    includeSafeAreaPaddingBottom?: boolean;
-
     /** Whether to show the empty list content */
     showListEmptyContent?: boolean;
 
@@ -143,6 +140,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 type TextInputOptions = {
@@ -176,8 +176,11 @@ type TextInputOptions = {
     /** Whether the text input should be shown as a header inside list */
     shouldBeInsideList?: boolean;
 
+    /** Whether the text input autofocus should be disabled */
+    disableAutoFocus?: boolean;
+
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null> | ((ref: BaseTextInputRef | null) => void);
+    ref?: RefObject<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -205,6 +208,9 @@ type SelectionListHandle = {
 
     /** Scrolls to the item at the specified index */
     scrollToIndex: (index: number) => void;
+
+    /** Updates the focused index and optionally scrolls to it */
+    updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {

@@ -8,7 +8,6 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,11 +23,11 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -41,14 +40,18 @@ import {
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
+    getLastPolicyBankAccountID,
     getLastPolicyPaymentMethod,
+    getPayMoneyOnSearchInvoiceParams,
     getPayOption,
     getReportType,
+    getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     search,
+    submitMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -57,7 +60,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isBusinessInvoiceRoom,
+    isExpenseReport as isExpenseReportUtil,
+    isInvoiceReport,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -77,7 +88,6 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -108,6 +118,19 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Export',
+        'Table',
+        'DocumentMerge',
+        'Send',
+        'Trashcan',
+        'ThumbsUp',
+        'ArrowRight',
+        'Stopwatch',
+        'Exclamation',
+        'SmartScan',
+        'MoneyBag',
+    ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -115,7 +138,6 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
-    const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -128,12 +150,16 @@ function SearchPage({route}: SearchPageProps) {
         ],
         [selectedTransactions],
     );
+    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
+    const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         activeAdminPolicies,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
+        currency: selectedBulkCurrency,
+        formattedAmount: totalFormattedAmount,
     });
 
     useEffect(() => {
@@ -177,7 +203,7 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType) => {
+        (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
             if (!hash) {
                 return;
             }
@@ -187,7 +213,6 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             const activeRoute = Navigation.getActiveRoute();
-            const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
             for (const item of selectedOptions) {
@@ -239,22 +264,41 @@ function SearchPage({route}: SearchPageProps) {
                     }
                 }
             }
-
+            const paymentAdditionalData = (additionalData as Partial<PaymentData>) ?? {};
             const paymentData = (
                 selectedReports.length
-                    ? selectedReports.map((report) => ({
-                          reportID: report.reportID,
-                          amount: report.total,
-                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
-                      }))
+                    ? selectedReports.map((report) => {
+                          return {
+                              reportID: report.reportID,
+                              amount: report.total,
+                              paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                              ...(isInvoiceReport(report.reportID)
+                                  ? getPayMoneyOnSearchInvoiceParams(
+                                        report.policyID,
+                                        paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
+                                        paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
+                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                    )
+                                  : {}),
+                          };
+                      })
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
                           amount: transaction.amount,
                           paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                          ...(isInvoiceReport(transaction.reportID)
+                              ? getPayMoneyOnSearchInvoiceParams(
+                                    transaction.policyID,
+                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
+                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
+                                    CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                )
+                              : {}),
                       }))
             ) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            payMoneyRequestOnSearch(hash, paymentData);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -276,7 +320,7 @@ function SearchPage({route}: SearchPageProps) {
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (isOffline) {
                             setIsOfflineModalVisible(true);
@@ -323,7 +367,7 @@ function SearchPage({route}: SearchPageProps) {
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -337,8 +381,8 @@ function SearchPage({route}: SearchPageProps) {
         };
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -352,16 +396,18 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
+        const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) => selectedReportIDs.includes(selectedTransactions[id].reportID));
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
+            areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
             options.push({
-                icon: Expensicons.ThumbsUp,
+                icon: expensifyIcons.ThumbsUp,
                 text: translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
@@ -385,11 +431,10 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -397,26 +442,47 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
-        const shouldEnableExpenseBulk = selectedReports.length
-            ? selectedReports.every(
-                  (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-              )
-            : selectedTransactionsKeys.every(
-                  (id) =>
-                      selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      selectedTransactions[id].policyID &&
-                      getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-              );
 
+        const shouldShowSubmitOption =
+            !isOffline &&
+            areSelectedTransactionsIncludedInReports &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
+
+        if (shouldShowSubmitOption) {
+            options.push({
+                icon: expensifyIcons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
+
+                    for (const item of itemList) {
+                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                        if (policy) {
+                            submitMoneyRequestOnSearch(hash, [item], [policy]);
+                        }
+                    }
+                    clearSelectedTransactions();
+                },
+            });
+        }
         const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && (isBetaBulkPayEnabled ? shouldEnableBulkPayOption : shouldEnableExpenseBulk);
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
             const payButtonOption = {
-                icon: Expensicons.MoneyBag,
+                icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
@@ -431,7 +497,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowHoldOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 shouldCloseModalOnSelect: true,
@@ -450,7 +516,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowUnholdOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
@@ -493,7 +559,7 @@ function SearchPage({route}: SearchPageProps) {
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
@@ -504,7 +570,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowDeleteOption) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
@@ -534,7 +600,7 @@ function SearchPage({route}: SearchPageProps) {
             };
 
             options.push({
-                icon: Expensicons.Exclamation,
+                icon: expensifyIcons.Exclamation,
                 text: translate('search.bulkActions.noOptionsAvailable'),
                 value: undefined,
                 ...emptyOptionStyle,
@@ -567,7 +633,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
-        isBetaBulkPayEnabled,
+        expensifyIcons,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -581,7 +647,7 @@ function SearchPage({route}: SearchPageProps) {
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, currentSearchResults);
             clearSelectedTransactions();
         });
     };
@@ -594,11 +660,12 @@ function SearchPage({route}: SearchPageProps) {
             report: newReport,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
                 index === 0
@@ -614,8 +681,8 @@ function SearchPage({route}: SearchPageProps) {
                 source,
                 transactionID,
             });
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
-        });
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        }
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
@@ -648,10 +715,10 @@ function SearchPage({route}: SearchPageProps) {
         if (files.length === 0) {
             return;
         }
-        files.forEach((file) => {
+        for (const file of files) {
             // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-        });
+        }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
@@ -763,7 +830,7 @@ function SearchPage({route}: SearchPageProps) {
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
-                            icon={Expensicons.SmartScan}
+                            icon={expensifyIcons.SmartScan}
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
@@ -898,7 +965,7 @@ function SearchPage({route}: SearchPageProps) {
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        icon={Expensicons.SmartScan}
+                                        icon={expensifyIcons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}

@@ -60,7 +60,6 @@ function BaseSelectionList<TItem extends ListItem>({
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
-    includeSafeAreaPaddingBottom = true,
     showListEmptyContent = true,
     showLoadingPlaceholder,
     showScrollIndicator = true,
@@ -76,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
+    shouldHighlightSelectedItem = true,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -99,10 +99,9 @@ function BaseSelectionList<TItem extends ListItem>({
         [isSelected, selectedItems, canSelectMultiple],
     );
 
-    const paddingBottomStyle = useMemo(
-        () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
-        [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
-    );
+    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
+
+    const hasFooter = !!footerContent || confirmButtonConfig?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -250,7 +249,6 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonConfig?.isDisabled,
         },
     );
-
     const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -258,21 +256,12 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, []);
 
-    const handleTextInputRef = (element: BaseTextInputRef | null) => {
-        innerTextInputRef.current = element;
-
-        const textInputRef = textInputOptions?.ref;
-        if (!textInputRef) {
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef) {
             return;
         }
-
-        if (typeof textInputRef === 'function') {
-            textInputRef(element);
-        } else {
-            // eslint-disable-next-line react-compiler/react-compiler
-            textInputRef.current = element;
-        }
-    };
+        innerTextInputRef.current?.focus();
+    }, [innerTextInputRef]);
 
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
@@ -281,10 +270,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
         return (
             <TextInput
+                ref={innerTextInputRef}
+                focusTextInput={focusTextInput}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
-                ref={handleTextInputRef}
                 options={textInputOptions}
                 onSubmit={selectFocusedOption}
                 dataLength={data.length}
@@ -292,6 +282,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
+                setFocusedIndex={setFocusedIndex}
             />
         );
     };
@@ -324,6 +315,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={style?.listItemWrapperStyle}
                 titleStyles={style?.listItemTitleStyles}
                 singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
             />
         );
@@ -360,6 +352,19 @@ function BaseSelectionList<TItem extends ListItem>({
         [data, itemsToHighlight, scrollToIndex],
     );
 
+    const updateFocusedIndex = useCallback(
+        (newFocusedIndex: number, shouldScroll = false) => {
+            if (newFocusedIndex < 0 || newFocusedIndex >= data.length) {
+                return;
+            }
+            setFocusedIndex(newFocusedIndex);
+            if (shouldScroll) {
+                scrollToIndex(newFocusedIndex);
+            }
+        },
+        [data.length, scrollToIndex, setFocusedIndex],
+    );
+
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
             return;
@@ -374,9 +379,9 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
     return (
-        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
+        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 ? (
                 renderListEmptyContent()
