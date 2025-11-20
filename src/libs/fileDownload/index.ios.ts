@@ -72,6 +72,7 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             });
         })
         .catch((error) => {
+            // If the user cancels the iOS share/save dialog, we exit silently without showing an error
             if (isUserCancelled(error)) {
                 return;
             }

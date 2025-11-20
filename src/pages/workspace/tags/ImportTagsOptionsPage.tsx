@@ -109,18 +109,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
-                            close(() => {
-                                downloadMultiLevelTagsCSV(
-                                    policyID,
-                                    () => {
+                            downloadMultiLevelTagsCSV(
+                                policyID,
+                                () => {
+                                    close(() => {
                                         setIsDownloadFailureModalVisible(true);
-                                    },
-                                    hasDependentTags,
-                                );
-                            });
+                                    });
+                                },
+                                hasDependentTags,
+                            );
                         } else {
-                            close(() => {
-                                downloadTagsCSV(policyID, () => {
+                            downloadTagsCSV(policyID, () => {
+                                close(() => {
                                     setIsDownloadFailureModalVisible(true);
                                 });
                             });
@@ -141,21 +141,21 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             <TextLink
                 onPress={() => {
                     if (isMultiLevelTags) {
-                        close(() =>
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
+                        downloadMultiLevelTagsCSV(
+                            policyID,
+                            () => {
+                                close(() => {
                                     setIsDownloadFailureModalVisible(true);
-                                },
-                                hasDependentTags,
-                            ),
+                                });
+                            },
+                            hasDependentTags,
                         );
                     } else {
-                        close(() =>
-                            downloadTagsCSV(policyID, () => {
+                        downloadTagsCSV(policyID, () => {
+                            close(() => {
                                 setIsDownloadFailureModalVisible(true);
-                            }),
-                        );
+                            });
+                        });
                     }
                 }}
             >
