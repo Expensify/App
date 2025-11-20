@@ -1,7 +1,7 @@
 ---
 title: How to share a business bank account in Expensify
 description: Workspace Admins can now share access to a business bank account with other admins — no need to set it up from scratch.
-keywords: share business bank account, reimbursements, Wallet, Workspace Admin, Settings > Wallet, pending validation, Expensify business bank
+keywords: [share business bank account, reimbursements, Wallet, Workspace Admin, Settings > Wallet, pending validation, Expensify business bank]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -47,12 +47,12 @@ To share an existing account with other admins:
 - The shared-to admins will receive a Concierge message letting them know the account was shared.
 - They’ll now see the account in their **Wallet**.
 
-### For **US accounts**:
+**For US accounts:**
 - The shared account appears with an **Action required** badge.
 - The shared-to admin will need to **validate** the account by entering test transactions.
 - After validation, they can begin using it. 
 
-### For **non-US accounts**:
+**For non-US accounts:**
 - The shared account is ready to use immediately — no test transactions required.
 
 # FAQ
@@ -76,7 +76,7 @@ You’ll only see **Share** if the bank account is verified and there is at leas
 
 If an admin already has access to the bank account, they won’t appear in the share list.
 
-## Can a shared admin share the bank account to others?
+## Can a shared admin share the bank account with others?
 
 Yes — once an admin has validated the account (if required), they can share the bank account with other admins. 
 
