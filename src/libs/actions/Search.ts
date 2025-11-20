@@ -419,12 +419,12 @@ function search({
  */
 function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const onyxUpdate: Record<string, Record<string, Partial<Transaction>>> = {
+    const onyxUpdate = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                 transactionThreadReportID: reportID,
             },
-        },
+        } as Partial<Transaction>,
     };
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
