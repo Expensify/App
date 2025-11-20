@@ -2511,6 +2511,16 @@ function getColumnsToShow(
     return columns;
 }
 
+type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+
+function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
+    if (!allSnapshots) {
+        return [];
+    }
+
+    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -2552,5 +2562,6 @@ export {
     getActionOptions,
     getColumnsToShow,
     getHasOptions,
+    getSnapshotKeys,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
