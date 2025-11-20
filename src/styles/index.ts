@@ -6019,6 +6019,9 @@ const plainStyles = (theme: ThemeColors) =>
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
         },
+        searchTopBarZIndexStyle: {
+            zIndex: variables.searchTopBarZIndex,
+        },
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
