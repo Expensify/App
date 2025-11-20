@@ -100,6 +100,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Heart',
         'Exit',
         'Emoji',
+        'ExpensifyLogoNew',
     ] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -279,7 +280,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
