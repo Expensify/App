@@ -33,7 +33,7 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
+import {getRateFromMerchant, getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -249,8 +249,9 @@ function MoneyRequestView({
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -304,11 +305,11 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
-    const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
+    const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
-    const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    let rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
@@ -374,6 +375,13 @@ function MoneyRequestView({
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
+    }
+
+    if (isFromMergeTransaction) {
+        // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
+        // We need to extract the rate from the merchant string
+        // See https://github.com/Expensify/App/pull/71675#issuecomment-3425488228 for more information
+        rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction);
@@ -632,7 +640,7 @@ function MoneyRequestView({
     }
 
     return (
-        <View style={styles.pRelative}>
+        <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
@@ -781,13 +789,13 @@ function MoneyRequestView({
                                                 iouType,
                                                 transaction.transactionID,
                                                 report.reportID,
-                                                getReportRHPActiveRoute(),
+                                                Navigation.getActiveRoute(),
                                             ),
                                         ),
                                     );
                                 } else {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, Navigation.getActiveRoute()),
                                     );
                                 }
                             }}
