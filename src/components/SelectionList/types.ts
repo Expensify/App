@@ -38,7 +38,7 @@ type SelectionListProps<TItem extends ListItem> = {
     onEndReachedThreshold?: number;
 
     /** Configuration for the confirm button */
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
@@ -111,6 +111,9 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
+    /** Whether scroll position should change when focused item changes */
+    disableMaintainingScrollPosition?: boolean;
+
     /** Whether to use the user skeleton view */
     shouldUseUserSkeletonView?: boolean;
 
@@ -143,6 +146,10 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type TextInputOptions = {
@@ -176,8 +183,11 @@ type TextInputOptions = {
     /** Whether the text input should be shown as a header inside list */
     shouldBeInsideList?: boolean;
 
+    /** Whether the text input autofocus should be disabled */
+    disableAutoFocus?: boolean;
+
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null> | ((ref: BaseTextInputRef | null) => void);
+    ref?: RefObject<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
