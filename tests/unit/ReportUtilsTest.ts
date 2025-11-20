@@ -1663,7 +1663,7 @@ describe('ReportUtils', () => {
                             currency: 'USD',
                         },
                     };
-
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const transaction: SearchTransaction = {
                         transactionID: 'txn1',
                         reportID: '2',
@@ -1672,6 +1672,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                     } as SearchTransaction;
 
                     const reportName = getSearchReportName({
