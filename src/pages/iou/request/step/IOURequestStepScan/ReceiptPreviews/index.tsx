@@ -118,7 +118,12 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     });
 
     const submitReceipts = () => {
-        const transactionReceipts = (optimisticTransactionsReceipts ?? []).filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source);
+        const transactionReceipts = (optimisticTransactionsReceipts ?? [])
+            .filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source)
+            .map((receipt) => ({
+                ...receipt,
+                file: {uri: receipt.source, type: receipt.type, name: receipt.filename},
+            }));
         submit(transactionReceipts);
     };
 
