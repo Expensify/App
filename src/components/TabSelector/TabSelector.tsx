@@ -95,6 +95,7 @@ function TabSelector({
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan'] as const);
+
     const isResizing = useIsResizing();
 
     useEffect(() => {

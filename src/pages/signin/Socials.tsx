@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';

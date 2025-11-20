@@ -1,6 +1,5 @@
-import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';

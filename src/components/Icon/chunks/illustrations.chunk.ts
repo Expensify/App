@@ -5,7 +5,6 @@ import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
-import ChatBubbles from '@assets/images/chatbubbles.svg'
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
@@ -172,5 +171,5 @@ const AVAILABLE_ILLUSTRATIONS = Object.keys(Illustrations);
 type IllustrationName = keyof typeof Illustrations;
 
 export default Illustrations;
-export { getIllustration, AVAILABLE_ILLUSTRATIONS };
-export type { IllustrationName };
+export {getIllustration, AVAILABLE_ILLUSTRATIONS};
+export type {IllustrationName};

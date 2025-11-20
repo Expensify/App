@@ -936,6 +936,7 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[];
     reports?: Report[];
     policies?: Policy[];
@@ -2258,6 +2259,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 /**
  * Whether the provided report has expenses
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
         return !!transactions?.find((transaction) => transaction?.reportID === reportID);
