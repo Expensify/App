@@ -14,6 +14,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchPage from '@pages/Search/SearchPage';
 import SearchPageNarrow from '@pages/Search/SearchPageNarrow';
