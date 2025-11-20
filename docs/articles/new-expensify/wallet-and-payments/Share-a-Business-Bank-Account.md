@@ -1,5 +1,5 @@
 ---
-title: How to share a business bank account in Expensify
+title: Share a Business Bank Account
 description: Workspace Admins can now share access to a business bank account with other admins — no need to set it up from scratch.
 keywords: [share business bank account, reimbursements, Wallet, Workspace Admin, Settings > Wallet, pending validation, Expensify business bank]
 ---
