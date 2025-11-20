@@ -291,6 +291,7 @@ function MoneyReportHeader({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
@@ -559,9 +560,7 @@ function MoneyReportHeader({
             return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
         }
 
-        // Check for DEW errors first (highest priority)
-        if (hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-            // Convert array to object format for getAllReportActionsErrorsAndReportActionThatRequiresAttention
+        if (isDEWSubmitBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
             const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
                 if (action.reportActionID) {
                     acc[action.reportActionID] = action;
@@ -570,7 +569,7 @@ function MoneyReportHeader({
             }, {});
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
             if (errors?.dewSubmitFailed) {
-                return {icon: getStatusIcon(expensifyIcons.Exclamation), description: translate('iou.dynamicExternalWorkflowCannotSubmit')};
+                return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.dynamicExternalWorkflowCannotSubmit')};
             }
         }
 
@@ -790,7 +789,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport || shouldBlockSubmit) {
                         return;
                     }
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
                         showDWEModal();
                         return;
                     }
@@ -1006,7 +1005,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                if (hasDynamicExternalWorkflow(policy)) {
+                if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
                     showDWEModal();
                     return;
                 }
