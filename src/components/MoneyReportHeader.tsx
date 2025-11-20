@@ -232,6 +232,8 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
+        'CheckmarkCircle',
+        'ReceiptMultiple',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -551,6 +553,22 @@ function MoneyReportHeader({
         }
         markAsCashAction(iouTransactionID, reportID);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
+
+    const duplicateTransaction = useCallback(
+        (transactions: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
+                return;
+            }
+
+            const optimisticChatReportID = generateReportID();
+            const optimisticIOUReportID = generateReportID();
+
+            transactions.forEach((item) => {
+                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
+            });
+        },
+        [activePolicyExpenseChat, defaultExpensePolicy],
+    );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
@@ -1135,7 +1153,6 @@ function MoneyReportHeader({
                 duplicateTransaction([transaction]);
             },
             shouldCloseModalOnSelect: false,
-            shouldShow: transactions.length === 1,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
@@ -1359,22 +1376,6 @@ function MoneyReportHeader({
             confirmExport();
         });
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
-
-    const duplicateTransaction = useCallback(
-        (transactions: OnyxEntry<OnyxTypes.Transaction>[]) => {
-            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
-                return;
-            }
-
-            const optimisticChatReportID = generateReportID();
-            const optimisticIOUReportID = generateReportID();
-
-            transactions.forEach((item) => {
-                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
-            });
-        },
-        [activePolicyExpenseChat, defaultExpensePolicy],
-    );
 
     useEffect(() => {
         if (!exportModalStatus) {
