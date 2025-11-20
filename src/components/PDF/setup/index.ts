@@ -1,6 +1,8 @@
+import type {EnsurePdfJsInitialized, UsePreloadLazyModules} from './types';
+
 let pdfSetupPromise: Promise<unknown> | null = null;
 
-function ensurePdfJsInitialized() {
+function ensurePdfJsInitialized(): EnsurePdfJsInitialized {
     if (pdfSetupPromise) {
         return pdfSetupPromise;
     }
@@ -24,7 +26,7 @@ function ensurePdfJsInitialized() {
 
 // This hook makes it possible to manually load the lazy loaded modules
 // right after the main bundle is loaded to decrease the bundle size
-function usePreloadLazyModules() {
+function usePreloadLazyModules(): UsePreloadLazyModules {
     import(/* webpackPrefetch: true */ 'react-fast-pdf');
     import(/* webpackPrefetch: true */ 'react-pdf');
 }
