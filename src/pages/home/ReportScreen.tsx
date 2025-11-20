@@ -857,22 +857,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!reportID || !visibleTransactions?.length) {
             return;
         }
-    
+
         // Only handle single transaction expense reports
         if (visibleTransactions.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE) {
             return;
         }
-    
+
         // If transaction thread already exists, no need to create
         if (transactionThreadReport || transactionThreadReportID) {
             return;
         }
-    
+
         const transaction = visibleTransactions.at(0);
         if (!transaction?.transactionID) {
             return;
         }
-    
+
         // Check if IOU action exists - if not, it's a legacy transaction
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
         if (iouAction) {
@@ -881,7 +881,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         // Mark as created BEFORE calling to prevent race conditions
         hasCreatedLegacyThreadRef.current = true;
-        
+
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport(report, undefined, transaction);

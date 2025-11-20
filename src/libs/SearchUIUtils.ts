@@ -2561,7 +2561,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
 
     return transaction as OnyxTypes.Transaction;
 }
-    
 
 export {
     getSuggestedSearches,
