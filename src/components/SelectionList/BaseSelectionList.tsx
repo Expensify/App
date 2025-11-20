@@ -44,6 +44,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onScrollBeginDrag,
     onEndReached,
     onEndReachedThreshold,
+    children,
     confirmButtonOptions,
     customListHeader,
     customListHeaderContent,
@@ -77,6 +78,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -304,6 +306,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
@@ -417,6 +420,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             </>
                         }
                     />
+                    {children}
                 </>
             )}
 
