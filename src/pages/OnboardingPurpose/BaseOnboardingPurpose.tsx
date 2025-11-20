@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -9,6 +9,7 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -39,17 +40,21 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
-    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
-    [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
-    [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
-    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
-};
-
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars'] as const);
+
+    const menuIcons = useMemo(
+        () => ({
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
+        }),
+        [illustrations.Abacus, illustrations.Binoculars],
+    );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();

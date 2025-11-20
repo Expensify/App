@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -25,7 +24,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
-import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
@@ -38,8 +36,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -55,14 +52,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-
-    useSuggestedSearchDefaultNavigation({
-        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
-        flattenedMenuItems,
-        similarSearchHash,
-        clearSelectedTransactions,
-    });
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -143,8 +132,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return -1;
         }
 
+        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
