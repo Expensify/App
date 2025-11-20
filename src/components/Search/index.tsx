@@ -669,7 +669,7 @@ function Search({
 
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(item, hash, backTo);
+                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, true, searchResults?.data);
                 return;
             }
 
@@ -730,7 +730,7 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
+                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false, searchResults?.data);
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
@@ -753,7 +753,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense, searchResults?.data],
     );
 
     const currentColumns = useMemo(() => {

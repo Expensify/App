@@ -429,6 +429,18 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
+function updateSearchResultsWithIsFromOneTransactionReport(hash: number, transactionID: string, isFromOneTransactionReport: boolean) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
+        data: {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                isFromOneTransactionReport,
+            },
+        },
+    };
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
+}
+
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     transactionIDList.forEach((transactionID) => {
@@ -1111,6 +1123,7 @@ export {
     saveSearch,
     search,
     updateSearchResultsWithTransactionThreadReportID,
+    updateSearchResultsWithIsFromOneTransactionReport,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
