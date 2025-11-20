@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
@@ -51,7 +50,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const styles = useThemeStyles();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const {currentSearchHash} = useSearchContext();
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;

@@ -61,7 +61,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';

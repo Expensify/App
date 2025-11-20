@@ -31,7 +31,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

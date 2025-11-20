@@ -2803,7 +2803,6 @@ describe('SearchUIUtils', () => {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
-        const hash = 12345;
         const backTo = '/search/all';
 
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
