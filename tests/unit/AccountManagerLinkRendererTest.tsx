@@ -19,8 +19,8 @@ jest.mock('@components/HTMLEngineProvider/htmlEngineUtils', () => ({
 jest.mock('react-native-render-html', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('react-native-render-html');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actual,
         TNodeChildrenRenderer: ({tnode}: {tnode: {mockText?: string}}) => tnode.mockText ?? 'Account Manager',
     };
