@@ -620,6 +620,11 @@ const dismissToFirstRHP = () => {
     }
 
     const routesToPop = rhpState.routes.length - 1;
+    if (routesToPop <= 0) {
+        dismissModal();
+        return;
+    }
+    
     navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
 };
 
