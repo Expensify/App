@@ -289,7 +289,7 @@ function MoneyRequestView({
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isExpenseUnreported) &&
-        policyForMovingExpensesID &&
+        !!policyForMovingExpensesID &&
         (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
         !isCardTransaction &&
         !isInvoice;

@@ -684,6 +684,7 @@ type GetTrackExpenseInformationTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
     distance?: number;
@@ -6374,6 +6375,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             validWaypoints,
             gpsPoint,
             actionableWhisperReportActionID,
@@ -6424,6 +6426,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxCode,
                 taxAmount,
                 billable,
+                reimbursable,
                 linkedTrackedExpenseReportAction,
                 attendees,
             },
