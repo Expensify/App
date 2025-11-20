@@ -2555,7 +2555,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isFromOneTransactionReport,
         accountID,
         policyID,
-        transactionType,
         ...transaction
     } = item;
 
