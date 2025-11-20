@@ -155,7 +155,7 @@ function SearchFiltersBar({
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
-        const policyIDs = filterFormValues.policyID || queryJSON.policyID;
+        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
         if (!policyIDs) {
             return [];
         }
