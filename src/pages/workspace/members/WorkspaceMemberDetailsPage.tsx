@@ -27,16 +27,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {
-    getAllCardsForWorkspace,
-    getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
-    getCompanyFeeds,
-    getPlaidInstitutionIconUrl,
-    isExpensifyCardFullySetUp,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -261,7 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => {
+        for (const workflow of updatedWorkflows) {
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
@@ -269,7 +260,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             } else {
                 updateApprovalWorkflow(workflow, [], [], policy);
             }
-        });
+        }
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
@@ -285,17 +276,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
                 return;
             }
-            if (!card.fundID) {
-                return;
-            }
-            Navigation.navigate(
-                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                    policyID,
-                    card.cardID.toString(),
-                    getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
-                    Navigation.getActiveRoute(),
-                ),
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), card.bank, Navigation.getActiveRoute()));
         },
         [policyID],
     );
