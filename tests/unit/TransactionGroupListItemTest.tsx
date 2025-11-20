@@ -57,7 +57,6 @@ const mockTransaction: TransactionListItemType = {
     tag: '',
     transactionID: '1',
     transactionThreadReportID: '2925191332104975',
-    transactionType: 'cash',
     action: 'approve',
     allActions: ['approve'],
     formattedFrom: 'Main Applause QA',
