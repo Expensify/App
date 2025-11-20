@@ -192,6 +192,7 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
+import Sparkles from '@assets/images/sparkles.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -379,6 +380,7 @@ export {
     Send,
     Shield,
     SmartScan,
+    Sparkles,
     Stopwatch,
     Suitcase,
     Sync,

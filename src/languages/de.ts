@@ -570,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Karte',
         whyDoWeAskForThis: 'Warum fragen wir danach?',
         required: 'Erforderlich',
+        automatic: 'Automatisch',
         showing: 'Anzeigen',
         of: 'von',
         default: 'Standardmäßig',
@@ -1199,6 +1200,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartentransaktion. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Barzahlung markieren',
         routePending: 'Route wird bearbeitet...',
+        automaticallyEnterExpenseDetails: 'Concierge wird automatisch die Ausgabendetails für Sie eingeben, oder Sie können sie manuell hinzufügen.',
         receiptScanning: () => ({
             one: 'Beleg scannen...',
             other: 'Belege werden gescannt...',

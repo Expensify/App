@@ -143,6 +143,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    ListFooterComponentStyle,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -1051,6 +1052,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

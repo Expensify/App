@@ -570,6 +570,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Cartão',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
+        automatic: 'Automático',
         showing: 'Mostrando',
         of: 'of',
         default: 'Padrão',
@@ -1195,6 +1196,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Recibo pendente de correspondência com transação do cartão. Marcar como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
         routePending: 'Rota pendente...',
+        automaticallyEnterExpenseDetails: 'O Concierge inserirá automaticamente os detalhes da despesa para você, ou você pode adicioná-los manualmente.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Digitalização de recibos...',

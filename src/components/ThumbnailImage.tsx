@@ -76,6 +76,9 @@ type ThumbnailImageProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** Whether the image should use the full height of the container */
+    shouldUseFullHeight?: boolean;
 };
 
 function ThumbnailImage({
@@ -96,6 +99,7 @@ function ThumbnailImage({
     onLoadFailure,
     onMeasure,
     loadingIndicatorStyles,
+    shouldUseFullHeight,
     onLoad,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
@@ -173,6 +177,7 @@ function ThumbnailImage({
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}
                     onLoad={onLoad}
+                    shouldUseFullHeight={shouldUseFullHeight}
                 />
             </View>
         </View>
