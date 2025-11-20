@@ -28,6 +28,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -161,6 +162,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(report);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
@@ -519,7 +521,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
-                icon: Expensicons.Exit,
+                icon: lazyIcons.Exit,
                 isAnonymousAction: true,
                 action: () => {
                     if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
@@ -572,14 +574,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        currentUserPersonalDetails.accountID,
-        isTaskActionable,
-        isRootGroupChat,
-        leaveChat,
-        isSmallScreenWidth,
+        introSelected,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
-        introSelected,
+        currentUserPersonalDetails.accountID,
+        isTaskActionable,
+        isSmallScreenWidth,
+        lazyIcons.Exit,
+        isRootGroupChat,
+        leaveChat,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
