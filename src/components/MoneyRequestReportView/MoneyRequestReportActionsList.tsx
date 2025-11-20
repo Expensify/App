@@ -166,6 +166,7 @@ function MoneyRequestReportActionsList({
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutByDefault, isSmallScreenWidth} = useResponsiveLayout();
     const {superWideRHPRouteKeys} = useContext(WideRHPContext);
     const shouldUseNarrowLayout = shouldUseNarrowLayoutByDefault && (superWideRHPRouteKeys.length === 0 || isSmallScreenWidth);
