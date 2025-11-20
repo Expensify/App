@@ -7401,6 +7401,7 @@ const FRAUD_PROTECTION_EVENT = {
 };
 
 const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
+    [CONST.DATE.FNS_FORMAT_STRING]: {year: 'numeric', month: '2-digit', day: '2-digit'},
     [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
     [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
     [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
