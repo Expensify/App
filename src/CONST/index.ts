@@ -1662,6 +1662,7 @@ const CONST = {
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
+        SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
     },
     PRIORITY_MODE: {
