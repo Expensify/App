@@ -2503,7 +2503,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
     },
-    TRAVEL_WORKSPACE_CONFIRMATION: 'travel/upgrade/workspace/confirmation',
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        route: 'travel/upgrade/workspace/confirmation',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
 
