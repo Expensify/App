@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
@@ -12,6 +12,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {domainSamlMetadataErrorSelector} from '@src/selectors/Domain';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ScimTokenContent from './ScimTokenContent';
 
 type SamlConfigurationDetailsSectionContentProps = {
@@ -30,9 +31,16 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     const styles = useThemeStyles();
 
     const [samlMetadataError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainSamlMetadataErrorSelector});
-    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: true});
+    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: true});
 
-    if (samlMetadata?.isLoading) {
+    useEffect(() => {
+        if (!domainName) {
+            return;
+        }
+        getSamlSettings(accountID, domainName);
+    }, [accountID, domainName]);
+
+    if (samlMetadata?.isLoading || isLoadingOnyxValue(samlMetadataResults)) {
         return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
@@ -45,10 +53,14 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
         );
     }
 
+    if (!samlMetadata) {
+        return null;
+    }
+
     return (
         <>
             <TextPicker
-                value={samlMetadata?.metaIdentity}
+                value={samlMetadata.metaIdentity}
                 inputID="identityProviderMetadata"
                 description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -68,7 +80,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        value={samlMetadata?.entityID}
+                        value={samlMetadata.entityID}
                         textStyle={styles.fontSizeLabel}
                     />
                 }
@@ -81,7 +93,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        value={samlMetadata?.nameFormat}
+                        value={samlMetadata.nameFormat}
                         textStyle={styles.fontSizeLabel}
                     />
                 }
@@ -94,7 +106,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        value={samlMetadata?.urlLogin}
+                        value={samlMetadata.urlLogin}
                         style={styles.mb2}
                         textStyle={styles.fontSizeLabel}
                     />
@@ -109,7 +121,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        value={samlMetadata?.urlLogout}
+                        value={samlMetadata.urlLogout}
                         style={styles.mb2}
                         textStyle={styles.fontSizeLabel}
                     />
@@ -124,7 +136,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
             <MenuItemWithTopDescription
                 titleComponent={
                     <CopyableTextField
-                        value={samlMetadata?.metaService}
+                        value={samlMetadata.metaService}
                         shouldDisplayShowMoreButton
                         textStyle={styles.fontSizeLabel}
                     />

@@ -1,9 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSamlSettings} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -38,14 +38,13 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const accountID = route.params.accountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
-
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+    const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
         canBeMissing: false,
         selector: domainMemberSamlSettingsSelector,
     });
-    const isSamlEnabled = !!domainSettings?.isSamlEnabled;
-    const isSamlRequired = !!domainSettings?.isSamlRequired;
 
+    const isSamlEnabled = !!domainSettings?.samlEnabled;
+    const isSamlRequired = !!domainSettings?.samlRequired;
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const doesDomainExist = !!domain;
 
@@ -67,12 +66,9 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         [illustrations],
     );
 
-    useEffect(() => {
-        if (!domainName || !isSamlEnabled) {
-            return;
-        }
-        getSamlSettings(accountID, domainName);
-    }, [accountID, domainName, isSamlEnabled]);
+    if (isLoadingOnyxValue(domainResults, isAdminResults, domainSettingsResults)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
@@ -83,7 +79,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainResults, isAdminResults) && (!doesDomainExist || !isAdmin)}
+                shouldShow={!doesDomainExist || !isAdmin}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
