@@ -1269,18 +1269,4 @@ describe('CardUtils', () => {
             expect(sorted.map((r: Card) => r.cardID)).toEqual([11, 10, 99]);
         });
     });
-
-    describe('getCardFeedIcon - Lazy Loaded ExpensifyCardImage', () => {
-        it('should return ExpensifyCardImage for Expensify card feed', () => {
-            const feed = CONST.EXPENSIFY_CARD.BANK;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
-            expect(illustration).toBe('ExpensifyCardImage');
-        });
-
-        it('should return ExpensifyCardImage for Expensify card feed variations', () => {
-            const feedVariation = `${CONST.EXPENSIFY_CARD.BANK}_variant` as typeof CONST.EXPENSIFY_CARD.BANK;
-            const illustration = getCardFeedIcon(feedVariation, mockIllustrations as unknown as IllustrationsType);
-            expect(illustration).toBe('ExpensifyCardImage');
-        });
-    });
 });

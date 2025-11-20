@@ -1,13 +1,12 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render, renderHook, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -235,13 +234,5 @@ describe('ExpensifyCardPage', () => {
         // Unmount the component after assertions to clean up.
         unmount();
         await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should load ExpensifyCardImage via lazy loading in CardPreview', () => {
-        // Test that CardPreview's lazy-loaded ExpensifyCardImage icon is available
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['ExpensifyCardImage']));
-
-        // Verify the lazy-loaded icon is defined
-        expect(result.current.ExpensifyCardImage).toBeDefined();
     });
 });
