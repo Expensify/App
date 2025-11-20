@@ -119,7 +119,6 @@ const Illustrations = {
     TurtleInShell,
 
     // Simple Illustrations
-    // Simple Illustrations - Original
     Accounting,
     Building,
     Coins,
