@@ -1661,6 +1661,10 @@ const CONST = {
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        ATTRIBUTE_IOU_TYPE: 'iou_type',
+        ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
+        ATTRIBUTE_REPORT_ID: 'report_id',
+        ATTRIBUTE_SOURCE_ROUTE: 'source_route',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

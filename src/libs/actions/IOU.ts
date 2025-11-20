@@ -1132,10 +1132,10 @@ function startMoneyRequest(
         name: '/money-request-create',
         op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
         attributes: {
-            iouType,
-            requestType: requestType ?? 'unknown',
-            reportID,
-            sourceRoute: sourceRoute || 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_SOURCE_ROUTE]: sourceRoute || 'unknown',
         },
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
