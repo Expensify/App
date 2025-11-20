@@ -52,7 +52,6 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
-import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
@@ -144,7 +143,6 @@ export {
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
-    ShareBank,
     TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,

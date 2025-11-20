@@ -626,7 +626,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                             >
-                                <Text style={[styles.textStrong, styles.ph3, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
+                                <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
