@@ -156,7 +156,7 @@ function CardTypeStep() {
                     setTypeSelected(value);
                     setIsError(false);
                 }}
-                confirmButtonConfig={confirmButtonOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={addNewCard?.data.feedType}
                 shouldUpdateFocusedIndex
