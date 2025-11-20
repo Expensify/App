@@ -52,6 +52,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getAddExpenseDropdownOptions,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -556,6 +557,21 @@ function MoneyReportHeader({
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (shouldShowMarkAsResolved) {
             return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
+        }
+
+        // Check for DEW errors first (highest priority)
+        if (hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            // Convert array to object format for getAllReportActionsErrorsAndReportActionThatRequiresAttention
+            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+            if (errors?.dewSubmitFailed) {
+                return {icon: getStatusIcon(expensifyIcons.Exclamation), description: translate('iou.dynamicExternalWorkflowCannotSubmit')};
+            }
         }
 
         if (isPayAtEndExpense) {
