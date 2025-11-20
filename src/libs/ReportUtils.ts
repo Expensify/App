@@ -8919,11 +8919,11 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 /**
  * Checks to see if a report contains a violation
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8933,11 +8933,11 @@ function hasViolations(
 /**
  * Checks to see if a report contains a violation of type `warning`
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8967,11 +8967,11 @@ function hasReceiptErrors(reportID: string | undefined): boolean {
 /**
  * Checks to see if a report contains a violation of type `notice`
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasNoticeTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -9002,11 +9002,11 @@ function hasReportViolations(reportID: string | undefined) {
  * Checks if submission should be blocked due to strict policy rules being enabled and violations present.
  * When a user's domain has "strictly enforce workspace rules" enabled, they cannot submit reports with violations.
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: Transaction[] | SearchTransaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
