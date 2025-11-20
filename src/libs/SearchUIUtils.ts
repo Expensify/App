@@ -1544,7 +1544,6 @@ function getReportSections(
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    created: reportItem.created ?? reportItem.lastVisibleActionCreated,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     keyForList: String(reportItem.reportID),
