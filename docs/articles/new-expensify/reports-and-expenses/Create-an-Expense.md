@@ -27,12 +27,13 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 1. On mobile, tap the green camera button and take a photo of the receipt.
 2. On desktop, click the green add receipt button and drag and drop the receipt or click **Choose files** to upload.
-3. Enter the workspace or recipient’s email/phone number.
+3. Select or enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
 5. Click **Create expense**.
 
-💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
-💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
+💡 **Note:** 
+- You can also forward receipts to `receipts@expensify.com` using a verified email address.
+- Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
 
 ## Smart Receipt Detection
 
@@ -75,7 +76,7 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 2. Tap the multi-receipt icon in the bottom-right corner.
 3. Tap the green capture button to take a photo of each receipt.
 4. Once you’ve scanned all your receipts, tap the green arrow to confirm.
-5. Enter expense details for each receipt or just tap Create expenses for automatic scanning.
+5. Enter expense details for each receipt or tap **Create expenses** for automatic scanning.
 
 ---
 
@@ -84,12 +85,12 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 1. On desktop, go to the Reports page.
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
-4. Click **Create expenses**. 
+4. Once the expenses are ready, click **Create expenses**. 
 
 # Next Steps for Individual Expenses
 
 - Expenses created and submitted to an individual are sent immediately.
-- The recipient gets an email, push notification or text to review and pay the expense.
+- The recipient gets an email or text to review and pay the expense.
 - You can chat with the payer directly in Expensify.
 - [Connect your bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payments.
 
@@ -102,7 +103,7 @@ To split an expense, you’ll need to start a chat with each person you’re req
 ## Start a Chat Before Splitting
 
 1. From the navigation tabs, click the grey **+** button.
-2. Select Start Chat.
+2. Select **Start chat**.
 3. Search for the person by name, email, or phone number.
 4. Send them a message to begin the conversation.
 5. Once a chat is started, follow the steps below to split the expense.
