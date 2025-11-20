@@ -7432,6 +7432,18 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}がExpensifyの試用にあなたを招待しました\nこんにちは！私はExpensifyを試用するための*3ヶ月無料*を手に入れました。これは、経費を処理する最速の方法です。\n\nこちらがその仕組みを示す*テスト領収書*です：`,
     },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化：',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `このグループを${action}`,
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
+        },
+    },
     export: {
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',

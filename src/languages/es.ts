@@ -6194,6 +6194,18 @@ ${amount} para ${merchant} - ${date}`,
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
         },
     },
+    reportLayout: {
+        reportLayout: 'Diseño del informe',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecciona cómo agrupar los gastos del informe',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} este grupo`,
+        selectGroup: ({groupName}: {groupName: string}) => `Seleccionar todos los gastos en ${groupName}`,
+        groupBy: {
+            category: 'Categoría',
+            tag: 'Etiqueta',
+        },
+    },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
         body: {
