@@ -3008,6 +3008,11 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        ENFORCEMENT_SETTING: {
+            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            AUTO_APPROVE_COMPLIANT_REPORTS: 'autoApproveCompliantReports',
+            AUTO_PAY_APPROVED_REPORTS: 'autoPayApprovedReports',
+        },
         CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
             REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
             NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default

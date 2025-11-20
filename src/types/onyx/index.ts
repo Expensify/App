@@ -61,6 +61,7 @@ import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServ
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
 import type {PendingContactAction} from './PendingContactAction';
+import type PendingEnforcementSetting from './PendingEnforcementSetting';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -259,6 +260,7 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    PendingEnforcementSetting,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
