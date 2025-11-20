@@ -44,7 +44,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
@@ -81,7 +81,7 @@ function handleActionButtonPress(
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
+    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
     if (hasHeldExpense) {
@@ -419,7 +419,7 @@ function search({
  */
 function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
+    const onyxUpdate: Record<string, Record<string, Partial<Transaction>>> = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                 transactionThreadReportID: reportID,
@@ -749,7 +749,7 @@ function deleteMoneyRequestOnSearch(
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             },
-                        } as Partial<SearchTransaction>,
+                        } as Partial<Transaction>,
                     },
                 });
 
@@ -761,7 +761,7 @@ function deleteMoneyRequestOnSearch(
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                                 pendingAction: null,
                             },
-                        } as Partial<SearchTransaction>,
+                        } as Partial<Transaction>,
                     },
                 });
             });

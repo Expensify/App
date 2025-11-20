@@ -252,7 +252,6 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -8879,7 +8878,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
-                    } as Partial<SearchTransaction>,
+                    } as Partial<OnyxTypes.Transaction>,
                 },
             });
 
@@ -8891,7 +8890,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                             pendingAction: null,
                         },
-                    } as Partial<SearchTransaction>,
+                    } as Partial<OnyxTypes.Transaction>,
                 },
             });
         });
@@ -10178,7 +10177,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
@@ -10251,7 +10250,7 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions: OnyxTypes.Transaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
 ) {
