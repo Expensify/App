@@ -1552,7 +1552,7 @@ function getReportSections(
                 const fromDetails = data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
 
-                const formattedFrom = transactions.length > 0 ? formatPhoneNumber(getDisplayNameOrDefault(fromDetails)) : '';
+                const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated

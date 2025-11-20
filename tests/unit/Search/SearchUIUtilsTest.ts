@@ -1018,7 +1018,7 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: '',
+        formattedFrom: 'Admin',
         formattedStatus: 'Draft',
         formattedTo: '',
         from: {
@@ -1110,7 +1110,7 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: '',
+        formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
         formattedTo: 'Admin',
         from: {
@@ -1216,7 +1216,7 @@ const transactionReportGroupListItems = [
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         currency: 'VND',
-        formattedFrom: '',
+        formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
         formattedTo: 'Approver',
         isOneTransactionReport: false,
@@ -1261,7 +1261,7 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
-        formattedFrom: '',
+        formattedFrom: 'Admin',
         formattedStatus: 'Draft',
         formattedTo: '',
         from: {
