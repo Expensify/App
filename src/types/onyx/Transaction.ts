@@ -406,7 +406,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected accountant */
         accountant?: Accountant;
 
-        /** The Transaction converted amount */
+        /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
         /** The transaction tax amount */
