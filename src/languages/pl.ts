@@ -1487,6 +1487,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
             educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
             holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
+            approveExpenseTitle: 'Zatwierdź inne wydatki, podczas gdy wydatki wstrzymane pozostają przypisane do Ciebie.',
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
@@ -5202,6 +5203,7 @@ ${
             issueCard: 'Wydaj kartę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
+                inviteNewMember: 'Zaproś nowego członka',
                 findMember: 'Znajdź członka',
                 chooseCardType: 'Wybierz typ karty',
                 physicalCard: 'Fizyczna karta',
@@ -7390,13 +7392,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Witamy w New Expensify!',
-        subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
+        subtitle: 'Ma wszystko, co kochasz w naszej klasycznej wersji, wraz z całą masą ulepszeń, które jeszcze bardziej ułatwią Ci życie:',
         confirmText: 'Zaczynajmy!',
         features: {
-            chat: '<strong>Czatuj bezpośrednio na dowolnym wydatku</strong>, raporcie lub przestrzeni roboczej',
-            scanReceipt: '<strong>Skanuj paragony</strong> i otrzymuj zwrot pieniędzy',
-            crossPlatform: 'Rób <strong>wszystko</strong> z telefonu lub przeglądarki',
+            chat: 'Czatuj przy każdym wydatku, aby szybko wyjaśnić wątpliwości',
+            search: 'Bardziej zaawansowane wyszukiwanie na urządzeniach mobilnych, w przeglądarce i na komputerach',
+            concierge: 'Wbudowana Concierge AI do automatyzacji Twoich wydatków',
         },
+        helpText: 'Wypróbuj 2-minutowe demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
