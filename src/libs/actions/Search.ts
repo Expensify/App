@@ -723,6 +723,8 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
                     },
                 },
