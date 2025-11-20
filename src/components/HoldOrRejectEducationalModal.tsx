@@ -10,7 +10,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type SectionMenuItem = {
@@ -29,27 +28,31 @@ type HoldOrRejectEducationalModalProps = {
     onConfirm: () => void;
 };
 
-const menuSections: SectionMenuItem[] = [
-    {
-        icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.reject.holdExpenseTitle',
-    },
-    {
-        icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
-    },
-    {
-        icon: Illustrations.ThumbsDown,
-        titleTranslationKey: 'iou.reject.rejectExpenseTitle',
-    },
-];
-
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ModalHoldOrReject'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
 
     useBeforeRemove(onClose);
+
+    const menuSections: SectionMenuItem[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.Rules,
+            titleTranslationKey: 'iou.reject.approveExpenseTitle',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
+        },
+        {
+            icon: illustrations.ThumbsDown,
+            titleTranslationKey: 'iou.reject.rejectExpenseTitle',
+        },
+    ];
 
     return (
         <FeatureTrainingModal
