@@ -53,31 +53,28 @@ function DatePicker({
         if (Number.isNaN(date.getTime())) {
             return '';
         }
-        return Intl.DateTimeFormat(
-            preferredLocale,
-            DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING],
-        ).format(date);
+        return Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]).format(date);
     }, [selectedDate, preferredLocale]);
 
     const computedPlaceholder = useMemo(() => {
         if (placeholder) {
             return placeholder;
         }
-        return Intl.DateTimeFormat(
-            preferredLocale,
-            DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING],
-        ).formatToParts().map((part) => {
-            switch (part.type) {
-                case 'day':
-                    return 'DD';
-                case 'month':
-                    return 'MM';
-                case 'year':
-                    return 'YYYY';
-                default:
-                    return part.value;
-            }
-        }).join('');
+        return Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING])
+            .formatToParts()
+            .map((part) => {
+                switch (part.type) {
+                    case 'day':
+                        return 'DD';
+                    case 'month':
+                        return 'MM';
+                    case 'year':
+                        return 'YYYY';
+                    default:
+                        return part.value;
+                }
+            })
+            .join('');
     }, [placeholder, preferredLocale]);
 
     useEffect(() => {
