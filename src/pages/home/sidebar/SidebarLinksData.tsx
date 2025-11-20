@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -29,12 +30,18 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
+
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+    }, []);
+
     return (
         <View
             accessibilityElementsHidden={!isFocused}
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
+            onLayout={onLayout}
         >
             <SidebarLinks
                 // Forwarded props:

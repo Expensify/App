@@ -400,7 +400,6 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -435,7 +434,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -471,7 +469,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -506,7 +503,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -815,7 +811,6 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -877,7 +872,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -944,7 +938,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1006,7 +999,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1104,7 +1096,6 @@ const transactionReportGroupListItems = [
                 moneyRequestReportActionID: '789',
                 errors: undefined,
                 filename: undefined,
-                isActionLoading: false,
                 violations: [],
                 convertedAmount: -5000,
                 convertedCurrency: 'USD',
@@ -1209,7 +1200,6 @@ const transactionReportGroupListItems = [
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
-                isActionLoading: false,
                 convertedAmount: -5000,
                 convertedCurrency: 'USD',
             },
@@ -1794,7 +1784,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 51;
+            const expectedPropertyCount = 50;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1827,7 +1817,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 51;
+            const expectedPropertyCount = 50;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 

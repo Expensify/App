@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {Close} from '@components/Icon/Expensicons';
-import {PinkCar} from '@components/Icon/Illustrations';
 import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,6 +31,8 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
     const policyID = policy?.id;
     const {setAsDismissed, isDismissed} = useDismissedUberBanners({policyID});
     const shouldDismissBanner = !!policy?.receiptPartners?.enabled || !isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) || isDismissed || readOnly;
+
+    const illustrations = useMemoizedLazyIllustrations(['PinkCar'] as const);
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {
@@ -61,7 +63,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
     return (
         <View style={[styles.ph4, styles.mb4]}>
             <BillingBanner
-                icon={PinkCar}
+                icon={illustrations.PinkCar}
                 title={translate('workspace.receiptPartners.uber.bannerTitle')}
                 titleStyle={StyleUtils.getTextColorStyle(theme.text)}
                 subtitle={translate('workspace.receiptPartners.uber.bannerDescription')}

@@ -156,7 +156,10 @@ type SearchReport = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -247,9 +250,6 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -380,6 +380,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
@@ -403,6 +404,7 @@ export type {
     ListItemType,
     ListItemDataType,
     SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
     SearchTransactionAction,
     SearchDataTypes,

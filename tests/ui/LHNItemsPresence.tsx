@@ -721,5 +721,27 @@ describe('SidebarLinksData', () => {
             // And the GBR icon should be shown, indicating there is require action from current user.
             expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
         });
+
+        it('should display the report with GRB when the report has unread mention', async () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const reportWithUnreadMention: Report = {
+                ...createReport(false, [1, 2], 0),
+                lastReadTime: '2025-01-01 00:00:00',
+                lastMentionedTime: '2025-01-01 00:00:01',
+            };
+
+            // When Onyx state is initialized with a draft report.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportWithUnreadMention.reportID}`]: reportWithUnreadMention,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sidebar should display the report with unread mention.
+            expect(getDisplayNames()).toHaveLength(1);
+
+            // And the GRB icon should be shown, indicating there is unread mention.
+            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+        });
     });
 });

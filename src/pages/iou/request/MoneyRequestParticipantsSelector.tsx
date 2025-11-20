@@ -171,7 +171,7 @@ function MoneyRequestParticipantsSelector({
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,

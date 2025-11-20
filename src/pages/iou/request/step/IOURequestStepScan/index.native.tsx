@@ -12,17 +12,13 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, wit
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
-import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
-import Hand from '@assets/images/hand.svg';
-import Shutter from '@assets/images/shutter.svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -31,6 +27,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -126,6 +123,8 @@ function IOURequestStepScan({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -802,7 +801,7 @@ function IOURequestStepScan({
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                             <ImageSVG
                                 contentFit="contain"
-                                src={Hand}
+                                src={lazyIllustrations.Hand}
                                 width={CONST.RECEIPT.HAND_ICON_WIDTH}
                                 height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                                 style={styles.pb5}
@@ -853,7 +852,7 @@ function IOURequestStepScan({
                                                 <Icon
                                                     height={16}
                                                     width={16}
-                                                    src={Expensicons.Bolt}
+                                                    src={lazyIcons.Bolt}
                                                     fill={flash ? theme.white : theme.icon}
                                                 />
                                             </PressableWithFeedback>
@@ -871,7 +870,7 @@ function IOURequestStepScan({
                 {shouldShowMultiScanEducationalPopup && (
                     <FeatureTrainingModal
                         title={translate('iou.scanMultipleReceipts')}
-                        image={MultiScan}
+                        image={lazyIllustrations.MultiScan}
                         shouldRenderSVG
                         imageHeight={220}
                         modalInnerContainerStyle={styles.pt0}
@@ -909,7 +908,7 @@ function IOURequestStepScan({
                                 <Icon
                                     height={32}
                                     width={32}
-                                    src={Expensicons.Gallery}
+                                    src={lazyIcons.Gallery}
                                     fill={theme.textSupporting}
                                 />
                             </PressableWithFeedback>
@@ -923,7 +922,7 @@ function IOURequestStepScan({
                     >
                         <ImageSVG
                             contentFit="contain"
-                            src={Shutter}
+                            src={lazyIllustrations.Shutter}
                             width={CONST.RECEIPT.SHUTTER_SIZE}
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
@@ -939,7 +938,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.ReceiptMultiple}
+                                src={lazyIcons.ReceiptMultiple}
                                 fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                             />
                         </PressableWithFeedback>
@@ -954,7 +953,7 @@ function IOURequestStepScan({
                             <Icon
                                 height={32}
                                 width={32}
-                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>

@@ -108,6 +108,7 @@ function BaseModal({
     const hideModal = useCallback(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
+            willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);

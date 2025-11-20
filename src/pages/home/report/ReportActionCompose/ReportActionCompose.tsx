@@ -55,6 +55,7 @@ import {
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -321,6 +322,14 @@ function ReportActionCompose({
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
                 Timing.start(CONST.TIMING.SEND_MESSAGE);
+                startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
+                    name: 'send-message',
+                    op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+                    attributes: {
+                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                    },
+                });
                 onSubmit(newCommentTrimmed);
             }
         },
