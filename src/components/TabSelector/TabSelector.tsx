@@ -42,7 +42,7 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate'], icons: Record<'ReceiptScan', IconAsset>): IconTitleAndTestID {
+function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate'], icons: Record<'Receipt' | 'ReceiptScan', IconAsset>): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
@@ -63,7 +63,7 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
         case CONST.TAB.SHARE.SHARE:
             return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+            return {icon: icons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
@@ -94,7 +94,7 @@ function TabSelector({
     const viewRef = useRef<View>(null);
     const [selectorWidth, setSelectorWidth] = React.useState(0);
     const [selectorX, setSelectorX] = React.useState(0);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptScan'] as const);
 
     const isResizing = useIsResizing();
 

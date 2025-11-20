@@ -6,7 +6,6 @@ import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
@@ -162,7 +161,7 @@ function SettlementButton({
             return {
                 text: title ?? '',
                 description: description ?? '',
-                icon: typeof icon === 'number' ? Bank : icon,
+                icon: typeof icon === 'number' ? icons.Bank : icon,
                 iconStyles: typeof icon === 'number' ? undefined : iconStyles,
                 iconSize: typeof icon === 'number' ? undefined : iconSize,
                 onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),

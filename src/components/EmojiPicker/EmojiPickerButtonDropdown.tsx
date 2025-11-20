@@ -8,6 +8,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +41,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji'] as const);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
@@ -84,7 +86,7 @@ function EmojiPickerButtonDropdown(
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 value || (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
                                     />
                                 )

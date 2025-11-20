@@ -129,7 +129,7 @@ function AddPaymentMethodMenu({
                 // ...[
                 //     {
                 //         text: translate('common.debitCard'),
-                //         icon: Expensicons.CreditCard,
+                //         icon: icons.CreditCard,
                 //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                 //     },
                 // ],

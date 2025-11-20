@@ -200,7 +200,7 @@ function AttachmentPickerWithMenuItems({
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: [
                 {
-                    icon: Expensicons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('iou.splitExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),

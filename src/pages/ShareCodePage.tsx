@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -72,6 +73,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['Cash'] as const);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -167,7 +169,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
-                        icon={Expensicons.Cash}
+                        icon={icons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
