@@ -15,7 +15,6 @@ import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUt
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
-import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -435,18 +434,8 @@ const ROUTES = {
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
-    SETTINGS_EXIT_SURVEY_REASON: {
-        route: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
-    },
-    SETTINGS_EXIT_SURVEY_RESPONSE: {
-        route: 'settings/exit-survey/response',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reason?: ExitReason, backTo?: string) => getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
-    },
     SETTINGS_EXIT_SURVEY_CONFIRM: {
         route: 'settings/exit-survey/confirm',
 
@@ -2525,7 +2514,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
     },
-    TRAVEL_WORKSPACE_CONFIRMATION: 'travel/upgrade/workspace/confirmation',
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        route: 'travel/upgrade/workspace/confirmation',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
 
