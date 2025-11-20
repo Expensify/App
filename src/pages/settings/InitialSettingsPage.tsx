@@ -120,7 +120,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
-    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
 
     const shouldLogout = useRef(false);
 
@@ -263,7 +263,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -285,7 +285,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, surveyCompletedWithinLastMonth]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth]);
 
     /**
      * Return a list of menu items data for general section
@@ -347,7 +347,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut, icons.Exit]);
+    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, signOut]);
 
     /**
      * Return JSX.Element with menu items
