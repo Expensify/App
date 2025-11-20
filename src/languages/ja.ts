@@ -269,7 +269,6 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6154,7 +6153,6 @@ ${
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {

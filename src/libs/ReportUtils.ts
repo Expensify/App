@@ -202,7 +202,6 @@ import {
     getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
@@ -5689,9 +5688,6 @@ function getReportName(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
         return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(parentReportAction);
-    }
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
-        return getWorkspaceReimbursementUpdateMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {

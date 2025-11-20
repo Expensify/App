@@ -422,8 +422,6 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
-type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
-
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
@@ -1226,7 +1224,6 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,

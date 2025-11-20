@@ -269,7 +269,6 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -6201,7 +6200,6 @@ ${
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `heeft de handmatige goedkeuringslimiet voor alle uitgaven gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen voor deze werkruimte`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" toegevoegd`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" verwijderd`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {

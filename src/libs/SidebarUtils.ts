@@ -67,7 +67,6 @@ import {
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
@@ -881,8 +880,6 @@ function getOptionData({
             result.alternateText = getWorkspaceReportFieldDeleteMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
             result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
-            result.alternateText = getWorkspaceReimbursementUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
