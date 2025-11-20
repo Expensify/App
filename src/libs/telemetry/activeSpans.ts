@@ -1,6 +1,6 @@
 import type {StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
-import CONST from "@src/CONST";
+import CONST from '@src/CONST';
 
 const activeSpans = new Map<string, ReturnType<typeof Sentry.startInactiveSpan>>();
 
@@ -29,7 +29,7 @@ function endSpan(spanId: string) {
 
 function cancelSpan(spanId: string) {
     const span = activeSpans.get(spanId);
-    span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true)
+    span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     endSpan(spanId);
 }
 
