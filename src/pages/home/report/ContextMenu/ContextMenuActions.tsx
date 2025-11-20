@@ -30,6 +30,7 @@ import {
     getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
+    getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -765,8 +766,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs)) {
-                    const harvestOriginalReportID = getHarvestOriginalReportID(reportNameValuePairs) ?? '';
-                    const displayMessage = translate('reportAction.harvestCreatedExpenseReport', {reportID: harvestOriginalReportID});
+                    const displayMessage = getHarvestCreatedExpenseReportMessage(getHarvestOriginalReportID(reportNameValuePairs), translate);
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(

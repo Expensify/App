@@ -137,6 +137,7 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 };
 
 type HarvestCreatedExpenseReportParams = {
+    reportUrl: string;
     reportID: string;
 };
 

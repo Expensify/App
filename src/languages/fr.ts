@@ -978,8 +978,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Seuls les administrateurs peuvent envoyer des messages dans cette salle.',
     reportAction: {
         asCopilot: 'en tant que copilote pour',
-        harvestCreatedExpenseReport: ({reportID}: HarvestCreatedExpenseReportParams) =>
-            `a créé ce rapport pour regrouper toutes les dépenses de #${reportID} qui n'ont pas pu être soumises selon la fréquence que vous avez choisie`,
+        harvestCreatedExpenseReport: ({reportUrl, reportID}: HarvestCreatedExpenseReportParams) =>
+            `a créé ce rapport pour regrouper toutes les dépenses de <a href="${reportUrl}">#${reportID}</a> qui n'ont pas pu être soumises selon la fréquence que vous avez choisie`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
