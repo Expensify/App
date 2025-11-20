@@ -250,6 +250,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         billingDisputePending,
         retryBillingFailed,
         freeTrialText,
+        expensifyIcons.Wallet,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {

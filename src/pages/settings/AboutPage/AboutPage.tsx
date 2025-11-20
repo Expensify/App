@@ -116,7 +116,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [styles, translate, waitForNavigate]);
+    }, [styles, translate, waitForNavigate, icons.MoneyBag]);
 
     const overlayContent = useCallback(
         () => (
