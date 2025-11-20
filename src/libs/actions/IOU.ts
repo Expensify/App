@@ -253,7 +253,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
