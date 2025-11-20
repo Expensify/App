@@ -27,12 +27,12 @@ import {
     compareDuplicateTransactionFields,
     getAmount,
     getFormattedCreated,
-    getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
+    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -186,6 +186,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
+    originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -196,6 +197,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -246,7 +248,12 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        if (merchantMissing) {
+        const amountMissing = isAmountMissing(transaction);
+        if (amountMissing && merchantMissing) {
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
+        } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -307,7 +314,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
+    const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
