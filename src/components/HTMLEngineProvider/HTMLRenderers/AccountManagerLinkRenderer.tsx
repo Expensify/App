@@ -14,7 +14,7 @@ type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function AccountManagerLinkRenderer({tnode}: AccountManagerLinkRendererProps) {
     const styles = useThemeStyles();
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
 
     const isChildOfMutedTextLabel = tnode.parent?.domNode?.name === 'muted-text-label';
     // Define link style based on context
@@ -32,9 +32,10 @@ function AccountManagerLinkRenderer({tnode}: AccountManagerLinkRendererProps) {
     }
 
     const navigateToAccountManager = useCallback(() => {
-        if (accountManagerReportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
+        if (!accountManagerReportID) {
+            return;
         }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
     return (

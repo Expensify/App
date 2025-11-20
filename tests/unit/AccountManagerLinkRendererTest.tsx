@@ -17,10 +17,12 @@ jest.mock('@components/HTMLEngineProvider/htmlEngineUtils', () => ({
 }));
 
 jest.mock('react-native-render-html', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('react-native-render-html');
     return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actual,
-        TNodeChildrenRenderer: ({tnode}: {tnode: {mockText?: string}}) => tnode.mockText || 'Account Manager',
+        TNodeChildrenRenderer: ({tnode}: {tnode: {mockText?: string}}) => tnode.mockText ?? 'Account Manager',
     };
 });
 
@@ -134,9 +136,9 @@ describe('AccountManagerLinkRenderer', () => {
         await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
-        const {getByText} = render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
+        render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
 
-        const link = getByText('Account Manager');
+        const link = screen.getByText('Account Manager');
 
         expect(link).toBeTruthy();
         expect(link.props.children).toBeDefined();
