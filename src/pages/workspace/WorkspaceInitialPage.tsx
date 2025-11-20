@@ -386,9 +386,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
             let newlyEnabledFeature: PolicyFeatureName | null = null;
-            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
+            for (const key of Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]) {
                 if (!(key in currentFeatureStates)) {
-                    return;
+                    continue;
                 }
 
                 const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
@@ -398,7 +398,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 }
                 newFeatureStates[key] =
                     prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
-            });
+            }
 
             // Only highlight the newly enabled feature
             if (newlyEnabledFeature) {
