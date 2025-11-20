@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
+import type BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +44,22 @@ jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callb
     } else if (key.shortcutKey === 'ArrowDown') {
         arrowDownCallback = callback;
     }
+});
+
+let mockShouldStopMouseLeavePropagation = false;
+jest.mock('@components/SelectionList/ListItem/BaseListItem', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const ActualBaseListItem = jest.requireActual('@components/SelectionList/ListItem/BaseListItem').default;
+
+    return ((props) => (
+        <ActualBaseListItem
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            shouldStopMouseLeavePropagation={mockShouldStopMouseLeavePropagation}
+        >
+            {props.children}
+        </ActualBaseListItem>
+    )) as typeof BaseListItem;
 });
 
 describe('BaseSelectionList', () => {
@@ -104,5 +121,32 @@ describe('BaseSelectionList', () => {
         await waitFor(() => {
             expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}8`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
+    });
+
+    it("the stopPropagation from the BaseListItem's mouseLeave event does not trigger if shouldStopMouseLeavePropagation === false", () => {
+        mockShouldStopMouseLeavePropagation = false;
+        render(
+            <BaseListItemRenderer
+                data={mockSections}
+                canSelectMultiple={false}
+            />,
+        );
+
+        const mockStopPropagation = jest.fn();
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`), 'mouseLeave', {stopPropagation: mockStopPropagation});
+
+        expect(mockStopPropagation).toHaveBeenCalledTimes(0);
+
+        mockShouldStopMouseLeavePropagation = true;
+        render(
+            <BaseListItemRenderer
+                data={mockSections}
+                canSelectMultiple={false}
+            />,
+        );
+
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`), 'mouseLeave', {stopPropagation: mockStopPropagation});
+
+        expect(mockStopPropagation).toHaveBeenCalledTimes(1);
     });
 });
