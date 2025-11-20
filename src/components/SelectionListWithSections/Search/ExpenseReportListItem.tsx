@@ -125,7 +125,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
                     isIndeterminate={false}
-                    isDisabledCheckbox={item.isDisabledCheckbox}
+                    isDisabledCheckbox={reportItem.isDisabledCheckbox}
                     isHovered={hovered}
                     isFocused={isFocused}
                 />
