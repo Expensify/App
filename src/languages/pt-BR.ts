@@ -1613,11 +1613,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        primary: 'Principal',
-        secondary: 'Secundário',
         helpText: ({email}: {email: string}) =>
             `Adicione mais formas de fazer login e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por mensagem de texto para 47777 (somente números dos EUA).`,
         pleaseVerify: 'Por favor, verifique este método de contato',
+        getInTouch: 'Usaremos este método para entrar em contato com você.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
         setAsDefault: 'Definir como padrão',
         yourDefaultContactMethod: 'Este é o seu método de contato padrão atual. Antes de poder excluí-lo, você precisará escolher outro método de contato e clicar em “Definir como padrão”.',

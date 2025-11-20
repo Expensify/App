@@ -13,7 +13,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,7 +31,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const navigateBackTo = route?.params?.backTo;
-    const StyleUtils = useStyleUtils();
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
@@ -86,8 +84,6 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                                     shouldShowBasicTitle
                                     shouldShowRightIcon
                                     disabled={!!option.pendingAction}
-                                    label={translate(option.label)}
-                                    titleContainerStyle={StyleUtils.getMenuItemTextContainerStyle(true)}
                                 />
                             </OfflineWithFeedback>
                         ),

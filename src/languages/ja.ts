@@ -1617,11 +1617,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        primary: 'プライマリ',
-        secondary: 'セカンダリ',
         helpText: ({email}: {email: string}) =>
             `Expensify にログインしたり領収書を送信したりする方法を追加できます。<br/><br/>領収書を <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、電話番号を追加して領収書を 47777 にテキスト送信します（米国の番号のみ）。`,
         pleaseVerify: 'この連絡方法を確認してください',
+        getInTouch: 'この方法を使ってご連絡します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在のデフォルトの連絡方法です。削除する前に、別の連絡方法を選択し、「デフォルトに設定」をクリックする必要があります。',
