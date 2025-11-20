@@ -1556,7 +1556,6 @@ function getReportSections(
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: doesDataContainAPastYearReport,
-                    isDisabledCheckbox: transactions.length === 0,
                 };
 
                 if (isIOUReport) {

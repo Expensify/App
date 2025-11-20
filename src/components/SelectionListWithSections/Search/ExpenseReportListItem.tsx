@@ -47,6 +47,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return (snapshotData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshotData, reportItem.policyID]);
 
+    const isDisabledCheckbox = useMemo(() => {
+        const isEmpty = reportItem.transactions.length === 0;
+        return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
+    }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
+
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
             currentSearchHash,
@@ -125,7 +130,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
                     isIndeterminate={false}
-                    isDisabledCheckbox={reportItem.isDisabledCheckbox}
+                    isDisabledCheckbox={isDisabledCheckbox}
                     isHovered={hovered}
                     isFocused={isFocused}
                 />
