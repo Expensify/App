@@ -34,7 +34,7 @@ Follow the steps below to connect your business bank account and enable payment 
 2. Select either **Connect online with Plaid (preferred)** or **Connect manually**.
 3. Enter your bank details.
 
-**Note:** If your business bank account already exists in Expensify, an admin with access can **share it with you** — no need to complete the setup process again. [Learn how to share a business bank account](https://help.expensify.com/articles/new-expensify/settings/Share-a-Business-Bank-Account).
+**Note:** If your business bank account already exists in Expensify, an admin with access can **share it with you** — no need to complete the setup process again. [Learn how to share a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ---
 
