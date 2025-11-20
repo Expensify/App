@@ -1,6 +1,6 @@
 import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -32,6 +32,10 @@ const optionsMatch = (opt1: Option, opt2: Option) => {
 };
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
+// Virtualization constants for handling large datasets efficiently
+const INITIAL_RENDER_COUNT = 50; // Number of items to render initially
+const LOAD_MORE_COUNT = 25; // Number of items to load when scrolling
+const SEARCH_THROTTLE_DELAY = 150; // Debounce search input
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -56,6 +60,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [visibleItemCount, setVisibleItemCount] = useState(INITIAL_RENDER_COUNT);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
@@ -77,7 +83,16 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
 
-    const cleanSearchTerm = searchTerm.trim().toLowerCase();
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm.trim().toLowerCase());
+            setVisibleItemCount(INITIAL_RENDER_COUNT);
+        }, SEARCH_THROTTLE_DELAY);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
+    const cleanSearchTerm = debouncedSearchTerm;
 
     const selectedAccountIDs = useMemo(() => {
         return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
@@ -100,47 +115,55 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+
+        const result = filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
+        return result;
     }, [optionsList, cleanSearchTerm, countryCode]);
 
+    // Efficiently process only the visible items to handle large datasets
     const listData = useMemo(() => {
-        const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
-            ...participant,
-            isSelected: selectedAccountIDs.has(participant.accountID),
-        }));
 
-        const recentReportsList = filteredOptions.recentReports.map((report) => ({
-            ...report,
-            isSelected: selectedAccountIDs.has(report.accountID),
-        }));
+        const {personalDetails: filteredPersonalDetails, recentReports} = filteredOptions;
+        // Pre-sort and combine data sources efficiently
+        const allOptions = [...filteredPersonalDetails, ...recentReports];
 
-        const combined = [...personalDetailList, ...recentReportsList];
+        // Sort once before slicing to ensure consistent ordering
+        allOptions.sort((a, b) => {
+            const aIsSelected = selectedAccountIDs.has(a.accountID);
+            const bIsSelected = selectedAccountIDs.has(b.accountID);
 
-        combined.sort((a, b) => {
-            // selected items first
-            if (a.isSelected && !b.isSelected) {
+            // Selected items first
+            if (aIsSelected && !bIsSelected) {
                 return -1;
             }
-            if (!a.isSelected && b.isSelected) {
+            if (!aIsSelected && bIsSelected) {
                 return 1;
             }
 
-            // Put the current user at the top of the list
+            // Current user at the top
             if (a.accountID === accountID) {
                 return -1;
             }
             if (b.accountID === accountID) {
                 return 1;
             }
+
             return 0;
         });
 
-        return combined;
-    }, [filteredOptions, accountID, selectedAccountIDs]);
+        // Only process the visible items
+        const visibleOptions = allOptions.slice(0, visibleItemCount);
+        const processedData = visibleOptions.map((option) => ({
+            ...option,
+            isSelected: selectedAccountIDs.has(option.accountID),
+        }));
+
+        return processedData;
+    }, [filteredOptions, accountID, selectedAccountIDs, visibleItemCount]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -154,11 +177,22 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const noResultsFound = isEmpty(listData);
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
-        return {
+        const result = {
             sections: newSections,
             headerMessage: message,
         };
+
+        return result;
     }, [listData, translate]);
+
+    // Load more items when scrolling reaches the end
+    const onEndReached = useCallback(() => {
+        const totalItems = (filteredOptions.personalDetails?.length ?? 0) + (filteredOptions.recentReports?.length ?? 0);
+        if (visibleItemCount < totalItems) {
+            const newCount = Math.min(visibleItemCount + LOAD_MORE_COUNT, totalItems);
+            setVisibleItemCount(newCount);
+        }
+    }, [filteredOptions, visibleItemCount]);
 
     const selectUser = useCallback(
         (option: Option) => {
@@ -199,7 +233,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 textInputValue={searchTerm}
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}
+                onEndReached={onEndReached}
                 isLoadingNewOptions={isLoadingNewOptions}
+                initialNumToRender={INITIAL_RENDER_COUNT}
+                removeClippedSubviews
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
