@@ -207,33 +207,39 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
 
         if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
-            selectedEmployees.forEach((login) => {
+            const ownerEmail = ownerDetails?.login;
+
+            for (const login of selectedEmployees) {
                 if (!isApprover(policy, login)) {
-                    return;
+                    continue;
                 }
+
                 const accountID = policyMemberEmailsToAccountIDs[login];
                 const removedApprover = personalDetails?.[accountID];
+
                 if (!removedApprover?.login || !ownerEmail) {
-                    return;
+                    continue;
                 }
+
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows,
                     removedApprover,
                     ownerDetails,
                 });
-                updatedWorkflows.forEach((workflow) => {
+
+                for (const workflow of updatedWorkflows) {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
                         removeApprovalWorkflowAction(updatedWorkflow, policy);
                     } else {
                         updateApprovalWorkflow(workflow, [], [], policy);
                     }
-                });
-            });
+                }
+            }
         }
 
         setRemoveMembersConfirmModalVisible(false);
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
