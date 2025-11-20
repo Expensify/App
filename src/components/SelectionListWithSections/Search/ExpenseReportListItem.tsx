@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
@@ -35,6 +36,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
     const snapshotData = snapshot?.data;
 
@@ -122,7 +124,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <ExpenseReportListItemRow
                     item={reportItem}
                     policy={snapshotPolicy}
-                    isActionLoading={isLoading}
+                    isActionLoading={isActionLoading ?? isLoading}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onCheckboxPress={handleCheckboxPress}
