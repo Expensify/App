@@ -5657,8 +5657,7 @@ function getReportName(
         return getDowngradeWorkspaceMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.forcedCorporateUpgrade');
+        return getForcedCorporateUpgradeMessage(translate);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(parentReportAction);
