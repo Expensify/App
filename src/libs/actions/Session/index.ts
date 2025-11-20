@@ -251,11 +251,7 @@ function signOut(): Promise<void | Response> {
 
 function callSAMLSignOut(params: LogOutParams): Promise<void | Response> {
     const queryString = `appversion=${pkg.version}&referer=ecash&authToken=${session.authToken}`;
-    return openAuthSessionAsync(`https://www.expensify.com/authentication/saml/logout?${queryString}`, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
-        // if (response.type !== 'success') {
-        //     return;
-        // }
-
+    return openAuthSessionAsync(`${CONST.EXPENSIFY_URL}/authentication/saml/logout?${queryString}`).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
     });
