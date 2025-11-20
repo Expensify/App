@@ -1,6 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+/**
+ * Type for storing pending enforcement setting to enable after workspace upgrade
+ */
 type PendingEnforcementSetting = {
     /** The policy ID for which the enforcement setting should be enabled */
     policyID: string;

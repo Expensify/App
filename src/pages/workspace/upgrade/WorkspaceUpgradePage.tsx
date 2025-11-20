@@ -70,7 +70,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
-    const [pendingEnforcementSetting] = useOnyx(ONYXKEYS.PENDING_ENFORCEMENT_SETTING);
+    const [pendingEnforcementSetting] = useOnyx(ONYXKEYS.PENDING_ENFORCEMENT_SETTING, {canBeMissing: true});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 

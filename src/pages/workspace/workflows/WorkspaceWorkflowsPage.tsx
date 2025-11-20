@@ -377,6 +377,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         shouldShowContinueModal,
         showLockedAccountModal,
         filteredApprovalWorkflows,
+        expensifyIcons.Plus,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
