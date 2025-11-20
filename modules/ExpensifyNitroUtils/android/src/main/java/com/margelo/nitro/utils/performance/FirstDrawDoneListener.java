@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * OnDrawListener that unregisters itself and invokes callback when the next draw is done. This API
  * 16+ implementation is an approximation of the initial-display-time defined by Android Vitals.
  */
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class FirstDrawDoneListener implements ViewTreeObserver.OnDrawListener {
     @SuppressLint("ThreadPoolCreation")
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -91,6 +93,10 @@ public class FirstDrawDoneListener implements ViewTreeObserver.OnDrawListener {
      *     placeholder.
      */
     private static boolean isAliveAndAttached(View view) {
-        return view.getViewTreeObserver().isAlive() && view.isAttachedToWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return view.getViewTreeObserver().isAlive() && view.isAttachedToWindow();
+        }
+
+        return true;
     }
 }

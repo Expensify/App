@@ -1,6 +1,8 @@
 package com.margelo.nitro.utils
 
+import android.os.Build
 import android.view.View
+import androidx.annotation.RequiresApi
 import com.facebook.react.uimanager.ThemedReactContext
 import com.margelo.nitro.utils.HybridTtiMeasurementViewSpec
 import com.margelo.nitro.utils.TtiMeasurementValue
@@ -18,6 +20,7 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
     // View
     override val view: View = View(context)
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     private fun registerDrawListener() {
         FirstDrawDoneListener.registerForNextDraw(view) {
             if (measurementSent) {
@@ -41,6 +44,8 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
         }
         set(listener) {
             measurementListener = listener
-            registerDrawListener()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                registerDrawListener()
+            }
         }
 }
