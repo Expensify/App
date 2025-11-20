@@ -76,7 +76,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
-                onboardingPurposeSelected,
             });
 
             setOnboardingAdminsChatReportID();

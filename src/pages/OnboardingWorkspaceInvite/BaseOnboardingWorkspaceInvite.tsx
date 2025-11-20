@@ -66,7 +66,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -234,7 +233,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
                 isInvitedAccountant,
-                onboardingPurposeSelected,
             });
 
             setOnboardingAdminsChatReportID();
@@ -259,7 +257,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             isSmallScreenWidth,
             isBetaEnabled,
             session?.email,
-            onboardingPurposeSelected,
         ],
     );
 
