@@ -1141,6 +1141,12 @@ function openReport(
                             transactionThreadReportID: reportID,
                             moneyRequestReportActionID: iouReportActionID,
                         },
+                        // Add the IOU report action to the snapshot so that reportAction?.actorAccountID is available
+                        // This ensures the `from` object can be properly populated in SearchUIUtils when it calls
+                        // createReportActionsLookupMaps to build moneyRequestReportActionsByTransactionID map
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`]: {
+                            [iouReportActionID]: optimisticIOUAction,
+                        },
                     },
                 },
             });
