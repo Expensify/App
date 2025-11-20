@@ -806,7 +806,7 @@ describe('ReportUtils', () => {
                 expect(isHarvestCreatedExpenseReport(undefined)).toBe(false);
                 expect(isHarvestCreatedExpenseReport({origin: 'harvest'})).toBe(false);
                 expect(isHarvestCreatedExpenseReport({originalID: '123'})).toBe(false);
-                expect(getHarvestOriginalReportID({origin: 'harvest'})).toBeUndefined();
+                expect(getHarvestOriginalReportID({origin: 'harvest'})).toBe('');
             });
         });
 

@@ -3127,9 +3127,9 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
     return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: actorAccountID});
 }
 
-function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, translate: LocalizedTranslate) {
+function getHarvestCreatedExpenseReportMessage(reportID: string, translate: LocalizedTranslate) {
     const reportUrl = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
-    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportID: reportID ?? ''});
+    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportID});
 }
 
 function isCardIssuedAction(

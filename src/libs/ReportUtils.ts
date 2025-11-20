@@ -2303,11 +2303,12 @@ function isHarvestCreatedExpenseReport(reportNameValuePairs?: OnyxInputOrEntry<R
 /**
  * Returns the original reportID for a harvest-created report
  */
-function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string | undefined {
-    if (!isHarvestCreatedExpenseReport(reportNameValuePairs)) {
-        return undefined;
+function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string {
+    if (!reportNameValuePairs?.originalID || !isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+        return '';
     }
-    return reportNameValuePairs?.originalID;
+
+    return reportNameValuePairs.originalID;
 }
 
 /**
