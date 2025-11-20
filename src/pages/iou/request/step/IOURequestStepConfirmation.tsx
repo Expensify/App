@@ -324,9 +324,10 @@ function IOURequestStepConfirmation({
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
+    }, [transactionIDs, policy?.defaultReimbursable, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
 
     useEffect(() => {
+        // Exit early if the transaction is still loading
         // Exit early if the transaction is still loading
         if (isLoadingTransaction) {
             return;
