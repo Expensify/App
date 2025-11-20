@@ -25,7 +25,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ## Option 1: SmartScan a Receipt
 
-1. On mobile, tap the green camera button and take a photo of each receipt.
+1. On mobile, tap the green camera button and take a photo of the receipt.
 2. On desktop, click the green add receipt button and drag and drop the receipt or click **Choose File** to upload.
 5. Enter the workspace or recipient’s email/phone number.
 6. Add details like description, category, tags, and tax.
