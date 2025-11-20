@@ -1242,16 +1242,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        optionRowAmountInputContainer: {
-            width: variables.splitExpenseAmountWidth,
-            lineHeight: undefined,
-            padding: 0,
-            flexDirection: 'row',
-            alignItems: 'center',
-            alignSelf: 'center',
-            textAlign: 'left',
-        },
-
         optionRowAmountMobileInputContainer: {
             width: variables.splitExpenseAmountMobileWidth,
         },

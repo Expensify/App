@@ -383,7 +383,6 @@ export default {
     uberEmptyListIconHeight: 136,
 
     // Split expense tabs
-    splitExpenseAmountWidth: 62,
     splitExpenseAmountMobileWidth: 82,
     splitExpensePercentageWidth: 42,
     splitExpensePercentageMobileWidth: 62,

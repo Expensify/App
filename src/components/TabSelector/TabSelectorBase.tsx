@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import useIsResizing from '@hooks/useIsResizing';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +44,6 @@ type TabSelectorBaseProps = {
     onTabPress?: (key: string) => void;
 
     /** Animated position from a navigator (optional). */
-    // eslint-disable-next-line no-restricted-imports
     position?: Animated.AnimatedInterpolation<number>;
 
     /** Whether to show the label when the tab is inactive. */
