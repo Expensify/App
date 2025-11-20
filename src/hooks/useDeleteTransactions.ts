@@ -66,13 +66,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return transactionID === IOUTransactionID;
                 }),
             }));
-
             const deletedTransactionIDs: string[] = [];
             const deletedTransactionThreadReportIDs = new Set<string>();
             const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
                 (acc, item) => {
                     const {transaction} = item;
-                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+                    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.comment?.originalTransactionID}`];
+                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
                     if (isExpenseSplit && originalTransactionID) {
@@ -90,7 +90,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 },
             );
 
-            Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
+            for (const transactionID of Object.keys(splitTransactionsByOriginalTransactionID)) {
                 const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
                 const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
                     (transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
@@ -98,7 +98,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 if (childTransactions.length === 0) {
                     nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
-                    return;
+                    continue;
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
@@ -125,11 +125,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 });
-            });
+            }
 
-            nonSplitTransactions.forEach(({transactionID, action}) => {
+            for (const {transactionID, action} of nonSplitTransactions) {
                 if (!action) {
-                    return;
+                    continue;
                 }
                 const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
@@ -152,7 +152,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 if (action.childReportID) {
                     deletedTransactionThreadReportIDs.add(action.childReportID);
                 }
-            });
+            }
 
             return Array.from(deletedTransactionThreadReportIDs);
         },

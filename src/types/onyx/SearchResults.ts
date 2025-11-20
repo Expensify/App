@@ -156,7 +156,10 @@ type SearchReport = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -172,12 +175,6 @@ type SearchTransaction = {
 
     /** If the transaction can be deleted */
     canDelete: boolean;
-
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -213,13 +210,13 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
     category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
@@ -253,9 +250,6 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -375,9 +369,6 @@ type SearchWithdrawalIDGroup = {
     debitPosted: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
@@ -389,6 +380,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
@@ -412,8 +404,8 @@ export type {
     ListItemType,
     ListItemDataType,
     SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
