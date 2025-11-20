@@ -1661,6 +1661,7 @@ const CONST = {
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
+        SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
