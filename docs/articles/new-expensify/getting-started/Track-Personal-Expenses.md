@@ -34,7 +34,7 @@ Each workspace has its own rules and settings, even for personal expense trackin
 
 You can add expenses using SmartScan or by creating them manually.
 
-## SmartScan a Receipt
+## How to SmartScan a Receipt
 
 SmartScan reads receipt details like merchant, date, total, and currency automatically.
 
@@ -44,10 +44,11 @@ SmartScan reads receipt details like merchant, date, total, and currency automat
 4. Add details like description, category, tags, and tax.
 5. Click **Create expense**.
 
-💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
-💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
+💡 **Note:** 
+- You can also forward receipts to `receipts@expensify.com` using a verified email address.
+- Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending receipts via SMS, add your phone number to your account from **Account > Profile > Phone Number**.
 
-## Manually Enter an Expense
+## How to Manually Enter an Expense
 
 1. On mobile, tap the green camera button.
 2. On desktop, click the green add receipt button.
@@ -57,7 +58,7 @@ SmartScan reads receipt details like merchant, date, total, and currency automat
 6. Add optional fields like category, tags, or description.
 7. Click **Create expense**.
 
-Learn more about [Creating expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
+Learn more about [creating expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
 View expenses in your Expense chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
 
