@@ -169,7 +169,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
-                            data={data as WorkspaceListItemType[]}
+                            data={data}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             textInputOptions={textInputOptions}
                             initiallyFocusedItemKey={report.policyID}

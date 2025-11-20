@@ -1,22 +1,15 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
+import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
+import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-
-type WorkspaceListItem = {
-    text: string;
-    policyID?: string;
-    isPolicyAdmin?: boolean;
-    brickRoadIndicator?: BrickRoad;
-} & ListItem;
 
 type UseWorkspaceListParams = {
     policies: OnyxCollection<Policy>;
