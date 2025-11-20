@@ -9046,12 +9046,12 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
-    reportTransactions?: Transaction[] | Transaction[],
+    reportTransactions?: Transaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, reportTransactions as Transaction[]);
+    return hasAnyViolations(reportID, transactionViolations, reportTransactions);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
