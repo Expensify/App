@@ -1,11 +1,10 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render, renderHook} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
