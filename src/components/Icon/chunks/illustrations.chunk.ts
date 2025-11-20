@@ -50,6 +50,10 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
+import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
+import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
+import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -62,7 +66,6 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
-import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
