@@ -1226,7 +1226,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={getForcedCorporateUpgradeMessage(translate)} />
+                    <RenderHTML html={`<muted-text>${getForcedCorporateUpgradeMessage(translate)}</muted-text>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
