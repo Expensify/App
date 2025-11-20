@@ -28,7 +28,6 @@ import {
     compareDuplicateTransactionFields,
     getAmount,
     getFormattedCreated,
-    getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -188,6 +187,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
+    originalTransaction,
     locale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -199,6 +199,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     locale?: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -320,7 +321,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
+    const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};

@@ -44,14 +44,14 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
         }
     });
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!enterSignerInfoFormDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = enterSignerInfoFormDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }
