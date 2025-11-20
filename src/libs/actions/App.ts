@@ -322,15 +322,17 @@ function getOnyxDataForOpenOrReconnect(
 
     if (shouldKeepPublicRooms) {
         const publicReports = Object.values(allReports ?? {}).filter((report) => isPublicRoom(report) && isValidReport(report));
-        publicReports?.forEach((report) => {
-            result.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-                value: {
-                    ...report,
-                },
-            });
-        });
+        if (publicReports) {
+            for (const report of publicReports) {
+                result.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                    value: {
+                        ...report,
+                    },
+                });
+            }
+        }
     }
 
     // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
@@ -340,15 +342,17 @@ function getOnyxDataForOpenOrReconnect(
         .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
-    reportsWithDraftComments?.forEach((report) => {
-        result.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-            value: {
-                ...report,
-            },
-        });
-    });
+    if (reportsWithDraftComments) {
+        for (const report of reportsWithDraftComments) {
+            result.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    ...report,
+                },
+            });
+        }
+    }
 
     return result;
 }
@@ -689,9 +693,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
                     return;
                 }
 
-                sequentialQueue.forEach((request) => {
+                for (const request of sequentialQueue) {
                     save(request);
-                });
+                }
             });
         });
     clearSoundAssetsCache();
