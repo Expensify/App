@@ -1,41 +1,40 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { InteractionManager, View } from 'react-native';
-import type { ValueOf } from 'type-fest';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type { PaymentMethodType } from '@components/KYCWall/types';
-import type { PopoverMenuItem } from '@components/PopoverMenu';
+import type {PaymentMethodType} from '@components/KYCWall/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
-import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import { useSearchContext } from '@components/Search/SearchContext';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import type { SearchHeaderOptionValue } from '@components/Search/SearchPageHeader/SearchPageHeader';
+import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type { PaymentData, SearchParams } from '@components/Search/types';
-import { usePlaybackContext } from '@components/VideoPlayerContexts/PlaybackContext';
+import type {PaymentData, SearchParams} from '@components/Search/types';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { confirmReadyToOpenApp } from '@libs/actions/App';
-import { moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer } from '@libs/actions/Report';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -55,12 +54,12 @@ import {
     submitMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import { setTransactionReport } from '@libs/actions/Transaction';
-import { navigateToParticipantPage } from '@libs/IOUUtils';
+import {setTransactionReport} from '@libs/actions/Transaction';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SearchFullscreenNavigatorParamList } from '@libs/Navigation/types';
-import { getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy } from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     generateReportID,
     getPolicyExpenseChat,
@@ -70,48 +69,45 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import { buildCannedSearchQuery, buildSearchQueryJSON } from '@libs/SearchQueryUtils';
-import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
-import type { ReceiptFile } from '@pages/iou/request/step/IOURequestStepScan/types';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import { initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt } from '@userActions/IOU';
-import { openOldDotLink } from '@userActions/Link';
-import { buildOptimisticTransactionAndCreateDraft } from '@userActions/TransactionEdit';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {openOldDotLink} from '@userActions/Link';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { SearchResults, Transaction } from '@src/types/onyx';
-import type { FileObject } from '@src/types/utils/Attachment';
+import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
-function SearchPage({ route }: SearchPageProps) {
-    const { translate, localeCompare, formatPhoneNumber } = useLocalize();
-    const { isBetaEnabled } = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['MoneyBag'] as const);
+function SearchPage({route}: SearchPageProps) {
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const { shouldUseNarrowLayout, isSmallScreenWidth } = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const { isOffline } = useNetwork();
-    const { selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems } = useSearchContext();
+    const {isOffline} = useNetwork();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, { canBeMissing: true });
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, { canBeMissing: true });
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
-    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, { canBeMissing: true });
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, { canBeMissing: true });
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, { canBeMissing: false });
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, { canBeMissing: true });
+    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
+    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, { canBeMissing: true });
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, { canBeMissing: true });
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
@@ -120,16 +116,28 @@ function SearchPage({ route }: SearchPageProps) {
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
-    const { saveScrollOffset } = useContext(ScrollOffsetContext);
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Export',
+        'Table',
+        'DocumentMerge',
+        'Send',
+        'Trashcan',
+        'ThumbsUp',
+        'ArrowRight',
+        'Stopwatch',
+        'Exclamation',
+        'SmartScan',
+        'MoneyBag',
+    ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, { canBeMissing: true });
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
-    const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -145,7 +153,7 @@ function SearchPage({ route }: SearchPageProps) {
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
-    const { bulkPayButtonOptions, latestBankItems } = useBulkPayOptions({
+    const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         activeAdminPolicies,
@@ -169,14 +177,14 @@ function SearchPage({ route }: SearchPageProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const { status, hash } = queryJSON ?? {};
+    const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
             // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
-                queueExportSearchWithTemplate({ templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID });
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
             } else {
                 // Otherwise, we will use the selected transactionIDs and reportIDs directly
                 queueExportSearchWithTemplate({
@@ -205,7 +213,6 @@ function SearchPage({ route }: SearchPageProps) {
             }
 
             const activeRoute = Navigation.getActiveRoute();
-            const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
             for (const item of selectedOptions) {
@@ -261,36 +268,36 @@ function SearchPage({ route }: SearchPageProps) {
             const paymentData = (
                 selectedReports.length
                     ? selectedReports.map((report) => {
-                        return {
-                            reportID: report.reportID,
-                            amount: report.total,
-                            paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
-                            ...(isInvoiceReport(report.reportID)
-                                ? getPayMoneyOnSearchInvoiceParams(
-                                    report.policyID,
-                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
-                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
+                          return {
+                              reportID: report.reportID,
+                              amount: report.total,
+                              paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                              ...(isInvoiceReport(report.reportID)
+                                  ? getPayMoneyOnSearchInvoiceParams(
+                                        report.policyID,
+                                        paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
+                                        paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
+                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                    )
+                                  : {}),
+                          };
+                      })
+                    : Object.values(selectedTransactions).map((transaction) => ({
+                          reportID: transaction.reportID,
+                          amount: transaction.amount,
+                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                          ...(isInvoiceReport(transaction.reportID)
+                              ? getPayMoneyOnSearchInvoiceParams(
+                                    transaction.policyID,
+                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
+                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
                                     CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                                 )
-                                : {}),
-                        };
-                    })
-                    : Object.values(selectedTransactions).map((transaction) => ({
-                        reportID: transaction.reportID,
-                        amount: transaction.amount,
-                        paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
-                        ...(isInvoiceReport(transaction.reportID)
-                            ? getPayMoneyOnSearchInvoiceParams(
-                                transaction.policyID,
-                                paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
-                                paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
-                                CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                            )
-                            : {}),
-                    }))
+                              : {}),
+                      }))
             ) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            payMoneyRequestOnSearch(hash, paymentData);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -313,7 +320,7 @@ function SearchPage({ route }: SearchPageProps) {
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (isOffline) {
                             setIsOfflineModalVisible(true);
@@ -360,7 +367,7 @@ function SearchPage({ route }: SearchPageProps) {
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -374,8 +381,8 @@ function SearchPage({ route }: SearchPageProps) {
         };
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -400,7 +407,7 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (shouldShowApproveOption) {
             options.push({
-                icon: Expensicons.ThumbsUp,
+                icon: expensifyIcons.ThumbsUp,
                 text: translate('search.bulkActions.approve'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
                 shouldCloseModalOnSelect: true,
@@ -424,11 +431,10 @@ function SearchPage({ route }: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
@@ -446,7 +452,7 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (shouldShowSubmitOption) {
             options.push({
-                icon: Expensicons.Send,
+                icon: expensifyIcons.Send,
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
@@ -458,40 +464,25 @@ function SearchPage({ route }: SearchPageProps) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    itemList.forEach((item) => {
+                    for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            const reportTransactionIDs = selectedReports.length
-                                ? undefined
-                                : Object.keys(selectedTransactions).filter((id) => selectedTransactions[id].reportID === item.reportID);
-                            submitMoneyRequestOnSearch(hash, [item], [policy], reportTransactionIDs);
+                            submitMoneyRequestOnSearch(hash, [item], [policy]);
                         }
-                    });
+                    }
                     clearSelectedTransactions();
                 },
             });
         }
+        const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
-        const shouldEnableExpenseBulk = selectedReports.length
-            ? selectedReports.every(
-                (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-            )
-            : selectedTransactionsKeys.every(
-                (id) =>
-                    selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                    selectedTransactions[id].policyID &&
-                    getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-            );
-
-        const { shouldEnableBulkPayOption, isFirstTimePayment } = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
-
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && (isBetaBulkPayEnabled ? shouldEnableBulkPayOption : shouldEnableExpenseBulk);
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
             const payButtonOption = {
-                icon: icons.MoneyBag,
+                icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
@@ -506,7 +497,7 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (shouldShowHoldOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 shouldCloseModalOnSelect: true,
@@ -525,7 +516,7 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (shouldShowUnholdOption) {
             options.push({
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
@@ -567,8 +558,8 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
-                text: translate('iou.moveExpenses', { count: selectedTransactionsKeys.length }),
-                icon: Expensicons.DocumentMerge,
+                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
@@ -579,7 +570,7 @@ function SearchPage({ route }: SearchPageProps) {
 
         if (shouldShowDeleteOption) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
@@ -605,11 +596,11 @@ function SearchPage({ route }: SearchPageProps) {
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: { ...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap },
+                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap},
             };
 
             options.push({
-                icon: Expensicons.Exclamation,
+                icon: expensifyIcons.Exclamation,
                 text: translate('search.bulkActions.noOptionsAvailable'),
                 value: undefined,
                 ...emptyOptionStyle,
@@ -642,7 +633,7 @@ function SearchPage({ route }: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
-        isBetaBulkPayEnabled,
+        expensifyIcons,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -674,16 +665,16 @@ function SearchPage({ route }: SearchPageProps) {
 
         const newReceiptFiles: ReceiptFile[] = [];
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
                 index === 0
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
-                        initialTransaction: initialTransaction as Partial<Transaction>,
-                        currentUserPersonalDetails,
-                        reportID: newReportID,
-                    });
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             newReceiptFiles.push({
                 file,
@@ -691,14 +682,14 @@ function SearchPage({ route }: SearchPageProps) {
                 transactionID,
             });
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        });
+        }
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
-                setTransactionReport(receiptFile.transactionID, { reportID: transactionReportID }, true);
+                setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
                 return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
             });
             Promise.all(setParticipantsPromises).then(() =>
@@ -716,7 +707,7 @@ function SearchPage({ route }: SearchPageProps) {
         }
     };
 
-    const { validateFiles, PDFValidationComponent, ErrorModal } = useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -724,10 +715,10 @@ function SearchPage({ route }: SearchPageProps) {
         if (files.length === 0) {
             return;
         }
-        files.forEach((file) => {
+        for (const file of files) {
             // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
-        });
+        }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
@@ -749,8 +740,8 @@ function SearchPage({ route }: SearchPageProps) {
         clearSelectedTransactions();
     }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({ query: buildCannedSearchQuery() }));
-    const { resetVideoPlayerData } = usePlaybackContext();
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const {resetVideoPlayerData} = usePlaybackContext();
 
     const [isSorting, setIsSorting] = useState(false);
 
@@ -817,7 +808,7 @@ function SearchPage({ route }: SearchPageProps) {
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
 
-        return { count, total, currency };
+        return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
 
     if (shouldUseNarrowLayout) {
@@ -839,11 +830,11 @@ function SearchPage({ route }: SearchPageProps) {
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
-                            icon={Expensicons.SmartScan}
+                            icon={expensifyIcons.SmartScan}
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
-                            dropWrapperStyles={{ marginBottom: variables.bottomTabHeight }}
+                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
                             dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
@@ -857,8 +848,8 @@ function SearchPage({ route }: SearchPageProps) {
                             onCancel={() => {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
-                            title={translate('iou.deleteExpense', { count: selectedTransactionsKeys.length })}
-                            prompt={translate('iou.deleteConfirmation', { count: selectedTransactionsKeys.length })}
+                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
@@ -974,7 +965,7 @@ function SearchPage({ route }: SearchPageProps) {
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        icon={Expensicons.SmartScan}
+                                        icon={expensifyIcons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
@@ -996,8 +987,8 @@ function SearchPage({ route }: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', { count: selectedTransactionsKeys.length })}
-                    prompt={translate('iou.deleteConfirmation', { count: selectedTransactionsKeys.length })}
+                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

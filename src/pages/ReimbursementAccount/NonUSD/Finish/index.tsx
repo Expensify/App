@@ -1,28 +1,31 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import { navigateToConciergeChat } from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function Finish() {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'NewWindow'] as const);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, { canBeMissing: true });
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const handleBackButtonPress = () => {
@@ -44,7 +47,7 @@ function Finish() {
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('finishStep.letsFinish')}
-                    icon={Illustrations.ConciergeBubble}
+                    icon={illustrations.ConciergeBubble}
                     containerStyles={[styles.mb8, styles.mh5]}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >

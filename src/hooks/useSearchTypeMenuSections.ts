@@ -1,18 +1,18 @@
-import { createPoliciesSelector } from '@selectors/Policy';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import { getPersonalDetailsForAccountID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils } from '@libs/ReportUtils';
-import { createTypeMenuSections } from '@libs/SearchUIUtils';
-import { createNewReport } from '@userActions/Report';
+import {createPoliciesSelector} from '@selectors/Policy';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getPersonalDetailsForAccountID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { PersonalDetails, Policy, Session } from '@src/types/onyx';
+import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import { useMemoizedLazyExpensifyIcons } from './useLazyAsset';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -46,18 +46,18 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const { defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard } = useCardFeedsForDisplay();
-    const { isOffline } = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { selector: policiesSelector, canBeMissing: true });
-    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, { selector: currentUserLoginAndAccountIDSelector, canBeMissing: false });
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, { canBeMissing: true });
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, { canBeMissing: true });
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: true });
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
-    const { isBetaEnabled } = usePermissions();
+    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
+    const {isOffline} = useNetwork();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
-    const [pendingReportCreation, setPendingReportCreation] = useState<{ policyID: string; policyName?: string; onConfirm: () => void } | null>(null);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
 
     const handlePendingConfirm = useCallback(() => {
         pendingReportCreation?.onConfirm();
@@ -68,7 +68,7 @@ const useSearchTypeMenuSections = () => {
         setPendingReportCreation(null);
     }, [setPendingReportCreation]);
 
-    const { openCreateReportConfirmation, CreateReportConfirmationModal } = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
         policyName: pendingReportCreation?.policyName ?? '',
         onConfirm: handlePendingConfirm,
@@ -76,7 +76,7 @@ const useSearchTypeMenuSections = () => {
     });
 
     const createReportWithConfirmation = useCallback(
-        ({ policyID, policyName, onSuccess, personalDetails }: { policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: PersonalDetails }) => {
+        ({policyID, policyName, onSuccess, personalDetails}: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: PersonalDetails}) => {
             const accountID = currentUserLoginAndAccountID?.accountID;
             if (!accountID) {
                 return;
@@ -88,7 +88,7 @@ const useSearchTypeMenuSections = () => {
             }
 
             const executeCreate = () => {
-                const { reportID: createdReportID } = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
+                const {reportID: createdReportID} = createNewReport(personalDetailsForCreation, isASAPSubmitBetaEnabled, hasViolations, policyID);
                 onSuccess(createdReportID);
             };
 
@@ -112,6 +112,12 @@ const useSearchTypeMenuSections = () => {
         }
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
+
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -145,7 +151,11 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
-    return { typeMenuSections, CreateReportConfirmationModal };
+    return {
+        typeMenuSections,
+        CreateReportConfirmationModal,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+    };
 };
 
 export default useSearchTypeMenuSections;

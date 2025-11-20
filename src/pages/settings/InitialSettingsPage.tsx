@@ -1,9 +1,10 @@
-import { findFocusedRoute, useNavigationState, useRoute } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {differenceInDays} from 'date-fns';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type { GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
-import type { ValueOf } from 'type-fest';
+import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,14 +13,15 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import { PressableWithFeedback } from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import type { WithCurrentUserPersonalDetailsProps } from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,32 +32,32 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { checkIfFeedConnectionIsBroken } from '@libs/CardUtils';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
-import { getFreeTrialText, hasSubscriptionRedDotError } from '@libs/SubscriptionUtils';
-import { getProfilePageBrickRoadIndicator } from '@libs/UserUtils';
+import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import { showContextMenu } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import { confirmReadyToOpenApp } from '@userActions/App';
-import { openExternalLink } from '@userActions/Link';
-import { hasPaymentMethodError } from '@userActions/PaymentMethods';
-import { hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn } from '@userActions/Session';
-import { openInitialSettingsPage } from '@userActions/Wallet';
+import {confirmReadyToOpenApp} from '@userActions/App';
+import {openExternalLink, openOldDotLink} from '@userActions/Link';
+import {hasPaymentMethodError} from '@userActions/PaymentMethods';
+import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {openInitialSettingsPage} from '@userActions/Wallet';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type { Icon as TIcon } from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
-const icons = useMemoizedLazyExpensifyIcons(['CreditCard'] as const);
-
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -81,41 +83,42 @@ type MenuData = {
     badgeStyle?: ViewStyle;
 };
 
-type Menu = { sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[] };
+type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPageProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, { canBeMissing: true });
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, { canBeMissing: true });
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, { canBeMissing: true });
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, { canBeMissing: true });
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, { canBeMissing: true });
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, { canBeMissing: true });
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, { canBeMissing: true });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
-    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, { canBeMissing: true });
-    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: false });
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, { canBeMissing: true });
-    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, { canBeMissing: true });
-    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, { canBeMissing: true });
-    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, { canBeMissing: true });
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
+    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const { isExecuting, singleExecution } = useSingleExecution();
+    const {isExecuting, singleExecution} = useSingleExecution();
     const popoverAnchor = useRef(null);
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const icons = useMemoizedLazyExpensifyIcons(['Emoji', 'CreditCard', 'Wallet'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Emoji', 'CreditCard', 'Wallet'] as const);
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, { canBeMissing: true });
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, { canBeMissing: true });
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
     const shouldLogout = useRef(false);
 
@@ -165,6 +168,15 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
         [network.isOffline],
     );
 
+    const surveyCompletedWithinLastMonth = useMemo(() => {
+        const surveyThresholdInDays = 30;
+        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+            return false;
+        }
+        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+        return daysSinceLastSurvey < surveyThresholdInDays;
+    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+
     /**
      * Return a list of menu items data for account section
      * @returns object with translationKey, style and items for the account section
@@ -181,7 +193,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
             },
             {
                 translationKey: 'common.wallet',
-                icon: icons.Wallet,
+                icon: expensifyIcons.Wallet,
                 screenName: SCREENS.SETTINGS.WALLET.ROOT,
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
@@ -204,7 +216,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
         if (subscriptionPlan) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
-                icon: icons.CreditCard,
+                icon: expensifyIcons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
                     !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)
@@ -240,6 +252,39 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
         freeTrialText,
     ]);
 
+    const classicRedirectMenuItem: MenuData | null = useMemo(() => {
+        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
+            return null;
+        }
+
+        const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+
+        return {
+            translationKey: 'exitSurvey.goToExpensifyClassic',
+            icon: Expensicons.ExpensifyLogoNew,
+            ...(CONFIG.IS_HYBRID_APP
+                ? {
+                      action: () => closeReactNativeApp({shouldSetNVP: true}),
+                  }
+                : {
+                      action() {
+                          if (surveyCompletedWithinLastMonth) {
+                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              return;
+                          }
+
+                          resetExitSurveyForm(() => {
+                              if (shouldOpenSurveyReasonPage) {
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                          });
+                      },
+                  }),
+        };
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, surveyCompletedWithinLastMonth]);
+
     /**
      * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
@@ -252,6 +297,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
             },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
+                ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
@@ -293,11 +339,13 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => signOut(false),
+                    action: () => {
+                        signOut(false);
+                    },
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
 
     /**
      * Return JSX.Element with menu items
@@ -391,7 +439,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
                                     <Text style={styles.primaryMediumText}>{emojiCode}</Text>
                                 ) : (
                                     <Icon
-                                        src={icons.Emoji}
+                                        src={expensifyIcons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}
@@ -405,7 +453,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
         </View>
     );
 
-    const { saveScrollOffset, getScrollOffset } = useContext(ScrollOffsetContext);
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
 
@@ -426,7 +474,7 @@ function InitialSettingsPage({ currentUserPersonalDetails }: InitialSettingsPage
         if (!scrollOffset || !scrollViewRef.current) {
             return;
         }
-        scrollViewRef.current.scrollTo({ y: scrollOffset, animated: false });
+        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
     return (

@@ -254,7 +254,7 @@ function WorkspaceMemberDetailsPage({ personalDetails, policy, route }: Workspac
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => {
+        for (const workflow of updatedWorkflows) {
             if (workflow?.removeApprovalWorkflow) {
                 const { removeApprovalWorkflow, ...updatedWorkflow } = workflow;
 
@@ -262,7 +262,7 @@ function WorkspaceMemberDetailsPage({ personalDetails, policy, route }: Workspac
             } else {
                 updateApprovalWorkflow(workflow, [], [], policy);
             }
-        });
+        }
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();

@@ -1,16 +1,17 @@
-import { useFocusEffect } from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
-import { transactionDraftValuesSelector } from '@selectors/TransactionDraft';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, AppState, InteractionManager, StyleSheet, View } from 'react-native';
-import type { LayoutRectangle } from 'react-native';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
+import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import type { OnyxEntry } from 'react-native-onyx';
-import { RESULTS } from 'react-native-permissions';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
-import type { Camera, PhotoFile, Point } from 'react-native-vision-camera';
-import { useCameraDevice } from 'react-native-vision-camera';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {OnyxEntry} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
+import {scheduleOnRN} from 'react-native-worklets';
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -19,7 +20,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import { useFullScreenLoader } from '@components/FullScreenLoaderContext';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -30,6 +31,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -38,24 +40,24 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import { setTransactionReport } from '@libs/actions/Transaction';
-import { dismissProductTraining } from '@libs/actions/Welcome';
-import { showCameraPermissionsAlert } from '@libs/fileDownload/FileUtils';
+import {setTransactionReport} from '@libs/actions/Transaction';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
-import { navigateToParticipantPage } from '@libs/IOUUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import { getManagerMcTestParticipant, getParticipantsOption, getReportOption } from '@libs/OptionsListUtils';
-import { isPaidGroupPolicy } from '@libs/PolicyUtils';
-import { findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat } from '@libs/ReportUtils';
-import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
-import { getDefaultTaxCode } from '@libs/TransactionUtils';
+import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -70,31 +72,30 @@ import {
     trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
-import type { GpsPoint } from '@userActions/IOU';
-import { buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt } from '@userActions/TransactionEdit';
+import type {GpsPoint} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type { Policy } from '@src/types/onyx';
-import type { Participant } from '@src/types/onyx/IOU';
+import type {Policy} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
-import type { Receipt } from '@src/types/onyx/Transaction';
-import type { FileObject } from '@src/types/utils/Attachment';
-import { getEmptyObject } from '@src/types/utils/EmptyObject';
+import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import { cropImageToAspectRatio } from './cropImageToAspectRatio';
-import type { ImageObject } from './cropImageToAspectRatio';
+import {cropImageToAspectRatio} from './cropImageToAspectRatio';
+import type {ImageObject} from './cropImageToAspectRatio';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
-import type { ReceiptFile } from './types';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import type {ReceiptFile} from './types';
 
 function IOURequestStepScan({
     report,
     route: {
-        params: { action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport },
+        params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
@@ -105,8 +106,8 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const { isBetaEnabled } = usePermissions();
-    const { isLoaderVisible, setIsLoaderVisible } = useFullScreenLoader();
+    const {isBetaEnabled} = usePermissions();
+    const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple'] as const);
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
@@ -119,21 +120,21 @@ function IOURequestStepScan({
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, { canBeMissing: true });
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: false });
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, { canBeMissing: true });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, { canBeMissing: true });
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, { canBeMissing: true, selector: reportsSelector });
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, { canBeMissing: true });
+    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
-    const { shouldStartLocationPermissionFlow } = useIOUUtils();
+    const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
@@ -144,7 +145,7 @@ function IOURequestStepScan({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, { canBeMissing: true });
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -161,8 +162,8 @@ function IOURequestStepScan({
 
     const showBlink = useCallback(() => {
         blinkOpacity.set(
-            withTiming(0.4, { duration: 10 }, () => {
-                blinkOpacity.set(withTiming(0, { duration: 50 }));
+            withTiming(0.4, {duration: 10}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 50}));
             }),
         );
         HapticFeedback.press();
@@ -178,7 +179,7 @@ function IOURequestStepScan({
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -198,13 +199,13 @@ function IOURequestStepScan({
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
-    const focusIndicatorPosition = useSharedValue({ x: 0, y: 0 });
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
-        transform: [{ translateX: focusIndicatorPosition.get().x }, { translateY: focusIndicatorPosition.get().y }, { scale: focusIndicatorScale.get() }],
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
     const focusCamera = (point: Point) => {
@@ -223,15 +224,15 @@ function IOURequestStepScan({
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
         // eslint-disable-next-line react-compiler/react-compiler
-        .onStart((ev: { x: number; y: number }) => {
-            const point = { x: ev.x, y: ev.y };
+        .onStart((ev: {x: number; y: number}) => {
+            const point = {x: ev.x, y: ev.y};
 
-            focusIndicatorOpacity.set(withSequence(withTiming(0.8, { duration: 250 }), withDelay(1000, withTiming(0, { duration: 250 }))));
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
             focusIndicatorScale.set(2);
-            focusIndicatorScale.set(withSpring(1, { damping: 10, stiffness: 200 }));
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            runOnJS(focusCamera)(point);
+            scheduleOnRN(focusCamera, point);
         });
 
     useFocusEffect(
@@ -437,7 +438,7 @@ function IOURequestStepScan({
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => {
-                                const policyParams = { policy };
+                                const policyParams = {policy};
                                 const gpsPoint = {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
@@ -493,7 +494,7 @@ function IOURequestStepScan({
                 }
 
                 const setParticipantsPromises = files.map((receiptFile) => {
-                    setTransactionReport(receiptFile.transactionID, { reportID: transactionReportID }, true);
+                    setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
                     return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
                 });
                 Promise.all(setParticipantsPromises).then(() =>
@@ -552,7 +553,7 @@ function IOURequestStepScan({
             } else {
                 navigateBack();
             }
-            replaceReceipt({ transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories });
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
         },
         [initialTransactionID, policyCategories, backTo],
     );
@@ -570,7 +571,7 @@ function IOURequestStepScan({
             // prepareRequestPayload requires the file type to properly construct the FormData for API upload
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, 'image/png', true);
             removeDraftTransactions(true);
-            navigateToConfirmationStep([{ file, source: file.uri, transactionID: initialTransactionID }], false, true);
+            navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
@@ -602,20 +603,20 @@ function IOURequestStepScan({
             return;
         }
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const transaction =
                 !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
-                        initialTransaction: initialTransaction as Partial<Transaction>,
-                        currentUserPersonalDetails,
-                        reportID,
-                    });
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID,
+                      });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
-            newReceiptFiles.push({ file, source: file.uri ?? '', transactionID });
+            newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
             setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
-        });
+        }
 
         if (shouldSkipConfirmation) {
             setReceiptFiles(newReceiptFiles);
@@ -632,7 +633,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const { validateFiles, PDFValidationComponent, ErrorModal } = useFilesValidation(setReceiptFilesAndNavigate);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const submitReceipts = useCallback(
         (files: ReceiptFile[]) => {
@@ -705,15 +706,15 @@ function IOURequestStepScan({
                         const transaction =
                             isMultiScanEnabled && initialTransaction?.receipt?.source
                                 ? buildOptimisticTransactionAndCreateDraft({
-                                    initialTransaction,
-                                    currentUserPersonalDetails,
-                                    reportID,
-                                })
+                                      initialTransaction,
+                                      currentUserPersonalDetails,
+                                      reportID,
+                                  })
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
-                        const imageObject: ImageObject = { file: photo, filename: photo.path, source: getPhotoSource(photo.path) };
+                        const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
-                            ({ file, filename, source }) => {
+                            ({file, filename, source}) => {
                                 // Add source property to file for prepareRequestPayload compatibility
                                 const cameraFile = {
                                     ...file,
@@ -727,7 +728,7 @@ function IOURequestStepScan({
                                     return;
                                 }
 
-                                const newReceiptFiles = [...receiptFiles, { file: cameraFile as FileObject, source, transactionID }];
+                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
                                 setReceiptFiles(newReceiptFiles);
 
                                 if (isMultiScanEnabled) {
@@ -891,7 +892,7 @@ function IOURequestStepScan({
                         fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                         shouldValidateImage={false}
                     >
-                        {({ openPicker }) => (
+                        {({openPicker}) => (
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}

@@ -249,8 +249,9 @@ function MoneyRequestView({
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -788,13 +789,13 @@ function MoneyRequestView({
                                                 iouType,
                                                 transaction.transactionID,
                                                 report.reportID,
-                                                getReportRHPActiveRoute(),
+                                                Navigation.getActiveRoute(),
                                             ),
                                         ),
                                     );
                                 } else {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, Navigation.getActiveRoute()),
                                     );
                                 }
                             }}
