@@ -205,6 +205,7 @@ import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -1127,6 +1128,17 @@ function startMoneyRequest(
     draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
 ) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    const sourceRoute = Navigation.getActiveRoute();
+    startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
+        name: '/money-request-create',
+        op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_SOURCE_ROUTE]: sourceRoute || 'unknown',
+        },
+    });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -10133,6 +10145,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
@@ -10206,6 +10219,7 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
