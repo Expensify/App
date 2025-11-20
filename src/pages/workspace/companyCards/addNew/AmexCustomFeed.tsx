@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +22,7 @@ function AmexCustomFeed() {
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
     const [hasError, setHasError] = useState(false);
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -34,7 +34,7 @@ function AmexCustomFeed() {
                 selectedAmexCustomFeed: typeSelected,
             },
         });
-    };
+    }, [typeSelected]);
 
     useEffect(() => {
         setTypeSelected(addNewCard?.data.selectedAmexCustomFeed);
@@ -68,6 +68,15 @@ function AmexCustomFeed() {
         },
     ];
 
+    const confirmButtonConfig = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+        }),
+        [submit, translate],
+    );
+
     return (
         <ScreenWrapper
             testID={AmexCustomFeed.displayName}
@@ -86,20 +95,17 @@ function AmexCustomFeed() {
             </View>
 
             <SelectionList
+                data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                confirmButtonConfig={confirmButtonConfig}
                 shouldSingleExecuteRowSelect
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={addNewCard?.data.selectedAmexCustomFeed}
+                alternateNumberOfSupportedLines={3}
+                initiallyFocusedItemKey={addNewCard?.data.selectedAmexCustomFeed ?? undefined}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
                 addBottomSafeAreaPadding
             >
                 {hasError && (
