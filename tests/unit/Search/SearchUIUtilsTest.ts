@@ -1264,7 +1264,12 @@ const transactionReportGroupListItems = [
         formattedFrom: '',
         formattedStatus: 'Draft',
         formattedTo: '',
-        from: emptyPersonalDetails,
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: 'admin@policy.com',
+        },
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
