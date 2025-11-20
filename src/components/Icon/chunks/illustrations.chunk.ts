@@ -78,6 +78,7 @@ import ShieldYellow from '@assets/images/simple-illustrations/simple-illustratio
 import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
+import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
@@ -138,6 +139,7 @@ const Illustrations = {
     Tag,
     CompanyCard,
     ThumbsDown,
+    TreasureChest,
     Workflows,
     CarIce,
     BlueShield,

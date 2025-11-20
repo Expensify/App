@@ -79,7 +79,6 @@ import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration_
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
-import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 
 export {
@@ -102,7 +101,6 @@ export {
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     MoneyIntoWallet,
-    TreasureChest,
     ThumbsUpStars,
     Hands,
     SmartScan,
