@@ -8,7 +8,6 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -95,7 +94,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Stopwatch', 'Exclamation'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Stopwatch', 'Exclamation', 'Table', 'Export', 'ArrowRight', 'Send', 'MoneyBag', 'DocumentMerge', 'Trashcan', 'SmartScan'] as const);
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -310,7 +309,7 @@ function SearchPage({route}: SearchPageProps) {
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (isOffline) {
                             setIsOfflineModalVisible(true);
@@ -357,7 +356,7 @@ function SearchPage({route}: SearchPageProps) {
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -371,8 +370,8 @@ function SearchPage({route}: SearchPageProps) {
         };
 
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -443,7 +442,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowSubmitOption) {
             options.push({
-                icon: Expensicons.Send,
+                icon: expensifyIcons.Send,
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
@@ -474,9 +473,9 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowPayOption) {
             const payButtonOption = {
-                icon: Expensicons.MoneyBag,
+                icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
@@ -553,7 +552,7 @@ function SearchPage({route}: SearchPageProps) {
         if (canAllTransactionsBeMoved && !hasMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
@@ -564,7 +563,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowDeleteOption) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
@@ -824,7 +823,7 @@ function SearchPage({route}: SearchPageProps) {
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
-                            icon={Expensicons.SmartScan}
+                            icon={expensifyIcons.SmartScan}
                             dropTitle={translate('dropzone.scanReceipts')}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
@@ -959,7 +958,7 @@ function SearchPage({route}: SearchPageProps) {
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
-                                        icon={Expensicons.SmartScan}
+                                        icon={expensifyIcons.SmartScan}
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}

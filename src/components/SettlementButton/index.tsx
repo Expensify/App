@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -99,7 +98,7 @@ function SettlementButton({
     const policy = usePolicy(policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'CheckCircle', 'Wallet', 'Building', 'Bank', 'User', 'Cash'] as const);
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -233,7 +232,7 @@ function SettlementButton({
 
         const shortFormPayElsewhereButton = {
             text: translate('iou.pay'),
-            icon: Expensicons.CheckCircle,
+            icon: expensifyIcons.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
         };
@@ -267,7 +266,7 @@ function SettlementButton({
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
                     value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                    icon: Expensicons.Wallet,
+                    icon: expensifyIcons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -301,7 +300,7 @@ function SettlementButton({
                 const policyName = activePolicy.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
-                    icon: Expensicons.Building,
+                    icon: expensifyIcons.Building,
                     value: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
                 });
@@ -320,7 +319,7 @@ function SettlementButton({
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
-                    icon: Expensicons.Bank,
+                    icon: expensifyIcons.Bank,
                     onSelected: () => {
                         const bankAccountRoute = getBankAccountRoute(chatReport);
                         Navigation.navigate(bankAccountRoute);
@@ -332,7 +331,7 @@ function SettlementButton({
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
+                        icon: expensifyIcons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
@@ -348,14 +347,14 @@ function SettlementButton({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
-                    icon: Expensicons.User,
+                    icon: expensifyIcons.User,
                     value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
                     text: translate('iou.settleBusiness', {formattedAmount}),
-                    icon: Expensicons.Building,
+                    icon: expensifyIcons.Building,
                     value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),

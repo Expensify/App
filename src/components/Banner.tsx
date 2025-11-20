@@ -12,7 +12,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -75,7 +74,7 @@ function Banner({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Close'] as const);
     const defaultIcon = icon ?? expensifyIcons.Exclamation;
 
     return (
@@ -135,7 +134,7 @@ function Banner({
                                     accessibilityLabel={translate('common.close')}
                                 >
                                     <Icon
-                                        src={Expensicons.Close}
+                                        src={expensifyIcons.Close}
                                         fill={theme.icon}
                                     />
                                 </PressableWithFeedback>

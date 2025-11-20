@@ -60,7 +60,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -86,7 +85,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Hourglass', 'Flag', 'Info', 'ThumbsDown'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Hourglass', 'Flag', 'Info', 'ThumbsDown', 'CreditCardHourglass', 'ReceiptScan', 'ArrowSplit', 'ArrowCollapse', 'Trashcan'] as const);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
@@ -169,7 +168,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
 
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {icon: getStatusIcon(expensifyIcons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (shouldShowBrokenConnectionViolation) {
             return {
@@ -187,7 +186,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning(transaction)) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {icon: getStatusIcon(expensifyIcons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -333,7 +332,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
             text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
-            icon: Expensicons.ArrowSplit,
+            icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
                 initSplitExpense(allTransactions, allReports, transaction);
@@ -341,7 +340,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
             text: translate('common.merge'),
-            icon: Expensicons.ArrowCollapse,
+            icon: expensifyIcons.ArrowCollapse,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
             onSelected: () => {
                 if (!transaction) {
@@ -362,7 +361,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
-            icon: Expensicons.Trashcan,
+            icon: expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);

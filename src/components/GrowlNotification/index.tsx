@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,7 +27,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark'] as const);
 
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
@@ -47,7 +46,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const types: GrowlIconTypes = useMemo(
         () => ({
             [CONST.GROWL.SUCCESS]: {
-                icon: Expensicons.Checkmark,
+                icon: expensifyIcons.Checkmark,
                 iconColor: theme.success,
             },
             [CONST.GROWL.ERROR]: {

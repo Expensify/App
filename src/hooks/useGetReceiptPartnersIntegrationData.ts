@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import CONST from '@src/CONST';
 import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from './useLocalize';

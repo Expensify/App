@@ -1,9 +1,8 @@
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -64,7 +63,7 @@ function usePaymentOptions({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {accountID} = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Wallet', 'Building', 'Cash', 'Bank', 'User'] as const);
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -118,17 +117,17 @@ function usePaymentOptions({
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-                icon: Expensicons.Wallet,
+                icon: expensifyIcons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
                 text: translate('iou.settleBusiness', {formattedAmount}),
-                icon: Expensicons.Building,
+                icon: expensifyIcons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
-                icon: Expensicons.Cash,
+                icon: expensifyIcons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
@@ -176,7 +175,7 @@ function usePaymentOptions({
 
             const addBankAccountItem = {
                 text: translate('bankAccount.addBankAccount'),
-                icon: Expensicons.Bank,
+                icon: expensifyIcons.Bank,
                 onSelected: () => {
                     const bankAccountRoute = getBankAccountRoute(chatReport);
                     Navigation.navigate(bankAccountRoute);
@@ -186,14 +185,14 @@ function usePaymentOptions({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
-                    icon: Expensicons.User,
+                    icon: expensifyIcons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
                         ...(isCurrencySupported ? getPaymentSubitems(false) : []),
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                            icon: Expensicons.Cash,
+                            icon: expensifyIcons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
@@ -204,7 +203,7 @@ function usePaymentOptions({
 
             buttonOptions.push({
                 text: translate('iou.settleBusiness', {formattedAmount}),
-                icon: Expensicons.Building,
+                icon: expensifyIcons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
@@ -212,7 +211,7 @@ function usePaymentOptions({
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
+                        icon: expensifyIcons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
                     },

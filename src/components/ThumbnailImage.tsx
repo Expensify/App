@@ -14,7 +14,6 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
@@ -88,7 +87,7 @@ function ThumbnailImage({
     imageHeight = 200,
     shouldDynamicallyResize = true,
     loadingIconSize,
-    fallbackIcon = Expensicons.Gallery,
+    fallbackIcon,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     fallbackIconBackground,
@@ -102,7 +101,7 @@ function ThumbnailImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['OfflineCloud'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['OfflineCloud', 'Gallery'] as const);
     const [failedToLoad, setFailedToLoad] = useState(false);
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
@@ -140,12 +139,13 @@ function ThumbnailImage({
 
     if (failedToLoad || previewSourceURL === '') {
         const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
+        const iconToUse = isOffline ? expensifyIcons.OfflineCloud : (fallbackIcon ?? expensifyIcons.Gallery);
 
         return (
             <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline ? expensifyIcons.OfflineCloud : fallbackIcon}
+                        src={iconToUse}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}

@@ -4,7 +4,6 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -37,7 +36,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'RemoveMembers'] as const);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -98,7 +97,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                             isDisabled={shouldDisableRemoveUser}
-                            icon={Expensicons.RemoveMembers}
+                            icon={expensifyIcons.RemoveMembers}
                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                             style={styles.mv5}
                         />

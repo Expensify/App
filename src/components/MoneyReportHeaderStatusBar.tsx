@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
@@ -24,11 +23,11 @@ type IconMap = Record<IconName, IconAsset>;
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Stopwatch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Stopwatch', 'Checkmark'] as const);
     const iconMap: IconMap = useMemo(
         () => ({
             [CONST.NEXT_STEP.ICONS.HOURGLASS]: expensifyIcons.Hourglass,
-            [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
+            [CONST.NEXT_STEP.ICONS.CHECKMARK]: expensifyIcons.Checkmark,
             [CONST.NEXT_STEP.ICONS.STOPWATCH]: expensifyIcons.Stopwatch,
         }),
         [expensifyIcons],

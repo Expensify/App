@@ -4,7 +4,6 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -36,7 +35,7 @@ type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformSta
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'RemoveMembers'] as const);
     const StyleUtils = useStyleUtils();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -101,7 +100,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                                 text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                                 isDisabled={isSelectedMemberCurrentUser}
-                                icon={Expensicons.RemoveMembers}
+                                icon={expensifyIcons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                 style={styles.mv5}
                             />

@@ -135,7 +135,7 @@ function BaseReportActionContextMenu({
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Bell', 'Flag', 'Bug'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Bell', 'Flag', 'Bug', 'ChatBubbleReply', 'ChatBubbleUnread', 'Checkmark', 'Mail', 'Pencil', 'Copy', 'LinkCopy', 'Pin', 'Download', 'Trashcan', 'ThreeDots'] as const);
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);

@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -38,7 +37,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'DotIndicator'] as const);
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -62,7 +61,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
                 />
             )}
