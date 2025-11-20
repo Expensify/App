@@ -1,13 +1,13 @@
-import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { navigateToConciergeChat } from '@userActions/Report';
-import { requestTaxExempt } from '@userActions/Subscription';
+import {navigateToConciergeChat} from '@userActions/Report';
+import {requestTaxExempt} from '@userActions/Subscription';
 import CONST from '@src/CONST';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -16,7 +16,7 @@ const anchorAlignment = {
 
 function TaxExemptActions() {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins'] as const);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(

@@ -1,47 +1,47 @@
 import reportsSelector from '@selectors/Attributes';
-import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import { ImageBehaviorContextProvider } from '@components/Image/ImageBehaviorContextProvider';
+import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { completeSplitBill, setDraftSplitTransaction } from '@libs/actions/IOU';
+import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { SplitDetailsNavigatorParamList } from '@libs/Navigation/types';
-import { getParticipantsOption, getPolicyExpenseReportOption } from '@libs/OptionsListUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
+import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import { getOriginalMessage, isMoneyRequestAction } from '@libs/ReportActionsUtils';
-import { getTransactionDetails, isPolicyExpenseChat } from '@libs/ReportUtils';
-import type { OptionData } from '@libs/ReportUtils';
-import { areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil, isScanning } from '@libs/TransactionUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
-import type { WithReportAndReportActionOrNotFoundProps } from '@pages/home/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type { Participant } from '@src/types/onyx/IOU';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
-function SplitBillDetailsPage({ route, report, reportAction }: SplitBillDetailsPageProps) {
+function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const theme = useTheme();
-    const { isBetaEnabled } = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan'] as const);
 
     const reportID = report?.reportID;
@@ -49,22 +49,22 @@ function SplitBillDetailsPage({ route, report, reportAction }: SplitBillDetailsP
     const IOUTransactionID = originalMessage?.IOUTransactionID;
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, { canBeMissing: true });
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, { canBeMissing: true });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: true });
-    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: false });
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, { canBeMissing: true, selector: reportsSelector });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
-            getParticipantsOption({ accountID: participantAccountIDs.at(0), selected: true, reportID: '' }, personalDetails),
-            getPolicyExpenseReportOption({ ...report, selected: true, reportID }, reportAttributesDerived),
+            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, reportAttributesDerived),
         ];
     } else {
-        participants = participantAccountIDs.map((accountID) => getParticipantsOption({ accountID, selected: true, reportID: '' }, personalDetails));
+        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
@@ -147,7 +147,7 @@ function SplitBillDetailsPage({ route, report, reportAction }: SplitBillDetailsP
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, { billable });
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
                                 }}
                                 isConfirmed={isConfirmed}
                             />

@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,21 +13,21 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import { isInternalTestBuild } from '@libs/Environment/Environment';
+import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import { showContextMenu } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import { openExternalLink } from '@userActions/Link';
-import { navigateToConciergeChat } from '@userActions/Report';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {openExternalLink} from '@userActions/Link';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -50,11 +50,11 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['MoneyBag'] as const);
 
     const menuItems = useMemo(() => {
@@ -96,7 +96,7 @@ function AboutPage() {
             },
         ];
 
-        return baseMenuItems.map(({ translationKey, icon, iconRight, action, link }: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
@@ -105,12 +105,12 @@ function AboutPage() {
             shouldShowRightIcon: true,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        selection: link,
-                        contextMenuAnchor: popoverAnchor.current,
-                    })
+                      showContextMenu({
+                          type: CONST.CONTEXT_MENU_TYPES.LINK,
+                          event,
+                          selection: link,
+                          contextMenuAnchor: popoverAnchor.current,
+                      })
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,

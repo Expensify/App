@@ -1,36 +1,37 @@
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, { memo, useCallback, useContext, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import type { TupleToUnion } from 'type-fest';
+import React, {memo, useCallback, useContext, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import { usePersonalDetails } from '@components/OnyxListItemProvider';
-import { useSearchContext } from '@components/Search/SearchContext';
-import type { SearchColumnType, SortOrder } from '@components/Search/types';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import { WideRHPContext } from '@components/WideRHPContextProvider';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { turnOnMobileSelectionMode } from '@libs/actions/MobileSelectionMode';
-import { setOptimisticTransactionThread } from '@libs/actions/Report';
-import { setActiveTransactionIDs } from '@libs/actions/TransactionThreadNavigation';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {setOptimisticTransactionThread} from '@libs/actions/Report';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import FS from '@libs/Fullstory';
-import { navigationRef } from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import { getIOUActionForTransactionID } from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
@@ -39,7 +40,7 @@ import {
     isCurrentUserSubmitter,
     isExpenseReport,
 } from '@libs/ReportUtils';
-import { compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong } from '@libs/SearchUIUtils';
+import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {
     getAmount,
     getCategory,
@@ -53,11 +54,11 @@ import {
 } from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
-import type { ReportsSplitNavigatorParamList } from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import { createTransactionThreadReport } from '@userActions/Report';
+import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,7 +68,6 @@ import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
@@ -160,17 +160,17 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const { translate, localeCompare } = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const { shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth } = useResponsiveLayout();
-    const { markReportIDAsExpense } = useContext(WideRHPContext);
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
-    const { reportPendingAction } = getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    const { totalDisplaySpend, nonReimbursableSpend, reimbursableSpend } = getMoneyRequestSpendBreakdown(report);
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
@@ -184,7 +184,7 @@ function MoneyRequestReportTransactionList({
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const { selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions } = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const personalDetailsList = usePersonalDetails();
@@ -244,7 +244,7 @@ function MoneyRequestReportTransactionList({
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     });
 
-    const { sortBy, sortOrder } = sortConfig;
+    const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
@@ -297,7 +297,7 @@ function MoneyRequestReportTransactionList({
         [report, reportActions, sortedTransactions, markReportIDAsExpense],
     );
 
-    const { amountColumnSize, dateColumnSize, taxAmountColumnSize } = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
         const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
@@ -400,7 +400,7 @@ function MoneyRequestReportTransactionList({
                                     return;
                                 }
 
-                                setSortConfig((prevState) => ({ ...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder }));
+                                setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
                         />
                     )}
@@ -447,7 +447,7 @@ function MoneyRequestReportTransactionList({
                 {shouldShowAddExpenseButton && (
                     <OfflineWithFeedback pendingAction={reportPendingAction}>
                         <ButtonWithDropdownMenu
-                            onPress={() => { }}
+                            onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
                             customText={translate('iou.addExpense')}
                             options={addExpenseDropdownOptions}
@@ -465,9 +465,9 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                { text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount },
-                                { text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount },
-                            ].map(({ text, value }) => (
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
+                            ].map(({text, value}) => (
                                 <View
                                     key={text}
                                     style={[
@@ -529,4 +529,4 @@ function MoneyRequestReportTransactionList({
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
 export default memo(MoneyRequestReportTransactionList);
-export type { TransactionWithOptionalHighlight };
+export type {TransactionWithOptionalHighlight};

@@ -1,19 +1,20 @@
-import React, { useContext } from 'react';
-import type { StyleProp, TextStyle } from 'react-native';
-import { View } from 'react-native';
-import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
+import React, {useContext} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
-import type { OptionsPickerItem } from '@components/OptionsPicker';
+import type {OptionsPickerItem} from '@components/OptionsPicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -24,21 +25,20 @@ import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCo
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { convertToShortDisplayString } from '@libs/CurrencyUtils';
-import { isPolicyAdmin } from '@libs/PolicyUtils';
-import { getSubscriptionPrice } from '@libs/SubscriptionUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import { formatSubscriptionEndDate } from '@pages/settings/Subscription/utils';
+import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
-import { navigateToConciergeChat } from '@userActions/Report';
-import { clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionAutoRenew, updateSubscriptionType } from '@userActions/Subscription';
+import {navigateToConciergeChat} from '@userActions/Report';
+import {clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionAutoRenew, updateSubscriptionType} from '@userActions/Subscription';
 import CONST from '@src/CONST';
-import type { SubscriptionType } from '@src/CONST';
+import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
@@ -54,13 +54,13 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 ];
 
 function SubscriptionSettings() {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, { canBeMissing: false });
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const privateSubscription = usePrivateSubscription();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, { canBeMissing: true });
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
@@ -68,9 +68,9 @@ function SubscriptionSettings() {
     const preferredCurrency = usePreferredCurrency();
     const illustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const { isActingAsDelegate, showDelegateNoAccessModal } = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, { canBeMissing: true });
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -149,7 +149,7 @@ function SubscriptionSettings() {
         updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
-    const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, { color: theme.success }];
+    const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, {color: theme.success}];
     const customTitle = (
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
@@ -224,7 +224,7 @@ function SubscriptionSettings() {
                                     isActive={privateSubscription?.autoRenew}
                                 />
                                 {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', { date: autoRenewalDate })}</Text>
+                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
                                 )}
                             </View>
                         </OfflineWithFeedback>

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Camera } from '@components/Icon/Expensicons';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
-
+import {Camera} from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import BaseFloatingCameraButton from './BaseFloatingCameraButton';

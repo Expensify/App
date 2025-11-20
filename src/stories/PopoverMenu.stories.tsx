@@ -1,13 +1,13 @@
-import type { Meta, StoryFn } from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
-import type { PopoverMenuProps } from '@components/PopoverMenu';
+import type {PopoverMenuProps} from '@components/PopoverMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type PopoverMenuStory = StoryFn<typeof PopoverMenu>;
 
@@ -31,7 +31,7 @@ function Template(props: PopoverMenuProps) {
                 title="Add payment Methods"
                 icon={Expensicons.Plus}
                 onPress={toggleVisibility}
-                wrapperStyle={isVisible ? [{ backgroundColor: themeColors.border }] : []}
+                wrapperStyle={isVisible ? [{backgroundColor: themeColors.border}] : []}
             />
             <SafeAreaProvider>
                 <PopoverMenu
@@ -69,4 +69,4 @@ Default.args = {
 };
 
 export default story;
-export { Default };
+export {Default};

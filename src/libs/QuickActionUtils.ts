@@ -1,16 +1,19 @@
-import type { SvgProps } from 'react-native-svg';
+import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
-import type { Policy, Report } from '@src/types/onyx';
-import type { QuickActionName } from '@src/types/onyx/QuickAction';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Policy, Report} from '@src/types/onyx';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import getIconForAction from './getIconForAction';
-import { canCreateRequest } from './ReportUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { ExpensifyIconName } from '@components/Icon/ExpensifyIconLoader';
+import getIconForAction from './getIconForAction';
+import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (action: QuickActionName, icons: Record<'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>): IconAsset | Extract<ExpensifyIconName, "ReceiptScan" | "MoneyCircle"> => {
+const getQuickActionIcon = (
+    action: QuickActionName,
+    icons: Record<'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
+): IconAsset | Extract<ExpensifyIconName, 'ReceiptScan' | 'MoneyCircle'> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST, icons);
@@ -114,4 +117,4 @@ const isQuickActionAllowed = (
     return true;
 };
 
-export { getQuickActionIcon, getQuickActionTitle, getIOUType, isQuickActionAllowed };
+export {getQuickActionIcon, getQuickActionTitle, getIOUType, isQuickActionAllowed};

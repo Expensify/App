@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,23 +7,23 @@ import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import { clearWorkspaceOwnerChangeFlow } from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_ERROR>;
 
-function WorkspaceOwnerChangeErrorPage({ route }: WorkspaceOwnerChangeSuccessPageProps) {
+function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageProps) {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['MoneyWaving'] as const);
 
     const accountID = Number(route.params.accountID) ?? -1;

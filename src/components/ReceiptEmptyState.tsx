@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { View } from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,8 +9,6 @@ import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
-
 
 type ReceiptEmptyStateProps = {
     /** Callback to be called on onPress */
@@ -34,9 +33,9 @@ type ReceiptEmptyStateProps = {
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({ onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad }: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt'] as const);

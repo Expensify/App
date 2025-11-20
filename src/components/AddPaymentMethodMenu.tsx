@@ -1,23 +1,23 @@
-import type { RefObject } from 'react';
-import React, { useEffect, useState } from 'react';
-import type { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
+import type {RefObject} from 'react';
+import React, {useEffect, useState} from 'react';
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import { completePaymentOnboarding } from '@libs/actions/IOU';
-import { hasRequestFromCurrentAccount } from '@libs/ReportActionsUtils';
-import { isExpenseReport, isIOUReport } from '@libs/ReportUtils';
+import {completePaymentOnboarding} from '@libs/actions/IOU';
+import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
+import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { AnchorPosition } from '@src/styles';
-import type { Report } from '@src/types/onyx';
+import type {AnchorPosition} from '@src/styles';
+import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import * as Expensicons from './Icon/Expensicons';
-import type { PaymentMethod } from './KYCWall/types';
+import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type AddPaymentMethodMenuProps = {
     /** Should the component be visible? */
@@ -58,12 +58,11 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
-    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: true });
-    const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, { canBeMissing: true });
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
-
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
@@ -105,26 +104,26 @@ function AddPaymentMethodMenu({
             menuItems={[
                 ...(canUsePersonalBankAccount
                     ? [
-                        {
-                            text: translate('common.personalBankAccount'),
-                            icon: icons.Bank,
-                            onSelected: () => {
-                                completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
-                                onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-                            },
-                        },
-                    ]
+                          {
+                              text: translate('common.personalBankAccount'),
+                              icon: icons.Bank,
+                              onSelected: () => {
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+                                  onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                              },
+                          },
+                      ]
                     : []),
                 ...(canUseBusinessBankAccount
                     ? [
-                        {
-                            text: translate('common.businessBankAccount'),
-                            icon: Expensicons.Building,
-                            onSelected: () => {
-                                onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
-                            },
-                        },
-                    ]
+                          {
+                              text: translate('common.businessBankAccount'),
+                              icon: Expensicons.Building,
+                              onSelected: () => {
+                                  onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                              },
+                          },
+                      ]
                     : []),
                 // Adding a debit card for P2P payments is temporarily disabled
                 // ...[

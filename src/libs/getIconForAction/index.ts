@@ -1,4 +1,4 @@
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import IconAsset from '@src/types/utils/IconAsset';
 

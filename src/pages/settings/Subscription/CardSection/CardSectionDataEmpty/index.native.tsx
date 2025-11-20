@@ -1,14 +1,14 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 function CardSectionDataEmpty() {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardExclamation'] as const);

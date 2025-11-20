@@ -1,20 +1,19 @@
 import React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { getPinMenuItem, getShareMenuItem } from '@libs/HeaderUtils';
+import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import { joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs } from '@userActions/Report';
-import { callFunctionIfActionIsAllowed } from '@userActions/Session';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
-import type { ThreeDotsMenuItem } from './HeaderWithBackButton/types';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
-
+import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 
 type PromotedAction = {
     key: string;
@@ -25,9 +24,8 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: { reportID?: string; accountID?: number; login?: string }) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 };
-
 
 type PromotedActionsBarProps = {
     /** The list of actions to show */
@@ -55,7 +53,7 @@ const PromotedActions = {
             joinRoom(report);
         }),
     }),
-    message: ({ reportID, accountID, login }) => ({
+    message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -76,12 +74,11 @@ const PromotedActions = {
         },
     }),
 } satisfies PromotedActionsType;
-function PromotedActionsBar({ promotedActions, containerStyle }: PromotedActionsBarProps) {
+function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles'] as const);
-
 
     if (promotedActions.length === 0) {
         return null;
@@ -89,7 +86,7 @@ function PromotedActionsBar({ promotedActions, containerStyle }: PromotedActions
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({ key, onSelected, translationKey, icon }) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
@@ -99,7 +96,7 @@ function PromotedActionsBar({ promotedActions, containerStyle }: PromotedActions
                         iconFill={theme.icon}
                         text={translate(translationKey)}
                         icon={typeof icon === 'string' ? icons[icon] : icon}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                     />
                 </View>
             ))}
@@ -111,5 +108,5 @@ PromotedActionsBar.displayName = 'PromotedActionsBar';
 
 export default PromotedActionsBar;
 
-export { PromotedActions };
-export type { PromotedAction, PromotedActionsBarProps };
+export {PromotedActions};
+export type {PromotedAction, PromotedActionsBarProps};

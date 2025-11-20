@@ -1,11 +1,12 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import { isPerDiemRequest as isPerDiemRequestTransactionUtils } from '@libs/TransactionUtils';
+import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,8 +14,6 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
-
 
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
@@ -38,17 +37,16 @@ type EReceiptThumbnailProps = {
     iconSize?: IconSize;
 };
 
-function EReceiptThumbnail({ transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large' }: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
 
-    const { primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage } = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
+    const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const icons = useMemoizedLazyExpensifyIcons(['EReceiptIcon'] as const);
-
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
@@ -86,7 +84,7 @@ function EReceiptThumbnail({ transactionID, borderRadius, fileExtension, isRecei
                 styles.overflowHidden,
                 styles.alignItemsCenter,
                 centerIconV ? styles.justifyContentCenter : {},
-                borderRadius ? { borderRadius } : {},
+                borderRadius ? {borderRadius} : {},
             ]}
         >
             <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
@@ -147,4 +145,4 @@ function EReceiptThumbnail({ transactionID, borderRadius, fileExtension, isRecei
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
 
-export type { IconSize, EReceiptThumbnailProps };
+export type {IconSize, EReceiptThumbnailProps};

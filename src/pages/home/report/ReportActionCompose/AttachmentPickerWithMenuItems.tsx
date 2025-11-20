@@ -1,19 +1,20 @@
-import { useIsFocused } from '@react-navigation/native';
-import { accountIDSelector } from '@selectors/Session';
-import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
-import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
-import { useFullScreenLoader } from '@components/FullScreenLoaderContext';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type { PopoverMenuItem } from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -24,7 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import { isSafari } from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -38,19 +39,18 @@ import {
     reportSummariesOnyxSelector,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
-import { startDistanceRequest, startMoneyRequest } from '@userActions/IOU';
-import { close } from '@userActions/Modal';
-import { createNewReport, setIsComposerFullSize } from '@userActions/Report';
-import { clearOutTaskInfoAndNavigate } from '@userActions/Task';
-import type { IOUType } from '@src/CONST';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
+import {close} from '@userActions/Modal';
+import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
+import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { FileObject } from '@src/types/utils/Attachment';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -139,22 +139,22 @@ function AttachmentPickerWithMenuItems({
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
-    const { windowHeight, windowWidth } = useWindowDimensions();
+    const {translate} = useLocalize();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric', 'Coins', 'Receipt', 'Cash', 'Transfer', 'Receipt', 'MoneyCircle'] as const);
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
-    const { isDelegateAccessRestricted, showDelegateNoAccessModal } = useContext(DelegateNoAccessContext);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, { canBeMissing: true });
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, { canBeMissing: true });
-    const { isProduction } = useEnvironment();
-    const { isRestrictedToPreferredPolicy } = usePreferredPolicy();
-    const { setIsLoaderVisible } = useFullScreenLoader();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const {isProduction} = useEnvironment();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
-    const { isBetaEnabled } = usePermissions();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, { selector: accountIDSelector, canBeMissing: true });
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
@@ -173,7 +173,7 @@ function AttachmentPickerWithMenuItems({
         [policy],
     );
 
-    const { openCreateReportConfirmation, CreateReportConfirmationModal } = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
         onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true), true),
@@ -223,7 +223,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', { name: getPayeeName(report) }),
+                    text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => {
                         if (isDelegateAccessRestricted) {
@@ -336,7 +336,7 @@ function AttachmentPickerWithMenuItems({
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = [{ flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2 }, styles.flexGrow0, styles.flexShrink0];
+    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
 
     // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
     //    and the Create button is centered vertically.
@@ -349,7 +349,7 @@ function AttachmentPickerWithMenuItems({
         styles.h100,
         styles.w100,
         styles.overflowHidden,
-        { paddingVertical: styles.composerSizeButton.marginHorizontal },
+        {paddingVertical: styles.composerSizeButton.marginHorizontal},
     ];
 
     // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
@@ -365,7 +365,7 @@ function AttachmentPickerWithMenuItems({
             fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
             shouldValidateImage={false}
         >
-            {({ openPicker }) => {
+            {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({

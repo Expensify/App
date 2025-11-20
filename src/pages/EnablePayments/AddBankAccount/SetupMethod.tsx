@@ -1,26 +1,26 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import { useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import { openPersonalBankAccountSetupWithPlaid } from '@userActions/BankAccounts';
-import { openExternalLinkWithToken } from '@userActions/Link';
+import {openPersonalBankAccountSetupWithPlaid} from '@userActions/BankAccounts';
+import {openExternalLinkWithToken} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 
 function SetupMethod() {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, { canBeMissing: true });
+    const {translate} = useLocalize();
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
     const illustrations = useMemoizedLazyIllustrations(['MoneyWings'] as const);
 
