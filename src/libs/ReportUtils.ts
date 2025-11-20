@@ -2247,7 +2247,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
         return !!transactions?.find((transaction) => transaction?.reportID === reportID);
     }
@@ -2257,7 +2257,7 @@ function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<Ony
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -4483,7 +4483,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4625,7 +4625,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction>,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
@@ -4907,7 +4907,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  *
  * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> | Transaction {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
@@ -8975,12 +8975,12 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
-    reportTransactions?: Transaction[] | Transaction[],
+    reportTransactions?: Transaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, reportTransactions as Transaction[]);
+    return hasAnyViolations(reportID, transactionViolations, reportTransactions);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
