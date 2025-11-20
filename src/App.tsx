@@ -1,11 +1,8 @@
-import type {OnTtiMeasurement, TtiMeasurementValue} from '@expensify/nitro-utils';
-import {TtiMeasurementView} from '@expensify/nitro-utils';
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {callback} from 'react-native-nitro-modules';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -39,6 +36,7 @@ import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import TtiMeasurment from './components/TtiMeasurment';
 import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -75,22 +73,10 @@ function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
-    useEffect(() => {
-        gc();
-        HermesInternal?.ttiReached?.();
-    }, []);
-
-    const ttiMeasurement = useRef<TtiMeasurementValue | null>(null);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const handleTtiMeasurement: OnTtiMeasurement = (measurement) => {
-        intervalRef.current?.close();
-
-        ttiMeasurement.current = measurement;
-
-        intervalRef.current = setInterval(() => {
-            console.log('[PERF_CHRIS] TTI measurement:', ttiMeasurement.current);
-        }, 3000);
-    };
+    // useEffect(() => {
+    //     gc();
+    //     HermesInternal?.ttiReached?.();
+    // }, []);
 
     return (
         <StrictModeWrapper>
@@ -159,7 +145,8 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
-                                    <TtiMeasurementView onMeasurement={callback(handleTtiMeasurement)} />
+
+                                    <TtiMeasurment />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
