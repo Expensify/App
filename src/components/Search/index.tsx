@@ -735,7 +735,9 @@ function Search({
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
                 const expenseReportActionsOfFirstTransaction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstTransaction?.reportID}`] ?? {};
-                const IOUReportActionOfFirstTransaction = firstTransaction?.transactionID ? getIOUActionForTransactionID(Object.values(expenseReportActionsOfFirstTransaction), firstTransaction?.transactionID) : undefined;
+                const IOUReportActionOfFirstTransaction = firstTransaction?.transactionID
+                    ? getIOUActionForTransactionID(Object.values(expenseReportActionsOfFirstTransaction), firstTransaction?.transactionID)
+                    : undefined;
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (IOUReportActionOfFirstTransaction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                         createAndOpenSearchTransactionThread(firstTransaction, IOUReportActionOfFirstTransaction?.childReportID, backTo, transactionPreviewData, false);
