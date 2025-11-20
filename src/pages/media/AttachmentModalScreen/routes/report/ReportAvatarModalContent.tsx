@@ -61,6 +61,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             isLoading,
             maybeIcon: true,
             onDownloadAttachment,
+            shouldCloseOnSwipeDown: true,
         }),
         [attachment, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
     );

@@ -39,13 +39,13 @@ export default function PriorityModeController() {
     const closeModal = useCallback(() => setShouldShowModal(false), []);
     const validReportCount = useMemo(() => {
         let count = 0;
-        Object.values(allReports ?? {}).forEach((report) => {
+        for (const report of Object.values(allReports ?? {})) {
             if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                return;
+                continue;
             }
 
             count++;
-        });
+        }
         return count;
     }, [accountID, allReports]);
 
