@@ -16,13 +16,24 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
     var measurementSent = false
 
     companion object {
-        var applicationStartedTimestamp: Long? = null
+        var applicationStartupTimestamp: Long? = null
+        var firstDrawTimestamp: Long? = null
+        var bundleExectionTimestamp: Long? = null
     }
-
-
 
     // View
     override val view: View = View(context)
+
+    override var onMeasurement: OnMeasurementListener?
+        get() {
+            return measurementListener
+        }
+        set(listener) {
+            measurementListener = listener
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                registerDrawListener()
+            }
+        }
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     private fun registerDrawListener() {
@@ -40,15 +51,4 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
             measurementListener?.invoke(measurement)
         }
     }
-
-    override var onMeasurement: OnMeasurementListener?
-        get() {
-            return measurementListener
-        }
-        set(listener) {
-            measurementListener = listener
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                registerDrawListener()
-            }
-        }
 }
