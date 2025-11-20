@@ -1413,7 +1413,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
-            const harvestOriginalReportID = getHarvestOriginalReportID(reportNameValuePairs);
+            const harvestOriginalReportID = getHarvestOriginalReportID(reportNameValuePairs) ?? '';
             children = <ReportActionItemBasicMessage message={translate('reportAction.harvestCreatedExpenseReport', {reportID: harvestOriginalReportID})} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (

@@ -156,6 +156,7 @@ function BaseReportActionContextMenu({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -364,6 +365,7 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
+                            reportNameValuePairs,
                             moneyRequestAction,
                             card,
                             originalReport,

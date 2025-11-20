@@ -104,6 +104,7 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
+    getHarvestOriginalReportID,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getOriginalReportID,
@@ -117,6 +118,7 @@ import {
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
+    isHarvestCreatedExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -136,7 +138,19 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    OnyxInputOrEntry,
+    Policy,
+    PolicyTagLists,
+    ReportAction,
+    ReportActionReactions,
+    ReportNameValuePairs,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -207,6 +221,7 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
     isTryNewDotNVPDismissed?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
@@ -531,6 +546,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportID,
                 card,
                 originalReport,
+                reportNameValuePairs,
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
@@ -748,6 +764,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+                    const harvestOriginalReportID = getHarvestOriginalReportID(reportNameValuePairs) ?? '';
+                    const displayMessage = translate('reportAction.harvestCreatedExpenseReport', {reportID: harvestOriginalReportID});
+                    setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
