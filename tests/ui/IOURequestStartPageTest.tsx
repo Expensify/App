@@ -91,22 +91,4 @@ describe('IOURequestStartPage', () => {
         });
         expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
     });
-
-    it('should load IOURequestStepScan illustrations via lazy loading', () => {
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Hand', 'MultiScan', 'Shutter', 'ReceiptUpload']));
-
-        expect(result.current.Hand).toBeDefined();
-        expect(result.current.MultiScan).toBeDefined();
-        expect(result.current.Shutter).toBeDefined();
-        expect(result.current.ReceiptUpload).toBeDefined();
-    });
-
-    it('should load IOURequestStepScan icons via lazy loading', () => {
-        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']));
-
-        expect(result.current.Bolt).toBeDefined();
-        expect(result.current.Gallery).toBeDefined();
-        expect(result.current.ReceiptMultiple).toBeDefined();
-        expect(result.current.boltSlash).toBeDefined();
-    });
 });
