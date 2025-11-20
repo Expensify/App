@@ -526,10 +526,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
 }
 
 function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
-    return (
-        menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ??
-        menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)
-    );
+    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ?? menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
 }
 
 function getSuggestedSearchesVisibility(

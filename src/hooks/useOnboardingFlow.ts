@@ -6,8 +6,8 @@ import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
@@ -97,9 +97,7 @@ function useOnboardingFlowRouter() {
                 if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
                     const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
                     const defaultActionableSearchQuery =
-                        getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ??
-                        flattenedMenuItems.at(0)?.searchQuery ??
-                        typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+                        getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? buildCannedSearchQuery()}));
                     Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
                 }

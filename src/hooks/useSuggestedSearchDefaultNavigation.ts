@@ -3,7 +3,6 @@ import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type UseSuggestedSearchDefaultNavigationParams = {
