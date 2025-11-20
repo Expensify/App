@@ -6624,8 +6624,6 @@ function duplicateTransaction(
         optimisticIOUReportID,
         optimisticReportPreviewActionID: NumberUtils.rand64(),
         participantParams: {
-            payeeEmail: currentUserPersonalDetails.login,
-            payeeAccountID: currentUserPersonalDetails.accountID,
             participant: getMoneyRequestParticipantsFromReport(targetReport),
         },
         policyParams: {
@@ -6635,10 +6633,12 @@ function duplicateTransaction(
         action: CONST.IOU.ACTION.CREATE,
         transactionParams: {
             ...transaction,
+            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
             amount: (transaction.modifiedAmount || transaction.amount) * -1,
             currency: transaction.modifiedCurrency || transaction.currency,
             mcc: transaction.modifiedMCC || transaction.mcc,
             merchant: transaction.modifiedMerchant || transaction.merchant,
+            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             comment: transaction?.comment?.comment?.trim() ?? '',
             waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
