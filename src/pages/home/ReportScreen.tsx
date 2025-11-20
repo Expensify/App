@@ -525,6 +525,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // If there is one transaction thread that has not yet been created, we should create it.
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+            createOneTransactionThreadReport();
+            return;
+        }
+
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
@@ -540,7 +546,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
+    }, [
+        reportMetadata.isOptimisticReport,
+        report,
+        isOffline,
+        transactionThreadReportID,
+        transactionThreadReport,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        createOneTransactionThreadReport,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
+    ]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -548,14 +567,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         prevIsAnonymousUser.current = true;
     }, [isAnonymousUser]);
-
-    useEffect(() => {
-        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReportID || !reportMetadata.hasOnceLoadedReportActions) {
-            return;
-        }
-
-        createOneTransactionThreadReport();
-    }, [reportMetadata.hasOnceLoadedReportActions, transactionThreadReportID, createOneTransactionThreadReport]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
