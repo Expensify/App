@@ -10,6 +10,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -33,6 +34,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -61,6 +63,7 @@ function TransactionPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -69,6 +72,7 @@ function TransactionPreviewContent({
         [transaction, policy, isParentPolicyExpenseChat],
     );
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
 
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -103,7 +107,8 @@ function TransactionPreviewContent({
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
-    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
+    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL) : undefined;
 
     const previewText = useMemo(
         () =>
@@ -112,8 +117,9 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
+                originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -66,6 +68,7 @@ function CardSection() {
         [purchaseList],
     );
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const requestRefund = useCallback(() => {
@@ -88,6 +91,7 @@ function CardSection() {
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
+            creditCardEyesIcon: illustrations.CreditCardEyes,
         }),
     );
 
@@ -109,6 +113,7 @@ function CardSection() {
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
+                creditCardEyesIcon: illustrations.CreditCardEyes,
             }),
         );
     }, [
@@ -120,6 +125,7 @@ function CardSection() {
         privateStripeCustomerID,
         purchaseList,
         billingDisputePending,
+        illustrations.CreditCardEyes,
     ]);
 
     const handleRetryPayment = () => {
@@ -142,13 +148,13 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, userBillingFundID)) {
+    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
-    } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial)) {
+    } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
-    } else if (isUserOnFreeTrial(firstDayFreeTrial)) {
+    } else if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (hasUserFreeTrialEnded()) {
+    } else if (hasUserFreeTrialEnded(lastDayFreeTrial)) {
         BillingBanner = <TrialEndedBillingBanner />;
     }
     if (billingStatus) {

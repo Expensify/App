@@ -80,7 +80,7 @@ filterList
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/g, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {
@@ -129,7 +129,7 @@ standardFilter
 
 reportFieldDynamic
   = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
-      const suffix = rest.replace(/^-+/, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     }
     
