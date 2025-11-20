@@ -131,6 +131,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'HandCard',
         'Coins',
         'Luggage',
+        'Car',
+        'Gears',
     ] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -149,7 +151,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const spendItems: Item[] = [
         {
-            icon: Illustrations.Car,
+            icon: illustrations.Car,
             titleTranslationKey: 'workspace.moreFeatures.distanceRates.title',
             subtitleTranslationKey: 'workspace.moreFeatures.distanceRates.subtitle',
             isActive: policy?.areDistanceRatesEnabled ?? false,
@@ -594,7 +596,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.Gears}
+                    icon={illustrations.Gears}
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}

@@ -81,17 +81,6 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: TravelAlerts,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
@@ -158,6 +147,20 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: TravelAlerts,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [],
+    );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);

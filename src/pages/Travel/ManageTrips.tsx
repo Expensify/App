@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -16,26 +16,25 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Illustrations.TravelAlerts,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
-type ManageTripsProps = {
-    policyID: string;
-};
-
-function ManageTrips({policyID}: ManageTripsProps) {
+function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: Illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: Illustrations.TravelAlerts,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [],
+    );
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
