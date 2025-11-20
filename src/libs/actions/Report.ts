@@ -1106,11 +1106,13 @@ function openReport(
         }
 
         // Attach the optimistic IOU report action created for the transaction to the transaction thread
+        // Set chatReportID to link back to the parent policy expense chat for proper avatar rendering
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 parentReportActionID: iouReportActionID,
+                chatReportID: transactionParentReportID,
             },
         });
 
