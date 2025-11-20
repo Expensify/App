@@ -45,6 +45,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onEndReached,
     onEndReachedThreshold,
     confirmButtonConfig,
+    children,
     customListHeader,
     customListHeaderContent,
     footerContent,
@@ -167,6 +168,13 @@ function BaseSelectionList<TItem extends ListItem>({
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
+
+    useEffect(() => {
+        if (initialFocusedIndex < 0) {
+            return;
+        }
+        setFocusedIndex(initialFocusedIndex);
+    }, [initialFocusedIndex, setFocusedIndex]);
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -414,6 +422,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             </>
                         }
                     />
+                    {children}
                 </>
             )}
 
