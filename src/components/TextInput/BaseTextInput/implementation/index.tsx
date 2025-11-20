@@ -533,8 +533,8 @@ function BaseTextInput({
                 inputPaddingLeft={inputPaddingLeft}
                 autoGrow={autoGrow}
                 isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
-                onSetTextInputWidth={(width) => {
-                    setTextInputWidth(width);
+                onSetTextInputWidth={(inputWidth) => {
+                    setTextInputWidth(inputWidth);
                     // Once we have the width measurement, we are ready to display the input to prevent flicker
                     setIsReadyToDisplay(true);
                 }}

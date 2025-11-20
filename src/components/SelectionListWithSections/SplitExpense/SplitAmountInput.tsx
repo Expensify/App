@@ -1,8 +1,9 @@
 import React from 'react';
 import type {BlurEvent} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import type {SplitListItemType} from '@components/SelectionListWithSections/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {SplitListItemType} from '../types';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -12,14 +13,16 @@ type SplitAmountInputProps = {
     onSplitExpenseValueChange: (value: string) => void;
     focusHandler: () => void;
     onInputBlur: ((e: BlurEvent) => void) | undefined;
+    inputCallbackRef: (ref: BaseTextInputRef | null) => void;
 };
 
-function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur}: SplitAmountInputProps) {
+function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
 
     if (splitItem.isEditable) {
         return (
             <MoneyRequestAmountInput
+                ref={inputCallbackRef}
                 autoGrow={false}
                 amount={splitItem.amount}
                 currency={splitItem.currency}

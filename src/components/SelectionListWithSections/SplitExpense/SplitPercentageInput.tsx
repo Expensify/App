@@ -1,9 +1,9 @@
 import React from 'react';
 import type {BlurEvent} from 'react-native';
 import PercentageForm from '@components/PercentageForm';
+import type {SplitListItemType} from '@components/SelectionListWithSections/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {SplitListItemType} from '../types';
 import SplitPercentageDisplay from './SplitPercentageDisplay';
 
 type SplitAmountInputProps = {
