@@ -11,6 +11,7 @@ import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
+import type Report from './Report';
 import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
@@ -296,7 +297,6 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &

@@ -1035,7 +1035,7 @@ function getTransactionsSections(
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as Report | undefined;
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         let shouldShow = true;
 
@@ -1127,10 +1127,10 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
 function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): OnyxTypes.Report | undefined {
     if (isTransactionEntry(key)) {
         const transaction = data[key];
-        return data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] as OnyxTypes.Report;
+        return data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     }
     if (isReportEntry(key)) {
-        return data[key] as OnyxTypes.Report;
+        return data[key];
     }
     return undefined;
 }
