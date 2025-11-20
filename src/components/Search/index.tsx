@@ -55,6 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -377,13 +378,6 @@ function Search({
     useEffect(() => {
         openSearch();
     }, []);
-
-    useEffect(() => {
-        if (!prevIsOffline || isOffline) {
-            return;
-        }
-        openSearch();
-    }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
@@ -888,12 +882,19 @@ function Search({
         );
     }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
+
+    const onLayoutSkeleton = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+    }, []);
 
     if (shouldShowLoadingState) {
         return (
@@ -901,6 +902,7 @@ function Search({
                 entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1]}
+                onLayout={onLayoutSkeleton}
             >
                 <SearchRowSkeleton
                     shouldAnimate
