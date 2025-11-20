@@ -33,7 +33,7 @@ function ManageTrips() {
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.Alert],
+        [illustrations.Alert, illustrations.PiggyBank],
     );
 
     const navigateToBookTravelDemo = () => {

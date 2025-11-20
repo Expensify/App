@@ -46,7 +46,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 translationKey: 'domain.samlFeatureList.onePasswordForAnything',
             },
         ],
-        [illustrations.LockClosed],
+        [illustrations.LockClosed, illustrations.ShieldYellow],
     );
 
     const accountID = route.params.accountID;

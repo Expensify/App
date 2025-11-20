@@ -140,7 +140,7 @@ function WorkspacesListRow({
                     return illustrations.Mailbox;
             }
         },
-        [illustrations.Mailbox],
+        [illustrations.Mailbox, illustrations.ShieldYellow],
     );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
