@@ -275,9 +275,9 @@ const updateCurrentDate = throttle(() => {
  */
 function startCurrentDateUpdater() {
     const trackedEvents = ['mousemove', 'touchstart', 'keydown', 'scroll'];
-    trackedEvents.forEach((eventName) => {
+    for (const eventName of trackedEvents) {
         document.addEventListener(eventName, updateCurrentDate);
-    });
+    }
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {

@@ -16,7 +16,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, FundID} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -165,7 +165,6 @@ export type {
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
-    CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,
