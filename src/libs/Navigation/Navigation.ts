@@ -11,7 +11,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -202,15 +202,20 @@ function navigate(route: Route, options?: LinkToOptions) {
         const reportIDMatch = route.match(/^(?:search\/)?r\/(\w+)/);
         if (reportIDMatch?.at(1)) {
             const reportID = reportIDMatch.at(1);
+            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
-            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
-                name: spanName,
-                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                attributes: {
-                    reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                    [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
-                },
+            let span = getSpan(spanId);
+
+            if (!span) {
+                span = startSpan(spanId, {
+                    name: spanName,
+                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                });
+            }
+            span.setAttributes({
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
             });
         }
     }

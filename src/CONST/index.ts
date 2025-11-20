@@ -1663,6 +1663,7 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_REPORT_ID: 'report_id',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
