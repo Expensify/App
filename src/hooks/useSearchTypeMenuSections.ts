@@ -113,12 +113,6 @@ const useSearchTypeMenuSections = () => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
-    const isSuggestedSearchDataReady = useMemo(() => {
-        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
-    }, [allPolicies]);
-
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
@@ -151,11 +145,7 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
-    return {
-        typeMenuSections,
-        CreateReportConfirmationModal,
-        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
-    };
+    return {typeMenuSections, CreateReportConfirmationModal};
 };
 
 export default useSearchTypeMenuSections;
