@@ -2002,7 +2002,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.expenses',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        icon: Expensicons.Receipt,
+                        icon: 'Receipt',
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
@@ -2012,7 +2012,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.chats',
                         type: CONST.SEARCH.DATA_TYPES.CHAT,
-                        icon: Expensicons.ChatBubbles,
+                        icon: 'ChatBubbles',
                     }),
                 ]),
             );

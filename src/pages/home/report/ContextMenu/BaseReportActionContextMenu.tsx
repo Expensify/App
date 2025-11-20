@@ -387,7 +387,7 @@ function BaseReportActionContextMenu({
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                        const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
+                        const icon = typeof contextAction.icon === 'string' ? expensifyIcons[contextAction.icon] : contextAction.icon;
 
                         return (
                             <ContextMenuItem
