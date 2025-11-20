@@ -624,7 +624,7 @@ const dismissToFirstRHP = () => {
         dismissModal();
         return;
     }
-    
+
     navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
 };
 
