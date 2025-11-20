@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
