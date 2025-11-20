@@ -41,10 +41,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
@@ -72,7 +72,7 @@ function handleActionButtonPress(
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    snapshotReport: SearchReport,
+    snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
@@ -178,8 +178,7 @@ function getPayActionCallback(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    snapshotReport: SearchReport,
+    snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
@@ -451,8 +450,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: Policy[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -495,8 +493,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         },
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const report = (reportList.at(0) ?? {}) as SearchReport;
+    const report = (reportList.at(0) ?? {}) as Report;
     const parameters: SubmitReportParams = {
         reportID: report.reportID,
         managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,

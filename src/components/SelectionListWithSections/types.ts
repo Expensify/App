@@ -32,7 +32,6 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchReport,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -379,7 +378,7 @@ type TransactionGroupListItemType = ListItem & {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 

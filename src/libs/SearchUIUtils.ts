@@ -50,7 +50,6 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchReport,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -150,23 +149,17 @@ const taskColumnNamesToSortingProperty = {
 };
 
 const expenseStatusActionMapping = {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport?: OnyxTypes.Report) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport?: OnyxTypes.Report) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport?: OnyxTypes.Report) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport?: OnyxTypes.Report) =>
         (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: SearchReport) =>
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport?: OnyxTypes.Report) =>
         expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: SearchReport) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport?: OnyxTypes.Report) => !expenseReport,
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
@@ -1042,8 +1035,7 @@ function getTransactionsSections(
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as Report | undefined;
 
         let shouldShow = true;
 
@@ -1552,7 +1544,7 @@ function getReportSections(
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail);
@@ -2478,7 +2470,7 @@ function getColumnsToShow(
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
