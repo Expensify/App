@@ -6,6 +6,8 @@ import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {Coordinate} from '@components/MapView/MapViewTypes';
+import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -49,6 +51,7 @@ import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardList,
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
@@ -256,6 +259,38 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
     return getRequestType(transaction);
 }
 
+/**
+ * Determines the transaction type based on custom unit name or card name.
+ * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'cash' for cash transactions, or 'card' for card transactions.
+ *
+ * @param transaction - The transaction to check
+ * @param cardList - Optional card list to check for cash transactions
+ * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ */
+function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
+    const customUnitName = transaction?.comment?.customUnit?.name;
+
+    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+        return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
+    }
+
+    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+        return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
+    }
+
+    const cardID = transaction?.cardID;
+    if (cardID && cardList?.[cardID]?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
+    }
+
+    if (!transaction?.cardName || transaction?.cardName?.includes(CONST.EXPENSE.TYPE.CASH_CARD_NAME)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CASH;
+    }
+
+    return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+}
+
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -416,7 +451,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
  * Determine if we should show the attendee selector for a given expense on a give policy.
  */
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.TRACK) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
@@ -627,6 +662,10 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            attendees: transactionChanges.attendees,
+        };
         updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
     }
 
@@ -849,33 +888,60 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 }
 
 /**
+ * Return report owner as default attendee
+ * @param transaction
+ */
+function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>): Attendee | undefined {
+    if (transaction?.reportID === undefined) {
+        return;
+    }
+
+    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
+    const report = getReportOrDraftReport(transaction?.reportID);
+    const creatorAccountID = report?.ownerAccountID;
+
+    if (creatorAccountID) {
+        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: deprecatedCurrentUserAccountID});
+        const creatorEmail = creatorDetails?.login ?? '';
+        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
+
+        if (creatorEmail) {
+            return {
+                email: creatorEmail,
+                login: creatorEmail,
+                displayName: creatorDisplayName,
+                accountID: creatorAccountID,
+                text: creatorDisplayName,
+                searchText: creatorDisplayName,
+                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                selected: true,
+            };
+        }
+    }
+}
+
+/**
+ * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
+ * @param transaction
+ */
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+    const attendees = transaction?.comment?.attendees ?? [];
+    const currentUserAsAttendee = getReportOwnerAsAttendee(transaction);
+    if (attendees.length === 0 && transaction?.reportID && currentUserAsAttendee !== undefined) {
+        attendees.push(currentUserAsAttendee);
+    }
+    return attendees;
+}
+
+/**
  * Return the list of modified attendees if present otherwise list of attendees
+ * @param transaction
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
-    if (attendees.length === 0 && transaction?.reportID) {
-        // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-        const report = getReportOrDraftReport(transaction.reportID);
-        const creatorAccountID = report?.ownerAccountID;
-
-        if (creatorAccountID) {
-            const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: deprecatedCurrentUserAccountID});
-            const creatorEmail = creatorDetails?.login ?? '';
-            const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
-
-            if (creatorEmail) {
-                attendees.push({
-                    email: creatorEmail,
-                    login: creatorEmail,
-                    displayName: creatorDisplayName,
-                    accountID: creatorAccountID,
-                    text: creatorDisplayName,
-                    searchText: creatorDisplayName,
-                    avatarUrl: creatorDetails?.avatarThumbnail ?? '',
-                    selected: true,
-                });
-            }
-        }
+    const currentUserAsAttendee = getReportOwnerAsAttendee(transaction);
+    if (attendees.length === 0 && transaction?.reportID && currentUserAsAttendee !== undefined) {
+        attendees.push(currentUserAsAttendee);
     }
     return attendees;
 }
@@ -1295,8 +1361,10 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        // Check for adjacent waypoints with the same address
-        if (previousWaypoint && currentWaypoint?.address === previousWaypoint.address) {
+        // Check for adjacent waypoints with the same address or coordinate
+        const previousCoordinate: Coordinate = [previousWaypoint?.lng ?? 0, previousWaypoint?.lat ?? 0];
+        const currentCoordinate: Coordinate = [currentWaypoint.lng ?? 0, currentWaypoint.lat ?? 0];
+        if (previousWaypoint && (currentWaypoint?.address === previousWaypoint.address || utils.areSameCoordinate(previousCoordinate, currentCoordinate))) {
             return acc;
         }
 
@@ -2059,6 +2127,7 @@ export {
     getDescription,
     getRequestType,
     getExpenseType,
+    getTransactionType,
     isManualRequest,
     isScanRequest,
     getAmount,
@@ -2160,6 +2229,7 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getOriginalAttendees,
 };
 
 export type {TransactionChanges};

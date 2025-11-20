@@ -7793,6 +7793,7 @@ describe('actions/IOU', () => {
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: 'merchant',
                     billable: false,
+                    reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
             });
@@ -9987,10 +9988,10 @@ describe('actions/IOU', () => {
             expect(nextStep?.message).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment, which should mention the admin
-            // The message should equal "Waiting for Admin User to pay"
+            // the next step should be about payment, which should mention "you" since the admin is the payer
+            // The message should equal "Waiting for you to pay %expenses."
             const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for an admin to pay %expenses.');
+            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
         });
     });
 
