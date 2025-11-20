@@ -307,6 +307,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
 
+    const confirmButtonConfig = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.continue'),
+            onConfirm: onConfirmSelectList,
+        }),
+        [translate, onConfirmSelectList],
+    );
+
     return (
         <>
             <HeaderWithBackButton
@@ -345,7 +354,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         onSelectRow={updateSelectedItems}
                         alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        confirmButtonConfig={{showButton: true, text: translate('common.continue'), onConfirm: onConfirmSelectList}}
+                        confirmButtonConfig={confirmButtonConfig}
                     />
                 </View>
             </>
