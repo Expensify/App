@@ -60,7 +60,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
     const textInputOptions = useMemo(
         () => ({
             value: searchValue,
-            label: translate('common.country'),
+            label: translate('common.search'),
             onChangeText: setSearchValue,
             headerMessage,
         }),
