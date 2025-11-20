@@ -23,10 +23,8 @@ import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
-import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -83,16 +81,12 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
-import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
     BrokenMagnifyingGlass,
     Computer,
-    EmptyCardState,
     EmptyStateExpenses,
-    ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     MagnifyingGlassReceipt,
@@ -105,7 +99,6 @@ export {
     ToddInCar,
     ShieldYellow,
     BrokenCompanyCardBankConnection,
-    LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     MoneyIntoWallet,
@@ -128,12 +121,12 @@ export {
     PiggyBank,
     Pillow,
     Pencil,
+    ExpensifyCardImage,
     CarIce,
     ReceiptLocationMarker,
     Stopwatch,
     SubscriptionAnnual,
     SubscriptionPPU,
-    ExpensifyApprovedLogo,
     SendMoney,
     FolderWithPapers,
     VirtualCard,
@@ -143,7 +136,6 @@ export {
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
-    TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,
     CapitalOneCompanyCardDetail,
