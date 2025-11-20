@@ -11,7 +11,7 @@ jest.mock('@src/CONST', () => ({
 
 describe('Navigation', () => {
     it('Should correctly identify active routes', () => {
-        const currentRoute = 'settings/profile?backTo=settings%2Fprofile';
+        const currentRoute = 'settings/profile?backTo=settings';
 
         expect(isRouteActive(currentRoute, 'settings/profile')).toBe(true);
         expect(isRouteActive(currentRoute, 'settings/profile/')).toBe(true);
