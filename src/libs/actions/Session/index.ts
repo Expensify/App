@@ -1,5 +1,4 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';

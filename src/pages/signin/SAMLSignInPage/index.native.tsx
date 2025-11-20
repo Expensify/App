@@ -81,7 +81,7 @@ function SAMLSignInPage() {
         if (!SAMLUrl || hasOpenedAuthSession.current) {
             return;
         }
-        hasOpenedAuthSession.current = true
+        hasOpenedAuthSession.current = true;
         openAuthSessionAsync(SAMLUrl, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
             if (response.type !== 'success') {
                 return;
