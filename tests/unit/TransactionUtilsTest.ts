@@ -10,6 +10,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Report, Transaction} from '../../src/types/onyx';
+import type {CardList} from '../../src/types/onyx/Card';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -396,6 +397,58 @@ describe('TransactionUtils', () => {
                 amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
+        });
+    });
+
+    describe('getTransactionType', () => {
+        it('returns card when the transaction is null', () => {
+            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns distance when the transaction has a distance custom unit', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
+        });
+
+        it('returns per diem when the transaction has an international per diem custom unit', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
+        });
+
+        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
+            const cardID = 101;
+            const cardList = {
+                [cardID]: {
+                    cardName: '__CASH__',
+                },
+            } as unknown as CardList;
+            const transaction = generateTransaction({
+                cardID,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns cash when the transaction card name includes the cash card name substring', () => {
+            const transaction = generateTransaction({
+                cardName: `Example ${CONST.EXPENSE.TYPE.CASH_CARD_NAME}`,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
     });
 

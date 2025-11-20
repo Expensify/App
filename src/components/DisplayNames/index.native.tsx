@@ -8,11 +8,8 @@ import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragm
 import type DisplayNamesProps from './types';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
-function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID, shouldParseHtml = false}: DisplayNamesProps) {
+function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = shouldParseHtml
-        ? StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')
-        : StringUtils.lineBreaksToSpaces(fullTitle) || translate('common.hidden');
     const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
     return (
         <Text
@@ -24,11 +21,11 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
         >
             {titleContainsTextAndCustomEmoji ? (
                 <TextWithEmojiFragment
-                    message={title}
+                    message={StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')}
                     style={textStyles}
                 />
             ) : (
-                title
+                StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')
             )}
             {renderAdditionalText?.()}
         </Text>

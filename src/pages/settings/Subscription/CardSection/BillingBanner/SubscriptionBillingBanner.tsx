@@ -1,5 +1,5 @@
 import React from 'react';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -17,7 +17,9 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
 function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError = false, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
 
-    const iconAsset = (icon ?? isError) ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle;
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes', 'CheckmarkCircle'] as const);
+
+    const iconAsset = (icon ?? isError) ? illustrations.CreditCardEyes : illustrations.CheckmarkCircle;
 
     return (
         <BillingBanner

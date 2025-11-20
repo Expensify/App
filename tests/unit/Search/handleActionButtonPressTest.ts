@@ -114,7 +114,6 @@ const mockReportItemWithHold = {
             tag: '',
             transactionID: '1049531721038862176',
             transactionThreadReportID: '2957345659269055',
-            transactionType: 'cash',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
@@ -202,7 +201,6 @@ const mockReportItemWithHold = {
             tag: '',
             transactionID: '5345995386715609966',
             transactionThreadReportID: '740282333335072',
-            transactionType: 'cash',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',

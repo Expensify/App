@@ -6,6 +6,7 @@ import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,8 @@ function QRShare({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+
+    const {formatPhoneNumber} = useLocalize();
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
@@ -84,7 +87,7 @@ function QRShare({
                     numberOfLines={2}
                     style={styles.qrShareTitle}
                 >
-                    {title}
+                    {formatPhoneNumber(title)}
                 </Text>
             )}
 
@@ -95,7 +98,7 @@ function QRShare({
                     style={[styles.mt1, styles.textAlignCenter]}
                     color={theme.textSupporting}
                 >
-                    {subtitle}
+                    {formatPhoneNumber(subtitle)}
                 </Text>
             )}
         </View>

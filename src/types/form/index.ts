@@ -4,7 +4,6 @@ export type {CloseAccountForm} from './CloseAccountForm';
 export type {DateOfBirthForm} from './DateOfBirthForm';
 export type {DisplayNameForm} from './DisplayNameForm';
 export type {EditTaskForm} from './EditTaskForm';
-export type {ExitSurveyReasonForm} from './ExitSurveyReasonForm';
 export type {ExitSurveyResponseForm} from './ExitSurveyResponseForm';
 export type {FeedbackSurveyForm} from './FeedbackSurveyForm';
 export type {HomeAddressForm} from './HomeAddressForm';

@@ -39,7 +39,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     }, [groupPaidPolicies.length]);
 
     const openWorkspaceConfirmation = () => {
-        Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION);
+        Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
     };
 
     return (
@@ -51,7 +51,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (

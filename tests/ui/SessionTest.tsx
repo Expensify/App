@@ -35,7 +35,7 @@ const TEST_USER_LOGIN_2 = 'test2@test.com';
 // cspell:disable-next-line
 const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 

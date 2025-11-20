@@ -243,7 +243,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         return Object.values(policies)
             .filter(
                 (policy) =>
-                    shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) &&
+                    shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) &&
                     !policy?.isJoinRequestPending &&
                     policy?.isPolicyExpenseChatEnabled &&
                     (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),

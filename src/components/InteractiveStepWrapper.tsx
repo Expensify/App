@@ -58,6 +58,11 @@ type InteractiveStepWrapperProps = {
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
+    /**
+     * Callback to be called when the screen entry transition ends.
+     */
+    onEntryTransitionEnd?: () => void;
+
     // Reference to the outer element
     ref?: ForwardedRef<View>;
 };
@@ -77,6 +82,7 @@ function InteractiveStepWrapper({
     offlineIndicatorStyle,
     shouldKeyboardOffsetBottomSafeAreaPadding,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    onEntryTransitionEnd,
     ref,
 }: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
@@ -93,6 +99,7 @@ function InteractiveStepWrapper({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+            onEntryTransitionEnd={onEntryTransitionEnd}
         >
             <HeaderWithBackButton
                 title={headerTitle}
