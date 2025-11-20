@@ -258,6 +258,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -1469,6 +1470,7 @@ const translations = {
             educationalTitle: 'Should you hold or reject?',
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
+            approveExpenseTitle: 'Approve other expenses while held expenses stay assigned to you.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
             rejectExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
             reasonPageTitle: 'Reject expense',
@@ -5302,6 +5304,7 @@ const translations = {
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
+                inviteNewMember: 'Invite new member',
                 findMember: 'Find member',
                 chooseCardType: 'Choose a card type',
                 physicalCard: 'Physical card',
@@ -6290,6 +6293,7 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements for this workspace`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7489,12 +7493,13 @@ const translations = {
     },
     migratedUserWelcomeModal: {
         title: 'Welcome to New Expensify!',
-        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        subtitle: "It's got everything you love from our classic experience with a whole bunch of upgrades to make your life even easier:",
         confirmText: "Let's go!",
+        helpText: 'Try 2-min demo',
         features: {
-            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
-            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
-            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+            search: 'More powerful search on mobile, web, and desktop',
+            concierge: 'Built-in Concierge AI to help automate your expenses',
+            chat: 'Chat on any expense to resolve questions quickly',
         },
     },
     productTrainingTooltip: {
