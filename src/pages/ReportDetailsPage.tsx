@@ -162,7 +162,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(report);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
@@ -582,13 +581,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         currentUserPersonalDetails.accountID,
         isTaskActionable,
         isSmallScreenWidth,
-        lazyIcons.Exit,
         isRootGroupChat,
         leaveChat,
-        isSmallScreenWidth,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
-        introSelected,
         expensifyIcons,
     ]);
 
