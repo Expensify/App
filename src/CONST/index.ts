@@ -1660,6 +1660,7 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
+        SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
