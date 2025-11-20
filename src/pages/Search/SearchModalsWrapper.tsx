@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
@@ -46,6 +46,40 @@ function SearchModalsWrapper({
 }: SearchModalsWrapperProps) {
     const {translate} = useLocalize();
 
+    const handleDeleteExpensesCancel = useCallback(() => {
+        setIsDeleteExpensesConfirmModalVisible(false);
+    }, [setIsDeleteExpensesConfirmModalVisible]);
+
+    const handleOfflineModalClose = useCallback(() => {
+        setIsOfflineModalVisible(false);
+    }, [setIsOfflineModalVisible]);
+
+    const handleDownloadErrorModalClose = useCallback(() => {
+        setIsDownloadErrorModalVisible(false);
+    }, [setIsDownloadErrorModalVisible]);
+
+    const handleExportWithTemplateConfirm = useCallback(() => {
+        setIsExportWithTemplateModalVisible(false);
+        clearSelectedTransactions(undefined, true);
+    }, [setIsExportWithTemplateModalVisible, clearSelectedTransactions]);
+
+    const handleExportWithTemplateCancel = useCallback(() => {
+        setIsExportWithTemplateModalVisible(false);
+    }, [setIsExportWithTemplateModalVisible]);
+
+    const handleDEWModalConfirm = useCallback(() => {
+        setIsDEWModalVisible(false);
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+    }, [setIsDEWModalVisible]);
+
+    const handleDEWModalCancel = useCallback(() => {
+        setIsDEWModalVisible(false);
+    }, [setIsDEWModalVisible]);
+
+    const handleDownloadExportModalCancel = useCallback(() => {
+        setIsDownloadExportModalVisible?.(false);
+    }, [setIsDownloadExportModalVisible]);
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -56,9 +90,7 @@ function SearchModalsWrapper({
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
-                onCancel={() => {
-                    setIsDeleteExpensesConfirmModalVisible(false);
-                }}
+                onCancel={handleDeleteExpensesCancel}
                 title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
                 prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
                 confirmText={translate('common.delete')}
@@ -69,27 +101,24 @@ function SearchModalsWrapper({
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                onSecondOptionSubmit={handleOfflineModalClose}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isOfflineModalVisible}
-                onClose={() => setIsOfflineModalVisible(false)}
+                onClose={handleOfflineModalClose}
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                onSecondOptionSubmit={handleDownloadErrorModalClose}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
+                onClose={handleDownloadErrorModalClose}
             />
             <ConfirmModal
                 isVisible={isExportWithTemplateModalVisible}
-                onConfirm={() => {
-                    setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
-                }}
-                onCancel={() => setIsExportWithTemplateModalVisible(false)}
+                onConfirm={handleExportWithTemplateConfirm}
+                onCancel={handleExportWithTemplateCancel}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
                 confirmText={translate('common.buttonConfirm')}
@@ -98,11 +127,8 @@ function SearchModalsWrapper({
             <ConfirmModal
                 title={translate('customApprovalWorkflow.title')}
                 isVisible={isDEWModalVisible}
-                onConfirm={() => {
-                    setIsDEWModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setIsDEWModalVisible(false)}
+                onConfirm={handleDEWModalConfirm}
+                onCancel={handleDEWModalCancel}
                 prompt={translate('customApprovalWorkflow.description')}
                 confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
                 shouldShowCancelButton={false}
@@ -111,9 +137,7 @@ function SearchModalsWrapper({
                 <ConfirmModal
                     isVisible={isDownloadExportModalVisible}
                     onConfirm={createExportAll}
-                    onCancel={() => {
-                        setIsDownloadExportModalVisible(false);
-                    }}
+                    onCancel={handleDownloadExportModalCancel}
                     title={translate('search.exportSearchResults.title')}
                     prompt={translate('search.exportSearchResults.description')}
                     confirmText={translate('search.exportSearchResults.title')}
@@ -123,5 +147,7 @@ function SearchModalsWrapper({
         </View>
     );
 }
+
+SearchModalsWrapper.displayName = 'SearchModalsWrapper';
 
 export default SearchModalsWrapper;

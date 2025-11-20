@@ -3,7 +3,6 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -64,7 +63,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
@@ -757,7 +756,6 @@ function SearchPage({route}: SearchPageProps) {
         clearSelectedTransactions();
     }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
 
     const [isSorting, setIsSorting] = useState(false);
@@ -846,12 +844,7 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     return (
-        <FullPageNotFoundView
-            shouldForceFullScreen
-            shouldShow={!queryJSON}
-            onBackButtonPress={handleOnBackButtonPress}
-            shouldShowLink={false}
-        >
+        <>
             <Animated.View style={[styles.flex1]}>
                 {shouldUseNarrowLayout ? (
                     <DragAndDropProvider>
@@ -925,7 +918,7 @@ function SearchPage({route}: SearchPageProps) {
                     setIsDownloadExportModalVisible={setIsDownloadExportModalVisible}
                 />
             )}
-        </FullPageNotFoundView>
+        </>
     );
 }
 
