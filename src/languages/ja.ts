@@ -2659,12 +2659,20 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: dedent(`
-                # 無料トライアルが開始されました！セットアップを始めましょう。
-                👋 こんにちは。私はあなたのExpensifyのセットアップ担当です。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
-            `),
-            onboardingTrackWorkspaceMessage:
-                '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        無料トライアルが開始されました！セットアップを進めましょう。
+                        👋 こんにちは、私はあなたの Expensify セットアップスペシャリストです。すでに、チームの領収書と経費を管理するためのワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りの設定手順に従ってください！
+                    `)
+                    : dedent(`
+                        # 無料トライアルが始まりました！セットアップを始めましょう。
+                        👋 こんにちは、私はExpensifyのセットアップスペシャリストです。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
+                    `),
+            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? '# さあ、セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップスペシャリストです。領収書と経費を管理できるよう、すでにワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りのセットアップ手順に従ってください！'
+                    : '# セットアップを始めましょう\n👋 お手伝いします！開始しやすいよう、個人事業主や同様の事業向けにワークスペース設定をカスタマイズしました。下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回のクリックで支出を追跡する方法は次のとおりです:',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingLookingAroundMessage:
