@@ -10844,8 +10844,13 @@ function getReportActionActorAccountID(
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
-        case CONST.REPORT.ACTIONS.TYPE.CREATED:
-            return CONST.ACCOUNT_ID.CONCIERGE;
+        case CONST.REPORT.ACTIONS.TYPE.CREATED: {
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+            if (isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+            return reportAction?.actorAccountID;
+        }
         default:
             return reportAction?.actorAccountID;
     }
