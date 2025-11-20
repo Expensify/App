@@ -337,7 +337,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => signOut(false),
+                    action: () => {
+                        signOut(false);
+                    },
                 },
             ],
         };
