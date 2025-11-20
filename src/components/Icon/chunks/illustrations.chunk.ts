@@ -21,8 +21,8 @@ import Abacus from '@assets/images/simple-illustrations/simple-illustration__aba
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
-import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
