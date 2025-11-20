@@ -68,14 +68,14 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
         const amountRegex = RegExp(String.raw`^-?\d{0,8}([${permittedDecimalSeparator}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
-        Object.keys(amountValues).forEach((key) => {
+        for (const key of Object.keys(amountValues)) {
             const value = amountValues[key as keyof AmountValues];
             const filteredValue = filterInput(value, amountRegex, permittedDecimalSeparator);
             if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
-                return;
+                continue;
             }
             errors[key as keyof AmountValues] = translate('common.error.invalidAmount');
-        });
+        }
 
         return errors;
     };
