@@ -1543,7 +1543,6 @@ function getReportSections(
             const transactionItem = {...data[key]};
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
@@ -2469,7 +2468,6 @@ function getColumnsToShow(
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 

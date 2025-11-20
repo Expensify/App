@@ -71,7 +71,6 @@ function handleActionButtonPress(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
