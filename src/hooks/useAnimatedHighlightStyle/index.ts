@@ -44,6 +44,11 @@ type Props = {
      * @default theme.border
      */
     highlightColor?: string;
+
+    /** Whether to skip the initial fade-in animation and show the component immediately
+     * @default false
+     */
+    skipInitialFade?: boolean;
 };
 
 /**
@@ -62,10 +67,12 @@ export default function useAnimatedHighlightStyle({
     highlightColor,
     backgroundColor,
     shouldApplyHeightStyle = true,
+    skipInitialFade = false,
 }: Props) {
     const [startHighlight, setStartHighlight] = useState(false);
     const repeatableProgress = useSharedValue(0);
-    const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
+    const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
+    const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const theme = useTheme();
 
