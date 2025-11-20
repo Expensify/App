@@ -94,8 +94,8 @@ function IOURequestStepDate({
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM> = {};
-            if (!values.moneyRequestCreated || values.moneyRequestCreated === '') {
-                errors.moneyRequestCreated = translate('common.error.fieldRequired');
+            if (!values[INPUT_IDS.MONEY_REQUEST_CREATED] || values[INPUT_IDS.MONEY_REQUEST_CREATED] === '') {
+                errors[INPUT_IDS.MONEY_REQUEST_CREATED] = translate('common.error.fieldRequired');
             }
             return errors;
         },
