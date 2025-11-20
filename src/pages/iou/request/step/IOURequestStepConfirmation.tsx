@@ -615,7 +615,6 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -747,7 +746,6 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
@@ -809,7 +807,6 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
-            getMoneyRequestContextForParticipant,
         ],
     );
 
