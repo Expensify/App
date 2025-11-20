@@ -1489,6 +1489,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Moet je vasthouden of afwijzen?',
             educationalText: 'Als je nog niet klaar bent om een uitgave goed te keuren of te betalen, kun je deze vasthouden of afwijzen.',
             holdExpenseTitle: 'Houd een uitgave vast om meer details te vragen voordat je deze goedkeurt of betaalt.',
+            approveExpenseTitle: 'Goedkeur andere uitgaven terwijl vastgehouden uitgaven aan jou blijven toegewezen.',
             heldExpenseLeftBehindTitle: 'Vasthouden uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
@@ -5215,6 +5216,7 @@ ${
             issueCard: 'Kaart uitgeven',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft een kaart nodig?',
+                inviteNewMember: 'Nieuw lid uitnodigen',
                 findMember: 'Lid zoeken',
                 chooseCardType: 'Kies een kaarttype',
                 physicalCard: 'Fysieke kaart',
@@ -7405,13 +7407,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Welkom bij New Expensify!',
-        subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
+        subtitle: 'Het heeft alles wat je leuk vindt aan onze klassieke ervaring, plus een heleboel upgrades om je leven nog makkelijker te maken:',
         confirmText: 'Laten we gaan!',
         features: {
-            chat: '<strong>Chat direct op elke uitgave</strong>, rapport of werkruimte',
-            scanReceipt: '<strong>Scan bonnetjes</strong> en krijg je geld terugbetaald',
-            crossPlatform: 'Doe <strong>alles</strong> vanaf je telefoon of browser',
+            chat: 'Chat bij elke uitgave om vragen snel op te lossen',
+            search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
+            concierge: 'Ingebouwde Concierge AI om je onkosten te automatiseren',
         },
+        helpText: 'Probeer de 2-minuten-demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
