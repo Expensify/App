@@ -355,7 +355,9 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(route, {compareParams: false});
             } else {
-                Navigation.navigate(route);
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(route);
+                });
             }
         });
     }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
