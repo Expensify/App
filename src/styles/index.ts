@@ -4235,34 +4235,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        reportLayoutGroupHeaderDesktop: {
+        reportLayoutGroupHeader: {
             paddingHorizontal: 12,
             marginTop: 16,
             marginBottom: 8,
             backgroundColor: theme.appBG,
             justifyContent: 'center',
-        },
-
-        reportLayoutGroupHeaderMobile: {
-            paddingHorizontal: 12,
-            marginTop: 16,
-            marginBottom: 8,
-            backgroundColor: theme.appBG,
-            justifyContent: 'center',
-        },
-
-        reportLayoutGroupHeaderText: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: 28,
-            color: theme.text,
-        },
-
-        reportLayoutGroupHeaderTextMobile: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: 16,
-            color: theme.text,
         },
 
         reportActionItemImageBorder: {

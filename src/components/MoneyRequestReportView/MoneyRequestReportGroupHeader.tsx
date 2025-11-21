@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import variables from '@styles/variables';
 import type {GroupedTransactions} from '@src/types/onyx';
 
 type MoneyRequestReportGroupHeaderProps = {
@@ -47,22 +48,29 @@ function MoneyRequestReportGroupHeader({
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const containerStyle = shouldUseNarrowLayout ? styles.reportLayoutGroupHeaderMobile : styles.reportLayoutGroupHeaderDesktop;
-    const textStyle = shouldUseNarrowLayout ? styles.reportLayoutGroupHeaderTextMobile : styles.reportLayoutGroupHeaderText;
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const displayName = group.groupName || translate(isGroupedByTag ? 'search.noTag' : 'search.noCategory');
     const formattedAmount = convertToDisplayString(Math.abs(group.totalAmount), currency);
 
-    // Desktop: always show checkbox, Mobile: only in selection mode
-    const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
+    // Use isSmallScreenWidth for mobile detection instead of shouldUseNarrowLayout
+    // because shouldUseNarrowLayout may be true on desktop in certain navigation contexts
+    const shouldShowCheckbox = isSelectionModeEnabled || !isSmallScreenWidth;
 
-    // Conditional height: Desktop 28px, Mobile 16px (no checkbox) or 20px (with checkbox)
-    const conditionalHeight = shouldUseNarrowLayout ? {height: shouldShowCheckbox ? 20 : 16} : {height: 28};
+    const DESKTOP_HEIGHT = 28;
+    const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
+    const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
+
+    const conditionalHeight = isSmallScreenWidth
+        ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
+        : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT};
+
+    const textStyle = isSmallScreenWidth
+        ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
+        : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT};
 
     return (
-        <View style={[containerStyle, conditionalHeight, style]}>
+        <View style={[styles.reportLayoutGroupHeader, conditionalHeight, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                 {shouldShowCheckbox && (
                     <Checkbox
@@ -73,12 +81,7 @@ function MoneyRequestReportGroupHeader({
                         style={styles.mr2}
                     />
                 )}
-                <Text
-                    style={[textStyle, shouldShowCheckbox && styles.ml2]}
-                    shouldUseDefaultLineHeight={false}
-                >
-                    {`${displayName} - ${formattedAmount}`}
-                </Text>
+                <Text style={[styles.textBold, textStyle, shouldShowCheckbox && styles.ml2]}>{`${displayName} - ${formattedAmount}`}</Text>
             </View>
         </View>
     );

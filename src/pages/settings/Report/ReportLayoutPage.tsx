@@ -7,7 +7,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +14,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportLayoutGroupBy} from '@src/types/onyx';
 
@@ -27,22 +27,25 @@ type ReportLayoutPageProps = PlatformStackScreenProps<ReportSettingsNavigatorPar
 function ReportLayoutPage({route}: ReportLayoutPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
 
     const {reportID} = route.params;
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    }, [reportID]);
+
     const onSelectGroupBy = useCallback(
         (item: ReportLayoutItem) => {
             if (item.value === currentGroupBy) {
-                Navigation.dismissModal();
+                goBack();
                 return;
             }
             setReportLayoutGroupBy(item.value, reportLayoutGroupByNVP);
-            Navigation.dismissModal();
+            goBack();
         },
-        [currentGroupBy, reportLayoutGroupByNVP],
+        [currentGroupBy, reportLayoutGroupByNVP, goBack],
     );
 
     const layoutOptions: ReportLayoutItem[] = [
@@ -72,8 +75,7 @@ function ReportLayoutPage({route}: ReportLayoutPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('reportLayout.reportLayout')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={Navigation.dismissModal}
+                onBackButtonPress={goBack}
             />
             <Text style={[styles.textLabel, styles.mh5, styles.mv3]}>{translate('reportLayout.groupByLabel')}</Text>
             <SelectionList
