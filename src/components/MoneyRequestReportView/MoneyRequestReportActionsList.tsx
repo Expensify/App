@@ -597,6 +597,7 @@ function MoneyRequestReportActionsList({
             draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            reportNameValuePairs,
         ],
     );
 

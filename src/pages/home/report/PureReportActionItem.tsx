@@ -1865,6 +1865,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
-        deepEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs)
+        prevProps.reportNameValuePairs?.origin === nextProps.reportNameValuePairs?.origin &&
+        prevProps.reportNameValuePairs?.originalID === nextProps.reportNameValuePairs?.originalID
     );
 });
