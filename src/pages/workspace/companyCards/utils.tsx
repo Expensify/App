@@ -395,15 +395,15 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
 
     useEffect(() => {
+        if (!policyID || !currentStep || !feed) {
+            return;
+        }
+
         if (currentStep === previousStepRef.current && !isStartStep) {
             return;
         }
 
         previousStepRef.current = currentStep;
-
-        if (!policyID || !currentStep || !feed) {
-            return;
-        }
 
         const stepRoutes: Record<string, AssignCardRoute> = {
             [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed),
@@ -435,15 +435,15 @@ function useAddNewCardNavigation(policyID: string | undefined, isStartStep = fal
     const defaultStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK;
 
     useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+
         if (currentStep === previousStepRef.current && !isStartStep) {
             return;
         }
 
         previousStepRef.current = currentStep;
-
-        if (!policyID) {
-            return;
-        }
 
         const stepRoutes: Record<string, AddNewCardRoute> = {
             [CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(policyID),
