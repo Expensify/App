@@ -4,11 +4,9 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -31,6 +29,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
@@ -53,7 +52,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             title={translate('common.referral')}
             headerContent={
                 <Icon
-                    src={PaymentHands}
+                    src={illustrations.PaymentHands}
                     width={589}
                     height={232}
                 />

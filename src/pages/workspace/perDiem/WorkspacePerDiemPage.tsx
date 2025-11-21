@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -130,8 +128,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
     const illustrations = useMemoizedLazyIllustrations(['PerDiem'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan'] as const);
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -277,14 +275,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const menuItems = [];
         if (policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
             menuItems.push({
-                icon: icons.Gear,
+                icon: expensifyIcons.Gear,
                 text: translate('common.settings'),
                 onSelected: openSettings,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             });
         }
         menuItems.push({
-            icon: icons.Table,
+            icon: expensifyIcons.Table,
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: () => {
                 if (isOffline) {
@@ -297,30 +295,43 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         });
         if (hasVisibleSubRates) {
             menuItems.push({
-                icon: icons.Download,
+                icon: expensifyIcons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    downloadPerDiemCSV(policyID, () => {
-                        setIsDownloadFailureModalVisible(true);
-                    });
+                    close(() =>
+                        downloadPerDiemCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        }),
+                    );
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
             });
         }
 
         return menuItems;
-    }, [icons.Download, icons.Gear, icons.Table, policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
+    }, [
+        policy?.areCategoriesEnabled,
+        policyCategories,
+        translate,
+        hasVisibleSubRates,
+        openSettings,
+        isOffline,
+        policyID,
+        expensifyIcons.Gear,
+        expensifyIcons.Table,
+        expensifyIcons.Download,
+    ]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
         if (shouldUseNarrowLayout ? canSelectMultiple : selectedPerDiem.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeletePerDiemConfirmModalVisible(true),
