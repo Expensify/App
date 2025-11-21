@@ -179,7 +179,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? isActionLoading}
+                    isActionLoading={isLoading ?? isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
