@@ -1663,7 +1663,7 @@ describe('ReportUtils', () => {
                         },
                     };
 
-                    const transaction: SearchTransaction = {
+                    const transaction: Transaction = {
                         transactionID: 'txn1',
                         reportID: '2',
                         amount: 1000,
@@ -1671,7 +1671,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                    } as SearchTransaction;
+                    } as Transaction;
 
                     const reportName = getSearchReportName({
                         report: baseExpenseReport,
@@ -9559,7 +9559,7 @@ describe('ReportUtils', () => {
                 '2': submittedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });

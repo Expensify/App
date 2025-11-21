@@ -11062,10 +11062,10 @@ function submitReport(
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : buildNextStepNew({
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          buildNextStepNew({
               report: expenseReport,
               predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
               policy,

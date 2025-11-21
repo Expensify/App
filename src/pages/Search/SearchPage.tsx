@@ -622,6 +622,7 @@ function SearchPage({route}: SearchPageProps) {
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
+        isDEWSubmitBetaEnabled,
         styles.fontWeightNormal,
         styles.textWrap,
         beginExportWithTemplate,
