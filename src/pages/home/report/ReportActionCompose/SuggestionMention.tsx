@@ -3,8 +3,6 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -75,7 +73,6 @@ function SuggestionMention({
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     const policy = usePolicy(policyID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
@@ -84,6 +81,8 @@ function SuggestionMention({
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
 
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
@@ -274,7 +273,7 @@ function SuggestionMention({
                     alternateText: translate('mentionSuggestions.hereAlternateText'),
                     icons: [
                         {
-                            source: Expensicons.Megaphone,
+                            source: expensifyIcons.Megaphone,
                             type: CONST.ICON_TYPE_AVATAR,
                         },
                     ],
@@ -336,7 +335,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare, expensifyIcons.FallbackAvatar],
+        [localeCompare, translate, expensifyIcons.Megaphone, expensifyIcons.FallbackAvatar, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const getRoomMentionOptions = useCallback(
@@ -433,9 +432,19 @@ function SuggestionMention({
         [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
+    const debouncedCalculateMentionSuggestion = useDebounce(
+        useCallback(
+            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+                calculateMentionSuggestion(newValue, selectionStart, selectionEnd);
+            },
+            [calculateMentionSuggestion],
+        ),
+        CONST.TIMING.MENTION_SUGGESTION_DEBOUNCE_TIME,
+    );
+
     useEffect(() => {
-        calculateMentionSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateMentionSuggestion]);
+        debouncedCalculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection.start, selection.end, debouncedCalculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
