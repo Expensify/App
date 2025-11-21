@@ -374,7 +374,7 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingTrackWorkspaceMessage', {isOnboardingFlow}),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingTrackWorkspaceMessage'),
         video: {
             url: `${CONST.CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
             thumbnailUrl: `${CONST.CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,

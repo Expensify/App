@@ -2674,10 +2674,8 @@ ${
                         # Rozpoczęła się Twoja bezpłatna wersja próbna! Zacznijmy konfigurację.
                         👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy masz już utworzony obszar roboczy, wykorzystaj w pełni 30-dniową bezpłatną wersję próbną, wykonując poniższe kroki!
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? '# Zacznijmy konfigurację\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już przestrzeń roboczą, aby pomóc Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30‑dniowy bezpłatny okres próbny, wykonaj pozostałe kroki konfiguracji poniżej!'
-                    : '# Zacznijmy od konfiguracji\n👋 Jestem tu, aby pomóc! Na początek ustawienia Twojego obszaru roboczego zostały dostosowane do potrzeb jednoosobowych działalności gospodarczych i podobnych firm. Możesz dostosować swój obszar roboczy, klikając poniższy link!\n\nOto jak śledzić swoje wydatki w kilku kliknięciach:',
+            onboardingTrackWorkspaceMessage:
+                '# Zacznijmy konfigurację\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już przestrzeń roboczą, aby pomóc Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30‑dniowy bezpłatny okres próbny, wykonaj pozostałe kroki konfiguracji poniżej!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:

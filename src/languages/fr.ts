@@ -2692,10 +2692,8 @@ ${
                         # Votre période d’essai a commencé ! Passons à la configuration.
                         👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? "# Procédons à la configuration\n👋 Salut ! Je suis votre spécialiste de configuration Expensify. J'ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration restantes ci-dessous !"
-                    : '# Commençons votre configuration\n👋 Je suis là pour vous aider ! Pour vous lancer, j’ai adapté les paramètres de votre espace de travail pour les entrepreneurs individuels et les entreprises similaires. Vous pouvez ajuster votre espace de travail en cliquant sur le lien ci-dessous !\n\nVoici comment suivre vos dépenses en quelques clics :',
+            onboardingTrackWorkspaceMessage:
+                "# Procédons à la configuration\n👋 Salut ! Je suis votre spécialiste de configuration Expensify. J'ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration restantes ci-dessous !",
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
             onboardingAdminMessage: 'Apprenez à gérer l’espace de votre équipe en tant qu’admin et soumettez vos propres dépenses.',
             onboardingLookingAroundMessage:

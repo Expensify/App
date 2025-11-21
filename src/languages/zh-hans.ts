@@ -2641,10 +2641,8 @@ ${
                         # 您的免费试用已开始！让我们为您完成设置。
                         👋 您好，我是您的 Expensify 设置专员。现在您已创建了一个工作区，请按照以下步骤操作，充分利用您的 30 天免费试用！
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理收据和费用。为充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作！'
-                    : '# 让我们开始设置\n👋 我来帮您！为帮助您开始使用，我已根据个体经营者及类似企业为您定制了工作区设置。您可以点击下方链接来调整您的工作区！\n\n以下是通过几次点击即可跟踪支出的方式：',
+            onboardingTrackWorkspaceMessage:
+                '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理收据和费用。为充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作！',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
             onboardingAdminMessage: '了解如何作为管理员管理团队的工作区并提交自己的支出。',
             onboardingLookingAroundMessage: 'Expensify 以其支出、差旅和公司卡管理而闻名，但我们所做的远不止于此。让我知道您对什么感兴趣，我会帮助您开始。',

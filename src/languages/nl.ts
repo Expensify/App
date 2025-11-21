@@ -2679,10 +2679,8 @@ ${
                         # Je gratis proefperiode is begonnen! Laten we je instellen.
                         👋 Hoi! Ik ben je Expensify-specialist voor het instellen. Nu je een werkruimte hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een werkruimte aangemaakt om te helpen bij het beheren van je bonnetjes en uitgaven. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!'
-                    : '# Laten we je instellen\n👋 Ik ben er om te helpen! Om je op weg te helpen, heb ik je werkruimte-instellingen afgestemd op eenmanszaken en vergelijkbare bedrijven. Je kunt je werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo houd je je uitgaven in een paar klikken bij:',
+            onboardingTrackWorkspaceMessage:
+                '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een werkruimte aangemaakt om te helpen bij het beheren van je bonnetjes en uitgaven. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:

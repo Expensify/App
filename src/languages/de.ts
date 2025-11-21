@@ -2692,10 +2692,8 @@ ${
                         # Deine kostenlose Testphase hat begonnen! Lass uns dich einrichten.
                         👋 Hey, ich bin dein Expensify-Einrichtungsspezialist. Da du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testphase bestmöglich, indem du die folgenden Schritte befolgst!
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? '# Legen wir mit der Einrichtung los\n👋 Hey! Ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um deine Belege und Ausgaben zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testversion herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!'
-                    : '# Legen wir los\n👋 Ich bin hier, um zu helfen! Für den Start habe ich die Einstellungen Ihres Arbeitsbereichs für Einzelunternehmer und ähnliche Unternehmen angepasst. Sie können Ihren Arbeitsbereich über den untenstehenden Link anpassen!\n\nSo verfolgen Sie Ihre Ausgaben in wenigen Klicks:',
+            onboardingTrackWorkspaceMessage:
+                '# Legen wir mit der Einrichtung los\n👋 Hey! Ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um deine Belege und Ausgaben zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testversion herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
             onboardingAdminMessage: 'Lerne, wie du den Workspace deines Teams als Admin verwaltest und eigene Ausgaben einreichst.',
             onboardingLookingAroundMessage:

@@ -2674,10 +2674,8 @@ ${
                         # Seu teste gratuito começou! Vamos configurar tudo.
                         👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
                     `),
-            onboardingTrackWorkspaceMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
-                isOnboardingFlow
-                    ? '# Vamos configurar tudo\n👋 Olá! Sou seu especialista em configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!'
-                    : '# Vamos configurar tudo\n👋 Estou aqui para ajudar! Para começar, personalizei as configurações do seu espaço de trabalho para empresários individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como acompanhar seus gastos em poucos cliques:',
+            onboardingTrackWorkspaceMessage:
+                '# Vamos configurar tudo\n👋 Olá! Sou seu especialista em configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingLookingAroundMessage:
