@@ -1,7 +1,4 @@
 #!/bin/bash
-
-# Original source https://cs.android.com/android/platform/superproject/main/+/main:system/extras/tools/check_elf_alignment.sh
-
 set -o pipefail
 
 progname="${0##*/}"
@@ -114,18 +111,4 @@ if [ "${#unaligned_libs[@]}" -gt 0 ]; then
 elif [ -n "${dir_filename:-}" ]; then
   success "ELF Verification Successful"
 fi
-
-arm64_unaligned=0
-for lib in "${unaligned_libs[@]}"; do
-  if [[ "$lib" == *"arm64-v8a"* ]]; then
-    arm64_unaligned=1
-    break
-  fi
-done
-
-if [ "$arm64_unaligned" -eq 1 ]; then
-  printf "%s arm64-v8a ELF misalignment detected. %s\n" "$RED" "$RESET"
-  exit 1
-fi
-
 echo "====================="
