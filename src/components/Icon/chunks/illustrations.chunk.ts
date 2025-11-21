@@ -139,6 +139,7 @@ const Illustrations = {
     CompanyCard,
     ThumbsDown,
     Workflows,
+
     CarIce,
     BlueShield,
     Pencil,
