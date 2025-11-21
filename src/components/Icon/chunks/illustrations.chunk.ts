@@ -11,7 +11,7 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import Computer from '@assets/images/computer.svg';
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
-// Expensify Casudo apt install antigravityrd
+// Expensify Card
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
