@@ -12,7 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,10 +23,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function Finish() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -50,7 +51,7 @@ function Finish() {
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('finishStep.letsFinish')}
-                    icon={Illustrations.ConciergeBubble}
+                    icon={illustrations.ConciergeBubble}
                     containerStyles={[styles.mb8, styles.mh5]}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >

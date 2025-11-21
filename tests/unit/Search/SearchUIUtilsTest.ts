@@ -395,7 +395,6 @@ const searchResults: OnyxTypes.SearchResults = {
             tag: '',
             transactionID,
             transactionThreadReportID: '456',
-            transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -403,7 +402,6 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -430,7 +428,6 @@ const searchResults: OnyxTypes.SearchResults = {
             tag: '',
             transactionID: transactionID2,
             transactionThreadReportID: '456',
-            transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -439,7 +436,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -467,7 +463,6 @@ const searchResults: OnyxTypes.SearchResults = {
             tag: '',
             transactionID: transactionID3,
             transactionThreadReportID: '8287398995021380',
-            transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -476,7 +471,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -503,7 +497,6 @@ const searchResults: OnyxTypes.SearchResults = {
             tag: '',
             transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
-            transactionType: 'cash',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -512,7 +505,6 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            isActionLoading: false,
             convertedAmount: -5000,
             convertedCurrency: 'USD',
         },
@@ -814,7 +806,6 @@ const transactionsListItems = [
         },
         transactionID: '1',
         transactionThreadReportID: '456',
-        transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -822,7 +813,6 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -876,7 +866,6 @@ const transactionsListItems = [
         },
         transactionID: '2',
         transactionThreadReportID: '456',
-        transactionType: 'cash',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -885,7 +874,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -922,7 +910,6 @@ const transactionsListItems = [
         tag: '',
         transactionID: '3',
         transactionThreadReportID: '8287398995021380',
-        transactionType: 'cash',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -953,7 +940,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -985,7 +971,6 @@ const transactionsListItems = [
         tag: '',
         transactionID: '4',
         transactionThreadReportID: '1014872441234902',
-        transactionType: 'cash',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -1016,7 +1001,6 @@ const transactionsListItems = [
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
-        isActionLoading: false,
         violations: [],
         convertedAmount: -5000,
         convertedCurrency: 'USD',
@@ -1107,7 +1091,6 @@ const transactionReportGroupListItems = [
                 },
                 transactionID: '1',
                 transactionThreadReportID: '456',
-                transactionType: 'cash',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1115,7 +1098,6 @@ const transactionReportGroupListItems = [
                 moneyRequestReportActionID: '789',
                 errors: undefined,
                 filename: undefined,
-                isActionLoading: false,
                 violations: [],
                 convertedAmount: -5000,
                 convertedCurrency: 'USD',
@@ -1212,7 +1194,6 @@ const transactionReportGroupListItems = [
                 },
                 transactionID: '2',
                 transactionThreadReportID: '456',
-                transactionType: 'cash',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1221,7 +1202,6 @@ const transactionReportGroupListItems = [
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
-                isActionLoading: false,
                 convertedAmount: -5000,
                 convertedCurrency: 'USD',
             },
@@ -1788,7 +1768,6 @@ describe('SearchUIUtils', () => {
                     [`transactions_${distanceTransactionID}`]: {
                         ...searchResults.data[`transactions_${transactionID}`],
                         transactionID: distanceTransactionID,
-                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     },
                 },
@@ -1807,7 +1786,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 52;
+            const expectedPropertyCount = 50;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1820,7 +1799,6 @@ describe('SearchUIUtils', () => {
                     [`transactions_${distanceTransactionID}`]: {
                         ...searchResults.data[`transactions_${transactionID}`],
                         transactionID: distanceTransactionID,
-                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     },
                 },
@@ -1841,7 +1819,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 52;
+            const expectedPropertyCount = 50;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2451,7 +2429,6 @@ describe('SearchUIUtils', () => {
                         tag: '',
                         transactionID: '1805965960759424086',
                         transactionThreadReportID: '4139222832581831',
-                        transactionType: 'cash',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         convertedAmount: -5000,
                         convertedCurrency: 'USD',
@@ -2579,7 +2556,6 @@ describe('SearchUIUtils', () => {
                     tag: '',
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
-                    transactionType: 'cash',
                     convertedAmount: -5000,
                     convertedCurrency: 'USD',
                 },
