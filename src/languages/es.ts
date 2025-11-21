@@ -7609,13 +7609,12 @@ ${amount} para ${merchant} - ${date}`,
     },
     migratedUserWelcomeModal: {
         title: '¡Bienvenido a New Expensify!',
-        subtitle: 'Tiene todo lo que te encanta de nuestra experiencia clásica con un montón de mejoras para hacerte la vida aún más fácil:',
-        confirmText: '¡Vamos!',
-        helpText: 'Prueba la demo de 2 minutos',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
         features: {
-            search: 'Búsqueda más potente en móviles, web y ordenadores',
-            concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
-            chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
         },
     },
     productTrainingTooltip: {
