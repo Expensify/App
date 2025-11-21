@@ -53,8 +53,7 @@ import {convertAmountToDisplayString, convertToDisplayString} from '@libs/Curren
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {getFileName} from '@libs/fileDownload/FileUtils';
+import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
