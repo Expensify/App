@@ -53,7 +53,7 @@ The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workf
 - If `production` was updated, it creates a GitHub Release for the new version.
 
 ### platformDeploy
-The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
+The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all three platforms (iOS, Android, Web). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
 
 ### lockDeploys
 The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
