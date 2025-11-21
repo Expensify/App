@@ -1231,6 +1231,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,

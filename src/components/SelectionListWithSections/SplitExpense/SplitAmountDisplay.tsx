@@ -4,7 +4,6 @@ import type {SplitListItemType} from '@components/SelectionListWithSections/type
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import spacing from '@styles/utils/spacing';
 import CONST from '@src/CONST';
 
 type SplitAmountDisplayProps = {
@@ -18,7 +17,7 @@ function SplitAmountDisplay({splitItem, contentWidth, shouldRemoveSpacing = fals
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
 
     return (
-        <View style={[styles.cannotBeEditedSplitInputContainer, shouldRemoveSpacing && [spacing.ph0, spacing.mv0]]}>
+        <View style={[styles.cannotBeEditedSplitInputContainer, shouldRemoveSpacing && [styles.removeSpacing]]}>
             <Text
                 style={[styles.optionRowAmountInput, styles.pAbsolute]}
                 onLayout={(event) => {
