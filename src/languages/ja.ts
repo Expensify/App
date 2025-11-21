@@ -269,6 +269,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -1490,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '保留しますか、それとも却下しますか？',
             educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
             holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
+            approveExpenseTitle: '保留中の経費はあなたに割り当てられたまま、他の経費を承認できます。',
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
@@ -3278,6 +3280,9 @@ ${
         whatsYourAddress: '住所は何ですか？',
         whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
         whatsYourLast: 'あなたの社会保障番号の最後の4桁は何ですか？',
+        whatsYourNationality: 'あなたの市民権の国はどこですか？',
+        whatsTheOwnersNationality: '所有者の市民権の国はどこですか？',
+        countryOfCitizenship: '市民権の国',
         dontWorry: 'ご安心ください、私たちは個人の信用調査を行いません！',
         last4: 'SSNの下4桁',
         whyDoWeAsk: 'なぜこれを尋ねるのですか？',
@@ -5178,6 +5183,7 @@ ${
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
@@ -6153,6 +6159,7 @@ ${
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6177,6 +6184,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
