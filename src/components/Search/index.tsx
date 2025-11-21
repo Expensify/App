@@ -18,6 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -226,14 +227,19 @@ function Search({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
 
     const handleDEWModalOpen = useCallback(() => {
+        if (isDEWSubmitBetaEnabled) {
+            return;
+        }
         if (onDEWModalOpen) {
             onDEWModalOpen();
         } else {
             setIsDEWModalVisible(true);
         }
-    }, [onDEWModalOpen]);
+    }, [onDEWModalOpen, isDEWSubmitBetaEnabled]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();

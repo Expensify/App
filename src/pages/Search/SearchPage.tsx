@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -117,6 +118,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -428,7 +431,7 @@ function SearchPage({route}: SearchPageProps) {
                         return hasDynamicExternalWorkflow(policy);
                     });
 
-                    if (hasDEWPolicy) {
+                    if (hasDEWPolicy && !isDEWSubmitBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }
