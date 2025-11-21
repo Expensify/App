@@ -16,18 +16,14 @@ function navigateToConciergeChat() {
     navigateToConciergeChatAction();
 }
 
-function ConciergeLinkRenderer({tnode}: ConciergeLinkRendererProps) {
+function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
 
-    const isChildOfMutedTextLabel = tnode.parent?.domNode?.name === 'muted-text-label';
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;
 
-    if (isChildOfMutedTextLabel) {
-        linkStyle = [styles.link, {fontSize: styles.mutedNormalTextLabel.fontSize}];
-    }
     // Special handling for links in RBR to maintain consistent font size
-    else if (HTMLEngineUtils.isChildOfRBR(tnode)) {
+    if (HTMLEngineUtils.isChildOfRBR(tnode)) {
         linkStyle = [
             styles.link,
             {
@@ -38,7 +34,7 @@ function ConciergeLinkRenderer({tnode}: ConciergeLinkRendererProps) {
 
     return (
         <Text
-            style={linkStyle}
+            style={[style as TextStyle, linkStyle]}
             onPress={navigateToConciergeChat}
             suppressHighlighting
         >

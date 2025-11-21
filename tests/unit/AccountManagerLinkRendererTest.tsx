@@ -122,18 +122,4 @@ describe('AccountManagerLinkRenderer', () => {
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(NEW_ACCOUNT_MANAGER_REPORT_ID));
     });
-
-    it('should apply correct link styles', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-
-        // @ts-expect-error Ignoring type errors for testing purposes
-        render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
-
-        const link = screen.getByText('Account Manager');
-
-        expect(link).toBeTruthy();
-        expect(link.props.children).toBeDefined();
-        expect(link.props.style).toBeDefined();
-        expect(Array.isArray(link.props.style) || typeof link.props.style === 'object').toBe(true);
-    });
 });

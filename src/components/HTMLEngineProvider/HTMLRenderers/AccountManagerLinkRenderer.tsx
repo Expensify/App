@@ -12,17 +12,14 @@ import ROUTES from '@src/ROUTES';
 
 type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
-function AccountManagerLinkRenderer({tnode}: AccountManagerLinkRendererProps) {
+function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererProps) {
     const styles = useThemeStyles();
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
 
-    const isChildOfMutedTextLabel = tnode.parent?.domNode?.name === 'muted-text-label';
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;
 
-    if (isChildOfMutedTextLabel) {
-        linkStyle = [styles.link, {fontSize: styles.mutedNormalTextLabel.fontSize}];
-    } else if (HTMLEngineUtils.isChildOfRBR(tnode)) {
+    if (HTMLEngineUtils.isChildOfRBR(tnode)) {
         linkStyle = [
             styles.link,
             {
@@ -40,7 +37,7 @@ function AccountManagerLinkRenderer({tnode}: AccountManagerLinkRendererProps) {
 
     return (
         <Text
-            style={linkStyle}
+            style={[style as TextStyle, linkStyle]}
             onPress={navigateToAccountManager}
             suppressHighlighting
         >
