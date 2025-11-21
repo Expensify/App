@@ -40,7 +40,7 @@ function TextPicker(
     };
 
     const hidePickerModal = () => {
-        // Fixes the issue where the keyboard would open and close again after dimissing the modal on Android
+        // Fixes the issue where the keyboard would open and close again after dismissing the modal on Android
         KeyboardUtils.dismissKeyboardAndExecute(() => {
             setIsPickerVisible(false);
         });
