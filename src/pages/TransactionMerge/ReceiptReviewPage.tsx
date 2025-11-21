@@ -38,7 +38,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
-
+    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
     const handleSelect = (receipt: Receipt | undefined) => {
@@ -50,7 +50,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, originalSourceTransaction, localeCompare);
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);

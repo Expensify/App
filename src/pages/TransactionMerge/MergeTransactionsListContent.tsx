@@ -53,6 +53,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
+    const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
+    const originalSourceTransactionID = sourceTransaction?.comment?.originalTransactionID;
+    const originalSourceTransaction = originalSourceTransactionID ? transactions?.[originalSourceTransactionID] : undefined;
     const currentUserLogin = session?.email;
 
     useEffect(() => {
@@ -110,8 +113,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }, [translate, styles.renderHTML, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
-        const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
         if (!sourceTransaction || !targetTransaction) {
             return;
         }
@@ -123,7 +124,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             openReport(sourceTransaction.reportID);
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(
+            targetTransaction,
+            sourceTransaction,
+            originalSourceTransaction,
+        );
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
                 targetTransactionID: newTargetTransaction?.transactionID,
@@ -138,7 +143,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalSourceTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -147,7 +152,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
-    }, [mergeTransaction, transactionID, targetTransaction, localeCompare]);
+    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, localeCompare]);
 
     if (eligibleTransactions?.length === 0) {
         return (
