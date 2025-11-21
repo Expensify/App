@@ -1,3 +1,5 @@
+import {useEffect} from 'react';
+import {cancelIdle, requestIdle} from './requestIdle';
 import type {EnsurePdfJsInitialized, UsePreloadLazyModules} from './types';
 
 let pdfSetupPromise: Promise<unknown> | null = null;
@@ -27,8 +29,14 @@ function ensurePdfJsInitialized(): EnsurePdfJsInitialized {
 // This hook makes it possible to manually load the lazy loaded modules
 // right after the main bundle is loaded to decrease the bundle size
 function usePreloadLazyModules(): UsePreloadLazyModules {
-    import(/* webpackPrefetch: true */ 'react-fast-pdf');
-    import(/* webpackPrefetch: true */ 'react-pdf');
+    useEffect(() => {
+        const id = requestIdle(() => {
+            import(/* webpackPrefetch: true */ 'react-fast-pdf');
+            import(/* webpackPrefetch: true */ 'react-pdf');
+        });
+
+        return () => cancelIdle(id);
+    }, []);
 }
 
 export {ensurePdfJsInitialized, usePreloadLazyModules};

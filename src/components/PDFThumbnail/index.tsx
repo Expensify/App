@@ -17,7 +17,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
 
     useEffect(() => {
         ensurePdfJsInitialized()
-            .then(() => {
+            ?.then(() => {
                 setReady(true);
             })
             .catch(() => {
