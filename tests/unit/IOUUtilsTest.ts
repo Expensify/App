@@ -173,6 +173,68 @@ describe('IOUUtils', () => {
         });
     });
 
+    describe('calculateSplitAmountFromPercentage', () => {
+        test('Basic percentage calculation and rounding', () => {
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 25)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(199, 50)).toBe(100); // rounds
+        });
+
+        test('Clamps percentage between 0 and 100 and uses absolute total', () => {
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(0);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(20000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 25)).toBe(5000);
+        });
+    });
+
+    describe('calculateSplitPercentagesFromAmounts', () => {
+        test('Distributes percentages proportionally and adjusts remainder across rows while preserving ordering', () => {
+            // 23.00 split as 7.66, 7.66, 7.68 → 3x ~33% but must sum to 100
+            const totalInCents = 2300;
+            const amounts = [766, 766, 768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            expect(percentages).toEqual([33, 33, 34]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+
+        test('Ensures larger amounts receive the full remainder so first N are even and the last is highest', () => {
+            // 2.00 split as 0.33, 0.33, 0.33, 0.33, 0.33, 0.35
+            const totalInCents = 200;
+            const amounts = [33, 33, 33, 33, 33, 35];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // The first 5 rows share the same base percentage and the last one gets the full remainder.
+            // eslint-disable-next-line rulesdir/prefer-at
+            expect(percentages).toEqual([16, 16, 16, 16, 16, 20]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+
+        test('Handles zero or empty totals by returning zeros', () => {
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([], 0)).toEqual([]);
+            expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
+        });
+
+        test('Uses absolute values of amounts and total', () => {
+            const totalInCents = -2300;
+            const amounts = [-766, -766, -768];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            expect(percentages).toEqual([33, 33, 34]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+        });
+
+        test('Keeps raw percentages when split totals differ from original total', () => {
+            const originalTotalInCents = 20000;
+            const amounts = [10000, 10000, 5000]; // totals 25000, larger than original total
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, originalTotalInCents);
+
+            // Each amount is expressed as a percentage of the original total
+            expect(percentages).toEqual([50, 50, 25]);
+            // The sum can exceed 100 when splits are over the original total; the validation error covers this
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(125);
+        });
+    });
+
     describe('insertTagIntoTransactionTagsString', () => {
         test('Inserting a tag into tag string should update the tag', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2, true)).toBe(':NY:California');

@@ -91,6 +91,83 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 }
 
 /**
+ * Calculate a split amount in backend cents from a percentage of the original amount.
+ * - Clamps percentage to [0, 100]
+ * - Rounds percentage to whole numbers (per product spec)
+ * - Uses absolute value of the total amount (cents)
+ */
+function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
+    const totalAbs = Math.abs(totalInCents);
+    const clamped = Math.min(100, Math.max(0, Math.round(percentage)));
+    return Math.round((totalAbs * clamped) / 100);
+}
+
+/**
+ * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
+ * for each split so that:
+ * - Each row is a whole-number percentage of the original total
+ * - When the sum of split amounts exactly matches the original total, percentages are proportional to the amounts
+ *   and rounded so that the sum of percentages is exactly 100. Any rounding remainder is allocated entirely to the
+ *   row with the largest amount (breaking ties by using the last such row), so the first N rows share the same
+ *   base percentage and any leftover remainder is applied to the last row.
+ * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
+ *   each amount as a percentage of the original total and may sum to something other than 100; this keeps
+ *   user-entered percentages stable while a validation error highlights the mismatch.
+ */
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
+
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
+    }
+
+    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
+
+    // First compute rounded percentages used when we want to preserve the user's distribution, e.g. when the
+    // split amounts do not add up to the original total.
+    const roundedPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
+    const sumOfRoundedPercentages = roundedPercentages.reduce((sum, current) => sum + current, 0);
+    const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
+
+    // If the split amounts don't add up to the original total, return rounded percentages as-is so user-entered
+    // percentages and amounts remain stable while a validation error highlights the mismatch.
+    if (amountsTotal !== totalAbs) {
+        return roundedPercentages;
+    }
+
+    // If rounded percentages already sum to 100, we can also return them directly.
+    if (sumOfRoundedPercentages === 100) {
+        return roundedPercentages;
+    }
+
+    // Otherwise, compute base percentages by flooring the exact percentages and then allocating the full remainder
+    // to the row with the largest amount (last one in case of ties). This ensures the first N rows share the same
+    // base percentage and any leftover is applied entirely to the last row, matching how we treat remainder in
+    // split amounts.
+    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.floor((amount / totalAbs) * 100) : 0));
+    const sumOfFlooredPercentages = flooredPercentages.reduce((sum, current) => sum + current, 0);
+    const remainder = 100 - sumOfFlooredPercentages;
+
+    if (remainder === 0) {
+        return flooredPercentages;
+    }
+
+    const maxAmount = Math.max(...amountsAbs);
+    let lastMaxIndex = 0;
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs.at(i) === maxAmount) {
+            lastMaxIndex = i;
+        }
+    }
+
+    const adjustedPercentages = [...flooredPercentages];
+    const baseValue = adjustedPercentages.at(lastMaxIndex) ?? 0;
+    adjustedPercentages[lastMaxIndex] = Math.max(0, baseValue + remainder);
+
+    return adjustedPercentages;
+}
+
+/**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
@@ -241,6 +318,8 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
 
 export {
     calculateAmount,
+    calculateSplitAmountFromPercentage,
+    calculateSplitPercentagesFromAmounts,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
