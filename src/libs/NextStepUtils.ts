@@ -725,7 +725,7 @@ function buildNextStep(
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
             } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID}), type: 'strong'};
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
             }
 
             optimisticNextStep = {
@@ -1101,7 +1101,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
             } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID}), type: 'strong'};
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
             }
 
             optimisticNextStep = {
