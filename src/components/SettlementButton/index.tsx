@@ -51,8 +51,6 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
-
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
     kycWallAnchorAlignment = {
