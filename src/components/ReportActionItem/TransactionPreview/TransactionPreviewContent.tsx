@@ -121,7 +121,6 @@ function TransactionPreviewContent({
                 reportActions,
                 currentUserEmail: currentUserDetails.email ?? '',
                 originalTransaction,
-
             }),
         [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, originalTransaction],
     );
