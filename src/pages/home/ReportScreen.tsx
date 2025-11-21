@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -20,7 +20,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useShowWideRHPVersion} from '@components/WideRHPContextProvider';
+import {useShowWideRHPVersion, WideRHPContext} from '@components/WideRHPContextProvider';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -165,6 +165,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -374,7 +377,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 Navigation.goBack();
                 return;
             }
-            if (prioritizeBackTo && backTo) {
+            if ((prioritizeBackTo && backTo) || isDisplayedInWidePaneModal) {
                 Navigation.goBack(backTo as Route);
                 return;
             }
@@ -392,7 +395,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.goBack();
         },
-        [isInNarrowPaneModal, backTo],
+        [isInNarrowPaneModal, isDisplayedInWidePaneModal, backTo],
     );
 
     let headerView = (
@@ -411,7 +414,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => {
+                    onBackButtonPress(true);
+                }}
             />
         );
     }
@@ -524,6 +529,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // If there is one transaction thread that has not yet been created, we should create it.
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+            createOneTransactionThreadReport();
+            return;
+        }
+
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
@@ -539,7 +550,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
+    }, [
+        reportMetadata.isOptimisticReport,
+        report,
+        isOffline,
+        transactionThreadReportID,
+        transactionThreadReport,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        createOneTransactionThreadReport,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
+    ]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -547,14 +571,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         prevIsAnonymousUser.current = true;
     }, [isAnonymousUser]);
-
-    useEffect(() => {
-        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReportID || !reportMetadata.hasOnceLoadedReportActions) {
-            return;
-        }
-
-        createOneTransactionThreadReport();
-    }, [reportMetadata.hasOnceLoadedReportActions, transactionThreadReportID, createOneTransactionThreadReport]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
