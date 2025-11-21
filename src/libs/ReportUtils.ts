@@ -206,6 +206,7 @@ import {
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -923,6 +924,7 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    transactions?: Transaction[];
     transactions?: Transaction[];
     reports?: Report[];
     policies?: Policy[];
@@ -5596,6 +5598,7 @@ function getReportName(
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: Transaction[],
+    transactions?: Transaction[],
     isReportArchived?: boolean,
     reports?: Report[],
     policies?: Policy[],
@@ -5727,6 +5730,14 @@ function getReportName(
 
     if (isMovedAction(parentReportAction)) {
         return getMovedActionMessage(parentReportAction, parentReport);
+    }
+
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
+    ) {
+        return getWorkspaceTaxUpdateMessage(parentReportAction);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
@@ -8897,6 +8908,7 @@ function hasViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
+    reportTransactions?: Transaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
@@ -8909,6 +8921,7 @@ function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
+    reportTransactions?: Transaction[],
     reportTransactions?: Transaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8943,6 +8956,7 @@ function hasNoticeTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
+    reportTransactions?: Transaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
@@ -8951,6 +8965,7 @@ function hasNoticeTypeViolations(
 /**
  * Checks to see if a report contains any type of violation
  */
+function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: Transaction[]) {
 function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: Transaction[]) {
     return (
         hasViolations(reportID, transactionViolations, undefined, reportTransactions) ||
@@ -8976,10 +8991,12 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
     reportTransactions?: Transaction[],
+    reportTransactions?: Transaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
+    return hasAnyViolations(reportID, transactionViolations, reportTransactions);
     return hasAnyViolations(reportID, transactionViolations, reportTransactions);
 }
 
@@ -10334,6 +10351,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
+function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
     const transactions = allReportTransactions ?? iouReportTransactions;
     return transactions.some((transaction) => isOnHoldTransactionUtils(transaction));
@@ -10342,6 +10360,7 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transacti
 /**
  * Check if all expenses in the Report are on hold
  */
+function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
 function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
