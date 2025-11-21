@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CardFeeds, Domain, DomainSettings} from '@src/types/onyx';
+import type {CardFeeds, Domain} from '@src/types/onyx';
 
-const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings as DomainSettings['settings'] | undefined;
+const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
 const domainSamlMetadataErrorSelector = (domain: OnyxEntry<Domain>) => domain?.samlMetadataError;
 const domainSettingsSelector = (domain: OnyxEntry<Domain>) =>
