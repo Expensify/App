@@ -122,6 +122,8 @@ const ROUTES = {
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
+    CHANGE_APPROVER_SEARCH_RHP: 'search/change-approver',
+    CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',

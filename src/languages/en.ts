@@ -1487,6 +1487,7 @@ const translations = {
         changeApprover: {
             title: 'Change approver',
             subtitle: 'Choose an option to change the approver for this report.',
+            bulkSubtitle: 'Choose an option to change the approvers for the selected reports.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
                 `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
             changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
@@ -1498,6 +1499,7 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for the selected reports before we route through the rest of the approval workflow.',
             },
         },
         chooseWorkspace: 'Choose a workspace',
@@ -2230,6 +2232,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'All approvers belong to an existing workflow or cannot approve some of the selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
