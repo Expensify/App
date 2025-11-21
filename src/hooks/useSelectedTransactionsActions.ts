@@ -7,7 +7,7 @@ import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
+import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -19,6 +19,7 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,8 +68,6 @@ function useSelectedTransactionsActions({
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-
-    const selectedTransactionsKeys = Object.keys(selectedTransactionsMeta ?? {});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit'] as const);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
@@ -290,14 +289,11 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const firstTransactionKey = selectedTransactionsKeys.at(0);
-        const firstTransactionMeta = firstTransactionKey ? selectedTransactionsMeta[firstTransactionKey] : undefined;
+        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+        const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
-        const areSplittable = !!firstTransactionMeta?.canSplit;
-        const areAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
-        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
-
-        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
+        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
+        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, policy);
 
         if (canSplitTransaction) {
             options.push({
@@ -357,7 +353,6 @@ function useSelectedTransactionsActions({
         translate,
         isReportArchived,
         hasTransactionsFromMultipleOwners,
-        selectedTransactionsKeys,
         policy,
         reportActions,
         clearSelectedTransactions,
@@ -371,7 +366,6 @@ function useSelectedTransactionsActions({
         outstandingReportsByPolicyID,
         iouType,
         lastVisitedPath,
-        selectedTransactionsMeta,
         allTransactions,
         allReports,
         session?.accountID,

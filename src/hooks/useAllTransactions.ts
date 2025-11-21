@@ -11,7 +11,8 @@ import useOnyx from './useOnyx';
  */
 function useAllTransactions() {
     const searchContext = useSearchContext();
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const allTransactions = useMemo(() => {
         const data = currentSearchResults?.data;

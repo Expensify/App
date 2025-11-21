@@ -313,6 +313,7 @@ describe('useAllTransactions', () => {
     it('should use default search hash when context hash is not available', async () => {
         const transaction = createRandomTransaction(1);
         transaction.transactionID = 'txn1';
+        const searchHash = CONST.DEFAULT_NUMBER_ID;
 
         // Mock context without search hash
         jest.doMock('@components/Search/SearchContext', () => ({
@@ -322,7 +323,7 @@ describe('useAllTransactions', () => {
         }));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`, transaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${CONST.DEFAULT_NUMBER_ID}`, {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,

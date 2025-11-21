@@ -52,7 +52,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -73,6 +74,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
     }, [currentReport?.policyID]);
 
+    // Fetch categories and tags on mount to ensure the screen has the latest data,
+    // especially when the edit-split flow is opened from the search screen where these
+    // values are not fetched initially.
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler
