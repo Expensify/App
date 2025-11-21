@@ -541,7 +541,12 @@ function IOURequestStepConfirmation({
         };
     }
 
-    function getReportToUseAndBackToReport(participant: Participant | undefined, parentChatReport: Report | undefined, reportParam: Report | undefined, backToReportParam: string | undefined) {
+    function getReportToUseAndBackToReport(
+        participant: Participant | undefined,
+        parentChatReport: Report | undefined,
+        reportParam: Report | undefined,
+        backToReportParam: string | undefined,
+    ) {
         const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
 
         const backToReportToUse = backToReportParam ?? (isMoneyRequestReport(reportParam) ? reportParam?.reportID : undefined);
