@@ -6216,6 +6216,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

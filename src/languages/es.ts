@@ -5951,6 +5951,7 @@ ${amount} para ${merchant} - ${date}`,
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos para este espacio de trabajo`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
