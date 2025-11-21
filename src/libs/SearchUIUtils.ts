@@ -61,7 +61,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithIsFromOneTransactionReport, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -1386,19 +1386,67 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
-    const previewData = transactionPreviewData
-        ? {...transactionPreviewData, hasTransactionThreadReport: true}
-        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+function createAndOpenSearchTransactionThread(
+    item: TransactionListItemType,
+    hash: number,
+    backTo: string,
+    transactionPreviewData?: TransactionPreviewData,
+    shouldNavigate = true,
+    searchResult?: OnyxTypes.SearchResults['data'],
+) {
+    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
+    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
+    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
+    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
+    if (reportActionID) {
+        const previewData = transactionPreviewData
+            ? {...transactionPreviewData, hasTransactionThreadReport: true}
+            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+        setOptimisticDataForTransactionThreadPreview(item, previewData);
+    }
 
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
+    // For legacy transactions without an IOU action in the backend, pass transaction data
+    // This allows OpenReport to create the IOU action and transaction thread on the backend
+    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
+    const transactionViolations = !reportActionID ? item.violations : undefined;
+
+    // For legacy transactions without an IOU action, calculate isFromOneTransactionReport by checking
+    // if there are other transactions in the same report from the search data
+    let calculatedIsFromOneTransactionReport = item.isFromOneTransactionReport;
+    if (!reportActionID && searchResult) {
+        // Get all transactions from the same report, excluding the current transaction
+        const otherTransactionsInReport = Object.entries(searchResult)
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            .filter(([key, value]) => {
+                if (!isTransactionEntry(key)) {
+                    return false;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const transactionItem = value as SearchTransaction;
+                // Include transactions with matching reportID, but exclude the current transaction
+                return transactionItem.reportID === item.reportID && transactionItem.transactionID !== item.transactionID;
+            })
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            .map(([, value]) => value as SearchTransaction);
+
+        calculatedIsFromOneTransactionReport = otherTransactionsInReport.length === 0;
+
+        // Update the search results in Onyx with the calculated isFromOneTransactionReport value
+        updateSearchResultsWithIsFromOneTransactionReport(hash, item.transactionID, calculatedIsFromOneTransactionReport);
+    }
+
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
 
     if (shouldNavigate) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const shouldNavigateToTransactionThread = (!calculatedIsFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+        const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
+
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}));
     }
 }
 
@@ -2510,6 +2558,47 @@ function getColumnsToShow(
     return columns;
 }
 
+/**
+ * @private
+ *
+ * Extracts the core Transaction fields from a TransactionListItemType
+ * This removes UI-specific fields like formattedFrom, hash, violations, etc.
+ */
+function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
+    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {
+        keyForList,
+        action,
+        allActions,
+        report,
+        from,
+        to,
+        formattedFrom,
+        formattedTo,
+        formattedTotal,
+        formattedMerchant,
+        date,
+        shouldShowMerchant,
+        shouldShowYear: shouldTransactionShowYear,
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        violations,
+        hash,
+        moneyRequestReportActionID,
+        canDelete,
+        convertedAmount,
+        convertedCurrency,
+        transactionThreadReportID,
+        isFromOneTransactionReport,
+        accountID,
+        policyID,
+        ...transaction
+    } = item;
+
+    return transaction as OnyxTypes.Transaction;
+}
+
 type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
 
 function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
@@ -2561,6 +2650,7 @@ export {
     getActionOptions,
     getColumnsToShow,
     getHasOptions,
+    getTransactionFromTransactionListItem,
     getSnapshotKeys,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
