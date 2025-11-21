@@ -270,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -1491,6 +1492,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Devi trattenere o rifiutare?',
             educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi trattenerla o rifiutarla.',
             holdExpenseTitle: 'Trattieni una spesa per chiedere maggiori dettagli prima dell’approvazione o del pagamento.',
+            approveExpenseTitle: 'Approva altre spese mentre quelle trattenute rimangono assegnate a te.',
             heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
             rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
@@ -3293,6 +3295,9 @@ ${
         whatsYourAddress: 'Qual è il tuo indirizzo?',
         whatAreTheLast: 'Quali sono le ultime 4 cifre del numero di previdenza sociale del proprietario?',
         whatsYourLast: 'Quali sono le ultime 4 cifre del tuo numero di previdenza sociale?',
+        whatsYourNationality: 'Qual è il tuo paese di cittadinanza?',
+        whatsTheOwnersNationality: 'Qual è il paese di cittadinanza del proprietario?',
+        countryOfCitizenship: 'Paese di cittadinanza',
         dontWorry: 'Non preoccuparti, non facciamo alcun controllo del credito personale!',
         last4: 'Ultime 4 cifre del SSN',
         whyDoWeAsk: 'Perché lo chiediamo?',
@@ -5221,6 +5226,7 @@ ${
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
+                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
@@ -6218,6 +6224,7 @@ ${
             `ha cambiato la percentuale di rapporti instradati casualmente per l'approvazione manuale a ${Math.round(newAuditRate * 100)}% (precedentemente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `ha cambiato il limite di approvazione manuale per tutte le spese a ${newLimit} (precedentemente ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi per questo spazio di lavoro`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l'imposta "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6242,6 +6249,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} tracciamento dei partecipanti`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
