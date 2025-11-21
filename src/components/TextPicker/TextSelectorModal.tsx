@@ -29,6 +29,7 @@ function TextSelectorModal({
     shouldClearOnClose,
     maxLength = CONST.CATEGORY_NAME_LIMIT,
     required = false,
+    enabledWhenOffline = true,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -139,7 +140,7 @@ function TextSelectorModal({
                     onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline
+                    enabledWhenOffline={enabledWhenOffline}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
