@@ -287,31 +287,30 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-    messages?.forEach((part, index) => {
-        const isEmail = Str.isValidEmail(part.text);
-        let tagType = part.type ?? 'span';
-        let content = Str.safeEscape(part.text);
+    if (messages) {
+        for (const [index, part] of messages.entries()) {
+            const isEmail = Str.isValidEmail(part.text);
+            let tagType = part.type ?? 'span';
+            let content = Str.safeEscape(part.text);
 
-        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-        const nextPart = messages.at(index + 1);
+            const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
+            const nextPart = messages.at(index + 1);
 
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'your' : 'you';
-        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-            content = '';
-        } else if (isEmail) {
-            tagType = 'next-step-email';
-            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+            if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
+                tagType = 'strong';
+                content = nextPart?.text === `'s` ? 'your' : 'you';
+            } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
+                content = '';
+            } else if (isEmail) {
+                tagType = 'next-step-email';
+                content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+            }
+
+            nextStepHTML += `<${tagType}>${content}</${tagType}>`;
         }
+    }
 
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-    });
-
-    const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expenses')
-        .replace(/%Expenses/g, 'Expenses')
-        .replace(/%tobe/g, 'are');
+    const formattedHtml = nextStepHTML.replaceAll('%expenses', 'expenses').replaceAll('%Expenses', 'Expenses').replaceAll('%tobe', 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
 }
@@ -427,7 +426,6 @@ function buildNextStep({
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -703,7 +701,7 @@ function buildNextStep({
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
             if (
                 isInvoiceReport(report) ||
                 !isPayer(
@@ -720,6 +718,23 @@ function buildNextStep({
                 break;
             }
             // Self review
+            let payerMessage: Message;
+            if (
+                isPayer(
+                    {
+                        accountID: currentUserAccountID,
+                        email: currentUserEmail,
+                    },
+                    report,
+                )
+            ) {
+                payerMessage = {text: 'you', type: 'strong'};
+            } else if (reimburserAccountID === -1) {
+                payerMessage = {text: 'an admin'};
+            } else {
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID}), type: 'strong'};
+            }
+
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -727,26 +742,20 @@ function buildNextStep({
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    payerMessage,
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
             break;
+        }
 
         // Resets a nextStep
         default:
@@ -803,7 +812,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -1076,7 +1084,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
             if (
                 isInvoiceReport(report) ||
                 !isPayer(
@@ -1093,6 +1101,23 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 break;
             }
             // Self review
+            let payerMessage: Message;
+            if (
+                isPayer(
+                    {
+                        accountID: currentUserAccountIDParam,
+                        email: currentUserEmailParam,
+                    },
+                    report,
+                )
+            ) {
+                payerMessage = {text: 'you', type: 'strong'};
+            } else if (reimburserAccountID === -1) {
+                payerMessage = {text: 'an admin'};
+            } else {
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID}), type: 'strong'};
+            }
+
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1100,26 +1125,20 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    payerMessage,
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
             break;
+        }
 
         // Resets a nextStep
         default:

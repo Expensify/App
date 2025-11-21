@@ -187,7 +187,7 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
     }
 
     let attachmentID = 0;
-    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    return html.replaceAll(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -272,6 +272,10 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
 function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
+}
+
+function isHoldAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.HOLD);
 }
 
 function isReimbursementDirectionInformationRequiredAction(
@@ -1985,7 +1989,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
-    const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const mentions = mentionElements.join(', ').replaceAll(/, ([^,]*)$/g, ' and $1');
     const postMentionsText = ` ${mentionElements.length > 1 ? "aren't members" : "isn't a member"} of this room.`;
 
     return `${preMentionsText}${mentions}${postMentionsText}`;
@@ -2855,6 +2859,17 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceReimbursementUpdateMessage(action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED && typeof enabled === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateReimbursementEnabled', {enabled});
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
@@ -3050,7 +3065,7 @@ function getActionableCardFraudAlertMessage(
     const merchant = fraudMessage?.triggerMerchant ?? '';
     const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
     const resolution = fraudMessage?.resolution;
-    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
+    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replaceAll(/am|pm/gi, (match) => match.toUpperCase()) : '';
 
     if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3414,6 +3429,7 @@ export {
     isTrackExpenseAction,
     isTransactionThread,
     isTripPreview,
+    isHoldAction,
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
@@ -3456,6 +3472,7 @@ export {
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
