@@ -26,7 +26,7 @@ function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRe
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
             <FormHelpMessage
                 message={message}
-                style={[styles.mt0, styles.mb0]}
+                style={[styles.mt0, styles.mb0, styles.flex1]}
             />
             <Button
                 small={isButtonSmall}
