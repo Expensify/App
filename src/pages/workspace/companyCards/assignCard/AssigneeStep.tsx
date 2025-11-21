@@ -1,6 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import type {OnyxEntry} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -13,13 +15,16 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setDraftInviteAccountID} from '@libs/actions/Card';
+import {searchInServer} from '@libs/actions/Report';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
@@ -27,6 +32,7 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
@@ -48,24 +54,44 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+
+    const excludedUsers = useMemo(() => {
+        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvites.reduce(
+            (acc, login) => {
+                acc[login] = true;
+                return acc;
+            },
+            {} as Record<string, boolean>,
+        );
+    }, [policy?.employeeList]);
+
+    const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        includeRecentReports: true,
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const isEditing = assignCard?.isEditing;
 
-    const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [shouldShowError, setShouldShowError] = useState(false);
-
-    const selectMember = (assignee: ListItem) => {
-        Keyboard.dismiss();
-        setSelectedMember(assignee.login ?? '');
-        setShouldShowError(false);
-    };
-
     useAssignCardNavigation(policyID, feed);
-
-    const submit = () => {
+  
+    const submit = (assignee: ListItem) => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
-        if (selectedMember === assignCard?.data?.email) {
+        const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const data: Partial<AssignCardData> = {
+            email: assignee?.login ?? '',
+            cardName: getDefaultCardName(memberName),
+        };
+
+        Keyboard.dismiss();
+        if (assignee?.login === assignCard?.data?.email) {
             setAssignCardStepAndData({
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
@@ -73,17 +99,17 @@ function AssigneeStep({route}: AssigneeStepProps) {
             return;
         }
 
-        if (!selectedMember) {
-            setShouldShowError(true);
+        if (!policy?.employeeList?.[assignee?.login ?? '']) {
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
+                data: {
+                    invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
+                },
+            });
+            setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
             return;
         }
-
-        const personalDetail = getPersonalDetailByEmail(selectedMember);
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
-        const data: Partial<AssignCardData> = {
-            email: selectedMember,
-            cardName: getDefaultCardName(memberName),
-        };
 
         if (hasOnlyOneCardToAssign(filteredCardList)) {
             nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
@@ -109,9 +135,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.dismissModal();
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
-
     const membersDetails = useMemo(() => {
         let membersList: ListItem[] = [];
         if (!policy?.employeeList) {
@@ -130,7 +153,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: selectedMember === email,
+                isSelected: assignCard?.data?.email === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
@@ -145,7 +168,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
+    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -157,23 +180,82 @@ function AssigneeStep({route}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+        const sectionsArr = [];
 
-        return [
-            {
+        if (!areOptionsInitialized) {
+            return [];
+        }
+
+        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
+
+        sectionsArr.push({
+            title: undefined,
+            data: filteredOptions,
+            shouldShow: true,
+        });
+
+        // Selected options section
+        if (selectedOptionsForDisplay.length > 0) {
+            sectionsArr.push({
                 title: undefined,
-                data: filteredOptions,
-                shouldShow: true,
-            },
-        ];
-    }, [membersDetails, debouncedSearchTerm, countryCode]);
+                data: selectedOptionsForDisplay,
+            });
+        }
+
+        // Recent reports section
+        if (availableOptions.recentReports.length > 0) {
+            sectionsArr.push({
+                title: undefined,
+                data: availableOptions.recentReports,
+            });
+        }
+
+        // Contacts section
+        if (availableOptions.personalDetails.length > 0) {
+            sectionsArr.push({
+                title: undefined,
+                data: availableOptions.personalDetails,
+            });
+        }
+
+        // User to invite section
+        if (availableOptions.userToInvite) {
+            sectionsArr.push({
+                title: undefined,
+                data: [availableOptions.userToInvite],
+            });
+        }
+
+        return sectionsArr;
+    }, [
+        debouncedSearchTerm,
+        areOptionsInitialized,
+        countryCode,
+        membersDetails,
+        selectedOptionsForDisplay,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+    ]);
+
+    useEffect(() => {
+        searchInServer(searchTerm);
+    }, [searchTerm]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, sections, countryCode]);
+        const searchValue = searchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(
+            sections.some((section) => section.data.length > 0),
+            !!availableOptions.userToInvite,
+            searchValue,
+            countryCode,
+            false,
+        );
+    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
 
     return (
         <InteractiveStepWrapper
@@ -183,29 +265,22 @@ function AssigneeStep({route}: AssigneeStepProps) {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
-                textInputLabel={textInputLabel}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 sections={sections}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
-                onSelectRow={selectMember}
-                initiallyFocusedOptionKey={selectedMember}
+                onSelectRow={submit}
                 shouldUpdateFocusedIndex
+                initiallyFocusedOptionKey={assignCard?.data?.email}
                 addBottomSafeAreaPadding
-                footerContent={
-                    <FormAlertWithSubmitButton
-                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onSubmit={submit}
-                        isAlertVisible={shouldShowError}
-                        containerStyles={[!shouldShowError && styles.mt5]}
-                        addButtonBottomPadding={false}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                }
+                showLoadingPlaceholder={!areOptionsInitialized}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </InteractiveStepWrapper>
     );

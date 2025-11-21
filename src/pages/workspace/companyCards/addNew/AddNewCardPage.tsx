@@ -3,24 +3,38 @@ import React, {useEffect} from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
+import Navigation from '@navigation/Navigation';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 
 type AddNewCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW> & WithPolicyAndFullscreenLoadingProps;
 
 function AddNewCardPage({policy}: AddNewCardPageProps) {
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
+
+    useEffect(() => {
+        if (!policyID || !isBlockedToAddNewFeeds) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            forceReplace: true,
+        });
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     useEffect(() => {
         return () => {
