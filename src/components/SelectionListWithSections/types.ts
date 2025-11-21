@@ -113,6 +113,12 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -976,6 +982,10 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
