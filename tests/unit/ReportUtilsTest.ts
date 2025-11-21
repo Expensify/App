@@ -9668,5 +9668,77 @@ describe('ReportUtils', () => {
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
+
+        it('should clear DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const firstSubmittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'first submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 10:05:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const secondSubmittedAction = {
+                ...createRandomReportAction(3),
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:10:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'second submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const reportActions = {
+                '1': firstSubmittedAction,
+                '2': dewSubmitFailedAction,
+                '3': secondSubmittedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+            expect(reportAction).not.toEqual(dewSubmitFailedAction);
+        });
     });
 });
