@@ -202,6 +202,8 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             } else {
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(iouConfirmationPageRoute);
                 });
@@ -357,6 +359,8 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(route, {compareParams: false});
             } else {
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(route);
                 });
