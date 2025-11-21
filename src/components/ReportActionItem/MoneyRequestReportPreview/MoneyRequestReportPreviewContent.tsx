@@ -166,6 +166,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
 
     const getCanIOUBePaid = useCallback(
@@ -257,7 +258,7 @@ function MoneyRequestReportPreviewContent({
     );
 
     const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy)) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
             setIsDEWModalVisible(true);
             return;
         }
@@ -527,7 +528,7 @@ function MoneyRequestReportPreviewContent({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => {
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }
