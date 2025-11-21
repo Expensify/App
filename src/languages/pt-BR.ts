@@ -696,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        reportName: 'Nome do relatório',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -3294,6 +3295,9 @@ ${
         whatsYourAddress: 'Qual é o seu endereço?',
         whatAreTheLast: 'Quais são os últimos 4 dígitos do Número de Seguro Social do proprietário?',
         whatsYourLast: 'Quais são os últimos 4 dígitos do seu Número de Seguro Social?',
+        whatsYourNationality: 'Qual é o seu país de cidadania?',
+        whatsTheOwnersNationality: 'Qual é o país de cidadania do proprietário?',
+        countryOfCitizenship: 'País de cidadania',
         dontWorry: 'Não se preocupe, não fazemos nenhuma verificação de crédito pessoal!',
         last4: 'Últimos 4 do SSN',
         whyDoWeAsk: 'Por que pedimos isso?',
@@ -6231,6 +6235,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
