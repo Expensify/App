@@ -5,7 +5,6 @@ import AccountManagerLinkRenderer from '@components/HTMLEngineProvider/HTMLRende
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -56,10 +55,7 @@ describe('AccountManagerLinkRenderer', () => {
         jest.clearAllMocks();
     });
 
-    it('should render the link with correct text', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
-
+    it('should render the link with correct text', () => {
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
 
@@ -68,7 +64,6 @@ describe('AccountManagerLinkRenderer', () => {
 
     it('should navigate to account manager chat when pressed', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -91,7 +86,6 @@ describe('AccountManagerLinkRenderer', () => {
 
     it('should handle multiple presses correctly', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -108,7 +102,6 @@ describe('AccountManagerLinkRenderer', () => {
 
     it('should update navigation when accountManagerReportID changes', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
         const {rerender} = render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -120,7 +113,6 @@ describe('AccountManagerLinkRenderer', () => {
 
         const NEW_ACCOUNT_MANAGER_REPORT_ID = '987654321';
         await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, NEW_ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
         rerender(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -133,7 +125,6 @@ describe('AccountManagerLinkRenderer', () => {
 
     it('should apply correct link styles', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
-        await waitForBatchedUpdatesWithAct();
 
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -142,5 +133,7 @@ describe('AccountManagerLinkRenderer', () => {
 
         expect(link).toBeTruthy();
         expect(link.props.children).toBeDefined();
+        expect(link.props.style).toBeDefined();
+        expect(Array.isArray(link.props.style) || typeof link.props.style === 'object').toBe(true);
     });
 });
