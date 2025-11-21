@@ -461,7 +461,6 @@ function WorkspacesListPage() {
             );
         },
         [
-            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
