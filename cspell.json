@@ -2,6 +2,7 @@
     "language": "en",
     "words": [
         "--longpress",
+        "abytes",
         "Accelo",
         "achreimburse",
         "actool",
@@ -178,6 +179,7 @@
         "ecash",
         "ecconnrefused",
         "econn",
+        "ecuk",
         "EDIFACT",
         "Egencia",
         "Electromedical",
@@ -399,6 +401,8 @@
         "msword",
         "mtrl",
         "multidex",
+        "Multifactor",
+        "multistep",
         "MVCP",
         "MYOB",
         "mysubdomain",
@@ -582,6 +586,7 @@
         "Roni",
         "Rosiclair",
         "rpartition",
+        "RPID",
         "RRGGBB",
         "rstrip",
         "RTER",
@@ -791,7 +796,13 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "DYNAMICEXTERNAL",
+        "MULTIFACTORAUTHENTICATION",
+        "Humpty",
+        "Dumpty",
+        "multifactor",
+        "renable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

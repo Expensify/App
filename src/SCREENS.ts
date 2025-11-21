@@ -263,6 +263,7 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         EXPENSE_REPORT: 'ExpenseReport',
         DOMAIN: 'Domain',
+        MULTIFACTORAUTHENTICATION: 'MultiFactorAuthentication',
     },
     EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -834,6 +835,17 @@ const SCREENS = {
         VERIFIED: 'Domain_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
+    },
+    MULTIFACTORAUTHENTICATION: {
+        MAGIC_CODE: 'MultifactorAuthentication_Magic_Code',
+        AUTHENTICATOR: 'MultifactorAuthentication_Authenticator',
+        SMS_OTP: 'MultifactorAuthentication_Sms_Top',
+        BIOMETRICS_TEST: 'MultifactorAuthentication_Biometrics_Test',
+        NOTIFICATION: 'MultifactorAuthentication_Notification',
+        APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
+        PROMPT: 'MultifactorAuthentication_Prompt',
+        REVOKE: 'MultifactorAuthentication_Revoke',
+        NOT_FOUND: 'MultifactorAuthentication_Not_Found',
     },
 } as const;
 

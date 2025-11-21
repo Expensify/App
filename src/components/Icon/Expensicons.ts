@@ -89,6 +89,7 @@ import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
 import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
+import Fingerprint from '@assets/images/fingerprint.svg';
 import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
@@ -454,4 +455,5 @@ export {
     XeroExport,
     ArrowCircleClockwise,
     PlusCircle,
+    Fingerprint,
 };

@@ -1,22 +1,27 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+// Expensify Card
+import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
-// Expensify Card
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+// MFA Illustrations
+import OpenPadlock from '@assets/images/open-padlock.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
@@ -42,12 +47,13 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
+// Simple Illustrations - Original core ones
+import RunOutOfTime from '@assets/images/running-out-of-time.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
-// Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
@@ -68,6 +74,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
+import EncryptionMan from '@assets/images/simple-illustrations/simple-illustration__encryption-man.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
@@ -95,6 +102,7 @@ import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustra
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
+import SmartScanMock from '@assets/images/simple-illustrations/simple-illustration__smartscan_mock_for_testing.svg';
 import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
@@ -182,6 +190,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    LockClosed,
     Luggage,
     Puzzle,
     Abacus,
@@ -208,11 +217,19 @@ const Illustrations = {
     Hourglass,
     House,
     Lightbulb,
-    LockClosed,
     LockClosedOrange,
     LockOpen,
     Mailbox,
     ShieldYellow,
+
+    // MFA Illustrations
+    OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
+    RunOutOfTime,
+    HumptyDumpty,
+    EncryptionMan,
+    SmartScanMock,
 };
 
 /**

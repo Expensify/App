@@ -172,6 +172,7 @@ function MoneyRequestAction({
 
     return (
         <TransactionPreview
+            displayTestMFAButton
             allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}

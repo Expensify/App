@@ -15,6 +15,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
@@ -2121,6 +2122,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: NavigatorScreenParams<ExpenseReportNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION]: NavigatorScreenParams<MultiFactorAuthenticationParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2755,6 +2757,23 @@ type ExpenseReportNavigatorParamList = {
     };
 };
 
+type MultiFactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTORAUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.AUTHENTICATOR]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.SMS_OTP]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.BIOMETRICS_TEST]: undefined;
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
+        notificationType: AllMultifactorAuthenticationNotificationType;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.PROMPT]: {
+        promptType: MultifactorAuthenticationPromptType;
+    };
+    [SCREENS.MULTIFACTORAUTHENTICATION.REVOKE]: undefined;
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2867,4 +2886,5 @@ export type {
     DomainSplitNavigatorParamList,
     DomainScreenName,
     SearchReportActionsParamList,
+    MultiFactorAuthenticationParamList,
 };
