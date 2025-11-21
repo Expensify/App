@@ -50,7 +50,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {rejectMoneyRequest} from './IOU';
+import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
@@ -700,10 +700,31 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string) {
+function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, transactionIDs: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const transactionIDToRejectReportAction: Record<
+        string,
+        {
+            rejectedActionReportActionID: string;
+            rejectedCommentReportActionID: string;
+        }
+    > = {};
+    transactionIDs.forEach((transactionID) => {
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, undefined, true);
+        if (data) {
+            optimisticData.push(...data.optimisticData);
+            successData.push(...data.successData);
+            failureData.push(...data.failureData);
+            transactionIDToRejectReportAction[transactionID] = {
+                rejectedActionReportActionID: data.parameters.rejectedActionReportActionID,
+                rejectedCommentReportActionID: data.parameters.rejectedCommentReportActionID,
+            };
+        }
+    });
 
-    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment}, {optimisticData, successData, failureData, finallyData});
 }
 
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
@@ -726,7 +747,7 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment);
+            rejectMoneyRequestInBulk(hash, reportID, comment, allTransactionIDs);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
