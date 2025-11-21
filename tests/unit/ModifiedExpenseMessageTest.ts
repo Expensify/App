@@ -608,6 +608,46 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the description is set with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '',
+                    newComment: 'Flight to client meeting',
+                    aiGenerated: true,
+                },
+            };
+
+            it('returns the correct text message with AI attribution when setting description', () => {
+                const expectedResult = 'set the description based on past activity to "Flight to client meeting"';
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the description is changed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: 'Old description',
+                    newComment: 'New description',
+                    aiGenerated: true,
+                },
+            };
+
+            it('returns the correct text message with AI attribution when changing description', () => {
+                const expectedResult = 'changed the description based on past activity to "New description" (previously "Old description")';
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is changed with AI attribution', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

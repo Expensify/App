@@ -241,11 +241,19 @@ function getForReportAction({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,
@@ -463,11 +471,19 @@ function getForReportActionTemp({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,
