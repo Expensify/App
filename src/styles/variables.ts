@@ -383,6 +383,9 @@ export default {
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
 
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
+
     // MultiFactorAuthentication illustrations sizes
     openPadlockWidth: 140,
     openPadlockHeight: 140,
