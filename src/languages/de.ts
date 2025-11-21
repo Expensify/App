@@ -1295,6 +1295,8 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `eingereicht${memo ? `, sagte ${memo}` : ''}`,
         automaticallySubmitted: `über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verzögerte Einreichungen</a> eingereicht`,
+        queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
+        dynamicExternalWorkflowCannotSubmit: 'Dieser Bericht kann nicht eingereicht werden. Bitte überprüfen Sie die Kommentare zur Behebung.',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `teilen ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -1369,6 +1371,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericSmartscanFailureMessage: 'Transaktion fehlt Felder',
+            genericDEWSubmitFailureMessage: 'Fehler beim dynamischen externen Workflow-Einreichung',
             duplicateWaypointsErrorMessage: 'Bitte entfernen Sie doppelte Wegpunkte',
             atLeastTwoDifferentWaypoints: 'Bitte geben Sie mindestens zwei verschiedene Adressen ein.',
             splitExpenseMultipleParticipantsErrorMessage:
@@ -7417,6 +7420,7 @@ ${
             hasChildReportAwaitingAction: 'Hat einen untergeordneten Bericht, der auf eine Aktion wartet',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungsbankkonto',
             hasUnresolvedCardFraudAlert: 'Hat eine ungelöste Karten-Fraud-Warnung',
+            hasDEWError: 'Hat DEW-Fehler',
         },
         reasonRBR: {
             hasErrors: 'Hat Fehler in den Berichtsdaten oder Berichtsaktionen',

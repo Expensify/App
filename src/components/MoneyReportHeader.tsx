@@ -53,6 +53,7 @@ import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/
 import {
     changeMoneyRequestHoldStatus,
     getAddExpenseDropdownOptions,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -290,6 +291,7 @@ function MoneyReportHeader({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
@@ -558,6 +560,19 @@ function MoneyReportHeader({
             return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
         }
 
+        if (isDEWSubmitBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+            if (errors?.dewSubmitFailed) {
+                return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.dynamicExternalWorkflowCannotSubmit')};
+            }
+        }
+
         if (isPayAtEndExpense) {
             if (!isArchivedReport) {
                 return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.bookingPendingDescription')};
@@ -774,7 +789,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport || shouldBlockSubmit) {
                         return;
                     }
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
                         showDWEModal();
                         return;
                     }
@@ -990,7 +1005,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                if (hasDynamicExternalWorkflow(policy)) {
+                if (hasDynamicExternalWorkflow(policy) && !isDEWSubmitBetaEnabled) {
                     showDWEModal();
                     return;
                 }

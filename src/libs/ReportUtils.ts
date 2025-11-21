@@ -220,6 +220,7 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMarkAsClosedAction,
@@ -240,6 +241,7 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
+    isSubmittedAction,
     isTagModificationAction,
     isThreadParentMessage,
     isTrackExpenseAction,
@@ -9032,6 +9034,30 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     if (!isReportArchived && hasSmartscanError(reportActionsArray)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
         reportAction = getReportActionWithSmartscanError(reportActionsArray);
+    }
+
+    if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        const dewSubmitFailedAction = reportActionsArray.find((action) => isDynamicExternalWorkflowSubmitFailedAction(action));
+        if (dewSubmitFailedAction) {
+            // find the most recent SUBMITTED action
+            const mostRecentSubmittedAction = reportActionsArray
+                .filter((action) => isSubmittedAction(action))
+                .reduce<ReportAction | undefined>((latest, current) => {
+                    if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                        return current;
+                    }
+                    return latest;
+                }, undefined);
+
+            const shouldShowDEWError = !mostRecentSubmittedAction || (mostRecentSubmittedAction.created && dewSubmitFailedAction.created > mostRecentSubmittedAction.created);
+
+            if (shouldShowDEWError) {
+                reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
+                if (!reportAction) {
+                    reportAction = dewSubmitFailedAction;
+                }
+            }
+        }
     }
 
     return {
