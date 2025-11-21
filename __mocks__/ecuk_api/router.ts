@@ -28,7 +28,7 @@ type Base64URL<T> = string;
 
 /** RN polyfill for base64url encoding */
 const base64URL = <T>(value: string): Base64URL<T> => {
-    return Buffer.from(value).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return Buffer.from(value).toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 };
 
 const router: {

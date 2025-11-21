@@ -793,6 +793,20 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     multifactorAuthentication: {
+        uiText: {
+            transactionApproved: {
+                headerTitle: 'Transaction approved',
+                title: 'Transaction approved',
+            },
+            transactionDenied: {
+                headerTitle: 'Transaction denied',
+                title: 'Transaction denied',
+            },
+            outOfTime: {
+                headerTitle: 'Transaction denied',
+                title: 'You ran out of time!',
+            },
+        },
         /** Messages and titles displayed after multifactorial authentication operations */
         statusMessage: {
             successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>

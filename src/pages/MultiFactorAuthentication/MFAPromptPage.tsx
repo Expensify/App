@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
 import MFAPromptActions from '@components/MultiFactorAuthentication/MFAPromptActions';
 import MFAPromptContent from '@components/MultiFactorAuthentication/MFAPromptContent';
+import MFATriggerCancelConfirmModal from '@components/MultiFactorAuthentication/MFATriggerCancelConfirmModal';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthenticationContext/ui';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -70,7 +70,7 @@ function MultiFactorAuthenticationPromptPage({route}: MultiFactorAuthenticationP
                     onGoBackPress={onGoBackPress}
                     onConfirm={onConfirm}
                 />
-                <MFADenyTransactionConfirmModal
+                <MFATriggerCancelConfirmModal
                     isVisible={isConfirmModalVisible}
                     onConfirm={denyTransaction}
                     onCancel={hideConfirmModal}

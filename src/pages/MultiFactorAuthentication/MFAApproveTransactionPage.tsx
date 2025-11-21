@@ -4,7 +4,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MFAApproveTransactionActions from '@components/MultiFactorAuthentication/MFAApproveTransactionActions';
 import MFAApproveTransactionContent from '@components/MultiFactorAuthentication/MFAApproveTransactionContent';
-import MFADenyTransactionConfirmModal from '@components/MultiFactorAuthentication/MFADenyTransactionConfirmModal';
+import MFATriggerCancelConfirmModal from '@components/MultiFactorAuthentication/MFATriggerCancelConfirmModal';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -69,7 +69,7 @@ function MFAScenarioApproveTransactionPage({route}: MFAApproveTransactionPagePro
                         onApprove={approveTransaction}
                         onDeny={showConfirmModal}
                     />
-                    <MFADenyTransactionConfirmModal
+                    <MFATriggerCancelConfirmModal
                         isVisible={isConfirmModalVisible}
                         onConfirm={denyTransaction}
                         onCancel={hideConfirmModal}

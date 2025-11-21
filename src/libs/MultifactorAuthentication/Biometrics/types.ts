@@ -17,17 +17,33 @@ type BasicMultifactorAuthenticationRequirementTypes = {
     [VALUES.FACTORS.OTP]: number;
 };
 
+type MultifactorAuthenticationNotificationConfig = {
+    headerTitle?: TranslationPaths;
+    title?: TranslationPaths;
+};
+
+type MultifactorAuthenticationCancelConfirm = {
+    description?: TranslationPaths;
+    cancelButtonText?: TranslationPaths;
+    confirmButtonText?: TranslationPaths;
+    title?: TranslationPaths;
+};
+
 type MultifactorAuthenticationUIConfig = {
     illustration: React.FC<SvgProps>;
     iconWidth: number;
     iconHeight: number;
     padding: ViewStyle;
+    notification?: MultifactorAuthenticationNotificationConfig;
 };
 
-type MultifactorAuthenticationUIConfigOptions = Record<string, MultifactorAuthenticationUIConfig> & {
-    success: MultifactorAuthenticationUIConfig;
-    failure: MultifactorAuthenticationUIConfig;
+type MultifactorAuthenticationUIConfigOptions = Record<string, MultifactorAuthenticationUIConfig>;
+
+type MultifactorAuthenticationModalConfigs = {
+    cancelConfirmation: MultifactorAuthenticationCancelConfirm;
 };
+
+type MultifactorAuthenticationUIModalConfigOptions = Record<MultifactorAuthenticationScenario, Partial<MultifactorAuthenticationModalConfigs>>;
 
 type MultifactorAuthenticationNotificationUI = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationUIConfigOptions>;
 
@@ -228,4 +244,5 @@ export type {
     MultifactorAuthenticationPromptUI,
     MultifactorAuthenticationNotificationUI,
     MultifactorAuthenticationTriggerArgument,
+    MultifactorAuthenticationUIModalConfigOptions,
 };

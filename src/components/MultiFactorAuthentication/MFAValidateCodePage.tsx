@@ -6,6 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthenticationContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearAccountMessages} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
@@ -66,6 +66,7 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
+    const {trigger} = useMultifactorAuthenticationContext();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -192,8 +193,9 @@ function MFAValidateCodePage({title, description, contactMethod, autoComplete, e
     }, [account?.isLoading, account?.errors, inputCode, errorMessages, onSubmit, isVerifying]);
 
     const onGoBackPress = useCallback(() => {
-        Navigation.goBack();
-    }, []);
+        trigger(CONST.MULTI_FACTOR_AUTHENTICATION.TRIGGER.FAILURE);
+        // Navigation.goBack();
+    }, [trigger]);
 
     return (
         <ScreenWrapper testID={MFAValidateCodePage.displayName}>

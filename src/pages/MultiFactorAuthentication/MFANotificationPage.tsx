@@ -27,7 +27,7 @@ function MFANotificationPage({route}: MultiFactorAuthenticationNotificationPageP
 
     const data = MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[route.params.notificationType];
 
-    const {headerTitle, title, content} = {headerTitle: info.title, title: info.title, content: info.message};
+    const {headerTitle, title, content} = {headerTitle: info.headerTitle, title: info.title, content: info.message};
 
     if (!data) {
         return <NotFoundPage />;

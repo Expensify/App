@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import {ApprovedTransactionHand, DeniedTransactionHand, HumptyDumpty, OpenPadlock, RunOutOfTime} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
-import type {MultifactorAuthenticationNotificationUI, MultifactorAuthenticationPromptUI} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {
+    MultifactorAuthenticationNotificationUI,
+    MultifactorAuthenticationPromptUI,
+    MultifactorAuthenticationUIModalConfigOptions,
+} from '@libs/MultifactorAuthentication/Biometrics/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
@@ -14,6 +18,10 @@ const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
+            notification: {
+                headerTitle: 'multifactorAuthentication.uiText.transactionApproved.headerTitle',
+                title: 'multifactorAuthentication.uiText.transactionApproved.title',
+            },
         },
         success: {
             illustration: OpenPadlock,
@@ -26,6 +34,10 @@ const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
+            notification: {
+                headerTitle: 'multifactorAuthentication.uiText.transactionDenied.headerTitle',
+                title: 'multifactorAuthentication.uiText.transactionDenied.title',
+            },
         },
         failure: {
             illustration: HumptyDumpty,
@@ -38,6 +50,10 @@ const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
             iconWidth: variables.runOutOfTimeWidth,
             iconHeight: variables.runOutOfTimeHeight,
             padding: spacing.p0,
+            notification: {
+                headerTitle: 'multifactorAuthentication.uiText.outOfTime.headerTitle',
+                title: 'multifactorAuthentication.uiText.outOfTime.title',
+            },
         },
     },
 } as const satisfies MultifactorAuthenticationNotificationUI;
@@ -57,4 +73,15 @@ const MULTIFACTOR_AUTHENTICATION_PROMPT_UI = {
 } as const satisfies MultifactorAuthenticationPromptUI;
 /* eslint-enable @typescript-eslint/naming-convention */
 
-export {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI, MULTIFACTOR_AUTHENTICATION_PROMPT_UI};
+const MULTIFACTOR_AUTHENTICATION_MODAL_UI = {
+    [SCENARIO.AUTHORIZE_TRANSACTION]: {
+        cancelConfirmation: {
+            title: 'common.areYouSure',
+            description: 'multiFactorAuthentication.approveTransaction.denyTransactionContent',
+            confirmButtonText: 'multiFactorAuthentication.approveTransaction.denyTransactionButton',
+            cancelButtonText: 'common.cancel',
+        },
+    },
+} satisfies MultifactorAuthenticationUIModalConfigOptions;
+
+export {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI, MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_MODAL_UI};

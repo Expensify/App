@@ -14,7 +14,9 @@ import useMultifactorAuthenticationStatus from '@hooks/MultifactorAuthentication
 import useMultifactorAuthorizationFallback from '@hooks/MultifactorAuthentication/useMultifactorAuthorizationFallback';
 import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP from '@libs/MultifactorAuthentication/Biometrics/notifications';
 import type {AllMultifactorAuthenticationNotificationType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {
     AllMultifactorAuthenticationFactors,
@@ -43,6 +45,7 @@ const MultifactorAuthenticationContext = createContext<UseMultifactorAuthenticat
         deviceSupportBiometrics: false,
         message: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.message,
         title: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
+        headerTitle: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
         success: undefined,
     },
     process: () => Promise.resolve(EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS),
@@ -79,6 +82,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         },
         CONST.MULTI_FACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
     );
+    const {translate} = useLocalize();
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
@@ -429,16 +433,31 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const info = useMemo(() => {
         const {isLocalPublicKeyInAuth, isBiometryRegisteredLocally, isAnyDeviceRegistered, deviceSupportBiometrics} = NativeBiometrics.setup;
 
+        const {scenario} = mergedStatus.value;
+
+        const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+        const successPath = overriddenScreens.current.success ?? (scenarioPrefix ? `${scenarioPrefix}-success` : undefined);
+        const failurePath = overriddenScreens.current.failure ?? (scenarioPrefix ? `${scenarioPrefix}-failure` : undefined);
+
+        const pathToUse = mergedStatus.step.wasRecentStepSuccessful ? successPath : failurePath;
+
+        const defaultTitle = mergedStatus.title;
+        const {headerTitle: definedHeaderTitle, title: definedTitle} = pathToUse ? (MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse].notification ?? {}) : {};
+
+        const headerTitle = definedHeaderTitle ? translate(definedHeaderTitle) : defaultTitle;
+        const title = definedTitle ? translate(definedTitle) : defaultTitle;
+
         return {
-            title: mergedStatus.title,
+            title,
+            headerTitle,
             message: mergedStatus.message,
+            success: success.current,
             deviceSupportBiometrics,
             isLocalPublicKeyInAuth,
             isBiometryRegisteredLocally,
             isAnyDeviceRegistered,
-            success: success.current,
         };
-    }, [NativeBiometrics.setup, mergedStatus.message, mergedStatus.title]);
+    }, [NativeBiometrics.setup, mergedStatus.message, mergedStatus.step.wasRecentStepSuccessful, mergedStatus.title, mergedStatus.value, translate]);
 
     const trigger = useCallback(
         async <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => {

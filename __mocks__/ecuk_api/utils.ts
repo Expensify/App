@@ -31,7 +31,7 @@ function generateSixDigitNumber() {
 }
 
 function base64URLToBase64(base64URLString: string) {
-    let base64String = base64URLString.replace(/-/g, '+').replace(/_/g, '/');
+    let base64String = base64URLString.replaceAll('-', '+').replaceAll('_', '/');
     while (base64String.length % 4) {
         base64String += '=';
     }
