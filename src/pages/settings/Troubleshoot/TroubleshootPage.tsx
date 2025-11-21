@@ -1,7 +1,6 @@
 import {differenceInDays} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -41,11 +40,12 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
-    icon: React.FC<SvgProps> | IconAsset;
+    icon: IconAsset;
     action: () => void | Promise<void>;
 };
 
 function TroubleshootPage() {
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -66,7 +66,6 @@ function TroubleshootPage() {
         });
     }, [shouldMaskOnyxState]);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'Bug', 'RotateLeft', 'Download'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
@@ -115,7 +114,7 @@ function TroubleshootPage() {
 
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
                                   return;
                               }
                               Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
