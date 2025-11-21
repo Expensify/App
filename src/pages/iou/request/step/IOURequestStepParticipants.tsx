@@ -202,7 +202,9 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             } else {
-                Navigation.navigate(iouConfirmationPageRoute);
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(iouConfirmationPageRoute);
+                });
             }
         });
     }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, isActivePolicyRequest, backTo]);
