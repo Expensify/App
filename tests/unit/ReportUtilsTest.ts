@@ -1671,7 +1671,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                    } as Transaction;
+                    };
 
                     const reportName = getSearchReportName({
                         report: baseExpenseReport,
