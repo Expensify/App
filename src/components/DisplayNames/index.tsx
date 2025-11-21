@@ -16,13 +16,13 @@ function DisplayNames({
     displayNamesWithTooltips,
     renderAdditionalText,
     forwardedFSClass,
-    shouldParseHtml = false,
+    shouldParseFullTitle = true,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = useMemo(() => {
-        const processedTitle = shouldParseHtml ? Parser.htmlToText(fullTitle) : fullTitle;
+        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
         return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
-    }, [fullTitle, shouldParseHtml, translate]);
+    }, [fullTitle, shouldParseFullTitle, translate]);
 
     if (!tooltipEnabled) {
         return (
