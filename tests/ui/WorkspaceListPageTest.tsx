@@ -31,14 +31,6 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACES_LIST = SCREENS.W
     );
 };
 
-// Fixes infinite rendering caused by mock functions returning non-memoized values for icons
-// (and we don't need icons for these tests).
-jest.mock('../../src/hooks/useLazyAsset.ts', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({})),
-    useMemoizedLazyIllustrations: jest.fn(() => ({})),
-    useMemoizedLazyAsset: jest.fn(() => ({})),
-}));
-
 describe('WorkspaceListPage', () => {
     beforeAll(() => {
         Onyx.init({
