@@ -131,7 +131,6 @@ import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
-import Pencil from '@assets/images/pencil.svg';
 import Pin from '@assets/images/pin.svg';
 import Play from '@assets/images/play.svg';
 import PlusCircle from '@assets/images/plus-circle.svg';
@@ -300,7 +299,6 @@ export {
     OfflineCloud,
     Paperclip,
     Pause,
-    Pencil,
     Pin,
     Play,
     Plus,

@@ -232,7 +232,7 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download'>;
+    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'Pencil'>;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download'>;
     onPress: OnPress;
@@ -357,7 +357,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
-        icon: Expensicons.Pencil,
+        icon: 'Pencil',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
