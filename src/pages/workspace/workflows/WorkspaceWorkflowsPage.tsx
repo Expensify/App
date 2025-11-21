@@ -247,23 +247,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <>
                         {isDEWEnabled && (
-                            <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <View style={styles.popoverMenuIcon}>
-                                        <Icon
-                                            src={expensifyIcons.Info}
-                                            fill={theme.textSupporting}
-                                        />
-                                    </View>
-                                    <View style={[styles.flex1, styles.ml3]}>
-                                        <RenderHTML
-                                            html={`<muted-text-label>${
-                                                accountManagerReportID
-                                                    ? translate('workflowsPage.customApprovalWorkflowEnabled')
-                                                    : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
-                                            }</muted-text-label>`}
-                                        />
-                                    </View>
+                            <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
+                                <Icon
+                                    src={expensifyIcons.Info}
+                                    fill={theme.textSupporting}
+                                    additionalStyles={styles.popoverMenuIcon}
+                                />
+                                <View style={[styles.flex1, styles.ml3]}>
+                                    <RenderHTML
+                                        html={
+                                            accountManagerReportID
+                                                ? translate('workflowsPage.customApprovalWorkflowEnabled')
+                                                : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
+                                        }
+                                    />
                                 </View>
                             </View>
                         )}
@@ -415,6 +412,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isDEWEnabled,
         shouldUseNarrowLayout,
         accountManagerReportID,
+        expensifyIcons,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

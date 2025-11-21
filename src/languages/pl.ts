@@ -2095,9 +2095,9 @@ ${amount} dla ${merchant} - ${date}`,
         makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika do płatności dokonywanych w Expensify lub śledź płatności dokonane gdzie indziej.',
         customApprovalWorkflowEnabled:
-            'Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <account-manager-link>Menedżerem konta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.',
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <account-manager-link>Menedżerem konta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
-            'Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <concierge-link>Concierge</concierge-link>.',
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wybierz, jak długo Expensify powinno czekać przed udostępnieniem wydatków bez błędów.',
         },

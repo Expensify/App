@@ -2091,9 +2091,9 @@ ${date} - ${merchant}に${amount}`,
         makeOrTrackPaymentsTitle: '支払いを行うまたは追跡する',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いのために認可された支払者を追加するか、他の場所で行われた支払いを追跡します。',
         customApprovalWorkflowEnabled:
-            'このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。',
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
-            'このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。',
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
         editor: {
             submissionFrequency: 'Expensifyがエラーフリーの支出を共有するまでの待機時間を選択してください。',
         },
