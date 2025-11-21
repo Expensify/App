@@ -87,6 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -188,7 +189,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
-                icon: Expensicons.Profile,
+                icon: icons.Profile,
                 screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                 brickRoadIndicator: profileBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
@@ -203,7 +204,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.preferences',
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
             },
@@ -236,6 +237,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
+        icons.Gear,
+        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
@@ -303,7 +306,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                     action: () => {
@@ -313,7 +316,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.whatIsNew',
                     icon: icons.TreasureChest,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.WHATS_NEW_URL,
                     action: () => {
@@ -347,7 +350,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, signOut]);
+    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, signOut]);
 
     /**
      * Return JSX.Element with menu items
