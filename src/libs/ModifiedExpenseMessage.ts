@@ -406,6 +406,14 @@ function getForReportAction({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(`\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
+        // If we don't have enough structured information to build a detailed message but we
+        // know the change was AI-generated, fall back to an AI-attributed generic summary so
+        // users can still understand that Concierge updated the expense automatically.
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
