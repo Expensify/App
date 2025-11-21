@@ -5976,6 +5976,16 @@ function changeReportPolicyAndInviteSubmitter(
     navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
 }
 
+/**
+ * Generic helper function to resolve Concierge AI-suggested options (category or description)
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedValue - The value selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param selectedField - The field to update in the original message ('selectedCategory' or 'selectedDescription')
+ * @param ancestors - Array of ancestor reports for proper threading
+ */
 function resolveConciergeOptions(
     reportID: string | undefined,
     notifyReportID: string | undefined,
@@ -6002,6 +6012,12 @@ function resolveConciergeOptions(
 
 /**
  * Resolves Concierge category options by adding a comment and updating the report action
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedCategory - The category selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeCategoryOptions(
     reportID: string | undefined,
@@ -6016,6 +6032,12 @@ function resolveConciergeCategoryOptions(
 
 /**
  * Resolves Concierge description options by adding a comment and updating the report action
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedDescription - The description selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeDescriptionOptions(
     reportID: string | undefined,
