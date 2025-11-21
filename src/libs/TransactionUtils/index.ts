@@ -1085,6 +1085,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transaction: OnyxEntry<Transaction | SearchTransaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
@@ -1119,6 +1120,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transaction: Transaction | SearchTransaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -1238,6 +1240,7 @@ function shouldShowViolation(
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -1264,6 +1267,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
 function hasAnyTransactionWithoutRTERViolation(
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions: Transaction[] | SearchTransaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -1427,6 +1431,7 @@ function hasViolation(
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function hasDuplicateTransactions(currentUserEmail: string, iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
