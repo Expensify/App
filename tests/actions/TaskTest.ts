@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canActionTask, canModifyTask, completeTask, completeTestDriveTask, createTaskAndNavigate, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
@@ -17,7 +17,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
@@ -730,7 +730,7 @@ describe('actions/Task', () => {
                 childType: CONST.REPORT.TYPE.TASK,
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
+            } as OnyxEntry<ReportAction>;
 
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTaskReportID}`, taskReport);
@@ -743,7 +743,7 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When: Call completeTask
-            completeTask(taskReport, false, undefined);
+            completeTask(taskReport, false, parentReportAction);
 
             await waitForBatchedUpdatesWithAct();
 
