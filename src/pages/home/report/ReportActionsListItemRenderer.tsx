@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -97,6 +97,9 @@ type ReportActionsListItemRendererProps = {
     isTryNewDotNVPDismissed: boolean | undefined;
     /** Whether the report is archived */
     isReportArchived: boolean;
+
+    /** Report name value pairs */
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
 };
 
 function ReportActionsListItemRenderer({
@@ -130,6 +133,7 @@ function ReportActionsListItemRenderer({
     allEmojiReactions,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
+    reportNameValuePairs,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -260,6 +264,7 @@ function ReportActionsListItemRenderer({
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+            reportNameValuePairs={reportNameValuePairs}
         />
     );
 }

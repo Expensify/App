@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -3145,6 +3145,11 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
     return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: actorAccountID});
 }
 
+function getHarvestCreatedExpenseReportMessage(reportID: string, translate: LocalizedTranslate) {
+    const reportUrl = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
+    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportID});
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3525,6 +3530,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    getHarvestCreatedExpenseReportMessage,
     isSystemUserMentioned,
 };
 

@@ -136,6 +136,11 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type HarvestCreatedExpenseReportParams = {
+    reportUrl: string;
+    reportID: string;
+};
+
 type DuplicateTransactionParams = {
     isSubmitted: boolean;
 };
@@ -1101,6 +1106,7 @@ export type {
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    HarvestCreatedExpenseReportParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,

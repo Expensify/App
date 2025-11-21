@@ -440,6 +440,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'preexistingReportID':
         case 'private_isArchived':
         case 'welcomeMessage':
+        case 'origin':
+        case 'originalID':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -641,6 +643,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {

@@ -119,6 +119,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -975,6 +976,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Tylko administratorzy mogą wysyłać wiadomości w tym pokoju.',
     reportAction: {
         asCopilot: 'jako współpilot dla',
+        harvestCreatedExpenseReport: ({reportUrl, reportID}: HarvestCreatedExpenseReportParams) =>
+            `utworzył ten raport, aby zawrzeć wszystkie wydatki z <a href="${reportUrl}">#${reportID}</a>, które nie mogły zostać przesłane zgodnie z wybraną przez ciebie częstotliwością`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Powiadom wszystkich w tej rozmowie',
