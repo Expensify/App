@@ -1521,7 +1521,9 @@ describe('ReportUtils', () => {
                                 personalDetails: participantsPersonalDetails,
                             });
 
-                            expect(reportName).toBe(`This workspace has been upgraded to the Control plan. Click <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">here</a> for more information.`);
+                            expect(reportName).toBe(
+                                `This workspace has been upgraded to the Control plan. Click <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">here</a> for more information.`,
+                            );
                         });
                     });
                 });
