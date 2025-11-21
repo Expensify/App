@@ -9021,11 +9021,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         reportAction = getReportActionWithSmartscanError(reportActionsArray);
     }
 
-    // Check for DEW submit errors on OPEN reports
     if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         const dewSubmitFailedAction = reportActionsArray.find((action) => isDynamicExternalWorkflowSubmitFailedAction(action));
         if (dewSubmitFailedAction) {
-            // Check if there's a more recent SUBMITTED action
             const submittedAction = reportActionsArray.find((action) => isSubmittedAction(action));
             const shouldShowDEWError = !submittedAction || (submittedAction && dewSubmitFailedAction.created > submittedAction.created);
 

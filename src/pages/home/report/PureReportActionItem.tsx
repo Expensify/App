@@ -1149,7 +1149,6 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else if (isPendingAdd && isDEWPolicy) {
-                // Show queued message for DEW policies when offline
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
