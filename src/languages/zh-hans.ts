@@ -1346,6 +1346,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: '删除此费用时出现意外错误。请稍后再试。',
             genericEditFailureMessage: '编辑此费用时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
+            genericDEWSubmitFailureMessage: '动态外部工作流提交失败',
             duplicateWaypointsErrorMessage: '请删除重复的航点',
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
             splitExpenseMultipleParticipantsErrorMessage: '无法在工作区和其他成员之间拆分费用。请更新您的选择。',
