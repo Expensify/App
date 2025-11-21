@@ -818,7 +818,7 @@ function ComposerWithSuggestions({
         const endOfSuggestionSelection = suggestionSelection.end;
         setSelection(suggestionSelection);
 
-        if (typeof endOfSuggestionSelection === 'undefined') {
+        if (endOfSuggestionSelection === undefined) {
             return;
         }
 
