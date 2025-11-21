@@ -4,26 +4,28 @@ import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
 
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
@@ -44,7 +46,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>
                     <Icon
-                        src={Illustrations.FolderWithPapers}
+                        src={illustrations.FolderWithPapers}
                         width={160}
                         height={100}
                     />
@@ -59,7 +61,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => {
-                                        Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                        openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                     }}
                                 >
                                     {translate('workspace.intacct.detailedInstructionsLink')}
@@ -76,7 +78,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <TextLink
                                 style={styles.link}
                                 onPress={() => {
-                                    Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                    openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                 }}
                             >
                                 {translate('workspace.intacct.detailedInstructionsLink')}
