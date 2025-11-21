@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -32,6 +33,7 @@ type WorkspaceDuplicateFormProps = {
 };
 
 function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
     const {translate} = useLocalize();
@@ -117,7 +119,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM}

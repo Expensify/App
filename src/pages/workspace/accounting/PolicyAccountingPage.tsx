@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -91,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Key', 'Pencil'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'Key', 'Pencil'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -126,19 +127,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : []),
             ...(shouldShowEnterCredentials
                 ? [
                       {
-                          icon: expensifyIcons.Key,
+                          icon: icons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : [
@@ -156,7 +157,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow, expensifyIcons.Key],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -325,7 +326,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         const configurationOptions = [
             {
-                icon: expensifyIcons.Pencil,
+                icon: icons.Pencil,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
@@ -360,7 +361,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                   ]
                 : []),
             {
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
@@ -399,6 +400,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
+        icons.Gear,
+        icons.Pencil,
         policy,
         isSyncInProgress,
         policyID,
@@ -421,7 +424,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
-        expensifyIcons.Pencil,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

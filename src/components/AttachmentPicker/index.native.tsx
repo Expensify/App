@@ -8,6 +8,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -124,11 +125,11 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip'] as const);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<(() => void) | undefined>(undefined);
@@ -283,28 +284,28 @@ function AttachmentPicker({
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: expensifyIcons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker, expensifyIcons.Camera]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 

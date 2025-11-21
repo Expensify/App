@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +47,7 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -91,6 +92,7 @@ function CardSection() {
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
+            creditCardEyesIcon: illustrations.CreditCardEyes,
         }),
     );
 
@@ -112,6 +114,7 @@ function CardSection() {
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
+                creditCardEyesIcon: illustrations.CreditCardEyes,
             }),
         );
     }, [
@@ -123,6 +126,7 @@ function CardSection() {
         privateStripeCustomerID,
         purchaseList,
         billingDisputePending,
+        illustrations.CreditCardEyes,
     ]);
 
     const handleRetryPayment = () => {

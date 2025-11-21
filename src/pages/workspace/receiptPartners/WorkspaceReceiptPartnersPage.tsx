@@ -4,7 +4,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -39,9 +41,9 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Key'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
@@ -122,12 +124,12 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     if (shouldShowEnterCredentialsError) {
                         return [
                             {
-                                icon: expensifyIcons.Key,
+                                icon: icons.Key,
                                 text: translate('workspace.accounting.enterCredentials'),
                                 onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
                                 shouldCallAfterModalHide: true,
                                 disabled: isOffline,
-                                iconRight: Expensicons.NewWindow,
+                                iconRight: icons.NewWindow,
                             },
                         ];
                     }
@@ -147,7 +149,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, expensifyIcons.Key],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
     );
 
     const onCloseModal = useCallback(() => {

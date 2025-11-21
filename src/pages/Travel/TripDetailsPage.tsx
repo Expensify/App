@@ -3,7 +3,6 @@ import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -38,10 +37,10 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetailsPage({route}: TripDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone'] as const);
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
@@ -61,7 +60,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(expensifyIcons, tripReservations, Number(sequenceIndex));
+    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation), [reservation]);
 
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector, canBeMissing: true}, [travelerPersonalDetailsSelector]);
@@ -115,8 +114,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     )}
                     <MenuItem
                         title={translate('travel.modifyTrip')}
-                        icon={expensifyIcons.Pencil}
-                        iconRight={Expensicons.NewWindow}
+                        icon={icons.Pencil}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsModifyTripLoading(true);
@@ -130,8 +129,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
-                        icon={expensifyIcons.Phone}
-                        iconRight={Expensicons.NewWindow}
+                        icon={icons.Phone}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsTripSupportLoading(true);

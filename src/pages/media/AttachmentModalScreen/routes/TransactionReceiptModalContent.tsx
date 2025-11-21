@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,7 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesParam, mergeTransactionID} = route.params;
 
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
@@ -179,7 +181,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
                 menuItems.push({
-                    icon: Expensicons.Download,
+                    icon: icons.Download,
                     text: translate('common.download'),
                     onSelected: () => onDownloadAttachment({source: innerSource, file}),
                 });
@@ -198,6 +200,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         },
         [
+            icons.Download,
             shouldShowReplaceReceiptButton,
             isOffline,
             allowDownload,

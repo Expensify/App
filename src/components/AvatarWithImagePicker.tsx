@@ -19,6 +19,7 @@ import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
@@ -102,6 +103,7 @@ function AvatarWithImagePicker({
     editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -173,7 +175,7 @@ function AvatarWithImagePicker({
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
         const menuItems: MenuItem[] = [
             {
-                icon: Expensicons.Upload,
+                icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     if (isSafari()) {
@@ -268,6 +270,7 @@ function AvatarWithImagePicker({
                                         editIcon={editIcon ?? expensifyIcons.Pencil}
                                         size={size}
                                         type={type}
+                                        disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}

@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
@@ -14,13 +15,13 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter'] as const);
     const {translate} = useLocalize();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const {isOffline} = useNetwork();
     const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Meter'] as const);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
@@ -43,7 +44,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (!isOffline && !isLocalFile) {
             // eslint-disable-next-line react-compiler/react-compiler
             items.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('common.download'),
                 onSelected: () => {
                     downloadAttachment();
@@ -52,7 +53,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         }
 
         items.push({
-            icon: expensifyIcons.Meter,
+            icon: icons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
@@ -65,7 +66,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile, expensifyIcons.Meter]);
+    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
         () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),

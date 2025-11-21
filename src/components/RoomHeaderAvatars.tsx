@@ -14,6 +14,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
@@ -37,6 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
@@ -74,7 +76,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={expensifyIcons.ImageCropSquareMask}
                     name={icon.name}
                 />
             );

@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
+        reportName: 'Nome del report',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1489,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Devi trattenere o rifiutare?',
             educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi trattenerla o rifiutarla.',
             holdExpenseTitle: 'Trattieni una spesa per chiedere maggiori dettagli prima dell’approvazione o del pagamento.',
+            approveExpenseTitle: 'Approva altre spese mentre quelle trattenute rimangono assegnate a te.',
             heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
             rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
@@ -3291,6 +3293,9 @@ ${
         whatsYourAddress: 'Qual è il tuo indirizzo?',
         whatAreTheLast: 'Quali sono le ultime 4 cifre del numero di previdenza sociale del proprietario?',
         whatsYourLast: 'Quali sono le ultime 4 cifre del tuo numero di previdenza sociale?',
+        whatsYourNationality: 'Qual è il tuo paese di cittadinanza?',
+        whatsTheOwnersNationality: 'Qual è il paese di cittadinanza del proprietario?',
+        countryOfCitizenship: 'Paese di cittadinanza',
         dontWorry: 'Non preoccuparti, non facciamo alcun controllo del credito personale!',
         last4: 'Ultime 4 cifre del SSN',
         whyDoWeAsk: 'Perché lo chiediamo?',
@@ -5219,6 +5224,7 @@ ${
             issueCard: 'Emetti carta',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
+                inviteNewMember: 'Invita nuovo membro',
                 findMember: 'Trova membro',
                 chooseCardType: 'Scegli un tipo di carta',
                 physicalCard: 'Carta fisica',
@@ -6241,6 +6247,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} tracciamento dei partecipanti`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -7422,14 +7429,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Benvenuto in New Expensify!',
-        subtitle: 'Ha tutto ciò che ami della nostra esperienza classica, con un sacco di aggiornamenti per rendere la tua vita ancora più facile:',
+        subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
         confirmText: 'Andiamo!',
         features: {
-            chat: 'Chatta su qualsiasi spesa per rispondere rapidamente alle domande',
-            search: 'Ricerca più potente su dispositivi mobili, web e desktop',
-            concierge: 'Intelligenza artificiale Concierge integrata per aiutarti ad automatizzare le tue spese',
+            chat: '<strong>Chatta direttamente su qualsiasi spesa</strong>, report o spazio di lavoro',
+            scanReceipt: '<strong>Scansiona le ricevute</strong> e ricevi il rimborso',
+            crossPlatform: 'Fai <strong>tutto</strong> dal tuo telefono o browser',
         },
-        helpText: 'Prova la demo di 2 minuti',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

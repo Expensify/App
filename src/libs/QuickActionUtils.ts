@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -8,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (icons: Record<'Car', IconAsset>, action: QuickActionName): IconAsset => {
+const getQuickActionIcon = (icons: Record<'CalendarSolid' | 'Car', IconAsset>, action: QuickActionName): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST);
@@ -17,7 +18,7 @@ const getQuickActionIcon = (icons: Record<'Car', IconAsset>, action: QuickAction
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            return Expensicons.CalendarSolid;
+            return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:

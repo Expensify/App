@@ -4,11 +4,10 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +15,7 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock'] as const);
@@ -39,7 +39,7 @@ function WorkspaceOwnerRestrictedAction() {
                 <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mh0]}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart, styles.mb3]}>
                         <Icon
-                            src={Illustrations.LockClosedOrange}
+                            src={illustrations.LockClosedOrange}
                             height={variables.iconHeader}
                             width={variables.iconHeader}
                         />

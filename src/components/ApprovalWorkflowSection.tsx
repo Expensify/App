@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -23,6 +24,7 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
@@ -76,7 +78,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
-                    icon={Expensicons.Users}
+                    icon={icons.Users}
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
@@ -94,7 +96,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                             description={Str.removeSMSDomain(approver.displayName)}
-                            icon={Expensicons.UserCheck}
+                            icon={icons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
                             numberOfLinesDescription={1}
