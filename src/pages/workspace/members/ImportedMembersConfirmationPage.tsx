@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,7 +31,6 @@ import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/Workspace
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
@@ -52,10 +52,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     useEffect(() => {
         return () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                clearImportedSpreadsheetMemberData();
-            });
+            clearImportedSpreadsheetMemberData();
         };
     }, []);
 
@@ -95,7 +92,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        closeImportPage();
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -207,6 +204,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}

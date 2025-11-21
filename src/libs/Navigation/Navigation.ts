@@ -10,6 +10,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,7 +155,7 @@ function getReportRHPActiveRoute(): string {
  * @returns The cleaned route path.
  */
 function cleanRoutePath(routePath: string): string {
-    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -195,9 +196,28 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
+    // Start a Sentry span for report navigation
+    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
+        const reportID = reportIDMatch?.at(1);
+        if (reportID) {
+            let spanName = '/r/*';
+            if (route.startsWith('search/r/')) {
+                spanName = '/search/r/*';
+            } else if (route.startsWith('e/')) {
+                spanName = '/e/*';
+            }
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: spanName,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                attributes: {
+                    reportID,
+                },
+            });
+        }
+    }
     linkTo(navigationRef.current, route, options);
 }
-
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -374,7 +394,7 @@ function popToSidebar() {
 
     const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
@@ -436,7 +456,7 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
  * Returns the current active route without the URL params.
  */
 function getActiveRouteWithoutParams(): string {
-    return getActiveRoute().replace(/\?.*/, '');
+    return getActiveRoute().replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -585,6 +605,30 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
 };
 
 /**
+ * Returns to the first screen in the Right Hand Modal stack, dismissing all the others.
+ */
+const dismissToFirstRHP = () => {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const routesToPop = rhpState.routes.length - 1;
+    if (routesToPop <= 0) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+};
+
+/**
  * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
  */
 function popToTop() {
@@ -723,6 +767,7 @@ export default {
     onModalDismissedOnce,
     fireModalDismissed,
     isValidateLoginFlow,
+    dismissToFirstRHP,
 };
 
 export {navigationRef};

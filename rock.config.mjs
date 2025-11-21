@@ -17,4 +17,8 @@ export default {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
     },
+    fingerprint: {
+        env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK'],
+        ignorePaths: ['Mobile-Expensify/Android/assets/app/shared/bundle.js'],
+    },
 };
