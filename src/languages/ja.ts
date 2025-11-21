@@ -2931,6 +2931,7 @@ ${
         currencyHeader: 'あなたの銀行口座の通貨は何ですか？',
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '以下の詳細を再確認し、利用規約のボックスをチェックして確認してください。',
+        toGetStarted: '払い戻しを受け取ったり、請求書を支払ったり、Expensify Wallet を有効にしたりするには、個人の銀行口座を追加します。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensifyのパスワードを入力してください',

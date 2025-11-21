@@ -2899,6 +2899,7 @@ ${
         currencyHeader: '您的银行账户货币是什么？',
         confirmationStepHeader: '检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款框以确认。',
+        toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入Expensify密码',

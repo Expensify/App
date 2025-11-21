@@ -2943,6 +2943,7 @@ ${
         currencyHeader: 'Wat is de valuta van uw bankrekening?',
         confirmationStepHeader: 'Controleer uw gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens en vink het vakje met de voorwaarden aan om te bevestigen.',
+        toGetStarted: 'Voeg een persoonlijke bankrekening toe om vergoedingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',

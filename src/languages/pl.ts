@@ -2937,6 +2937,7 @@ ${
         currencyHeader: 'Jaka jest waluta Twojego konta bankowego?',
         confirmationStepHeader: 'Sprawdź swoje informacje.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
+        toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty kosztów, opłacać faktury lub włączyć portfel Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wprowadź hasło do Expensify',

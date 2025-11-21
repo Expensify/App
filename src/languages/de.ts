@@ -2959,6 +2959,7 @@ ${
         currencyHeader: 'Was ist die Währung Ihres Bankkontos?',
         confirmationStepHeader: 'Überprüfen Sie Ihre Informationen.',
         confirmationStepSubHeader: 'Überprüfen Sie die unten stehenden Details und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
+        toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
