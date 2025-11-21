@@ -11,7 +11,6 @@ If you have a private domain (e.g., yourcompany.com), you can verify it in Expen
 # Verify Your Domain
 
 
-## Steps to verify your domain
 
 1. Log in to your DNS service provider (e.g., Namecheap, GoDaddy, Amazon Route 53). If your domain is managed internally, contact your IT department.
 2. Locate the DNS Records page (sometimes labeled as DNS Management or Zone File Editor).
