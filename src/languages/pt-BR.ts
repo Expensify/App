@@ -1486,6 +1486,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Você deve reter ou rejeitar?',
             educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
             holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
+            approveExpenseTitle: 'Aprove outras despesas enquanto as despesas retidas permanecem atribuídas a você.',
             heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
@@ -5206,6 +5207,7 @@ ${
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
+                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',

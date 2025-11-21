@@ -1494,6 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Solltest du halten oder ablehnen?',
             educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
             holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
+            approveExpenseTitle: 'Genehmige eine Ausgabe, um sie vor der Zahlung weitere Details anzufordern.',
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
@@ -5234,6 +5235,7 @@ ${
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
+                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
