@@ -559,14 +559,14 @@ function isRemoveHoldAction(
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
-    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-
-    if (!isReportOnHold) {
+    const isClosedReport = isClosedReportUtils(report);
+    if (isClosedReport) {
         return false;
     }
 
-    const isClosedReport = isClosedReportUtils(report);
-    if (isClosedReport) {
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+
+    if (!isReportOnHold) {
         return false;
     }
 
