@@ -1619,7 +1619,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateAccount: 'Convalida il tuo account',
         helpText: ({email}: {email: string}) =>
             `Aggiungi altri modi per accedere e inviare ricevute a Expensify.<br/><br/>Aggiungi un indirizzo email per inoltrare le ricevute a <a href="mailto:${email}">${email}</a> oppure aggiungi un numero di telefono per inviare ricevute via SMS al 47777 (solo numeri statunitensi).`,
-        pleaseVerify: 'Si prega di verificare questo metodo di contatto',
+        pleaseVerify: 'Si prega di verificare questo metodo di contatto.',
         getInTouch: 'Useremo questo metodo per contattarti.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
         setAsDefault: 'Imposta come predefinito',

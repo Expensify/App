@@ -1594,7 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateAccount: '验证您的账户',
         helpText: ({email}: {email: string}) =>
             `添加更多登录方式并将收据发送到 Expensify。<br/><br/>添加电子邮件地址以将收据转发至 <a href="mailto:${email}">${email}</a>，或添加电话号码将收据短信发送至 47777（仅限美国号码）。`,
-        pleaseVerify: '请验证此联系方式',
+        pleaseVerify: '请验证此联系方式。',
         getInTouch: '我们将使用此方式与您联系。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
         setAsDefault: '设为默认',

@@ -1617,7 +1617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateAccount: 'Zweryfikuj swoje konto',
         helpText: ({email}: {email: string}) =>
             `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.<br/><br/>Dodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
-        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
+        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu.',
         getInTouch: 'Użyjemy tej metody, aby się z Tobą skontaktować.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         setAsDefault: 'Ustaw jako domyślne',

@@ -1726,7 +1726,7 @@ const translations = {
         validateAccount: 'Validate your account',
         helpText: ({email}: {email: string}) =>
             `Add more ways to log in and send receipts to Expensify.<br/><br/>Add an email address to forward receipts to <a href="mailto:${email}">${email}</a> or add a phone number to text receipts to 47777 (US numbers only).`,
-        pleaseVerify: 'Please verify this contact method',
+        pleaseVerify: 'Please verify this contact method.',
         getInTouch: "We'll use this method to contact you.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
