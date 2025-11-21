@@ -175,6 +175,7 @@ const EMAIL = {
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
+    QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
 const CONST = {
@@ -620,6 +621,7 @@ const CONST = {
                 PREFIX: 'beneficialOwner',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
+                NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
                 SSN_LAST_4: 'ssnLast4',
@@ -627,7 +629,7 @@ const CONST = {
                 CITY: 'city',
                 STATE: 'state',
                 ZIP_CODE: 'zipCode',
-                COUNTRY: 'nationality',
+                COUNTRY: 'country',
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
@@ -1314,6 +1316,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
@@ -1632,6 +1635,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        MENTION_SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
@@ -1653,6 +1657,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
@@ -1662,11 +1667,14 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
-        ATTRIBUTE_SOURCE_ROUTE: 'source_route',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_ROUTE_FROM: 'route_from',
+        ATTRIBUTE_ROUTE_TO: 'route_to',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2633,6 +2641,7 @@ const CONST = {
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
         MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
+        QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
     ENVIRONMENT: {
@@ -3806,6 +3815,7 @@ const CONST = {
         EMAIL.SVFG,
         EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
+        EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
@@ -6686,6 +6696,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TOTAL_AMOUNT: 'amount',
+            TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
@@ -6695,6 +6706,8 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
+            AVATAR: 'avatar',
+            STATUS: 'status',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
