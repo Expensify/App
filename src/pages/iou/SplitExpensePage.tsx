@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -15,6 +14,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -56,7 +56,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
-
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight'] as const);
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -84,7 +84,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        if (splitExpenseTransactionID) {
+            return transactionDetails.amount > 0 ? -transactionDetails.amount : Math.abs(transactionDetails.amount);
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails?.amount, splitExpenseTransactionID]);
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
@@ -258,11 +267,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 return `${text}${getTranslatedText(currentKey)}`;
             }, '');
 
+            const splitAmount = Number(item.amount);
             return {
                 ...item,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: Number(item.amount),
+                amount: splitAmount,
                 merchant: item?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -271,7 +281,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
-            };
+            } as SplitListItemType;
         });
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
@@ -297,20 +307,33 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={Expensicons.Plus}
+                    icon={icons.Plus}
                     style={[styles.ph4]}
                 />
                 {shouldShowMakeSplitsEven && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={Expensicons.ArrowsLeftRight}
+                        icon={icons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        childTransactions.length,
+        styles.w100,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        styles.ph4,
+        shouldUseNarrowLayout,
+        onAddSplitExpense,
+        translate,
+        icons.Plus,
+        icons.ArrowsLeftRight,
+        onMakeSplitsEven,
+    ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;

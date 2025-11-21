@@ -1,12 +1,11 @@
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,15 +32,21 @@ function SplitListItem<TItem extends ListItem>({
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = (amount: string) => {
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-    };
+    const onSplitExpenseAmountChange = useCallback(
+        (amount: string) => {
+            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+        },
+        // We should not pass whole object splitItem as it will cause recreation of the callback on every prop change even those which are not related to this callback.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [splitItem.onSplitExpenseAmountChange, splitItem.transactionID],
+    );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -59,7 +64,9 @@ function SplitListItem<TItem extends ListItem>({
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
-    const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    // Use absolute value for contentWidth calculation since we don't want the minus sign to affect width
+    const absoluteFormattedAmount = convertToDisplayStringWithoutCurrency(Math.abs(splitItem.originalAmount), splitItem.currency);
+    const contentWidth = (absoluteFormattedAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
             return;
@@ -130,7 +137,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
-                                        src={Folder}
+                                        src={icons.Folder}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -146,7 +153,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.tags?.at(0) && (
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
                                     <Icon
-                                        src={Tag}
+                                        src={icons.Tag}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -205,6 +212,7 @@ function SplitListItem<TItem extends ListItem>({
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length + 1}
                                 contentWidth={contentWidth}
+                                allowFlippingAmount
                                 shouldApplyPaddingToContainer
                                 shouldUseDefaultLineHeightForPrefix={false}
                                 shouldWrapInputInContainer={false}
@@ -217,7 +225,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={icons.ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>
