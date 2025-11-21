@@ -696,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -2883,6 +2884,7 @@ ${
         routingNumber: 'Routingsnummer',
         chooseAnAccountBelow: 'Kies een account hieronder',
         addBankAccount: 'Bankrekening toevoegen',
+        addNewBankAccount: 'Een nieuwe bankrekening toevoegen',
         chooseAnAccount: 'Kies een account',
         connectOnlineWithPlaid: 'Log in bij uw bank',
         connectManually: 'Handmatig verbinden',
@@ -2897,6 +2899,8 @@ ${
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
+        bbaAdded: 'Zakelijke bankrekening toegevoegd!',
+        bbaAddedDescription: 'Het is klaar om gebruikt te worden voor betalingen.',
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',

@@ -9,7 +9,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -74,8 +73,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus'] as const);
-
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus', 'Exit'] as const);
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -87,6 +85,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -200,14 +199,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
-                fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
+                fallbackIcon={icons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.X_LARGE}
                 name={policyName}
                 avatarID={policy?.id}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [icons.FallbackWorkspaceAvatar, policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -235,6 +234,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
+            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
         });
         if (isOffline) {
@@ -252,6 +252,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         lastPaymentMethod,
         isOffline,
         activePolicyID,
+        bankAccountList,
     ]);
 
     const handleLeaveWorkspace = useCallback(() => {
@@ -404,7 +405,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 secondaryActions.push({
                     value: 'leave',
                     text: translate('common.leave'),
-                    icon: Expensicons.Exit,
+                    icon: icons.Exit,
                     onSelected: () => close(handleLeave),
                 });
                 return renderDropdownMenu(secondaryActions);
@@ -416,7 +417,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             secondaryActions.push({
                 value: 'invite',
                 text: translate('common.invite'),
-                icon: expensifyIcons.UserPlus,
+                icon: icons.UserPlus,
                 onSelected: () => {
                     if (isAccountLocked) {
                         showLockedAccountModal();
@@ -430,14 +431,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         secondaryActions.push({
             value: 'share',
             text: translate('common.share'),
-            icon: expensifyIcons.QrCode,
+            icon: icons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
         });
         if (isOwner) {
             secondaryActions.push({
                 value: 'delete',
                 text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                icon: icons.Trashcan,
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
@@ -450,7 +451,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             secondaryActions.push({
                 value: 'transferOwner',
                 text: translate('workspace.people.transferOwner'),
-                icon: expensifyIcons.Transfer,
+                icon: icons.Transfer,
                 onSelected: startChangeOwnershipFlow,
             });
         }
@@ -458,7 +459,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             secondaryActions.push({
                 value: 'leave',
                 text: translate('common.leave'),
-                icon: Expensicons.Exit,
+                icon: icons.Exit,
                 onSelected: () => close(handleLeave),
             });
         }
@@ -512,7 +513,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             enablePreview
                             DefaultAvatar={DefaultAvatar}
                             type={CONST.ICON_TYPE_WORKSPACE}
-                            fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
+                            fallbackIcon={icons.FallbackWorkspaceAvatar}
                             style={[
                                 (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
                                 shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
@@ -533,7 +534,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 }
                                 deleteWorkspaceAvatar(policy.id);
                             }}
-                            editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                            editorMaskImage={icons.ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => {

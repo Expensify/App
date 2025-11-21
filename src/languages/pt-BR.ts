@@ -696,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        actionRequired: 'Ação necessária',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -2878,6 +2879,7 @@ ${
         routingNumber: 'Número de roteamento',
         chooseAnAccountBelow: 'Escolha uma conta abaixo',
         addBankAccount: 'Adicionar conta bancária',
+        addNewBankAccount: 'Adicionar uma nova conta bancária',
         chooseAnAccount: 'Escolha uma conta',
         connectOnlineWithPlaid: 'Faça login no seu banco',
         connectManually: 'Conectar manualmente',
@@ -2891,6 +2893,8 @@ ${
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
+        bbaAdded: 'Conta bancária empresarial adicionada!',
+        bbaAddedDescription: 'Está pronta para ser usada em pagamentos.',
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',

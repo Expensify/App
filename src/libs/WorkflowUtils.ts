@@ -10,6 +10,7 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -431,13 +432,72 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 /**
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
-function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined) {
+function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, shouldIncludePartiallySetup?: boolean) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
     }
 
     return Object.values(bankAccountList).filter((account) => {
-        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+        return (
+            account.bankCurrency === policyCurrency &&
+            (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+        );
+    });
+}
+
+/**
+ * Returns business bank accounts that are currently being set up for the specified policy.
+ *
+ * An account is considered eligible if:
+ * - Its currency matches the policy currency (`bankCurrency === policyCurrency`),
+ * - Its state is `SETUP`,
+ * - Its type is `BUSINESS`,
+ * - It is associated with the specified policy (`additionalData.policyID === policyID`).
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policyCurrency - given policy currency
+ * @param policyID - given policy ID
+ */
+function getBusinessBankAccountsThatAreBeingSetUp(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, policyID: string | undefined) {
+    if (!bankAccountList || policyCurrency === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policyCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.additionalData?.policyID === policyID
+        );
+    });
+}
+
+/**
+ * Returns business bank accounts that are eligible to be connected to the given policy.
+ *
+ * An account is considered eligible if:
+ * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
+ * - Its state is `OPEN`,
+ * - Its type is `BUSINESS`,
+ * - It is not already linked to the policy's ACH account.
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policy - given policy
+ */
+function getValidBusinessBankAccountToConnectToPolicy(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+    if (!bankAccountList || policy === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policy?.outputCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.bankAccountID !== policy?.achAccount?.bankAccountID
+        );
     });
 }
 
@@ -445,6 +505,8 @@ export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    getValidBusinessBankAccountToConnectToPolicy,
+    getBusinessBankAccountsThatAreBeingSetUp,
     getEligibleExistingBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,

@@ -52,6 +52,7 @@ export type {default as OpenAppParams} from './OpenAppParams';
 export type {default as OpenOldDotLinkParams} from './OpenOldDotLinkParams';
 export type {default as OpenPlaidBankAccountSelectorParams} from './OpenPlaidBankAccountSelectorParams';
 export type {default as OpenPlaidBankLoginParams} from './OpenPlaidBankLoginParams';
+export type {default as OpenPaymentsPageParams} from './OpenPaymentsPageParams';
 export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePageParams';
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
@@ -440,3 +441,4 @@ export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from 
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as DomainParams} from './DomainParams';
+export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
