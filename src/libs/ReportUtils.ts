@@ -4362,7 +4362,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
  */
 function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
     if (report?.reportName && isExpenseReport(report)) {
-        return report.reportName;
+        return Str.htmlDecode(report.reportName);
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
