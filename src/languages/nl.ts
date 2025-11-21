@@ -270,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        reportName: 'Rapportnaam',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1489,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Moet je vasthouden of afwijzen?',
             educationalText: 'Als je nog niet klaar bent om een uitgave goed te keuren of te betalen, kun je deze vasthouden of afwijzen.',
             holdExpenseTitle: 'Houd een uitgave vast om meer details te vragen voordat je deze goedkeurt of betaalt.',
+            approveExpenseTitle: 'Goedkeur andere uitgaven terwijl vastgehouden uitgaven aan jou blijven toegewezen.',
             heldExpenseLeftBehindTitle: 'Vasthouden uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
@@ -3291,6 +3294,9 @@ ${
         whatsYourAddress: 'Wat is jouw adres?',
         whatAreTheLast: 'Wat zijn de laatste 4 cijfers van het burgerservicenummer van de eigenaar?',
         whatsYourLast: 'Wat zijn de laatste 4 cijfers van uw burgerservicenummer?',
+        whatsYourNationality: 'Wat is uw nationaliteitsland?',
+        whatsTheOwnersNationality: 'Wat is het nationaliteitsland van de eigenaar?',
+        countryOfCitizenship: 'Nationaliteitsland',
         dontWorry: 'Maak je geen zorgen, we doen geen persoonlijke kredietcontroles!',
         last4: 'Laatste 4 van SSN',
         whyDoWeAsk: 'Waarom vragen we hierom?',
@@ -5212,6 +5218,7 @@ ${
             issueCard: 'Kaart uitgeven',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft een kaart nodig?',
+                inviteNewMember: 'Nieuw lid uitnodigen',
                 findMember: 'Lid zoeken',
                 chooseCardType: 'Kies een kaarttype',
                 physicalCard: 'Fysieke kaart',
@@ -6199,6 +6206,7 @@ ${
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `heeft de handmatige goedkeuringslimiet voor alle uitgaven gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen voor deze werkruimte`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" toegevoegd`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting "${taxName}" verwijderd`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6223,6 +6231,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

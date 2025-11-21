@@ -1,14 +1,15 @@
-import type {SvgProps} from 'react-native-svg';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
+const getQuickActionIcon = (icons: Record<'CalendarSolid', IconAsset>, action: QuickActionName): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST);
@@ -17,7 +18,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            return Expensicons.CalendarSolid;
+            return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:

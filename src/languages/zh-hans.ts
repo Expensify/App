@@ -270,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -691,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        reportName: '报告名称',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1466,6 +1468,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '应该保留还是拒绝？',
             educationalText: '如果你还没准备好批准或支付一笔报销，可以选择保留或拒绝。',
             holdExpenseTitle: '保留报销，以便在批准或支付之前要求更多细节。',
+            approveExpenseTitle: '在保留的报销保持分配给你的同时，批准其他报销。',
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
             rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
@@ -3243,6 +3246,9 @@ ${
         whatsYourAddress: '你的地址是什么？',
         whatAreTheLast: '业主社会安全号码的最后四位数字是什么？',
         whatsYourLast: '您的社会安全号码的最后四位数字是什么？',
+        whatsYourNationality: '您的公民身份所属国家是？',
+        whatsTheOwnersNationality: '业主的公民身份所属国家是？',
+        countryOfCitizenship: '公民身份国家',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         last4: 'SSN的后四位',
         whyDoWeAsk: '我们为什么要求这个？',
@@ -5107,6 +5113,7 @@ ${
             issueCard: '发卡',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
+                inviteNewMember: '邀请新成员',
                 findMember: '查找成员',
                 chooseCardType: '选择卡类型',
                 physicalCard: '实体卡',
@@ -6063,6 +6070,7 @@ ${
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `此工作区的${enabled ? '已启用' : '已禁用'}笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6087,6 +6095,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
