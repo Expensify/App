@@ -11,7 +11,6 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,13 +59,10 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
 
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
-
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
         const menuItems: DomainMenuItem[] = [
             {
                 translationKey: 'domain.saml',
-                icon: icons.UserLock,
                 icon: icons.UserLock,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
