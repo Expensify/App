@@ -4,7 +4,7 @@ import type {TupleToUnion} from 'type-fest';
 import {Bank, Building, Cash, User, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -24,8 +24,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
@@ -171,7 +169,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),

@@ -14,7 +14,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
 } from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
@@ -25,8 +25,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
@@ -136,7 +134,7 @@ function usePaymentOptions({
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -160,7 +158,7 @@ function usePaymentOptions({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
