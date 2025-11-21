@@ -3,6 +3,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -271,7 +272,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5],
+        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5, illustrations.SewerDino],
     );
 
     return (
