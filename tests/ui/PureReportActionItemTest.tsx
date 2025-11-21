@@ -207,4 +207,15 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
     });
+
+    describe('Policy log actions', () => {
+        it('CORPORATE_FORCE_UPGRADE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE, {automaticAction: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('workspaceActions.forcedCorporateUpgrade'))).toBeOnTheScreen();
+        });
+    });
 });
