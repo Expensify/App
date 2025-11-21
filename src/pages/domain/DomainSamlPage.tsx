@@ -92,6 +92,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
                 <ScrollViewWithContext
                     keyboardShouldPersistTaps="handled"
+                    addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
                     <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
