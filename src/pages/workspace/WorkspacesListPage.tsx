@@ -9,7 +9,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -27,6 +26,7 @@ import Text from '@components/Text';
 import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -124,6 +124,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -335,7 +336,7 @@ function WorkspacesListPage() {
 
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
-                    icon: Expensicons.Building,
+                    icon: expensifyIcons.Building,
                     text: translate('workspace.common.goToWorkspace'),
                     onSelected: item.action,
                 },
@@ -343,7 +344,7 @@ function WorkspacesListPage() {
 
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Exit,
+                    icon: expensifyIcons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {
@@ -364,7 +365,7 @@ function WorkspacesListPage() {
 
             if (isAdmin) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Copy,
+                    icon: expensifyIcons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
                     onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
@@ -372,7 +373,7 @@ function WorkspacesListPage() {
 
             if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Star,
+                    icon: expensifyIcons.Star,
                     text: translate('workspace.common.setAsDefault'),
                     onSelected: () => {
                         if (!item.policyID || !activePolicyID) {
@@ -384,7 +385,7 @@ function WorkspacesListPage() {
             }
             if (isOwner) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: expensifyIcons.Trashcan,
                     text: translate('workspace.common.delete'),
                     shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
                     onSelected: () => {
@@ -411,7 +412,7 @@ function WorkspacesListPage() {
 
             if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Transfer,
+                    icon: expensifyIcons.Transfer,
                     text: translate('workspace.people.transferOwner'),
                     onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
@@ -480,6 +481,7 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
+            expensifyIcons,
         ],
     );
 
@@ -528,7 +530,7 @@ function WorkspacesListPage() {
                         type: policyInfo.type,
                         iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
                         errors: undefined,
@@ -557,7 +559,7 @@ function WorkspacesListPage() {
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
@@ -565,7 +567,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace, expensifyIcons]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -662,7 +664,7 @@ function WorkspacesListPage() {
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={Expensicons.Plus}
+                icon={expensifyIcons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
         );
@@ -723,39 +725,7 @@ function WorkspacesListPage() {
         [getWorkspaceMenuItem, styles, translate],
     );
 
-    if (!workspaces.length && !domains.length) {
-        return (
-            <ScreenWrapper
-                shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
-                testID={WorkspacesListPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                bottomContent={
-                    shouldUseNarrowLayout && (
-                        <NavigationTabBar
-                            selectedTab={NAVIGATION_TABS.WORKSPACES}
-                            shouldShowFloatingCameraButton={false}
-                        />
-                    )
-                }
-                enableEdgeToEdgeBottomSafeAreaPadding={false}
-            >
-                <View style={styles.topBarWrapper}>
-                    <TopBar breadcrumbLabel={translate('common.workspaces')} />
-                </View>
-                {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                    </View>
-                ) : (
-                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
-                        <WorkspacesEmptyStateComponent />
-                    </ScrollView>
-                )}
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            </ScreenWrapper>
-        );
-    }
+    const shouldShowEmptyState = !workspaces.length && !domains.length;
 
     return (
         <ScreenWrapper
@@ -771,25 +741,43 @@ function WorkspacesListPage() {
                     />
                 )
             }
+            shouldEnableMaxHeight={shouldShowEmptyState}
         >
-            <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                <FlatList
-                    ref={flatlistRef}
-                    data={data}
-                    onScrollToIndexFailed={(info) => {
-                        flatlistRef.current?.scrollToOffset({
-                            offset: info.averageItemLength * info.index,
-                            animated: true,
-                        });
-                    }}
-                    renderItem={renderItem}
-                    ListHeaderComponent={listHeaderComponent}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={styles.pb20}
-                />
-            </View>
+            {shouldShowEmptyState ? (
+                <>
+                    <View style={styles.topBarWrapper}>
+                        <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                    </View>
+                    {shouldShowLoadingIndicator ? (
+                        <View style={[styles.flex1]}>
+                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        </View>
+                    ) : (
+                        <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
+                            <WorkspacesEmptyStateComponent />
+                        </ScrollView>
+                    )}
+                </>
+            ) : (
+                <View style={styles.flex1}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
+                    {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                    <FlatList
+                        ref={flatlistRef}
+                        data={data}
+                        onScrollToIndexFailed={(info) => {
+                            flatlistRef.current?.scrollToOffset({
+                                offset: info.averageItemLength * info.index,
+                                animated: true,
+                            });
+                        }}
+                        renderItem={renderItem}
+                        ListHeaderComponent={listHeaderComponent}
+                        keyboardShouldPersistTaps="handled"
+                        contentContainerStyle={styles.pb20}
+                    />
+                </View>
+            )}
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
