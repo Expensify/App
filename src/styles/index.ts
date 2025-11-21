@@ -3,19 +3,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
-import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -5355,7 +5354,14 @@ const staticStyles = (theme: ThemeColors) =>
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
+            width: animatedWideRHPWidth,
+        },
+
+        superWideRHPExtendedCardInterpolatorStyles: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            height: '100%',
+            right: 0,
+            width: animatedSuperWideRHPWidth,
         },
 
         flexibleHeight: {
@@ -5369,7 +5375,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: receiptPaneRHPWidth,
+            width: animatedReceiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -5576,7 +5582,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         animatedRHPNavigatorContainerWidth: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
             ({
-                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
+                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, animatedReceiptPaneRHPWidth)),
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -5617,19 +5623,17 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         overlayStyles: ({
             progress,
-            hasMarginRight = false,
-            hasMarginLeft = false,
-            sidePanelTranslateX,
+            positionLeftValue,
+            positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            hasMarginRight?: boolean;
-            hasMarginLeft?: boolean;
-            sidePanelTranslateX?: RefObject<Animated.Value>;
+            positionLeftValue: number | Animated.Value;
+            positionRightValue: number | Animated.Value;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
-                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
+                left: positionLeftValue,
+                right: positionRightValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -6010,6 +6014,9 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
+        },
+        searchTopBarZIndexStyle: {
+            zIndex: variables.searchTopBarZIndex,
         },
     }) satisfies Styles;
 
