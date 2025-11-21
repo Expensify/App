@@ -11056,7 +11056,6 @@ function submitReport(
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
     // buildOptimisticNextStep is used in parallel
-    // Skip optimistic next step for DEW policies since we can't predict the next step
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
@@ -11107,10 +11106,14 @@ function submitReport(
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                      nextStep: optimisticNextStep,
-                      pendingFields: {
-                          nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                      },
+                      ...(isDEWPolicy ? {} : {nextStep: optimisticNextStep}),
+                      ...(isDEWPolicy
+                          ? {}
+                          : {
+                                pendingFields: {
+                                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            }),
                   },
               }
             : {
@@ -11120,19 +11123,25 @@ function submitReport(
                       ...expenseReport,
                       stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                       statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                      nextStep: optimisticNextStep,
-                      pendingFields: {
-                          nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                      },
+                      ...(isDEWPolicy ? {} : {nextStep: optimisticNextStep}),
+                      ...(isDEWPolicy
+                          ? {}
+                          : {
+                                pendingFields: {
+                                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            }),
                   },
               },
     ];
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-        value: optimisticNextStepDeprecated,
-    });
+    if (!isDEWPolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+    }
 
     if (parentReport?.reportID) {
         optimisticData.push({
@@ -11148,15 +11157,17 @@ function submitReport(
     }
 
     const successData: OnyxUpdate[] = [];
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-        value: {
-            pendingFields: {
-                nextStep: null,
+    if (!isDEWPolicy) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
             },
-        },
-    });
+        });
+    }
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -11174,16 +11185,15 @@ function submitReport(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                nextStep: expenseReport.nextStep ?? null,
-                pendingFields: {
-                    nextStep: null,
-                },
+                ...(isDEWPolicy ? {} : {nextStep: expenseReport.nextStep ?? null}),
+                ...(isDEWPolicy
+                    ? {}
+                    : {
+                          pendingFields: {
+                              nextStep: null,
+                          },
+                      }),
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: currentNextStepDeprecated,
         },
     ];
     failureData.push({
@@ -11195,6 +11205,14 @@ function submitReport(
             },
         },
     });
+
+    if (!isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStepDeprecated,
+        });
+    }
 
     if (parentReport?.reportID) {
         failureData.push({
