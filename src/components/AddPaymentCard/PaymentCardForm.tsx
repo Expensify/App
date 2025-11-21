@@ -144,7 +144,7 @@ function PaymentCardForm({
             return;
         }
 
-        let value = newValue.replace(CONST.REGEX.NON_NUMERIC, '');
+        let value = newValue.replaceAll(CONST.REGEX.NON_NUMERIC, '');
 
         if (value.length === 1) {
             const firstDigit = value.charAt(0);
@@ -163,7 +163,7 @@ function PaymentCardForm({
             }
         }
 
-        const prevValue = previousValueRef.current?.replace(CONST.REGEX.NON_NUMERIC, '') ?? '';
+        const prevValue = previousValueRef.current?.replaceAll(CONST.REGEX.NON_NUMERIC, '') ?? '';
         let formattedValue = value;
 
         if (value.length === 2 && prevValue.length < 2) {
@@ -185,7 +185,7 @@ function PaymentCardForm({
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
-        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replaceAll(' ', ''))) {
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
@@ -225,13 +225,13 @@ function PaymentCardForm({
 
     const onChangeCardNumber = useCallback((newValue: string) => {
         // Replace all characters that are not spaces or digits
-        let validCardNumber = newValue.replace(/[^\d ]/g, '');
+        let validCardNumber = newValue.replaceAll(/[^\d ]/g, '');
 
         // Gets only the first 16 digits if the inputted number have more digits than that
         validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
 
         // Remove all spaces to simplify formatting
-        const cleanedNumber = validCardNumber.replace(/ /g, '');
+        const cleanedNumber = validCardNumber.replaceAll(' ', '');
 
         // Check if the number is a potential Amex card (starts with 34 or 37 and has up to 15 digits)
         const isAmex = /^3[47]\d{0,13}$/.test(cleanedNumber);
@@ -239,7 +239,7 @@ function PaymentCardForm({
         // Format based on Amex or standard 4-4-4-4 pattern
         if (isAmex) {
             // Format as 4-6-5 for Amex
-            validCardNumber = cleanedNumber.replace(/(\d{1,4})(\d{1,6})?(\d{1,5})?/, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
+            validCardNumber = cleanedNumber.replaceAll(/(\d{1,4})(\d{1,6})?(\d{1,5})?/g, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
         } else {
             // Format as 4-4-4-4 for non-Amex
             validCardNumber = cleanedNumber.match(/.{1,4}/g)?.join(' ') ?? '';

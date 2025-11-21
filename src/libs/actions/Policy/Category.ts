@@ -239,7 +239,9 @@ function buildOptimisticMccGroup() {
     };
 
     const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
-    Object.keys(optimisticMccGroup.mccGroup).forEach((key) => (successMccGroup.mccGroup[key] = {pendingAction: null}));
+    for (const key of Object.keys(optimisticMccGroup.mccGroup)) {
+        successMccGroup.mccGroup[key] = {pendingAction: null};
+    }
 
     const mccGroupData = {
         optimisticData: optimisticMccGroup,
@@ -1193,9 +1195,9 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'Categories.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
