@@ -6822,6 +6822,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {
