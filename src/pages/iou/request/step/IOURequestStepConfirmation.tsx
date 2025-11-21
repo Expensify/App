@@ -53,7 +53,7 @@ import {
     doesReportReceiverMatchParticipant,
     generateReportID,
     getReportOrDraftReport,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isMoneyRequestReport,
     isProcessingReport,
     isReportOutstanding,
     isSelectedManagerMcTest,
@@ -539,7 +539,7 @@ function IOURequestStepConfirmation({
     function getReportToUseAndBackToReport(participant: Participant | undefined, parentChatReport: Report | undefined, report: Report | undefined, backToReport: string | undefined) {
         const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
 
-        const backToReportToUse = backToReport ?? (isMoneyRequestReportReportUtils(report) ? report?.reportID : undefined);
+        const backToReportToUse = backToReport ?? (isMoneyRequestReport(report) ? report?.reportID : undefined);
 
         return {reportToUse, backToReportToUse};
     }
