@@ -3,18 +3,13 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {
-    formatReportLastMessageText,
-    generateReportID,
-    getAllReportErrors,
-    getReasonAndReportActionThatRequiresAttention,
-    getReportPreviewMessage,
-} from '@libs/ReportUtils';
+import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -28,13 +23,12 @@ import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/repo
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import { generateTransactionID } from '@libs/actions/Transaction';
 
 // Mock PolicyUtils
 jest.mock('@libs/PolicyUtils', () => ({
