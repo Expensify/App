@@ -15,6 +15,7 @@ function useParentReportAction(report: OnyxEntry<Report>) {
     const [parentReportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`,
         {
+            canEvict: false,
             canBeMissing: true,
             selector: getParentReportAction,
         },
