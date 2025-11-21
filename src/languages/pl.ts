@@ -7366,6 +7366,7 @@ ${
             hasChildReportAwaitingAction: 'Raport podrzędny oczekuje na działanie',
             hasMissingInvoiceBankAccount: 'Brakuje konta bankowego na fakturze',
             hasUnresolvedCardFraudAlert: 'Ma nierozwiązaną alertę fraudy karty',
+            hasDEWError: 'Ma błąd DEW',
         },
         reasonRBR: {
             hasErrors: 'Ma błędy w danych raportu lub działaniach raportu',

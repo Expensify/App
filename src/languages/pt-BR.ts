@@ -7376,6 +7376,7 @@ ${
             hasChildReportAwaitingAction: 'Tem um relatório infantil aguardando ação',
             hasMissingInvoiceBankAccount: 'Falta a conta bancária da fatura',
             hasUnresolvedCardFraudAlert: 'Tem uma alerta de fraude de cartão não resolvida',
+            hasDEWError: 'Tem erro de DEW',
         },
         reasonRBR: {
             hasErrors: 'Tem erros nos dados do relatório ou nas ações do relatório',

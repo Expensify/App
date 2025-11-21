@@ -7463,6 +7463,7 @@ const translations = {
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
             hasUnresolvedCardFraudAlert: 'Has unresolved card fraud alert',
+            hasDEWError: 'Has DEW error',
         },
         reasonRBR: {
             hasErrors: 'Has errors in report or report actions data',
