@@ -1,15 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
+import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,7 +25,6 @@ function GenericErrorPage({error}: {error?: Error}) {
     const StyleUtils = useStyleUtils();
     const isAuthenticated = useIsAuthenticated();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
 
@@ -84,7 +82,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
                                 contentFit="contain"
-                                src={icons.ExpensifyWordmark}
+                                src={LogoWordmark}
                                 height={30}
                                 width={80}
                                 fill={theme.text}
