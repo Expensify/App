@@ -69,9 +69,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     error={handleError}
                 >
                     <View pointerEvents="none">
-                        <Suspense fallback={null}>
-                            <Thumbnail pageIndex={0} />
-                        </Suspense>
+                        <Thumbnail pageIndex={0} />
                     </View>
                 </Document>
             </Suspense>
