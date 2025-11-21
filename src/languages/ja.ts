@@ -7358,14 +7358,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'New Expensifyへようこそ！',
-        subtitle: '従来のエクスペリエンスでお好きだった要素はすべてそのままに、毎日をさらに簡単にする数多くのアップグレードを搭載しています：',
+        subtitle: '新しいExpensifyは、素晴らしい自動化機能に加えて、驚くべきコラボレーション機能を備えています。',
         confirmText: '行きましょう！',
         features: {
-            chat: 'どの経費でもチャットして、疑問を素早く解決しましょう',
-            search: 'モバイル、Web、デスクトップで、より強力な検索',
-            concierge: '内蔵の Concierge AI が経費の自動化を支援します',
+            chat: '<strong>任意の経費</strong>、レポート、またはワークスペースで直接チャット',
+            scanReceipt: '<strong>領収書をスキャン</strong>して払い戻しを受ける',
+            crossPlatform: '<strong>すべて</strong>を携帯電話やブラウザから行う',
         },
-        helpText: '2分のデモを試す',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
