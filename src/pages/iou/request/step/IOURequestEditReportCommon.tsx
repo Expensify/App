@@ -158,7 +158,7 @@ function IOURequestEditReportCommon({
                 return true;
             })
             .filter((report) => {
-                if (canAddTransaction(report)) {
+                if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
 
