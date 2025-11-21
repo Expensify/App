@@ -263,6 +263,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -274,7 +275,6 @@ function MoneyRequestConfirmationListFooter({
         canBeMissing: true,
     });
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -287,10 +287,11 @@ function MoneyRequestConfirmationListFooter({
 
         return outstandingReports.filter((report) => {
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            return !isArchivedReport(reportNameValuePair);
+            return !isArchivedReport(reportNameValuePair) && isReportOutstanding(report, report?.policyID, reportNameValuePairs, false);
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
         () => (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists),
         [isCreatingTrackExpense, isPolicyExpenseChat, isUnreported, policyTagLists],
@@ -361,7 +362,8 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable =
+        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -863,7 +865,7 @@ function MoneyRequestConfirmationListFooter({
             );
         }
         return badges;
-    }, [firstDay, lastDay, translate, tripDays]);
+    }, [firstDay, lastDay, translate, tripDays, icons]);
 
     const receiptThumbnailContent = useMemo(
         () => (
