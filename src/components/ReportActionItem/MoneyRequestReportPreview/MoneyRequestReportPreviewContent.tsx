@@ -482,11 +482,11 @@ function MoneyRequestReportPreviewContent({
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
-            name: 'MoneyRequestReportPreviewContent',
-            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-        });
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        // startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
+        //     name: 'MoneyRequestReportPreviewContent',
+        //     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        // });
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
