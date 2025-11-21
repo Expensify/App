@@ -47,7 +47,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     if (isCompletedTaskReport(report)) {
                         reopenTask(report, currentUserPersonalDetails.accountID);
                     } else {
-                        completeTask(report, hasOutstandingChildTask);
+                        completeTask(report, hasOutstandingChildTask, parentReportAction);
                     }
                 })}
                 style={styles.flex1}

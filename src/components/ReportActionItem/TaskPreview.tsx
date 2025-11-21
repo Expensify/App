@@ -150,7 +150,7 @@ function TaskPreview({
                                 if (isTaskCompleted) {
                                     reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, hasOutstandingChildTask, taskReportID);
+                                    completeTask(taskReport, hasOutstandingChildTask, parentReportAction, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}

@@ -134,7 +134,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     if (isCompleted) {
                                                         reopenTask(report, currentUserPersonalDetails.accountID);
                                                     } else {
-                                                        completeTask(report, hasOutstandingChildTask);
+                                                        completeTask(report, hasOutstandingChildTask, parentReportAction);
                                                     }
                                                 })}
                                                 isChecked={isCompleted}

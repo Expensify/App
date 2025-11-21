@@ -110,7 +110,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem, hasOutstandingChildTask, taskItem.reportID);
+                completeTask(taskItem, hasOutstandingChildTask, parentReportAction, taskItem.reportID);
             })}
         />
     );
