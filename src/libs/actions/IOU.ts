@@ -6620,6 +6620,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
+                policyID: policy?.id,
                 description: parsedComment,
             };
             if (actionableWhisperReportActionIDParam) {
