@@ -12,7 +12,6 @@ import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
@@ -107,10 +106,6 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
-            name: 'MoneyRequestReportPreview',
-            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-        });
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
     }, [iouReportID]);
 
