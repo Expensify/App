@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getActiveAllAdminsFromWorkspaces} from '@libs/PolicyUtils';
@@ -22,7 +22,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {clearShareBankAccount, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccount, clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +46,6 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
-    const shareBankAccountError = getLatestErrorMessage(sharedBankAccountData);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -145,15 +144,33 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         () => (
             <FormAlertWithSubmitButton
                 isLoading={isLoading}
-                isAlertVisible={!!shareBankAccountError}
-                message={shareBankAccountError}
+                shouldRenderFooterAboveSubmit
                 isDisabled={!selectedOptions.length}
                 buttonText={translate('common.share')}
                 onSubmit={handleConfirm}
+                footerContent={
+                    <ErrorMessageRow
+                        errors={sharedBankAccountData?.errors}
+                        errorRowStyles={[styles.mv3]}
+                        onClose={clearShareBankAccountErrors}
+                        canDismissError
+                    />
+                }
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             />
         ),
-        [handleConfirm, isLoading, selectedOptions.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate, shareBankAccountError],
+        [
+            isLoading,
+            selectedOptions.length,
+            translate,
+            handleConfirm,
+            sharedBankAccountData?.errors,
+            styles.mv3,
+            styles.flexReset,
+            styles.flexGrow0,
+            styles.flexShrink0,
+            styles.flexBasisAuto,
+        ],
     );
 
     const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);

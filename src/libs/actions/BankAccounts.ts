@@ -1286,6 +1286,10 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
+function clearShareBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+}
+
 function setShareBankAccountAdmins(admins?: MemberForList[]) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {admins});
 }
@@ -1427,4 +1431,5 @@ export {
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
     openBankAccountSharePage,
+    clearShareBankAccountErrors,
 };
