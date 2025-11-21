@@ -6,7 +6,6 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +46,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -263,7 +263,6 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
     isDescriptionRequired = false,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -291,7 +290,6 @@ function MoneyRequestConfirmationListFooter({
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
         () => (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists),
         [isCreatingTrackExpense, isPolicyExpenseChat, isUnreported, policyTagLists],
@@ -360,8 +358,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable =
-        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -829,7 +826,7 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="firstDay"
-                    icon={icons.Stopwatch}
+                    icon={Expensicons.Stopwatch}
                     text={translate('iou.firstDayText', {count: firstDay})}
                 />,
             );
@@ -838,7 +835,7 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="tripDays"
-                    icon={icons.CalendarSolid}
+                    icon={Expensicons.CalendarSolid}
                     text={translate('iou.tripLengthText', {count: tripDays})}
                 />,
             );
@@ -847,13 +844,13 @@ function MoneyRequestConfirmationListFooter({
             badges.push(
                 <Badge
                     key="lastDay"
-                    icon={icons.Stopwatch}
+                    icon={Expensicons.Stopwatch}
                     text={translate('iou.lastDayText', {count: lastDay})}
                 />,
             );
         }
         return badges;
-    }, [firstDay, lastDay, translate, tripDays, icons]);
+    }, [firstDay, lastDay, translate, tripDays]);
 
     const receiptThumbnailContent = useMemo(
         () => (
