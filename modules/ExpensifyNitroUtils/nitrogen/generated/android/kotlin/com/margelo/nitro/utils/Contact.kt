@@ -9,7 +9,6 @@ package com.margelo.nitro.utils
 
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
-import com.margelo.nitro.core.*
 
 
 /**
@@ -17,25 +16,35 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-data class Contact
+data class Contact(
   @DoNotStrip
   @Keep
-  constructor(
+  val firstName: String?,
+  @DoNotStrip
+  @Keep
+  val lastName: String?,
+  @DoNotStrip
+  @Keep
+  val phoneNumbers: Array<StringHolder>?,
+  @DoNotStrip
+  @Keep
+  val emailAddresses: Array<StringHolder>?,
+  @DoNotStrip
+  @Keep
+  val imageData: String?
+) {
+  /* primary constructor */
+
+  private companion object {
+    /**
+     * Constructor called from C++
+     */
     @DoNotStrip
     @Keep
-    val firstName: String?,
-    @DoNotStrip
-    @Keep
-    val lastName: String?,
-    @DoNotStrip
-    @Keep
-    val phoneNumbers: Array<StringHolder>?,
-    @DoNotStrip
-    @Keep
-    val emailAddresses: Array<StringHolder>?,
-    @DoNotStrip
-    @Keep
-    val imageData: String?
-  ) {
-  /* main constructor */
+    @Suppress("unused")
+    @JvmStatic
+    private fun fromCpp(firstName: String?, lastName: String?, phoneNumbers: Array<StringHolder>?, emailAddresses: Array<StringHolder>?, imageData: String?): Contact {
+      return Contact(firstName, lastName, phoneNumbers, emailAddresses, imageData)
+    }
+  }
 }

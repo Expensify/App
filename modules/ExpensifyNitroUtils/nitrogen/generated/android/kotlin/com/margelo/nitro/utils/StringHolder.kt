@@ -9,7 +9,6 @@ package com.margelo.nitro.utils
 
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
-import com.margelo.nitro.core.*
 
 
 /**
@@ -17,13 +16,23 @@ import com.margelo.nitro.core.*
  */
 @DoNotStrip
 @Keep
-data class StringHolder
+data class StringHolder(
   @DoNotStrip
   @Keep
-  constructor(
+  val value: String
+) {
+  /* primary constructor */
+
+  private companion object {
+    /**
+     * Constructor called from C++
+     */
     @DoNotStrip
     @Keep
-    val value: String
-  ) {
-  /* main constructor */
+    @Suppress("unused")
+    @JvmStatic
+    private fun fromCpp(value: String): StringHolder {
+      return StringHolder(value)
+    }
+  }
 }

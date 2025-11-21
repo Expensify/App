@@ -10,11 +10,14 @@
 // Include C++ implementation defined types
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridTtiLoggerSpecSwift.hpp"
+#include "HybridTtiMeasurementViewSpecSwift.hpp"
+#include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
 
   // pragma MARK: std::function<void(const std::vector<Contact>& /* result */)>
-  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper) noexcept {
+  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* NON_NULL swiftClosureWrapper) noexcept {
     auto swiftClosure = ExpensifyNitroUtils::Func_void_std__vector_Contact_::fromUnsafe(swiftClosureWrapper);
     return [swiftClosure = std::move(swiftClosure)](const std::vector<Contact>& result) mutable -> void {
       swiftClosure.call(result);
@@ -22,7 +25,7 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   
   // pragma MARK: std::function<void(const std::exception_ptr& /* error */)>
-  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper) noexcept {
+  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* NON_NULL swiftClosureWrapper) noexcept {
     auto swiftClosure = ExpensifyNitroUtils::Func_void_std__exception_ptr::fromUnsafe(swiftClosureWrapper);
     return [swiftClosure = std::move(swiftClosure)](const std::exception_ptr& error) mutable -> void {
       swiftClosure.call(error);
@@ -30,11 +33,11 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   
   // pragma MARK: std::shared_ptr<HybridContactsModuleSpec>
-  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer) noexcept {
+  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridContactsModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
     return std::make_shared<margelo::nitro::utils::HybridContactsModuleSpecSwift>(swiftPart);
   }
-  void* _Nonnull get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType) noexcept {
+  void* NON_NULL get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType) {
     std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridContactsModuleSpecSwift>(cppType);
     #ifdef NITRO_DEBUG
     if (swiftWrapper == nullptr) [[unlikely]] {
@@ -42,6 +45,46 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void(const TtiMeasurementValue& /* measurement */)>
+  Func_void_TtiMeasurementValue create_Func_void_TtiMeasurementValue(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_TtiMeasurementValue::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const TtiMeasurementValue& measurement) mutable -> void {
+      swiftClosure.call(measurement);
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTtiLoggerSpec>
+  std::shared_ptr<HybridTtiLoggerSpec> create_std__shared_ptr_HybridTtiLoggerSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridTtiLoggerSpec_cxx swiftPart = ExpensifyNitroUtils::HybridTtiLoggerSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridTtiLoggerSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridTtiLoggerSpec_(std__shared_ptr_HybridTtiLoggerSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridTtiLoggerSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridTtiLoggerSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridTtiLoggerSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridTtiLoggerSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTtiMeasurementViewSpec>
+  std::shared_ptr<HybridTtiMeasurementViewSpec> create_std__shared_ptr_HybridTtiMeasurementViewSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx swiftPart = ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridTtiMeasurementViewSpec_(std__shared_ptr_HybridTtiMeasurementViewSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridTtiMeasurementViewSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridTtiMeasurementViewSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridTtiMeasurementViewSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

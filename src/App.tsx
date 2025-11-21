@@ -1,8 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import performance from 'react-native-performance';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -36,6 +37,7 @@ import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import TtiMeasurement from './components/TtiMeasurement';
 import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -71,6 +73,15 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    useEffect(() => {
+        performance.mark(CONST.PERFORMANCE.HERMES_YOUNG_GC_START_MARKER_NAME);
+
+        gc?.();
+        // @ts-expect-error HermesInternal is not typed
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        HermesInternal?.ttiReached?.();
+    }, []);
 
     return (
         <StrictModeWrapper>
@@ -139,6 +150,8 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
+
+                                    <TtiMeasurement />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
