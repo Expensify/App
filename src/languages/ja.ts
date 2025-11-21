@@ -6150,7 +6150,7 @@ ${
             `自動レポートの頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました。`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `承認モードを"${oldValue}"から"${newValue}"に更新しました。`,
         upgradedWorkspace: 'このワークスペースをコントロールプランにアップグレードしました',
-        forcedCorporateUpgrade: 'このワークスペースはコントロールプランにアップグレードされました。詳細については<a href="%baseURL/articles/new-expensify/billing-and-subscriptions/Billing-Overview">こちら</a>をクリックしてください。',
+        forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">こちら</a>をご覧ください。`,
         downgradedWorkspace: 'このワークスペースをCollectプランにダウングレードしました。',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,

@@ -6195,7 +6195,7 @@ ${
             `atualizou a frequência de relatórios automáticos para "${newFrequency}" (anteriormente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `atualizou o modo de aprovação para "${newValue}" (anteriormente "${oldValue}")`,
         upgradedWorkspace: 'atualizou este espaço de trabalho para o plano Control',
-        forcedCorporateUpgrade: 'Este espaço de trabalho foi atualizado para o plano Control. Clique <a href="%baseURL/articles/new-expensify/billing-and-subscriptions/Billing-Overview">aqui</a> para obter mais informações.',
+        forcedCorporateUpgrade: `Este espaço de trabalho foi atualizado para o plano Control. Clique <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">aqui</a> para mais informações.`,
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
