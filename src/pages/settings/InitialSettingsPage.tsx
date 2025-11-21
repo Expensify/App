@@ -87,7 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -120,8 +120,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
 
     const shouldLogout = useRef(false);
 
