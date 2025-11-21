@@ -894,6 +894,7 @@ function ReportActionsList({
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
+                    invertScrollsToTop
                 />
             </View>
         </>
