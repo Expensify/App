@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -11,6 +10,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -31,6 +31,7 @@ function SelectBankStep() {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const {isBetaEnabled} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
@@ -98,34 +99,33 @@ function SelectBankStep() {
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
-                <SelectionList
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => {
-                        setBankSelected(value);
-                        setHasError(false);
-                    }}
-                    sections={[{data}]}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
-                    shouldUpdateFocusedIndex
-                    showConfirmButton
-                    confirmButtonText={translate('common.next')}
-                    onConfirm={submit}
-                    confirmButtonStyles={!hasError && styles.mt5}
-                    addBottomSafeAreaPadding
-                >
-                    {hasError && (
-                        <View style={[styles.ph3, styles.mb3]}>
-                            <FormHelpMessage
-                                isError={hasError}
-                                message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
-                            />
-                        </View>
-                    )}
-                </SelectionList>
-            </FullPageOfflineBlockingView>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
+            <SelectionList
+                ListItem={RadioListItem}
+                onSelectRow={({value}) => {
+                    setBankSelected(value);
+                    setHasError(false);
+                }}
+                sections={[{data}]}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
+                shouldUpdateFocusedIndex
+                showConfirmButton
+                confirmButtonText={translate('common.next')}
+                onConfirm={submit}
+                isConfirmButtonDisabled={isOffline}
+                confirmButtonStyles={!hasError && styles.mt5}
+                addBottomSafeAreaPadding
+            >
+                {hasError && (
+                    <View style={[styles.ph3, styles.mb3]}>
+                        <FormHelpMessage
+                            isError={hasError}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
+                        />
+                    </View>
+                )}
+            </SelectionList>
         </ScreenWrapper>
     );
 }

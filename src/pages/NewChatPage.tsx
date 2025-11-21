@@ -48,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
-const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 
 type SelectedOption = ListItem &
     Omit<OptionData, 'reportID'> & {
@@ -71,7 +71,7 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
             {
@@ -79,6 +79,7 @@ function useOptions() {
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
@@ -86,7 +87,7 @@ function useOptions() {
             countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
@@ -132,9 +133,9 @@ function useOptions() {
             return;
         }
         const newSelectedOptions: OptionData[] = [];
-        newGroupDraft.participants.forEach((participant) => {
+        for (const participant of newGroupDraft.participants) {
             if (participant.accountID === personalData.accountID) {
-                return;
+                continue;
             }
             let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
             if (!participantOption) {
@@ -143,13 +144,13 @@ function useOptions() {
                 });
             }
             if (!participantOption) {
-                return;
+                continue;
             }
             newSelectedOptions.push({
                 ...participantOption,
                 isSelected: true,
             });
-        });
+        }
         setSelectedOptions(newSelectedOptions);
     }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
 
@@ -288,7 +289,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             }
             if (selectedOptions.length && option) {
                 // Prevent excluded emails from being added to groups
-                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                if (option?.login && excludedGroupEmails.has(option.login)) {
                     return;
                 }
                 toggleOption(option);
@@ -315,7 +316,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
                 return null;
             }
 

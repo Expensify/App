@@ -77,7 +77,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     useEffect(() => {
-        if (!isBlockedToAddNewFeeds || !policyID) {
+        if (!policyID || !isBlockedToAddNewFeeds) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
@@ -180,7 +180,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isBlockedToAddNewFeeds && !isAllFeedsResultLoading && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -196,7 +196,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid || isAllFeedsResultLoading) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}

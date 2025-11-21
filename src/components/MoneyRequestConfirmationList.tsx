@@ -40,6 +40,7 @@ import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} fro
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -278,7 +279,9 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const policy = policyReal ?? policyDraft;
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -325,7 +328,6 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
@@ -342,11 +344,11 @@ function MoneyRequestConfirmationList({
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        if (!transactionID) {
+        if (!transactionID || isReadOnly) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID]);
+    }, [defaultTaxCode, transactionID, isReadOnly]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
@@ -492,11 +494,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID) {
+        if (!transactionID || isReadOnly) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -833,17 +835,17 @@ function MoneyRequestConfirmationList({
         }
 
         let updatedTagsString = getTag(transaction);
-        policyTagLists.forEach((tagList, index) => {
+        for (const [index, tagList] of policyTagLists.entries()) {
             const isTagListRequired = tagList.required ?? false;
             if (!isTagListRequired) {
-                return;
+                continue;
             }
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
             if (enabledTags.length !== 1 || getTag(transaction, index)) {
-                return;
+                continue;
             }
             updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
-        });
+        }
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
@@ -889,8 +891,14 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            const transactionTag = getTag(transaction);
+            if (transactionTag.length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 setFormError('iou.error.invalidTagLength');
+                return;
+            }
+
+            if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
+                setFormError('violations.tagOutOfPolicy');
                 return;
             }
 
@@ -934,6 +942,11 @@ function MoneyRequestConfirmationList({
             }
         },
         [
+            routeError,
+            transactionID,
+            iouType,
+            policy,
+            policyTagLists,
             selectedParticipants,
             isEditingSplitBill,
             isMerchantRequired,
@@ -941,23 +954,19 @@ function MoneyRequestConfirmationList({
             shouldDisplayFieldError,
             transaction,
             iouCategory.length,
-            formError,
-            iouType,
+            policyTags,
+            isPerDiemRequest,
+            reportID,
             setFormError,
-            onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            isPerDiemRequest,
             isDistanceRequestWithPendingRoute,
             iouAmount,
+            formError,
             onConfirm,
-            transactionID,
-            reportID,
-            policy,
-            routeError,
             isDelegateAccessRestricted,
+            onSendMoney,
             showDelegateNoAccessModal,
-            setDidConfirmSplit,
         ],
     );
 
