@@ -173,7 +173,13 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
+import {
+    createTransactionThreadReport,
+    expandURLPreview,
+    resolveActionableMentionConfirmWhisper,
+    resolveConciergeCategoryOptions,
+    resolveConciergeDescriptionOptions,
+} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -796,13 +802,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeDescriptionOptions(
-                        reportActionReportID,
-                        reportID,
-                        action.reportActionID,
-                        option,
-                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                    );
+                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
