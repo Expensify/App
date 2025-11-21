@@ -109,10 +109,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
     // Add each employee to the appropriate workflow
-    Object.values(employees).forEach((employee) => {
+    for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
         if (!email || !submitsTo || !employees[submitsTo]) {
-            return;
+            continue;
         }
 
         const member: Member = {
@@ -125,7 +125,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             if (submitsTo !== firstApprover) {
-                approvers.forEach((approver) => usedApproverEmails.add(approver.email));
+                for (const approver of approvers) {
+                    usedApproverEmails.add(approver.email);
+                }
             }
 
             approvalWorkflows[submitsTo] = {
@@ -140,7 +142,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         if (pendingAction) {
             approvalWorkflows[submitsTo].pendingAction = pendingAction;
         }
-    });
+    }
 
     // Sort the workflows by the first approver's name (default workflow has priority)
     const sortedApprovalWorkflows = Object.values(approvalWorkflows).sort((a, b) => {
@@ -250,14 +252,14 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
-    approvalWorkflow.approvers.forEach((approver, index) => {
+    for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
 
         // For every approver, we check if the forwardsTo field has changed.
         // If it has, we update the employee list with the new forwardsTo value.
         if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
-            return;
+            continue;
         }
 
         updatedEmployeeList[approver.email] = {
@@ -268,15 +270,15 @@ function convertApprovalWorkflowToPolicyEmployees({
                 forwardsTo: pendingAction,
             },
         };
-    });
+    }
 
-    approvalWorkflow.members.forEach(({email}) => {
+    for (const {email} of approvalWorkflow.members) {
         const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (firstApprover.email ?? '');
 
         // For every member, we check if the submitsTo field has changed.
         // If it has, we update the employee list with the new submitsTo value.
         if (previousEmployeeList[email]?.submitsTo === submitsTo) {
-            return;
+            continue;
         }
 
         updatedEmployeeList[email] = {
@@ -287,27 +289,31 @@ function convertApprovalWorkflowToPolicyEmployees({
                 submitsTo: pendingAction,
             },
         };
-    });
+    }
 
     // For each member to remove, we update the employee list with submitsTo set to ''
     // which will set the submitsTo field to the default approver email on backend.
-    membersToRemove?.forEach(({email}) => {
-        updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: defaultApprover,
-            pendingAction,
-        };
-    });
+    if (membersToRemove) {
+        for (const {email} of membersToRemove) {
+            updatedEmployeeList[email] = {
+                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                submitsTo: defaultApprover,
+                pendingAction,
+            };
+        }
+    }
 
     // For each approver to remove, we update the employee list with forwardsTo set to ''
     // which will reset the forwardsTo on the backend.
-    approversToRemove?.forEach(({email}) => {
-        updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            forwardsTo: '',
-            pendingAction,
-        };
-    });
+    if (approversToRemove) {
+        for (const {email} of approversToRemove) {
+            updatedEmployeeList[email] = {
+                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                forwardsTo: '',
+                pendingAction,
+            };
+        }
+    }
 
     return updatedEmployeeList;
 }
