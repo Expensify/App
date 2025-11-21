@@ -119,7 +119,7 @@ function SelectBankStep() {
                     setHasError(false);
                 }}
                 initiallyFocusedItemKey={addNewCard?.data.selectedBank ?? undefined}
-                confirmButtonConfig={confirmButtonOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
