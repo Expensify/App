@@ -92,6 +92,10 @@ const SCREENS = {
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        CHANGE_APPROVER: {
+            ROOT: 'Search_Change_Approver_Root',
+            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',

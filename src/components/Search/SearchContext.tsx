@@ -113,6 +113,9 @@ function SearchContextProvider({children}: ChildrenProps) {
                     allActions,
                     currency,
                     chatReportID: report?.chatReportID,
+                    parentReportActionID: report?.parentReportActionID,
+                    parentReportID: report?.parentReportID,
+                    type: report?.type,
                 }));
         }
 
