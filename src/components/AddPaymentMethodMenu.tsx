@@ -2,6 +2,7 @@ import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
@@ -13,6 +14,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
@@ -57,6 +59,7 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -116,7 +119,7 @@ function AddPaymentMethodMenu({
                     ? [
                           {
                               text: translate('common.businessBankAccount'),
-                              icon: Expensicons.Building,
+                              icon: icons.Building,
                               onSelected: () => {
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },

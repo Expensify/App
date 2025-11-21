@@ -3307,6 +3307,9 @@ ${
         whatsYourAddress: 'Wie lautet Ihre Adresse?',
         whatAreTheLast: 'Was sind die letzten 4 Ziffern der Sozialversicherungsnummer des Eigentümers?',
         whatsYourLast: 'Was sind die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsYourNationality: 'Was ist Ihr Staatsangehörigkeitsland?',
+        whatsTheOwnersNationality: 'Was ist das Staatsangehörigkeitsland des Eigentümers?',
+        countryOfCitizenship: 'Staatsangehörigkeitsland',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4: 'Letzte 4 der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
@@ -6256,6 +6259,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7441,14 +7445,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Willkommen bei New Expensify!',
-        subtitle: 'Es enthält alles, was du an unserem klassischen Erlebnis liebst, mit einer ganzen Reihe von Verbesserungen, die dein Leben noch einfacher machen:',
+        subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
         confirmText: "Los geht's!",
         features: {
-            chat: 'Chatte zu jeder Ausgabe, um Fragen schnell zu klären',
-            search: 'Leistungsstärkere Suche auf Mobilgeräten, im Web und auf dem Desktop',
-            concierge: 'Integrierte Concierge-KI zur Automatisierung Ihrer Ausgaben',
+            chat: '<strong>Chatten Sie direkt über jede Ausgabe</strong>, jeden Bericht oder Arbeitsbereich',
+            scanReceipt: '<strong>Belege scannen</strong> und Rückerstattung erhalten',
+            crossPlatform: 'Erledigen Sie <strong>alles</strong> von Ihrem Telefon oder Browser aus',
         },
-        helpText: '2-Minuten-Demo ausprobieren',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
