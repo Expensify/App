@@ -98,6 +98,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
         hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
@@ -158,6 +159,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
+                parentReportAction,
             );
         },
         [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID, hasOutstandingChildTask],
@@ -279,6 +281,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
+                parentReportAction,
             );
         }
         setDeleteCategoriesConfirmModalVisible(false);
@@ -393,6 +396,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });
@@ -423,6 +427,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });

@@ -201,7 +201,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, parentReportAction, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
     const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;

@@ -76,7 +76,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);
     const parentReportAction = useParentReportAction(taskItem.report);
-    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, parentReportAction, isParentReportArchived);
+    const isTaskActionable = canActionTask(taskItem.report, parentReportAction, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {

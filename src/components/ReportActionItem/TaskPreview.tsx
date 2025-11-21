@@ -100,7 +100,7 @@ function TaskPreview({
     const parentReport = useParentReport(taskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
-    const isTaskActionable = canActionTask(taskReport, currentUserPersonalDetails.accountID, parentReport, parentReportAction, isParentReportArchived);
+    const isTaskActionable = canActionTask(taskReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;

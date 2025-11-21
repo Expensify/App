@@ -1188,7 +1188,7 @@ function dismissModalAndClearOutTaskInfo(backTo?: Route) {
 /**
  * Returns Task assignee accountID
  */
-function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>, parentReportAction?: OnyxEntry<ReportAction>): number | undefined {
+function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<ReportAction> | undefined): number | undefined {
     if (!taskReport) {
         return;
     }
@@ -1224,9 +1224,9 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
  */
 function canActionTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
     sessionAccountID?: number,
     parentReport?: OnyxEntry<OnyxTypes.Report>,
-    parentReportAction?: OnyxEntry<ReportAction>,
     isParentReportArchived = false,
 ): boolean {
     // Return early if there was no sessionAccountID (this can happen because when connecting to the session key in onyx, the session will be undefined initially)
@@ -1283,9 +1283,9 @@ function getFinishOnboardingTaskOnyxData(
     isParentReportArchived: boolean,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
-    parentReportAction?: OnyxEntry<ReportAction>,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
 ): OnyxData {
-    if (taskReport && canActionTask(taskReport, currentUserAccountID, taskParentReport, parentReportAction, isParentReportArchived)) {
+    if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport, hasOutstandingChildTask);
@@ -1301,7 +1301,7 @@ function completeTestDriveTask(
     isViewTourTaskParentReportArchived: boolean,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
-    parentReportAction?: OnyxEntry<ReportAction>,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
     shouldUpdateSelfTourViewedOnlyLocally = false,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);

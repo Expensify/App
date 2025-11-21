@@ -68,7 +68,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const parentReportAction = useParentReportAction(report);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, parentReportAction, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;

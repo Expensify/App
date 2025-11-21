@@ -144,7 +144,7 @@ describe('actions/Task', () => {
 
         describe('canActionTask', () => {
             it('returns false if there is no logged in user', () => {
-                expect(canActionTask(taskReportCancelled)).toBe(false);
+                expect(canActionTask(taskReportCancelled, undefined)).toBe(false);
             });
 
             it('returns false if parentReport is undefined and taskReport has no parentReportID', () => {
@@ -153,29 +153,29 @@ describe('actions/Task', () => {
                     parentReportID: undefined,
                 };
 
-                expect(canActionTask(task, taskAssigneeAccountID, undefined, undefined, false)).toBe(false);
+                expect(canActionTask(task, undefined, taskAssigneeAccountID, undefined, false)).toBe(false);
             });
 
             it('returns false if the report is a cancelled task report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the cancelled report
-                expect(canActionTask(taskReportCancelled, 0)).toBe(false);
+                expect(canActionTask(taskReportCancelled, undefined, 0)).toBe(false);
             });
 
             it('returns false if the report has an archived parent report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the archived report
-                expect(canActionTask(taskReportArchived, 0)).toBe(false);
+                expect(canActionTask(taskReportArchived, undefined, 0)).toBe(false);
             });
 
             it('returns false if the user modifying the task is not the author', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, employeeAccountID, parentReport.current, undefined, isParentReportArchived.current)).toBe(false);
+                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
             });
 
             it('returns true if the user modifying the task is the author', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, managerAccountID, parentReport.current, undefined, isParentReportArchived.current)).toBe(true);
+                expect(canActionTask(taskReport, undefined, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
             });
 
             // Looking up the task assignee is usually based on the report action
@@ -206,7 +206,7 @@ describe('actions/Task', () => {
                         reportID: taskReport.parentReportID,
                         childManagerAccountID: taskAssigneeAccountID,
                     };
-                    expect(canActionTask(taskReport, employeeAccountID, parentReport.current, parentReportAction, isParentReportArchived.current)).toBe(false);
+                    expect(canActionTask(taskReport, parentReportAction, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
                 });
 
                 it('returns true if the logged in user is the one assigned to the task', () => {
@@ -217,7 +217,7 @@ describe('actions/Task', () => {
                         reportID: taskReport.parentReportID,
                         childManagerAccountID: taskAssigneeAccountID,
                     };
-                    expect(canActionTask(taskReport, taskAssigneeAccountID, parentReport.current, parentReportAction, isParentReportArchived.current)).toBe(true);
+                    expect(canActionTask(taskReport, parentReportAction, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
 
@@ -233,13 +233,13 @@ describe('actions/Task', () => {
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, employeeAccountID, parentReport.current, undefined, isParentReportArchived.current)).toBe(false);
+                    expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
                 });
 
                 it('returns true if the logged in user is the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, taskAssigneeAccountID, parentReport.current, undefined, isParentReportArchived.current)).toBe(true);
+                    expect(canActionTask(taskReport, undefined, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
         });
@@ -250,7 +250,7 @@ describe('actions/Task', () => {
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
         it('Completes test drive task', () => {
-            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID, false);
+            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID, false, undefined);
             expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0, false)).length).toBe(0);
         });
     });
