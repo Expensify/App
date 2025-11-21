@@ -554,16 +554,16 @@ function MoneyReportHeader({
         markAsCashAction(iouTransactionID, reportID);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
 
-    const duplicateTransaction = useCallback(
-        (transactions: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
-            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
+    const duplicateExpenseTransaction = useCallback(
+        (transactionList: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+            if (!transactionList.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
                 return;
             }
 
             const optimisticChatReportID = generateReportID();
             const optimisticIOUReportID = generateReportID();
 
-            transactions.forEach((item) => {
+            transactionList.forEach((item) => {
                 duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
             });
         },
@@ -1150,7 +1150,7 @@ function MoneyReportHeader({
 
                 temporarilyDisableDuplicateAction();
 
-                duplicateTransaction([transaction]);
+                duplicateExpenseTransaction([transaction]);
             },
             shouldCloseModalOnSelect: false,
         },
