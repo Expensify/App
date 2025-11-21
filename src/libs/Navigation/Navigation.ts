@@ -563,6 +563,12 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 /**
  * Closes the modal navigator (RHP, onboarding).
+ *
+ * @param options - Configuration object
+ * @param options.ref - Navigation ref to use (defaults to navigationRef)
+ * @param options.callback - Optional callback to execute after the modal has finished closing.
+ *                           The callback fires when RightModalNavigator unmounts.
+ *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
