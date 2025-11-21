@@ -11,7 +11,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -775,16 +774,7 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
-    const shouldShowOfflineIndicator = !!searchResults?.data;
     const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;
-
-    const offlineIndicatorStyle = useMemo(() => {
-        if (shouldShowFooter) {
-            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
-        }
-
-        return [styles.mtAuto];
-    }, [shouldShowFooter, styles]);
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -885,12 +875,7 @@ function SearchPage({route}: SearchPageProps) {
     }, [setIsDownloadExportModalVisible]);
 
     return (
-        <ScreenWrapper
-            testID={SearchPageNarrow.displayName}
-            style={styles.pv0}
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldShowOfflineIndicator={!!searchResults}
-        >
+        <>
             <Animated.View style={[styles.flex1]}>
                 {shouldUseNarrowLayout ? (
                     <DragAndDropProvider>
@@ -938,8 +923,6 @@ function SearchPage({route}: SearchPageProps) {
                         initScanRequest={initScanRequest}
                         PDFValidationComponent={PDFValidationComponent}
                         ErrorModal={ErrorModal}
-                        shouldShowOfflineIndicator={shouldShowOfflineIndicator}
-                        offlineIndicatorStyle={offlineIndicatorStyle}
                         shouldShowFooter={shouldShowFooter}
                     />
                 )}
@@ -1005,7 +988,7 @@ function SearchPage({route}: SearchPageProps) {
                     )}
                 </View>
             )}
-        </ScreenWrapper>
+        </>
     );
 }
 
