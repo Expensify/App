@@ -389,6 +389,7 @@ function BaseReportActionContextMenu({
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                         const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
                         const successIcon = typeof contextAction.successIcon === 'string' ? icons[contextAction.successIcon] : contextAction.successIcon;
+
                         return (
                             <ContextMenuItem
                                 ref={(ref) => {
