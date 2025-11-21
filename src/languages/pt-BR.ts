@@ -1485,6 +1485,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Você deve reter ou rejeitar?',
             educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
             holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
+            approveExpenseTitle: 'Aprove outras despesas enquanto as despesas retidas permanecem atribuídas a você.',
             heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
@@ -3287,6 +3288,9 @@ ${
         whatsYourAddress: 'Qual é o seu endereço?',
         whatAreTheLast: 'Quais são os últimos 4 dígitos do Número de Seguro Social do proprietário?',
         whatsYourLast: 'Quais são os últimos 4 dígitos do seu Número de Seguro Social?',
+        whatsYourNationality: 'Qual é o seu país de cidadania?',
+        whatsTheOwnersNationality: 'Qual é o país de cidadania do proprietário?',
+        countryOfCitizenship: 'País de cidadania',
         dontWorry: 'Não se preocupe, não fazemos nenhuma verificação de crédito pessoal!',
         last4: 'Últimos 4 do SSN',
         whyDoWeAsk: 'Por que pedimos isso?',
@@ -5205,6 +5209,7 @@ ${
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
+                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
@@ -6223,6 +6228,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7400,14 +7406,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bem-vindo ao New Expensify!',
-        subtitle: 'Tem tudo o que você ama da nossa experiência clássica, com várias atualizações para deixar sua vida ainda mais fácil:',
+        subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
         confirmText: 'Vamos lá!',
         features: {
-            chat: 'Converse sobre qualquer despesa para resolver dúvidas rapidamente',
-            search: 'Busca mais poderosa no celular, na web e no desktop',
-            concierge: 'IA Concierge integrada para ajudar a automatizar suas despesas',
+            chat: '<strong>Converse diretamente em qualquer despesa</strong>, relatório ou espaço de trabalho',
+            scanReceipt: '<strong>Escaneie recibos</strong> e receba o reembolso',
+            crossPlatform: 'Faça <strong>tudo</strong> do seu telefone ou navegador',
         },
-        helpText: 'Experimente a demo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

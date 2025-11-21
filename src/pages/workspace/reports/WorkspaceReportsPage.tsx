@@ -166,6 +166,8 @@ function WorkspaceReportFieldsPage({
         clearPolicyTitleFieldError(policyID);
     };
 
+    const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -224,7 +226,7 @@ function WorkspaceReportFieldsPage({
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                titleStyle={styles.pv2}
+                                titleStyle={toggleTitleStyle}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
