@@ -12,6 +12,7 @@ import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {OnyxDataType} from '@libs/DebugUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2051,10 +2052,9 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
- * Checks if a report contains both reimbursable and non-reimbursable transactions
- */
-function hasReimbursableAndNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const transactions = getReportTransactions(iouReportID);
+ * Determines whether a report should display the expense breakdown.
+ * */
+function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
     if (!transactions || transactions.length === 0) {
         return false;
     }
@@ -2074,7 +2074,7 @@ function hasReimbursableAndNonReimbursableTransactions(iouReportID: string | und
         }
     }
 
-    return false;
+    return hasNonReimbursable;
 }
 
 /**
@@ -2218,7 +2218,7 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
-    hasReimbursableAndNonReimbursableTransactions,
+    shouldShowExpenseBreakdown,
 };
 
 export type {TransactionChanges};
