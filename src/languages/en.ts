@@ -5239,7 +5239,7 @@ const translations = {
             title: 'You have no workspaces',
             subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
             restrictedPolicySubtitle:
-                'Your company restricts workspace creation by non-admin users. You can request access to an existing workspace or reach out to an internal admin for more information',
+                'Your company restricts workspace creation by non-admin users. You can request access to an existing workspace or reach out to an internal admin for more information.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
