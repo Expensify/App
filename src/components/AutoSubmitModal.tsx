@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
+// eslint-disable-next-line no-restricted-imports
 import Text from './Text';
 
 function AutoSubmitModal() {
@@ -21,7 +21,7 @@ function AutoSubmitModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin'] as const);
     const menuSections = useMemo(
         () => [
             {
@@ -35,7 +35,7 @@ function AutoSubmitModal() {
                 descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
             },
         ],
-        [illustrations],
+        [illustrations.PaperAirplane, illustrations.Pencil],
     );
 
     const onClose = useCallback((willShowAgain: boolean) => {
@@ -54,7 +54,7 @@ function AutoSubmitModal() {
             title={translate('autoSubmitModal.title')}
             description={translate('autoSubmitModal.description')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ReceiptsStackedOnPin}
+            image={illustrations.ReceiptsStackedOnPin}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             imageWidth={variables.changePolicyEducationModalIconWidth}
