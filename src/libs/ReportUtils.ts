@@ -5297,17 +5297,13 @@ function getModifiedExpenseOriginalMessage(
 
     if ('reimbursable' in transactionChanges) {
         const oldReimbursable = getReimbursable(oldTransaction);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage.oldReimbursable = oldReimbursable ? 'reimbursable' : 'non-reimbursable';
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage.reimbursable = transactionChanges?.reimbursable ? 'reimbursable' : 'non-reimbursable';
     }
 
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage.oldBillable = oldBillable ? 'billable' : 'non-billable';
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage.billable = transactionChanges?.billable ? 'billable' : 'non-billable';
     }
 
