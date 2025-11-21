@@ -594,7 +594,6 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport({
-    translate,
     report,
     lastActorDetails,
     movedFromReport,
@@ -603,7 +602,6 @@ function getLastMessageTextForReport({
     isReportArchived = false,
     policyForMovingExpensesID,
 }: {
-    translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
     movedFromReport?: OnyxEntry<Report>;
@@ -745,7 +743,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-        lastMessageTextFromReport = getForcedCorporateUpgradeMessage(translate);
+        lastMessageTextFromReport = getForcedCorporateUpgradeMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
     } else if (isActionableAddPaymentCard(lastReportAction)) {

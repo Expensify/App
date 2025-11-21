@@ -20,7 +20,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -5588,7 +5588,6 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
  * Get the title for a report.
  */
 function getReportName(
-    translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
@@ -5658,7 +5657,7 @@ function getReportName(
         return getDowngradeWorkspaceMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-        return getForcedCorporateUpgradeMessage(translate);
+        return getForcedCorporateUpgradeMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(parentReportAction);
@@ -6774,8 +6773,9 @@ function getUpgradeWorkspaceMessage() {
     return translateLocal('workspaceActions.upgradedWorkspace');
 }
 
-function getForcedCorporateUpgradeMessage(translate: LocalizedTranslate) {
-    return translate('workspaceActions.forcedCorporateUpgrade');
+function getForcedCorporateUpgradeMessage() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.forcedCorporateUpgrade');
 }
 
 function getDowngradeWorkspaceMessage() {
