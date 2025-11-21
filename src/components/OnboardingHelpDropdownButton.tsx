@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
 import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
@@ -50,6 +50,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+
+    const illustrations = useMemoizedLazyIllustrations(['HeadSet'] as const);
 
     if (!reportID || !accountID) {
         return null;
@@ -84,7 +86,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
-            icon: Illustrations.HeadSet,
+            icon: illustrations.HeadSet,
             iconWidth: variables.avatarSizeLargeNormal,
             iconHeight: variables.avatarSizeLargeNormal,
             wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],

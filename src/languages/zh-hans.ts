@@ -1466,6 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '应该保留还是拒绝？',
             educationalText: '如果你还没准备好批准或支付一笔报销，可以选择保留或拒绝。',
             holdExpenseTitle: '保留报销，以便在批准或支付之前要求更多细节。',
+            approveExpenseTitle: '在保留的报销保持分配给你的同时，批准其他报销。',
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
             rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
@@ -5107,6 +5108,7 @@ ${
             issueCard: '发卡',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
+                inviteNewMember: '邀请新成员',
                 findMember: '查找成员',
                 chooseCardType: '选择卡类型',
                 physicalCard: '实体卡',
@@ -7241,14 +7243,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: '欢迎使用 New Expensify！',
-        subtitle: '它集成了你在我们经典体验中喜爱的所有内容，并带来一系列升级，让你的生活更加轻松：',
+        subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
         confirmText: '我们走吧！',
         features: {
-            chat: '就任何费用发起聊天，快速解决问题',
-            search: '更强大的搜索，适用于移动端、网页端和桌面端',
-            concierge: '内置 Concierge AI，帮助自动化处理您的报销',
+            chat: '<strong>直接在任何费用</strong>、报告或工作区上聊天',
+            scanReceipt: '<strong>扫描收据</strong>并获得报销',
+            crossPlatform: '通过手机或浏览器完成<strong>所有操作</strong>',
         },
-        helpText: '试用 2 分钟演示',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

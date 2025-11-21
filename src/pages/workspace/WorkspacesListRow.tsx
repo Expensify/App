@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -18,6 +18,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -90,17 +91,6 @@ type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Illustrations.ShieldYellow;
-        case CONST.POLICY.TYPE.TEAM:
-            return Illustrations.Mailbox;
-        default:
-            return Illustrations.Mailbox;
-    }
-};
-
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
 
@@ -138,6 +128,21 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
+
+    const workspaceTypeIcon = useCallback(
+        (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+            switch (type) {
+                case CONST.POLICY.TYPE.CORPORATE:
+                    return Illustrations.ShieldYellow;
+                case CONST.POLICY.TYPE.TEAM:
+                    return illustrations.Mailbox;
+                default:
+                    return illustrations.Mailbox;
+            }
+        },
+        [illustrations.Mailbox],
+    );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
