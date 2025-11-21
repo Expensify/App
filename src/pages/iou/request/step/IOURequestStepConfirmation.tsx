@@ -525,7 +525,7 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
-    function getMoneyRequestContextForParticipant(participant: Participant | undefined, reportParam: Report | undefined) {
+    function getMoneyRequestContextForParticipant(participant: Participant | undefined) {
         const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
         const workspaceChatReport = isWorkspaceTarget && participant?.reportID ? getReportOrDraftReport(participant.reportID) : undefined;
         return {
@@ -541,10 +541,10 @@ function IOURequestStepConfirmation({
         };
     }
 
-    function getReportToUseAndBackToReport(participant: Participant | undefined, parentChatReport: Report | undefined, report: Report | undefined, backToReport: string | undefined) {
+    function getReportToUseAndBackToReport(participant: Participant | undefined, parentChatReport: Report | undefined, reportParam: Report | undefined, backToReportParam: string | undefined) {
         const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
 
-        const backToReportToUse = backToReport ?? (isMoneyRequestReport(report) ? report?.reportID : undefined);
+        const backToReportToUse = backToReportParam ?? (isMoneyRequestReport(reportParam) ? reportParam?.reportID : undefined);
 
         return {reportToUse, backToReportToUse};
     }
@@ -560,7 +560,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant, report);
+            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant);
             const {reportToUse, backToReportToUse} = getReportToUseAndBackToReport(participant, parentChatReport, report, backToReport);
 
             const optimisticChatReportID = generateReportID();
@@ -712,7 +712,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant, report);
+            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant);
             const {reportToUse} = getReportToUseAndBackToReport(participant, parentChatReport, report, backToReport);
 
             for (const [index, item] of transactions.entries()) {
@@ -791,7 +791,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant, report);
+            const {parentChatReport, policyParams: contextPolicyParams} = getMoneyRequestContextForParticipant(participant);
             const {reportToUse, backToReportToUse} = getReportToUseAndBackToReport(participant, parentChatReport, report, backToReport);
 
             createDistanceRequestIOUActions({
