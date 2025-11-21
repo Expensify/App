@@ -544,7 +544,7 @@ function MoneyReportHeader({
         markAsCashAction(iouTransactionID, reportID);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
 
-    const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
+    const getStatusIcon: (src: IconAsset, iconRefs: typeof expensifyIcons) => React.ReactNode = (src) => (
         <Icon
             src={src}
             height={variables.iconSizeSmall}
@@ -553,31 +553,31 @@ function MoneyReportHeader({
         />
     );
 
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
+    const getStatusBarProps: (iconRefs: typeof expensifyIcons) => MoneyRequestHeaderStatusBarProps | undefined = (iconRefs) => {
         if (shouldShowMarkAsResolved) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
+            return {icon: getStatusIcon(iconRefs.Hourglass, iconRefs), description: translate('iou.reject.rejectedStatus')};
         }
 
         if (isPayAtEndExpense) {
             if (!isArchivedReport) {
-                return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.bookingPendingDescription')};
+                return {icon: getStatusIcon(iconRefs.Hourglass, iconRefs), description: translate('iou.bookingPendingDescription')};
             }
             if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
-                return {icon: getStatusIcon(expensifyIcons.Box), description: translate('iou.bookingArchivedDescription')};
+                return {icon: getStatusIcon(iconRefs.Box, iconRefs), description: translate('iou.bookingArchivedDescription')};
             }
         }
 
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(expensifyIcons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
+            return {icon: getStatusIcon(iconRefs.Stopwatch, iconRefs), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
+            return {icon: getStatusIcon(iconRefs.Flag, iconRefs), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
-                icon: getStatusIcon(expensifyIcons.Hourglass),
+                icon: getStatusIcon(iconRefs.Hourglass, iconRefs),
                 description: (
                     <BrokenConnectionDescription
                         transactionID={transaction?.transactionID}
@@ -588,13 +588,13 @@ function MoneyReportHeader({
             };
         }
         if (hasAllPendingRTERViolations) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {icon: getStatusIcon(iconRefs.Hourglass, iconRefs), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (hasOnlyPendingTransactions) {
-            return {icon: getStatusIcon(expensifyIcons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {icon: getStatusIcon(iconRefs.CreditCardHourglass, iconRefs), description: translate('iou.transactionPendingDescription')};
         }
         if (hasScanningReceipt) {
-            return {icon: getStatusIcon(expensifyIcons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {icon: getStatusIcon(iconRefs.ReceiptScan, iconRefs), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -607,7 +607,7 @@ function MoneyReportHeader({
         return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
     };
 
-    const statusBarProps = getStatusBarProps();
+    const statusBarProps = getStatusBarProps(expensifyIcons);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
@@ -696,8 +696,8 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, {Plus: expensifyIcons.Plus}, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons.Plus],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -763,7 +763,18 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
+    }, [
+        translate,
+        connectedIntegrationFallback,
+        connectedIntegration,
+        moneyRequestReport,
+        isOffline,
+        transactionIDs,
+        isExported,
+        beginExportWithTemplate,
+        exportTemplates,
+        expensifyIcons.Table,
+    ]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (

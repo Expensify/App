@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +47,7 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -92,6 +93,7 @@ function CardSection() {
             billingDisputePending,
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
             creditCardEyesIcon: illustrations.CreditCardEyes,
+            closeIcon: icons.Close,
         }),
     );
 
@@ -114,6 +116,7 @@ function CardSection() {
                 billingDisputePending,
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
+                closeIcon: icons.Close,
             }),
         );
     }, [
@@ -126,6 +129,7 @@ function CardSection() {
         purchaseList,
         billingDisputePending,
         illustrations.CreditCardEyes,
+        icons.Close,
     ]);
 
     const handleRetryPayment = () => {

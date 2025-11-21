@@ -1,9 +1,9 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +18,7 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Clear'] as const);
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback
@@ -30,7 +31,7 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
                 onPress={onPressButton}
             >
                 <Icon
-                    src={Expensicons.Clear}
+                    src={icons.Clear}
                     width={20}
                     height={20}
                     fill={theme.icon}

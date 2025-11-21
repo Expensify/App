@@ -2,9 +2,8 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import {Close} from '@components/Icon/Expensicons';
 import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,6 +22,7 @@ type WorkspaceReceiptPartnersBannerProps = {
 
 function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceReceiptPartnersBannerProps) {
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -70,7 +70,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
                 subtitleStyle={[styles.mt1, styles.textLabel]}
                 style={[styles.borderRadiusComponentLarge]}
                 rightComponent={rightComponent}
-                rightIcon={Close}
+                rightIcon={icons.Close}
                 rightIconAccessibilityLabel={translate('common.close')}
                 onRightIconPress={setAsDismissed}
             />

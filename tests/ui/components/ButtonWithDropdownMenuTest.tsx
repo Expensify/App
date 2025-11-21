@@ -1,8 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+const mockIcon = 1 as unknown as IconAsset;
 
 describe('ButtonWithDropdownMenu (single option)', () => {
     const mockOnSelected = jest.fn();
@@ -12,7 +14,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
     const option = {
         value: 'test',
         text: 'Test Option',
-        icon: Expensicons.Checkbox,
+        icon: mockIcon,
         onSelected: mockOnSelected,
     };
 

@@ -11,6 +11,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
@@ -19,22 +20,26 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type HeaderUtilsIcons = {
+    Pin: IconAsset;
+    QrCode: IconAsset;
+};
 
-type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
-} & {
+type PromotedActionsType = {
+    [CONST.PROMOTED_ACTIONS.PIN]: (report: OnyxReport, icons: HeaderUtilsIcons) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo: string | undefined, icons: HeaderUtilsIcons) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport) => PromotedAction;
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 };
 
 const PromotedActions = {
-    pin: (report) => ({
+    pin: (report, icons) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...getPinMenuItem(report),
+        ...getPinMenuItem(report, icons),
     }),
-    share: (report, backTo) => ({
+    share: (report, backTo, icons) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...getShareMenuItem(report, backTo),
+        ...getShareMenuItem(report, icons, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,

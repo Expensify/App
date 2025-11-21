@@ -5,12 +5,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -68,6 +68,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy);
 
@@ -196,7 +197,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     {isSettled && !isPartiallyPaid && (
                                         <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                                             <Icon
-                                                src={Expensicons.Checkmark}
+                                                src={icons.Checkmark}
                                                 fill={theme.success}
                                             />
                                         </View>

@@ -3,7 +3,6 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
@@ -14,23 +13,30 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type DebugTabNavigatorIcons = {
+    Info: IconAsset;
+    Eye: IconAsset;
+    Document: IconAsset;
+    Exclamation: IconAsset;
+};
+
 type IconAndTitle = {
     icon: IconAsset;
     title: string;
 };
 
-function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(route: string, translate: LocaleContextProps['translate'], icons: DebugTabNavigatorIcons): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
-            return {icon: Expensicons.Info, title: translate('debug.details')};
+            return {icon: icons.Info, title: translate('debug.details')};
         case CONST.DEBUG.JSON:
-            return {icon: Expensicons.Eye, title: translate('debug.JSON')};
+            return {icon: icons.Eye, title: translate('debug.JSON')};
         case CONST.DEBUG.REPORT_ACTIONS:
-            return {icon: Expensicons.Document, title: translate('debug.reportActions')};
+            return {icon: icons.Document, title: translate('debug.reportActions')};
         case CONST.DEBUG.REPORT_ACTION_PREVIEW:
-            return {icon: Expensicons.Document, title: translate('debug.reportActionPreview')};
+            return {icon: icons.Document, title: translate('debug.reportActionPreview')};
         case CONST.DEBUG.TRANSACTION_VIOLATIONS:
-            return {icon: Expensicons.Exclamation, title: translate('debug.violations')};
+            return {icon: icons.Exclamation, title: translate('debug.violations')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -48,9 +54,10 @@ type DebugTabNavigatorRoutes = DebugTabNavigatorRoute[];
 type DebugTabNavigatorProps = {
     id: string;
     routes: DebugTabNavigatorRoutes;
+    icons: DebugTabNavigatorIcons;
 };
 
-function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
+function DebugTabNavigator({id, routes, icons}: DebugTabNavigatorProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
@@ -96,7 +103,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                         position: undefined,
                         isActive,
                     });
-                    const {icon, title} = getIconAndTitle(route.name, translate);
+                    const {icon, title} = getIconAndTitle(route.name, translate, icons);
 
                     const onPress = () => {
                         navigation.navigate(routeData.name, {...routeData?.params, screen: route.name});
@@ -150,4 +157,4 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
 
 export default DebugTabNavigator;
 
-export type {DebugTabNavigatorRoutes};
+export type {DebugTabNavigatorRoutes, DebugTabNavigatorIcons};

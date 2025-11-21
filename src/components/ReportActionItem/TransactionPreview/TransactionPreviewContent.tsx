@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -11,6 +10,7 @@ import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -64,6 +64,7 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag'] as const);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -327,7 +328,7 @@ function TransactionPreviewContent({
                                                     ]}
                                                 >
                                                     <Icon
-                                                        src={Folder}
+                                                        src={icons.Folder}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -343,7 +344,7 @@ function TransactionPreviewContent({
                                             {shouldShowTag && !!tag && (
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
                                                     <Icon
-                                                        src={Tag}
+                                                        src={icons.Tag}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -362,7 +363,7 @@ function TransactionPreviewContent({
                                 {!isIOUSettled && shouldShowRBR && (
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                         <Icon
-                                            src={DotIndicator}
+                                            src={icons.DotIndicator}
                                             fill={theme.danger}
                                             height={variables.iconSizeExtraSmall}
                                             width={variables.iconSizeExtraSmall}

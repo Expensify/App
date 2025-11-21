@@ -5,13 +5,13 @@ import React, {useCallback, useContext, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -97,6 +97,7 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Wallet', 'Building', 'Bank', 'User', 'Cash'] as const);
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -227,18 +228,22 @@ function SettlementButton({
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
+        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate, {
+            User: icons.User,
+            Building: icons.Building,
+            CheckCircle: icons.CheckCircle,
+        });
 
         const shortFormPayElsewhereButton = {
             text: translate('iou.pay'),
-            icon: Expensicons.CheckCircle,
+            icon: icons.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
         };
 
         const approveButtonOption = {
             text: translate('iou.approve', {formattedAmount}),
-            icon: Expensicons.ThumbsUp,
+            icon: icons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
@@ -265,7 +270,7 @@ function SettlementButton({
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
                     value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                    icon: Expensicons.Wallet,
+                    icon: icons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -299,7 +304,7 @@ function SettlementButton({
                 const policyName = activePolicy.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
-                    icon: Expensicons.Building,
+                    icon: icons.Building,
                     value: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
                 });
@@ -318,7 +323,7 @@ function SettlementButton({
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
-                    icon: Expensicons.Bank,
+                    icon: icons.Bank,
                     onSelected: () => {
                         const bankAccountRoute = getBankAccountRoute(chatReport);
                         Navigation.navigate(bankAccountRoute);
@@ -330,7 +335,7 @@ function SettlementButton({
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
+                        icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
@@ -346,14 +351,14 @@ function SettlementButton({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
-                    icon: Expensicons.User,
+                    icon: icons.User,
                     value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
                     text: translate('iou.settleBusiness', {formattedAmount}),
-                    icon: Expensicons.Building,
+                    icon: icons.Building,
                     value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),

@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +42,7 @@ type TagSettingsPageProps =
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
+    const icons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
@@ -208,7 +209,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 description={translate(`workspace.tags.glCode`)}
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                                iconRight={hasAccountingConnections ? icons.Lock : undefined}
                                 interactive={!hasAccountingConnections && !hasDependentTags}
                                 shouldShowRightIcon={!hasDependentTags}
                             />
@@ -240,7 +241,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {

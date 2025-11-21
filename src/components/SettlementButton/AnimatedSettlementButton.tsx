@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -28,6 +28,7 @@ function AnimatedSettlementButton({
     wrapperStyle,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'ThumbsUp'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -81,9 +82,9 @@ function AnimatedSettlementButton({
 
     let icon;
     if (isApprovedAnimationRunning) {
-        icon = Expensicons.ThumbsUp;
+        icon = icons.ThumbsUp;
     } else if (isPaidAnimationRunning) {
-        icon = Expensicons.Checkmark;
+        icon = icons.Checkmark;
     }
 
     useEffect(() => {

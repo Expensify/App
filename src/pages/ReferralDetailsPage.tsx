@@ -6,7 +6,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -26,6 +26,7 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
@@ -74,8 +75,8 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 <ContextMenuItem
                     isAnonymousAction
                     text={translate('referralProgram.copyReferralLink')}
-                    icon={Expensicons.Copy}
-                    successIcon={Expensicons.Checkmark}
+                    icon={icons.Copy}
+                    successIcon={icons.Checkmark}
                     successText={translate('qrCodes.copied')}
                     onPress={() => Clipboard.setString(referralLink)}
                 />

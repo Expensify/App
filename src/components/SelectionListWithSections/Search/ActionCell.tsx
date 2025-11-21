@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -73,6 +73,7 @@ function ActionCell({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkbox', 'Checkmark', 'DotIndicator'] as const);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
@@ -103,7 +104,7 @@ function ActionCell({
             >
                 <Badge
                     text={text}
-                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
+                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? icons.Checkbox : icons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
@@ -138,7 +139,7 @@ function ActionCell({
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
-                icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
+                icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? icons.DotIndicator : undefined}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
                 isNested

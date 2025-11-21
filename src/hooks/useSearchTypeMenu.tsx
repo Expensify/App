@@ -46,7 +46,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark', 'Pencil', 'Trashcan'] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
@@ -66,8 +66,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
-        [showDeleteModal, closeMenu],
+        (itemName: string, itemHash: number, itemQuery: string) =>
+            getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, {Pencil: expensifyIcons.Pencil, Trashcan: expensifyIcons.Trashcan}, true, closeMenu),
+        [showDeleteModal, closeMenu, expensifyIcons.Pencil, expensifyIcons.Trashcan],
     );
 
     const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {

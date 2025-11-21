@@ -16,8 +16,20 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {
+    FallbackAvatar,
+    IntacctSquare,
+    Location,
+    NetSuiteExport,
+    NetSuiteSquare,
+    QBDSquare,
+    QBOExport,
+    QBOSquare,
+    ReceiptPlus,
+    SageIntacctExport,
+    XeroExport,
+    XeroSquare,
+} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -2780,16 +2792,22 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
     });
 }
 
+type AddExpenseDropdownIcons = {
+    Plus: IconAsset;
+};
+
 /**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
  * @param policy - The policy of the IOU report
  * @param backToReport - The report to return to after adding an expense
+ * @param icons - Icons for the dropdown options
  * @returns The dropdown options for the add expense button
  */
 function getAddExpenseDropdownOptions(
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
+    icons: AddExpenseDropdownIcons,
     iouRequestBackToReport?: string,
     unreportedExpenseBackToReport?: string,
     lastDistanceExpenseType?: IOURequestType,
@@ -2799,7 +2817,7 @@ function getAddExpenseDropdownOptions(
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.createExpense'),
-            icon: Expensicons.Plus,
+            icon: icons.Plus,
             onSelected: () => {
                 if (!iouReportID) {
                     return;
@@ -2815,7 +2833,7 @@ function getAddExpenseDropdownOptions(
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.trackDistance'),
-            icon: Expensicons.Location,
+            icon: Location,
             onSelected: () => {
                 if (!iouReportID) {
                     return;
@@ -2831,7 +2849,7 @@ function getAddExpenseDropdownOptions(
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
+            icon: ReceiptPlus,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));

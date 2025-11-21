@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -28,6 +29,7 @@ function DebugTransactionViolationPage({
         params: {transactionID, index},
     },
 }: DebugTransactionViolationPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'Eye', 'Document', 'Exclamation'] as const);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
@@ -98,6 +100,7 @@ function DebugTransactionViolationPage({
                     <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
                         routes={routes}
+                        icons={icons}
                     />
                 </View>
             )}

@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +41,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckCircle', 'Filter'] as const);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -62,7 +64,7 @@ function ConsolePage() {
                 icon: Expensicons.All,
                 text: translate('common.all'),
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
+                iconRight: icons.Checkmark,
                 shouldShowRightIcon: activeFilterIndex === filterBy.all,
                 success: activeFilterIndex === filterBy.all,
                 onSelected: () => {
@@ -73,7 +75,7 @@ function ConsolePage() {
                 icon: Expensicons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.CheckCircle,
+                iconRight: icons.CheckCircle,
                 shouldShowRightIcon: activeFilterIndex === filterBy.network,
                 success: activeFilterIndex === filterBy.network,
                 onSelected: () => {
@@ -81,7 +83,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate, icons.Checkmark, icons.CheckCircle],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
@@ -163,7 +165,7 @@ function ConsolePage() {
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={menuItems}
-                threeDotsMenuIcon={Expensicons.Filter}
+                threeDotsMenuIcon={icons.Filter}
                 threeDotsMenuIconFill={theme.icon}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>

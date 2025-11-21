@@ -2,12 +2,12 @@ import type {ForwardedRef} from 'react';
 import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
@@ -40,6 +40,7 @@ const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const styles = useThemeStyles();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
@@ -105,7 +106,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                         >
                             {isCompletedStep ? (
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                     fill={colors.white}

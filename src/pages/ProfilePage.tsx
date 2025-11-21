@@ -17,6 +17,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const actionIcons = useMemoizedLazyExpensifyIcons(['Pin', 'QrCode'] as const);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
@@ -162,7 +164,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
         if (report) {
-            result.push(PromotedActions.pin(report));
+            result.push(PromotedActions.pin(report, {Pin: actionIcons.Pin, QrCode: actionIcons.QrCode}));
         }
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
@@ -170,7 +172,7 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    }, [accountID, isCurrentUser, loginParams, report, actionIcons.Pin, actionIcons.QrCode]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>

@@ -15,6 +15,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -313,7 +314,39 @@ function Search({
     });
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
+    const searchUIIcons = useMemoizedLazyExpensifyIcons([
+        'Receipt',
+        'Document',
+        'ChatBubbles',
+        'Pencil',
+        'ThumbsUp',
+        'MoneyBag',
+        'CheckCircle',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+        'Trashcan',
+    ] as const);
+    const suggestedSearches = useMemo(
+        () => getSuggestedSearches(searchUIIcons, accountID, defaultCardFeed?.id),
+        [
+            searchUIIcons.Receipt,
+            searchUIIcons.Document,
+            searchUIIcons.ChatBubbles,
+            searchUIIcons.Pencil,
+            searchUIIcons.ThumbsUp,
+            searchUIIcons.MoneyBag,
+            searchUIIcons.CheckCircle,
+            searchUIIcons.CreditCard,
+            searchUIIcons.MoneyHourglass,
+            searchUIIcons.CreditCardHourglass,
+            searchUIIcons.Bank,
+            searchUIIcons.Trashcan,
+            accountID,
+            defaultCardFeed?.id,
+        ],
+    );
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
 

@@ -79,7 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Star', 'Trashcan'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -612,7 +612,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Star}
+                                icon={expensifyIcons.Star}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
@@ -627,7 +627,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         )}
                         <MenuItem
                             title={translate('common.delete')}
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             onPress={() => {
                                 if (isAccountLocked) {
                                     closeModal(() => showLockedAccountModal());

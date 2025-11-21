@@ -4,11 +4,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,6 +26,7 @@ type WorkspaceOwnerPaymentCardFormProps = {
 
 function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormProps) {
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
@@ -95,7 +96,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         <View style={[styles.mt4, styles.ph2, styles.pb2]}>
                             <Text style={[styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     additionalStyles={[styles.mr3]}
                                     fill={theme.iconSuccessFill}
                                 />
@@ -103,7 +104,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                             </Text>
                             <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     additionalStyles={[styles.mr3]}
                                     fill={theme.iconSuccessFill}
                                 />
@@ -111,7 +112,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                             </Text>
                             <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     additionalStyles={[styles.mr3]}
                                     fill={theme.iconSuccessFill}
                                 />

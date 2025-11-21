@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -27,6 +27,7 @@ type WorkspacePerDiemDetailsPageProps = PlatformStackScreenProps<SettingsNavigat
 
 function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) {
     const policyID = route.params.policyID;
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
@@ -113,7 +114,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         shouldShowRightIcon
                     />
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.delete')}
                         onPress={() => setDeletePerDiemConfirmModalVisible(true)}
                     />

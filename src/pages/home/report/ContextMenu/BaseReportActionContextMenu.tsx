@@ -13,6 +13,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -41,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
-import ContextMenuActions from './ContextMenuActions';
+import {getContextMenuActions} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
@@ -129,6 +130,46 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
+    const icons = useMemoizedLazyExpensifyIcons([
+        'ArrowRight',
+        'BackArrow',
+        'Bell',
+        'Bug',
+        'Building',
+        'ChatBubbleReply',
+        'ChatBubbleUnread',
+        'CheckCircle',
+        'Checkmark',
+        'CheckSquare',
+        'Checkbox',
+        'Close',
+        'ClosedSign',
+        'Copy',
+        'Document',
+        'DotIndicator',
+        'Download',
+        'Exclamation',
+        'Eye',
+        'EyeDisabled',
+        'Filter',
+        'Filters',
+        'Flag',
+        'Info',
+        'LinkCopy',
+        'Mail',
+        'Monitor',
+        'Pencil',
+        'Pin',
+        'Plus',
+        'QrCode',
+        'RotateLeft',
+        'Send',
+        'Star',
+        'Stopwatch',
+        'ThreeDots',
+        'Trashcan',
+        'User',
+    ] as const);
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -221,7 +262,7 @@ function BaseReportActionContextMenu({
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
-    let filteredContextMenuActions = ContextMenuActions.filter(
+    let filteredContextMenuActions = getContextMenuActions(icons).filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
             contextAction.shouldShow({

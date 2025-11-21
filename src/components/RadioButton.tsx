@@ -1,9 +1,9 @@
 import React from 'react';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type RadioButtonProps = {
@@ -28,6 +28,7 @@ type RadioButtonProps = {
 };
 
 function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, shouldUseNewStyle = false}: RadioButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -50,7 +51,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
             >
                 {isChecked && (
                     <Icon
-                        src={Expensicons.Checkmark}
+                        src={icons.Checkmark}
                         fill={theme.textLight}
                         height={14}
                         width={14}
@@ -72,7 +73,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
         >
             {isChecked && (
                 <Icon
-                    src={Expensicons.Checkmark}
+                    src={icons.Checkmark}
                     fill={theme.checkBox}
                     height={20}
                     width={20}

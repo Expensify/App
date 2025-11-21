@@ -22,7 +22,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -68,6 +68,7 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Send', 'Trashcan'] as const);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
@@ -149,13 +150,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       },
                   ]),
             {
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => setIsDisconnectModalOpen(true),
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow, icons.Trashcan],
     );
 
     useFocusEffect(
@@ -334,7 +335,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
             },
             {
-                icon: Expensicons.Send,
+                icon: icons.Send,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
@@ -359,7 +360,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                   ]
                 : []),
             {
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
@@ -420,6 +421,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        icons.Gear,
+        icons.Send,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

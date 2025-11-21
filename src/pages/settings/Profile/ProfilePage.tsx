@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +36,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function ProfilePage() {
+    const icons = useMemoizedLazyExpensifyIcons(['QrCode'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -214,7 +215,7 @@ function ProfilePage() {
                                 accessibilityLabel={translate('common.shareCode')}
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
+                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
                             />
                         </Section>

@@ -3,16 +3,17 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
-import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
 const INACTIVE_POSITION_Y = -255;
@@ -20,6 +21,7 @@ const INACTIVE_POSITION_Y = -255;
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
 function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const translateY = useSharedValue(INACTIVE_POSITION_Y);
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
@@ -34,7 +36,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         string,
         {
             /** Expensicon for the page */
-            icon: React.FC<SvgProps>;
+            icon: IconAsset;
 
             /** Color for the icon (should be from theme) */
             iconColor: string;
@@ -43,7 +45,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
-            icon: Expensicons.Checkmark,
+            icon: icons.Checkmark,
             iconColor: theme.success,
         },
         [CONST.GROWL.ERROR]: {

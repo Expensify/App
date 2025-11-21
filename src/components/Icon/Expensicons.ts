@@ -11,7 +11,6 @@ import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
-import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
@@ -42,33 +41,23 @@ import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
-import CheckCircle from '@assets/images/check-circle.svg';
-import CheckSquare from '@assets/images/check-square.svg';
-import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
-import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
-import Close from '@assets/images/close.svg';
-import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
-import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import Document from '@assets/images/document.svg';
-import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
-import DotIndicator from '@assets/images/dot-indicator.svg';
 import DownArrow from '@assets/images/down.svg';
 import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
-import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
@@ -84,17 +73,13 @@ import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import Export from '@assets/images/export.svg';
-import EyeDisabled from '@assets/images/eye-disabled.svg';
-import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
-import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
-import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
@@ -128,8 +113,6 @@ import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
-import LinkCopy from '@assets/images/link-copy.svg';
-import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
@@ -141,7 +124,6 @@ import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
-import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import MoneyHourglass from '@assets/images/money-hourglass.svg';
@@ -155,18 +137,13 @@ import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
-import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Phone from '@assets/images/phone.svg';
-import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
-import Play from '@assets/images/play.svg';
 import PlusCircle from '@assets/images/plus-circle.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
-import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
-import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
@@ -176,10 +153,7 @@ import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
-import Rotate from '@assets/images/rotate-image.svg';
-import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
-import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
@@ -193,7 +167,6 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
-import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
@@ -206,7 +179,6 @@ import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
-import Trashcan from '@assets/images/trashcan.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
@@ -223,7 +195,6 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
-import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
@@ -241,7 +212,6 @@ export {
     ArrowsLeftRight,
     ArrowUpLong,
     ArrowDownLong,
-    AttachmentNotFound,
     BackArrow,
     Bank,
     CircularArrowBackwards,
@@ -259,10 +229,6 @@ export {
     Cash,
     ChatBubble,
     ChatBubbles,
-    Checkbox,
-    Checkmark,
-    Close,
-    ClosedSign,
     Collapse,
     CommentBubbles,
     Concierge,
@@ -270,19 +236,15 @@ export {
     Connect,
     Crosshair,
     ConnectionComplete,
-    Copy,
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
     CircleSlash,
     Document,
     DocumentMerge,
-    DotIndicator,
-    DotIndicatorUnfilled,
     DownArrow,
     Download,
     DragAndDrop,
-    DragHandles,
     EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
@@ -295,15 +257,12 @@ export {
     ExpensifyFooterLogoVertical,
     Expand,
     Export,
-    Eye,
-    EyeDisabled,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
     Flag,
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
-    Fullscreen,
     Folder,
     Tag,
     MultiTag,
@@ -326,8 +285,6 @@ export {
     InvoiceGeneric,
     Key,
     Keyboard,
-    Link,
-    LinkCopy,
     Location,
     Lock,
     Luggage,
@@ -353,16 +310,11 @@ export {
     Offline,
     OfflineCloud,
     Paperclip,
-    Pause,
     Pencil,
     Phone,
-    Pin,
-    Play,
-    Plus,
     Printer,
     Profile,
     QBOSquare,
-    QrCode,
     QuestionMark,
     TreasureChest,
     Receipt,
@@ -373,10 +325,7 @@ export {
     RemoveMembers,
     ReplaceReceipt,
     ReceiptMultiple,
-    Rotate,
-    RotateLeft,
     Scan,
-    Send,
     Shield,
     SmartScan,
     Stopwatch,
@@ -386,7 +335,6 @@ export {
     ThumbsUp,
     ThreeDots,
     Transfer,
-    Trashcan,
     Uber,
     Unlock,
     UpArrow,
@@ -417,8 +365,6 @@ export {
     Plane,
     Bed,
     CarWithKey,
-    Clear,
-    CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
     XeroCircle,
@@ -428,7 +374,6 @@ export {
     SapSquare,
     Filters,
     CalendarSolid,
-    Filter,
     UserEye,
     CaretUpDown,
     UserPlus,
@@ -436,15 +381,12 @@ export {
     Table,
     SpreadsheetComputer,
     Bookmark,
-    Star,
     QBDSquare,
     GalleryNotFound,
     Train,
     boltSlash,
     PlusMinus,
     MagnifyingGlassSpyMouthClosed,
-    CheckSquare,
-    Minus,
     ThumbsDown,
     UserLock,
     EmptyStateSpyPigeon,

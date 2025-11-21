@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@src/styles/variables';
 
 /**
@@ -30,49 +30,65 @@ function Template(args: PromotedActionsBarProps) {
     );
 }
 
-const promotedActions = [
-    {
-        key: 'join',
-        icon: Expensicons.CommentBubbles,
-        text: 'Join',
-        onSelected: () => {},
-    },
-    {
-        key: 'pin',
-        icon: Expensicons.Pin,
-        text: 'Pin',
-        onSelected: () => {},
-    },
-    {
-        key: 'share',
-        icon: Expensicons.QrCode,
-        text: 'Share',
-        onSelected: () => {},
-    },
-] satisfies PromotedActionWithText[];
+// Helper function to get promotedActions and defaultPromotedAction with lazy loaded icons
+function createPromotedActionsData() {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CommentBubbles', 'Pin', 'QrCode', 'ExpensifyLogoNew'] as const);
 
-const defaultPromotedAction = {
-    key: '',
-    icon: Expensicons.ExpensifyLogoNew,
-    text: '',
-    onSelected: () => {},
-};
+    const promotedActions = [
+        {
+            key: 'join',
+            icon: expensifyIcons.CommentBubbles,
+            text: 'Join',
+            onSelected: () => {},
+        },
+        {
+            key: 'pin',
+            icon: expensifyIcons.Pin,
+            text: 'Pin',
+            onSelected: () => {},
+        },
+        {
+            key: 'share',
+            icon: expensifyIcons.QrCode,
+            text: 'Share',
+            onSelected: () => {},
+        },
+    ] satisfies PromotedActionWithText[];
+
+    const defaultPromotedAction = {
+        key: '',
+        icon: expensifyIcons.ExpensifyLogoNew,
+        text: '',
+        onSelected: () => {},
+    };
+
+    return {promotedActions, defaultPromotedAction};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: StoryType = Template.bind({});
 Default.args = {
-    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction],
+    promotedActions: (() => {
+        const {promotedActions, defaultPromotedAction} = createPromotedActionsData();
+        return [promotedActions.at(0) ?? defaultPromotedAction];
+    })(),
 };
 
 const TwoPromotedActions: StoryType = Template.bind({});
 TwoPromotedActions.args = {
-    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction],
+    promotedActions: (() => {
+        const {promotedActions, defaultPromotedAction} = createPromotedActionsData();
+        return [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction];
+    })(),
 };
 
 const ThreePromotedActions: StoryType = Template.bind({});
 ThreePromotedActions.args = {
-    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction, promotedActions.at(2) ?? defaultPromotedAction],
+    promotedActions: (() => {
+        const {promotedActions, defaultPromotedAction} = createPromotedActionsData();
+        return [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction, promotedActions.at(2) ?? defaultPromotedAction];
+    })(),
 };
 
 export default story;

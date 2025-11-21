@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -67,6 +68,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -146,8 +148,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     <ContextMenuItem
                         isAnonymousAction
                         text={translate('qrCodes.copy')}
-                        icon={Expensicons.Copy}
-                        successIcon={Expensicons.Checkmark}
+                        icon={icons.Copy}
+                        successIcon={icons.Checkmark}
                         successText={translate('qrCodes.copied')}
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}

@@ -7,8 +7,8 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ type ReceiptViewProps = {
 };
 
 function ReceiptView({route}: ReceiptViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const {translate} = useLocalize();
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -107,7 +108,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             >
                 <Button
                     shouldShowRightIcon
-                    iconRight={Expensicons.Trashcan}
+                    iconRight={icons.Trashcan}
                     onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
                     innerStyles={styles.bgTransparent}
                     large

@@ -8,8 +8,6 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
@@ -25,6 +23,7 @@ import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -134,6 +133,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, undefined, isSelfDM);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'BackArrow'] as const);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
@@ -276,7 +276,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     >
                                         <View>
                                             <Icon
-                                                src={BackArrow}
+                                                src={icons.BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -349,7 +349,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                             <Icon
-                                                src={DotIndicator}
+                                                src={icons.DotIndicator}
                                                 fill={theme.danger}
                                             />
                                         </View>

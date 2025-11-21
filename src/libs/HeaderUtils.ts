@@ -1,24 +1,29 @@
 import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {togglePinnedState} from './actions/Report';
 import {callFunctionIfActionIsAllowed} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 
-function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
+type HeaderUtilsIcons = {
+    Pin: IconAsset;
+    QrCode: IconAsset;
+};
+
+function getPinMenuItem(report: OnyxReport, icons: HeaderUtilsIcons): ThreeDotsMenuItem {
     const isPinned = !!report.isPinned;
 
     return {
-        icon: Expensicons.Pin,
+        icon: icons.Pin,
         translationKey: isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, isPinned)),
     };
 }
 
-function getShareMenuItem(report: OnyxReport, backTo?: string): ThreeDotsMenuItem {
+function getShareMenuItem(report: OnyxReport, icons: HeaderUtilsIcons, backTo?: string): ThreeDotsMenuItem {
     return {
-        icon: Expensicons.QrCode,
+        icon: icons.QrCode,
         translationKey: 'common.share',
         onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID, backTo)),
     };
@@ -29,3 +34,5 @@ export {
     getPinMenuItem,
     getShareMenuItem,
 };
+
+export type {HeaderUtilsIcons};

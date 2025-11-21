@@ -2,10 +2,10 @@ import type {RefObject} from 'react';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import Section from '@components/Section';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
@@ -34,6 +34,7 @@ type WorkspaceInvoiceVBASectionProps = {
 
 function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -198,7 +199,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Star}
+                                icon={icons.Star}
                                 onPress={() => {
                                     makeDefaultPaymentMethod();
                                     setShouldShowDefaultDeleteMenu(false);
@@ -208,7 +209,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         )}
                         <MenuItem
                             title={translate('common.delete')}
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             onPress={() => closeModal(() => setShowConfirmDeleteModal(true))}
                             wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                         />

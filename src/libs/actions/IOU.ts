@@ -9,6 +9,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import ExpensifyIcons from '@components/Icon/chunks/expensify-icons.chunk';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
@@ -12841,7 +12842,23 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
-    const suggestedSearches = getSuggestedSearches(userAccountID);
+    const suggestedSearches = getSuggestedSearches(
+        {
+            Receipt: ExpensifyIcons.Receipt,
+            Document: ExpensifyIcons.Document,
+            ChatBubbles: ExpensifyIcons.ChatBubbles,
+            Pencil: ExpensifyIcons.Pencil,
+            ThumbsUp: ExpensifyIcons.ThumbsUp,
+            MoneyBag: ExpensifyIcons.MoneyBag,
+            CheckCircle: ExpensifyIcons.CheckCircle,
+            CreditCard: ExpensifyIcons.CreditCard,
+            MoneyHourglass: ExpensifyIcons.MoneyHourglass,
+            CreditCardHourglass: ExpensifyIcons.CreditCardHourglass,
+            Bank: ExpensifyIcons.Bank,
+            Trashcan: ExpensifyIcons.Trashcan,
+        },
+        userAccountID,
+    );
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
 

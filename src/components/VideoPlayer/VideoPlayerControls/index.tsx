@@ -11,6 +11,7 @@ import IconButton from '@components/VideoPlayer/IconButton';
 import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -68,6 +69,7 @@ function VideoPlayerControls({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['Fullscreen', 'Pause', 'Play'] as const);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
     const onLayout = (event: LayoutChangeEvent) => {
@@ -104,7 +106,7 @@ function VideoPlayerControls({
                 <View style={[styles.videoPlayerControlsButtonContainer, !small && styles.mb4]}>
                     <View style={[styles.videoPlayerControlsRow]}>
                         <IconButton
-                            src={isPlaying ? Expensicons.Pause : Expensicons.Play}
+                            src={isPlaying ? icons.Pause : icons.Play}
                             tooltipText={isPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
@@ -121,7 +123,7 @@ function VideoPlayerControls({
                     <View style={[styles.videoPlayerControlsRow]}>
                         <VolumeButton style={iconSpacing} />
                         <IconButton
-                            src={Expensicons.Fullscreen}
+                            src={icons.Fullscreen}
                             tooltipText={translate('videoPlayer.fullscreen')}
                             onPress={enterFullScreenMode}
                             style={iconSpacing}

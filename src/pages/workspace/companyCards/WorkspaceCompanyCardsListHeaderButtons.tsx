@@ -9,6 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -55,6 +56,7 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 };
 
 function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Plus'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -133,7 +135,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                             success
                             isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard}
                             onPress={handleAssignCard}
-                            icon={Expensicons.Plus}
+                            icon={icons.Plus}
                             text={translate('workspace.companyCards.assignCard')}
                             style={shouldChangeLayout && styles.flex1}
                         />
@@ -152,7 +154,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
             {isSelectedFeedConnectionBroken && !!bankName && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
-                        src={Expensicons.DotIndicator}
+                        src={icons.DotIndicator}
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />

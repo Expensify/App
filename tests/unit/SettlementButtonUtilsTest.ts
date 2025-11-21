@@ -1,11 +1,21 @@
-import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSettlementButtonPaymentMethods, handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 jest.mock('@libs/Navigation/Navigation');
+
+const mockUserIcon = 1 as unknown as IconAsset;
+const mockBuildingIcon = 2 as unknown as IconAsset;
+const mockCheckCircleIcon = 3 as unknown as IconAsset;
+
+const mockIcons = {
+    User: mockUserIcon,
+    Building: mockBuildingIcon,
+    CheckCircle: mockCheckCircleIcon,
+};
 
 const mockTranslate = jest.fn((key: string) => key);
 
@@ -115,44 +125,44 @@ describe('getSettlementButtonPaymentMethods', () => {
     });
 
     it('should return payment method with wallet for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is true', () => {
-        const result = getSettlementButtonPaymentMethods(true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate, mockIcons);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleWallet', {formattedAmount: ''}),
-            icon: Expensicons.User,
+            icon: mockUserIcon,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method with personal bank account for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is false', () => {
-        const result = getSettlementButtonPaymentMethods(false, translate);
+        const result = getSettlementButtonPaymentMethods(false, translate, mockIcons);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: Expensicons.User,
+            icon: mockUserIcon,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method with business bank account for BUSINESS_BANK_ACCOUNT', () => {
-        const result = getSettlementButtonPaymentMethods(true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate, mockIcons);
         expect(result[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: Expensicons.Building,
+            icon: mockBuildingIcon,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method elsewhere for ELSEWHERE', () => {
-        const result = getSettlementButtonPaymentMethods(true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate, mockIcons);
         expect(result[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]).toEqual({
             text: translate('iou.payElsewhere', {formattedAmount: ''}),
-            icon: Expensicons.CheckCircle,
+            icon: mockCheckCircleIcon,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
         });
     });
 
     it('should return all three payment methods', () => {
-        const result = getSettlementButtonPaymentMethods(true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate, mockIcons);
         expect(Object.keys(result)).toHaveLength(3);
         expect(result).toHaveProperty(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
         expect(result).toHaveProperty(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
@@ -163,7 +173,7 @@ describe('getSettlementButtonPaymentMethods', () => {
         {hasActivatedWallet: true, expectedPersonalKey: 'iou.settleWallet'},
         {hasActivatedWallet: false, expectedPersonalKey: 'iou.settlePersonal'},
     ])('should use correct texts for each payment method when hasActivatedWallet is $hasActivatedWallet', ({hasActivatedWallet, expectedPersonalKey}) => {
-        const result = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
+        const result = getSettlementButtonPaymentMethods(hasActivatedWallet, translate, mockIcons);
         expect(translate).toHaveBeenCalledTimes(3);
         expect(translate).toHaveBeenCalledWith(expectedPersonalKey, {formattedAmount: ''});
         expect(translate).toHaveBeenCalledWith('iou.settleBusiness', {formattedAmount: ''});
@@ -176,25 +186,25 @@ describe('getSettlementButtonPaymentMethods', () => {
     it.each([
         {
             method: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            expectedIcon: Expensicons.User,
+            expectedIcon: mockUserIcon,
             expectedValue: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             description: 'PERSONAL_BANK_ACCOUNT',
         },
         {
             method: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            expectedIcon: Expensicons.Building,
+            expectedIcon: mockBuildingIcon,
             expectedValue: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             description: 'BUSINESS_BANK_ACCOUNT',
         },
         {
             method: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            expectedIcon: Expensicons.CheckCircle,
+            expectedIcon: mockCheckCircleIcon,
             expectedValue: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             description: 'ELSEWHERE',
         },
     ])('should use correct icon and value for $description regardless of hasActivatedWallet', ({method, expectedIcon, expectedValue}) => {
-        const resultWithWallet = getSettlementButtonPaymentMethods(true, translate);
-        const resultWithoutWallet = getSettlementButtonPaymentMethods(false, translate);
+        const resultWithWallet = getSettlementButtonPaymentMethods(true, translate, mockIcons);
+        const resultWithoutWallet = getSettlementButtonPaymentMethods(false, translate, mockIcons);
         for (const result of [resultWithWallet, resultWithoutWallet]) {
             const paymentMethod = result[method];
             expect(paymentMethod.icon).toBe(expectedIcon);
@@ -203,7 +213,7 @@ describe('getSettlementButtonPaymentMethods', () => {
     });
 
     it('should only set shouldUpdateSelectedIndex for elsewhere payment type', () => {
-        const result = getSettlementButtonPaymentMethods(true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate, mockIcons);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].shouldUpdateSelectedIndex).toBe(false);

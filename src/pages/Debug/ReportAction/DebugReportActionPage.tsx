@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ function DebugReportActionPage({
         params: {reportID, reportActionID},
     },
 }: DebugReportActionPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'Eye', 'Document', 'Exclamation'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -124,6 +126,7 @@ function DebugReportActionPage({
                     <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
                         routes={routes}
+                        icons={icons}
                     />
                 </View>
             )}

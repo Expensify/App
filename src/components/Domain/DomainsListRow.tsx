@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -33,6 +34,7 @@ type DomainsListRowProps = {
 };
 
 function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems, rightIcon}: DomainsListRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -67,7 +69,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.workspaceListRBR, styles.pr3, styles.mt0]}>
                             {!!brickRoadIndicator && (
                                 <Icon
-                                    src={Expensicons.DotIndicator}
+                                    src={icons.DotIndicator}
                                     fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
                                 />
                             )}

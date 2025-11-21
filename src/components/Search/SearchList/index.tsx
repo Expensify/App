@@ -9,7 +9,6 @@ import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -30,6 +29,7 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -172,6 +172,7 @@ function SearchList({
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
     const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -435,7 +436,7 @@ function SearchList({
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.CheckSquare}
+                    icon={icons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>

@@ -1,5 +1,4 @@
 import {renderHook} from '@testing-library/react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -10,6 +9,8 @@ import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
+
+const mockCloseIcon = 1 as unknown as IconAsset;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
 function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
@@ -385,7 +386,7 @@ describe('CardSectionUtils', () => {
             title: 'subscription.billingBanner.retryBillingSuccess.title',
             subtitle: 'subscription.billingBanner.retryBillingSuccess.subtitle',
             isError: false,
-            rightIcon: Expensicons.Close,
+            rightIcon: mockCloseIcon,
         });
     });
 

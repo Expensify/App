@@ -3,6 +3,7 @@ import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,7 @@ function DebugTransactionPage({
         params: {transactionID},
     },
 }: DebugTransactionPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'Eye', 'Document', 'Exclamation'] as const);
     const {translate} = useLocalize();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
@@ -114,6 +116,7 @@ function DebugTransactionPage({
                     <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
                         routes={routes}
+                        icons={icons}
                     />
                 </View>
             )}

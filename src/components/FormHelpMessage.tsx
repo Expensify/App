@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
@@ -34,6 +35,7 @@ type FormHelpMessageProps = {
 };
 
 function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfo = false}: FormHelpMessageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -59,7 +61,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={icons.DotIndicator}
                     fill={theme.danger}
                 />
             )}

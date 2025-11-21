@@ -2,11 +2,11 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,6 +35,7 @@ type EarlyDiscountBannerProps = {
 };
 
 function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, onDismissedDiscountBanner, hasActiveScheduledCall}: EarlyDiscountBannerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -69,13 +70,13 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon
-                            src={Expensicons.Close}
+                            src={icons.Close}
                             fill={theme.icon}
                         />
                     </PressableWithFeedback>
                 </Tooltip>
             ),
-        [theme.icon, translate, onDismissedDiscountBanner, discountInfo?.discountType],
+        [theme.icon, translate, onDismissedDiscountBanner, discountInfo?.discountType, icons.Close],
     );
 
     const rightComponent = useMemo(() => {

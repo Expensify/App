@@ -1,6 +1,5 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -32,6 +31,7 @@ type GetBillingStatusProps = {
     billingDisputePending: number | undefined;
     retryBillingFailed: boolean | undefined;
     creditCardEyesIcon?: IconAsset;
+    closeIcon?: IconAsset;
 };
 
 function getBillingStatus({
@@ -43,6 +43,7 @@ function getBillingStatus({
     billingDisputePending,
     retryBillingFailed,
     creditCardEyesIcon,
+    closeIcon,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
@@ -149,7 +150,7 @@ function getBillingStatus({
                 title: translate('subscription.billingBanner.retryBillingSuccess.title'),
                 subtitle: translate('subscription.billingBanner.retryBillingSuccess.subtitle'),
                 isError: false,
-                rightIcon: Expensicons.Close,
+                rightIcon: closeIcon,
             };
 
         case PAYMENT_STATUS.RETRY_BILLING_ERROR:

@@ -10,9 +10,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
@@ -65,6 +65,7 @@ function IOURequestStepWaypoint({
     },
     transaction,
 }: IOURequestStepWaypointProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const styles = useThemeStyles();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -207,7 +208,7 @@ function IOURequestStepWaypoint({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: icons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
                                 setRestoreFocusType(undefined);

@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -101,6 +102,7 @@ function AvatarWithImagePicker({
     editIcon = Expensicons.Pencil,
     name = '',
 }: AvatarWithImagePickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Eye'] as const);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -188,7 +190,7 @@ function AvatarWithImagePicker({
         // If current avatar isn't a default avatar, allow Remove Photo option
         if (!isUsingDefaultAvatar) {
             menuItems.push({
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     setError(null, {});
@@ -239,7 +241,7 @@ function AvatarWithImagePicker({
                         // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
                         if (onViewPhotoPress && !isUsingDefaultAvatar) {
                             menuItems.push({
-                                icon: Expensicons.Eye,
+                                icon: icons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
                                 onSelected: onViewPhotoPress,
                                 shouldCallAfterModalHide: true,

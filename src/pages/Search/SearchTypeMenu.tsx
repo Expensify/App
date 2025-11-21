@@ -44,6 +44,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
 
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Trashcan'] as const);
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
@@ -83,7 +84,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         });
     }, [typeMenuSections]);
 
-    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const getOverflowMenu = useCallback(
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, icons),
+        [showDeleteModal, icons.Pencil, icons.Trashcan],
+    );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;

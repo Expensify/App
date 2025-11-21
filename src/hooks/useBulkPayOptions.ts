@@ -4,6 +4,7 @@ import type {TupleToUnion} from 'type-fest';
 import {Bank, Building, Cash, User, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -56,6 +57,7 @@ function useBulkPayOptions({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -128,7 +130,11 @@ function useBulkPayOptions({
 
     const bulkPayButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
+        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate, {
+            User: icons.User,
+            Building: icons.Building,
+            CheckCircle: icons.CheckCircle,
+        });
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
@@ -234,6 +240,9 @@ function useBulkPayOptions({
         chatReport,
         getPaymentSubitems,
         formattedAmount,
+        icons.Building,
+        icons.CheckCircle,
+        icons.User,
     ]);
 
     return {

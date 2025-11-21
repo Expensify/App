@@ -19,6 +19,7 @@ import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import ExpensifyIcons from '@src/components/Icon/chunks/expensify-icons.chunk';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -1991,8 +1992,23 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test createTypeMenuItems', () => {
+        const mockIcons = {
+            Receipt: Expensicons.Receipt,
+            Document: Expensicons.Document,
+            ChatBubbles: Expensicons.ChatBubbles,
+            Pencil: Expensicons.Pencil,
+            ThumbsUp: Expensicons.ThumbsUp,
+            MoneyBag: Expensicons.MoneyBag,
+            CheckCircle: ExpensifyIcons.CheckCircle,
+            CreditCard: Expensicons.CreditCard,
+            MoneyHourglass: Expensicons.MoneyHourglass,
+            CreditCardHourglass: Expensicons.CreditCardHourglass,
+            Bank: Expensicons.Bank,
+            Trashcan: ExpensifyIcons.Trashcan,
+        };
+
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(mockIcons, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2071,6 +2087,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
                 adminEmail,
                 adminAccountID,
                 mockCardFeedsByPolicy,
@@ -2133,6 +2150,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
                 adminEmail,
                 adminAccountID,
                 mockCardFeedsByPolicy,
@@ -2173,7 +2191,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(mockIcons, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2182,7 +2200,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(mockIcons, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2199,6 +2217,7 @@ describe('SearchUIUtils', () => {
             };
 
             const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
                 adminEmail,
                 adminAccountID,
                 {},
@@ -2227,6 +2246,7 @@ describe('SearchUIUtils', () => {
             };
 
             const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
                 adminEmail,
                 adminAccountID,
                 {},
@@ -2258,7 +2278,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(mockIcons, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2279,6 +2299,7 @@ describe('SearchUIUtils', () => {
             };
 
             const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
                 adminEmail,
                 adminAccountID,
                 {}, // no card feeds
@@ -2320,7 +2341,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(mockIcons, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2345,7 +2366,20 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                mockIcons,
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                {},
+                false,
+                undefined,
+                true,
+                false,
+            );
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2354,7 +2388,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(mockIcons, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 

@@ -5,9 +5,9 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -231,6 +231,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanel();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Close'] as const);
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -280,7 +281,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     ]}
                 >
                     <Icon
-                        src={Expensicons.Lightbulb}
+                        src={icons.Lightbulb}
                         fill={theme.tooltipHighlightText}
                         medium
                     />
@@ -296,7 +297,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             {...createPressHandler(() => hideTooltip(true))}
                         >
                             <Icon
-                                src={Expensicons.Close}
+                                src={icons.Close}
                                 fill={theme.icon}
                                 width={variables.iconSizeSemiSmall}
                                 height={variables.iconSizeSemiSmall}
@@ -345,6 +346,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         config.onConfirm,
         config.onDismiss,
         hideTooltip,
+        icons,
     ]);
 
     const hideProductTrainingTooltip = useCallback(() => {

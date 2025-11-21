@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -12,7 +13,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -134,6 +134,7 @@ function ConfirmContent({
     isVisible,
     isConfirmLoading,
 }: ConfirmContentProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -166,7 +167,7 @@ function ConfirmContent({
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={Close}
+                                    src={icons.Close}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>

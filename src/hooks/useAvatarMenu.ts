@@ -1,10 +1,10 @@
 import {useCallback, useContext} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
@@ -32,6 +32,7 @@ type UseAvatarMenuParams = {
 function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
     const {translate} = useLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'Trashcan', 'Upload'] as const);
 
     /**
      * Create menu items list for avatar menu
@@ -40,7 +41,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
         (openPicker: OpenPicker): Array<DropdownOption<null>> => {
             const menuItems: Array<DropdownOption<null>> = [
                 {
-                    icon: Expensicons.Upload,
+                    icon: expensifyIcons.Upload,
                     text: translate('avatarWithImagePicker.uploadPhoto'),
                     onSelected: () => {
                         openPicker({
@@ -56,7 +57,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
             }
             if (!source) {
                 menuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: expensifyIcons.Trashcan,
                     text: translate('avatarWithImagePicker.removePhoto'),
                     value: null,
                     onSelected: () => {
@@ -70,7 +71,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                 ...menuItems,
                 {
                     value: null,
-                    icon: Expensicons.Eye,
+                    icon: expensifyIcons.Eye,
                     text: translate('avatarWithImagePicker.viewPhoto'),
                     onSelected: () => {
                         attachmentContext.setCurrentAttachment({source, originalFileName});
@@ -79,7 +80,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                 },
             ];
         },
-        [translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
+        [translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID, expensifyIcons],
     );
 
     return {createMenuItems};

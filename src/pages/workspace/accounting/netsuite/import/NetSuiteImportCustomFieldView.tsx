@@ -2,10 +2,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
@@ -43,6 +43,7 @@ function NetSuiteImportCustomFieldView({
     },
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id;
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
@@ -136,7 +137,7 @@ function NetSuiteImportCustomFieldView({
                         );
                     })}
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.remove')}
                         disabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => setIsRemoveModalOpen(true)}

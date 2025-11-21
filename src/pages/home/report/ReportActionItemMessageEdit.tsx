@@ -12,13 +12,13 @@ import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -116,6 +116,7 @@ function ReportActionItemMessageEdit({
     const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark'] as const);
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevDraftMessage = usePrevious(draftMessage);
@@ -484,7 +485,7 @@ function ReportActionItemMessageEdit({
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={Expensicons.Close}
+                                    src={icons.Close}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
@@ -600,7 +601,7 @@ function ReportActionItemMessageEdit({
                                 onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
                                 />
                             </PressableWithFeedback>

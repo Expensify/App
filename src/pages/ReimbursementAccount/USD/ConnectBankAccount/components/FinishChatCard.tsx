@@ -1,10 +1,10 @@
 import React from 'react';
-import {ChatBubble, Pencil, RotateLeft} from '@components/Icon/Expensicons';
+import {ChatBubble, Pencil} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +35,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RotateLeft'] as const);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -65,7 +66,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     shouldShowRightIcon
                 />
                 <MenuItem
-                    icon={RotateLeft}
+                    icon={icons.RotateLeft}
                     title={translate('workspace.bankAccount.startOver')}
                     onPress={requestResetBankAccount}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}

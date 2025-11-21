@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -113,9 +114,25 @@ const useSearchTypeMenuSections = () => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
+    const searchUIIcons = useMemoizedLazyExpensifyIcons([
+        'Receipt',
+        'Document',
+        'ChatBubbles',
+        'Pencil',
+        'ThumbsUp',
+        'MoneyBag',
+        'CheckCircle',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+        'Trashcan',
+    ] as const);
+
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
+                searchUIIcons,
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
@@ -130,6 +147,7 @@ const useSearchTypeMenuSections = () => {
                 createReportWithConfirmation,
             ),
         [
+            searchUIIcons,
             currentUserLoginAndAccountID?.email,
             currentUserLoginAndAccountID?.accountID,
             cardFeedsByPolicy,

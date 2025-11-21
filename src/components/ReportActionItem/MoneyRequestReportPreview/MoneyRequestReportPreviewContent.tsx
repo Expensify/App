@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,6 +23,7 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -154,6 +154,7 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'BackArrow', 'ArrowRight', 'Plus'] as const);
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -514,111 +515,147 @@ function MoneyRequestReportPreviewContent({
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, {Plus: icons.Plus}, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, icons.Plus],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
 
-    const reportPreviewActions = {
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
-            <AnimatedSubmitButton
-                success={isWaitingForSubmissionFromCurrentUser}
-                text={translate('common.submit')}
-                onPress={() => {
-                    if (hasDynamicExternalWorkflow(policy)) {
-                        setIsDEWModalVisible(true);
-                        return;
-                    }
-                    startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled);
-                }}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                onAnimationFinish={stopAnimation}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
-            <Button
-                text={translate('iou.approve')}
-                success
-                onPress={() => confirmApproval()}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
-            <AnimatedSettlementButton
-                onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
-                isPaidAnimationRunning={isPaidAnimationRunning}
-                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                chatReportID={chatReportID}
-                policyID={policy?.id}
-                iouReport={iouReport}
-                currency={iouReport?.currency}
-                wrapperStyle={buttonMaxWidth}
-                onPress={confirmPayment}
-                onPaymentOptionsShow={onPaymentOptionsShow}
-                onPaymentOptionsHide={onPaymentOptionsHide}
-                formattedAmount={formattedAmount}
-                confirmApproval={confirmApproval}
-                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                shouldHidePaymentOptions={!shouldShowPayButton}
-                kycWallAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-                paymentMethodDropdownAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-                isDisabled={isOffline && !canAllowSettlement}
-                isLoading={!isOffline && !canAllowSettlement}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
-            <ExportWithDropdownMenu
-                report={iouReport}
-                reportActions={reportActions}
-                connectionName={connectedIntegration}
-                wrapperStyle={styles.flexReset}
-                dropdownAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-            />
-        ) : null,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
-            <Button
-                icon={Expensicons.DotIndicator}
-                iconFill={theme.danger}
-                iconHoverFill={theme.danger}
-                text={translate('common.review')}
-                onPress={() => openReportFromPreview()}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
-            <Button
-                text={translate('common.view')}
-                onPress={() => {
-                    openReportFromPreview();
-                }}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-            />
-        ),
-    };
+    const reportPreviewActions = useMemo(
+        () => ({
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
+                <AnimatedSubmitButton
+                    success={isWaitingForSubmissionFromCurrentUser}
+                    text={translate('common.submit')}
+                    onPress={() => {
+                        if (hasDynamicExternalWorkflow(policy)) {
+                            setIsDEWModalVisible(true);
+                            return;
+                        }
+                        startSubmittingAnimation();
+                        submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    }}
+                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                    onAnimationFinish={stopAnimation}
+                />
+            ),
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
+                <Button
+                    text={translate('iou.approve')}
+                    success
+                    onPress={() => confirmApproval()}
+                />
+            ),
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
+                <AnimatedSettlementButton
+                    onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
+                    isPaidAnimationRunning={isPaidAnimationRunning}
+                    isApprovedAnimationRunning={isApprovedAnimationRunning}
+                    canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
+                    onAnimationFinish={stopAnimation}
+                    chatReportID={chatReportID}
+                    policyID={policy?.id}
+                    iouReport={iouReport}
+                    currency={iouReport?.currency}
+                    wrapperStyle={buttonMaxWidth}
+                    onPress={confirmPayment}
+                    onPaymentOptionsShow={onPaymentOptionsShow}
+                    onPaymentOptionsHide={onPaymentOptionsHide}
+                    formattedAmount={formattedAmount}
+                    confirmApproval={confirmApproval}
+                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    shouldHidePaymentOptions={!shouldShowPayButton}
+                    kycWallAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    paymentMethodDropdownAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    isDisabled={isOffline && !canAllowSettlement}
+                    isLoading={!isOffline && !canAllowSettlement}
+                />
+            ),
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
+                <ExportWithDropdownMenu
+                    report={iouReport}
+                    reportActions={reportActions}
+                    connectionName={connectedIntegration}
+                    wrapperStyle={styles.flexReset}
+                    dropdownAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                />
+            ) : null,
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
+                <Button
+                    icon={icons.DotIndicator}
+                    iconFill={theme.danger}
+                    iconHoverFill={theme.danger}
+                    text={translate('common.review')}
+                    onPress={() => openReportFromPreview()}
+                />
+            ),
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
+                <Button
+                    text={translate('common.view')}
+                    onPress={() => {
+                        openReportFromPreview();
+                    }}
+                />
+            ),
+            [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: (
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('iou.addExpense')}
+                    options={addExpenseDropdownOptions}
+                    isSplitButton={false}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                />
+            ),
+        }),
+        [
+            isWaitingForSubmissionFromCurrentUser,
+            translate,
+            policy,
+            iouReport,
+            currentUserDetails.accountID,
+            currentUserDetails.email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            isSubmittingAnimationRunning,
+            stopAnimation,
+            startSubmittingAnimation,
+            confirmApproval,
+            shouldShowOnlyPayElsewhere,
+            isPaidAnimationRunning,
+            isApprovedAnimationRunning,
+            canIOUBePaidAndApproved,
+            chatReportID,
+            buttonMaxWidth,
+            confirmPayment,
+            onPaymentOptionsShow,
+            onPaymentOptionsHide,
+            formattedAmount,
+            shouldShowPayButton,
+            isOffline,
+            canAllowSettlement,
+            connectedIntegration,
+            reportActions,
+            styles.flexReset,
+            icons.DotIndicator,
+            theme.danger,
+            openReportFromPreview,
+            addExpenseDropdownOptions,
+        ],
+    );
 
     const adjustScroll = useCallback(() => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -729,7 +766,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.BackArrow}
+                                                            src={icons.BackArrow}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon
@@ -749,7 +786,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.ArrowRight}
+                                                            src={icons.ArrowRight}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon

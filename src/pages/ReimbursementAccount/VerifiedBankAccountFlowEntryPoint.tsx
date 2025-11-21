@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Bank, Connect, Lightbulb, Lock, RotateLeft} from '@components/Icon/Expensicons';
+import {Bank, Connect, Lightbulb, Lock} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -15,6 +15,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -94,6 +95,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['RotateLeft'] as const);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
@@ -258,7 +260,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 <MenuItem
                                     title={translate('workspace.bankAccount.startOver')}
-                                    icon={RotateLeft}
+                                    icon={icons.RotateLeft}
                                     onPress={requestResetBankAccount}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}

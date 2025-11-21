@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,6 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
 function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['LinkCopy', 'Copy'] as const);
     const {translate} = useLocalize();
 
     const hasPoliciesConnectedToNetSuite = !!getAdminPoliciesConnectedToNetSuite()?.length;
@@ -34,7 +35,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
 
     const connectionOptions = [
         {
-            icon: Expensicons.LinkCopy,
+            icon: icons.LinkCopy,
             text: translate('workspace.common.createNewConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
@@ -42,7 +43,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
             },
         },
         {
-            icon: Expensicons.Copy,
+            icon: icons.Copy,
             text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID));

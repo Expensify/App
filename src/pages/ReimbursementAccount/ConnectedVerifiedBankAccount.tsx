@@ -2,7 +2,6 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
-import {Close} from '@components/Icon/Expensicons';
 import {ThumbsUpStars} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +47,7 @@ function ConnectedVerifiedBankAccount({
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
 }: ConnectedVerifiedBankAccountProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -99,7 +100,7 @@ function ConnectedVerifiedBankAccount({
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
-                            icon={Close}
+                            icon={icons.Close}
                             onPress={requestResetBankAccount}
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}

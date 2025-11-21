@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -49,6 +50,7 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -132,7 +134,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
-                    src={Expensicons.Plus}
+                    src={icons.Plus}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -157,6 +159,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             theme.textSupporting,
             styles.textNormal,
             translate,
+            icons.Plus,
         ],
     );
 

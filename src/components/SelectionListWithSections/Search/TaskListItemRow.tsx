@@ -5,10 +5,10 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -65,6 +65,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'ArrowRightLong'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -81,7 +82,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                 <Badge
                     success
                     text={translate('task.completed')}
-                    icon={Expensicons.Checkmark}
+                    icon={icons.Checkmark}
                     iconStyles={styles.mr0}
                     textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[
@@ -113,6 +114,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'ArrowRightLong'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -136,7 +138,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                         {shouldDisplayCompactArrowIcon && (
                             <Icon
-                                src={Expensicons.ArrowRightLong}
+                                src={icons.ArrowRightLong}
                                 width={variables.iconSizeXXSmall}
                                 height={variables.iconSizeXXSmall}
                                 fill={theme.icon}
