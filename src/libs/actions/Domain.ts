@@ -138,6 +138,13 @@ function getSamlSettings(accountID: number, domainName: string) {
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlMetadataError: null,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
