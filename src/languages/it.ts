@@ -1367,6 +1367,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: "Errore imprevisto nell'eliminazione di questa spesa. Per favore riprova più tardi.",
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Per favore riprova più tardi.',
             genericSmartscanFailureMessage: 'La transazione manca di campi',
+            genericDEWSubmitFailureMessage: 'Invio del flusso di lavoro esterno dinamico non riuscito',
             duplicateWaypointsErrorMessage: 'Si prega di rimuovere i punti di passaggio duplicati',
             atLeastTwoDifferentWaypoints: 'Inserisci almeno due indirizzi diversi per favore.',
             splitExpenseMultipleParticipantsErrorMessage: 'Una spesa non può essere suddivisa tra un workspace e altri membri. Si prega di aggiornare la selezione.',
