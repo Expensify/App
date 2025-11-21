@@ -1,4 +1,5 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {differenceInDays} from 'date-fns';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
@@ -8,6 +9,7 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -20,6 +22,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +33,8 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -40,10 +45,11 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {openExternalLink} from '@userActions/Link';
+import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -81,6 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -112,6 +119,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
     const shouldLogout = useRef(false);
 
@@ -161,6 +169,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         [network.isOffline],
     );
 
+    const surveyCompletedWithinLastMonth = useMemo(() => {
+        const surveyThresholdInDays = 30;
+        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+            return false;
+        }
+        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+        return daysSinceLastSurvey < surveyThresholdInDays;
+    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+
     /**
      * Return a list of menu items data for account section
      * @returns object with translationKey, style and items for the account section
@@ -170,7 +187,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
-                icon: Expensicons.Profile,
+                icon: icons.Profile,
                 screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                 brickRoadIndicator: profileBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
@@ -185,7 +202,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.preferences',
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
             },
@@ -218,6 +235,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
+        icons.Gear,
+        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
@@ -236,6 +255,39 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         freeTrialText,
     ]);
 
+    const classicRedirectMenuItem: MenuData | null = useMemo(() => {
+        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
+            return null;
+        }
+
+        const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+
+        return {
+            translationKey: 'exitSurvey.goToExpensifyClassic',
+            icon: Expensicons.ExpensifyLogoNew,
+            ...(CONFIG.IS_HYBRID_APP
+                ? {
+                      action: () => closeReactNativeApp({shouldSetNVP: true}),
+                  }
+                : {
+                      action() {
+                          if (surveyCompletedWithinLastMonth) {
+                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              return;
+                          }
+
+                          resetExitSurveyForm(() => {
+                              if (shouldOpenSurveyReasonPage) {
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                          });
+                      },
+                  }),
+        };
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, surveyCompletedWithinLastMonth]);
+
     /**
      * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
@@ -248,10 +300,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
+                ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                     action: () => {
@@ -261,7 +314,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.whatIsNew',
                     icon: Expensicons.TreasureChest,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.WHATS_NEW_URL,
                     action: () => {
@@ -289,11 +342,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => signOut(false),
+                    action: () => {
+                        signOut(false);
+                    },
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [icons.NewWindow, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
 
     /**
      * Return JSX.Element with menu items

@@ -34,6 +34,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXXLarge: 720,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
@@ -380,4 +381,7 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
 } as const;

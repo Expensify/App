@@ -309,7 +309,7 @@ function getForReportAction({
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((policyTagKey, index) => {
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
@@ -327,7 +327,7 @@ function getForReportAction({
                     policyTagListName === localizedTagListName,
                 );
             }
-        });
+        }
     }
 
     const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
@@ -357,9 +357,13 @@ function getForReportAction({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
+            newBillable,
+            oldBillable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -371,9 +375,15 @@ function getForReportAction({
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
+        const oldReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        const newReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            newReimbursable,
+            oldReimbursable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -529,7 +539,7 @@ function getForReportActionTemp({
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((policyTagKey, index) => {
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
 
@@ -548,7 +558,7 @@ function getForReportActionTemp({
                     policyTagListName === localizedTagListName,
                 );
             }
-        });
+        }
     }
 
     const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
