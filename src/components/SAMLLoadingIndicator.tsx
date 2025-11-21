@@ -1,18 +1,17 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 function SAMLLoadingIndicator() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     return (
@@ -22,7 +21,7 @@ function SAMLLoadingIndicator() {
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>

@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -18,9 +16,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -28,7 +27,7 @@ function ExpiredValidateCodeModal() {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
-                        src={Illustrations.ToddBehindCloud}
+                        src={illustrations.ToddBehindCloud}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
