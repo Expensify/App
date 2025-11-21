@@ -109,7 +109,6 @@ export {
     Luggage,
     MoneyIntoWallet,
     ConciergeBubble,
-    TreasureChest,
     ThumbsUpStars,
     HeadSet,
     Hourglass,
