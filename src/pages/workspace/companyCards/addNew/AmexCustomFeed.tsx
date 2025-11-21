@@ -68,7 +68,7 @@ function AmexCustomFeed() {
         },
     ];
 
-    const confirmButtonConfig = useMemo(
+    const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
             text: translate('common.next'),
@@ -101,7 +101,7 @@ function AmexCustomFeed() {
                     setTypeSelected(value);
                     setHasError(false);
                 }}
-                confirmButtonConfig={confirmButtonConfig}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 alternateNumberOfSupportedLines={3}
                 initiallyFocusedItemKey={addNewCard?.data.selectedAmexCustomFeed ?? undefined}
