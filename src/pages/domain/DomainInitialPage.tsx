@@ -11,6 +11,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,6 +46,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -65,13 +67,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             {
                 translationKey: 'domain.saml',
                 icon: icons.UserLock,
+                icon: icons.UserLock,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
         ];
 
         return menuItems;
-    }, [accountID, singleExecution, waitForNavigate, icons]);
+    }, [accountID, singleExecution, waitForNavigate, icons.UserLock]);
 
     useEffect(() => {
         if (!domainName) {

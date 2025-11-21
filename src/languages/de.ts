@@ -3308,6 +3308,9 @@ ${
         whatsYourAddress: 'Wie lautet Ihre Adresse?',
         whatAreTheLast: 'Was sind die letzten 4 Ziffern der Sozialversicherungsnummer des Eigentümers?',
         whatsYourLast: 'Was sind die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsYourNationality: 'Was ist Ihr Staatsangehörigkeitsland?',
+        whatsTheOwnersNationality: 'Was ist das Staatsangehörigkeitsland des Eigentümers?',
+        countryOfCitizenship: 'Staatsangehörigkeitsland',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4: 'Letzte 4 der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
@@ -6257,6 +6260,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

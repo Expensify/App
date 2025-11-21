@@ -3245,6 +3245,9 @@ ${
         whatsYourAddress: '你的地址是什么？',
         whatAreTheLast: '业主社会安全号码的最后四位数字是什么？',
         whatsYourLast: '您的社会安全号码的最后四位数字是什么？',
+        whatsYourNationality: '您的公民身份所属国家是？',
+        whatsTheOwnersNationality: '业主的公民身份所属国家是？',
+        countryOfCitizenship: '公民身份国家',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         last4: 'SSN的后四位',
         whyDoWeAsk: '我们为什么要求这个？',
@@ -6091,6 +6094,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

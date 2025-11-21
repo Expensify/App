@@ -474,7 +474,7 @@ function MoneyReportHeader({
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
-                if (currentSearchQueryJSON) {
+                if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals,
@@ -780,7 +780,7 @@ function MoneyReportHeader({
                     }
                     startSubmittingAnimation();
                     submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
-                    if (currentSearchQueryJSON) {
+                    if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
                             shouldCalculateTotals,

@@ -3311,6 +3311,9 @@ ${
         whatsYourAddress: 'Quelle est votre adresse ?',
         whatAreTheLast: 'Quels sont les 4 derniers chiffres du numéro de sécurité sociale du propriétaire ?',
         whatsYourLast: 'Quels sont les 4 derniers chiffres de votre numéro de sécurité sociale ?',
+        whatsYourNationality: 'Quel est votre pays de citoyenneté ?',
+        whatsTheOwnersNationality: 'Quel est le pays de citoyenneté du propriétaire ?',
+        countryOfCitizenship: 'Pays de citoyenneté',
         dontWorry: 'Ne vous inquiétez pas, nous ne faisons aucune vérification de crédit personnel !',
         last4: 'Derniers 4 du SSN',
         whyDoWeAsk: 'Pourquoi demandons-nous cela ?',
@@ -6265,6 +6268,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} suivi des participants`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',
