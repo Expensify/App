@@ -9600,5 +9600,5 @@ describe('ReportUtils', () => {
 
         const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-
+    });
 });
