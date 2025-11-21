@@ -5116,6 +5116,8 @@ ${
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書の管理、経費精算、出張管理、請求書の送信などができます。',
+            restrictedPolicySubtitle:
+                'あなたの会社では、管理者以外のユーザーによるワークスペースの作成が制限されています。既存のワークスペースへのアクセスをリクエストするか、社内の管理者にお問い合わせください。',
             createAWorkspaceCTA: '開始する',
             features: {
                 trackAndCollect: '領収書を追跡して収集する',

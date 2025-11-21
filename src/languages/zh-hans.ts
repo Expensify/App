@@ -5049,6 +5049,7 @@ ${
         emptyWorkspace: {
             title: '您没有任何工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
+            restrictedPolicySubtitle: '您的公司限制非管理员用户创建工作区。您可以请求访问现有工作区或联系内部管理员以获取更多信息。',
             createAWorkspaceCTA: '开始使用',
             features: {
                 trackAndCollect: '跟踪并收集收据',

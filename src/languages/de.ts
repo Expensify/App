@@ -5171,6 +5171,8 @@ ${
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',
             subtitle: 'Verfolgen Sie Belege, erstatten Sie Ausgaben, verwalten Sie Reisen, senden Sie Rechnungen und mehr.',
+            restrictedPolicySubtitle:
+                'Ihr Unternehmen beschränkt die Erstellung von Arbeitsbereichen durch Nicht-Administratoren. Sie können Zugriff auf einen bestehenden Arbeitsbereich anfordern oder sich an einen internen Administrator wenden, um weitere Informationen zu erhalten.',
             createAWorkspaceCTA: 'Loslegen',
             features: {
                 trackAndCollect: 'Belege verfolgen und sammeln',
