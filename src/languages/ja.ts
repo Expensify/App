@@ -805,6 +805,20 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'ウェブアプリに進む',
     },
     multifactorAuthentication: {
+        uiText: {
+            transactionApproved: {
+                headerTitle: '取引が承認されました',
+                title: '取引が承認されました',
+            },
+            transactionDenied: {
+                headerTitle: '取引が拒否されました',
+                title: '取引が拒否されました',
+            },
+            outOfTime: {
+                headerTitle: '取引が拒否されました',
+                title: '時間切れです！',
+            },
+        },
         /** Messages and titles displayed after multifactorial authentication operations */
         statusMessage: {
             successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>

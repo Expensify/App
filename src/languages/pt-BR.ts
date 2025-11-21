@@ -803,6 +803,20 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'continuar para o aplicativo web',
     },
     multifactorAuthentication: {
+        uiText: {
+            transactionApproved: {
+                headerTitle: 'Transação aprovada',
+                title: 'Transação aprovada',
+            },
+            transactionDenied: {
+                headerTitle: 'Transação negada',
+                title: 'Transação negada',
+            },
+            outOfTime: {
+                headerTitle: 'Transação negada',
+                title: 'O tempo acabou!',
+            },
+        },
         /** Messages and titles displayed after multifactorial authentication operations */
         statusMessage: {
             successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>

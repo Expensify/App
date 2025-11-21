@@ -797,6 +797,20 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: '继续到网页应用程序',
     },
     multifactorAuthentication: {
+        uiText: {
+            transactionApproved: {
+                headerTitle: '交易已批准',
+                title: '交易已批准',
+            },
+            transactionDenied: {
+                headerTitle: '交易被拒绝',
+                title: '交易被拒绝',
+            },
+            outOfTime: {
+                headerTitle: '交易被拒绝',
+                title: '你的时间用完了！',
+            },
+        },
         /** Messages and titles displayed after multifactorial authentication operations */
         statusMessage: {
             successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
