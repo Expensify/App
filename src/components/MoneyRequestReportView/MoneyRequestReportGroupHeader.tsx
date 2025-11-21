@@ -48,13 +48,11 @@ function MoneyRequestReportGroupHeader({
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const displayName = group.groupName || translate(isGroupedByTag ? 'search.noTag' : 'search.noCategory');
     const formattedAmount = convertToDisplayString(Math.abs(group.totalAmount), currency);
 
-    // Use isSmallScreenWidth for mobile detection instead of shouldUseNarrowLayout
-    // because shouldUseNarrowLayout may be true on desktop in certain navigation contexts
     const shouldShowCheckbox = isSelectionModeEnabled || !isSmallScreenWidth;
 
     const DESKTOP_HEIGHT = 28;
