@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {RootNavigatorParamList, State} from '@libs/Navigation/types';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
