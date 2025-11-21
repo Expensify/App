@@ -28,7 +28,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1053,17 +1053,22 @@ function changeTransactionsReport(
             );
         }
 
-        // 5. Optimistically update the transaction thread and all threads in the transaction thread
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
-            value: {
-                parentReportID: targetReportID,
-                parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-                ...(isUnreported ? {participants: {[currentUserAccountID]: {notificationPreference: ''}}} : {}),
-            },
-        });
+        const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
+        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        if (childReport) {
+            const participants = childReport.participants;
+            // 5. Optimistically update the transaction thread and all threads in the transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                value: {
+                    parentReportID: targetReportID,
+                    parentReportActionID: optimisticMoneyRequestReportActionID,
+                    policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                },
+            });
+        }
 
         if (oldIOUAction) {
             failureData.push({
