@@ -7405,14 +7405,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Welkom bij New Expensify!',
-        subtitle: 'Het heeft alles wat je leuk vindt aan onze klassieke ervaring, plus een heleboel upgrades om je leven nog makkelijker te maken:',
+        subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
         confirmText: 'Laten we gaan!',
         features: {
-            chat: 'Chat bij elke uitgave om vragen snel op te lossen',
-            search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
-            concierge: 'Ingebouwde Concierge AI om je onkosten te automatiseren',
+            chat: '<strong>Chat direct op elke uitgave</strong>, rapport of werkruimte',
+            scanReceipt: '<strong>Scan bonnetjes</strong> en krijg je geld terugbetaald',
+            crossPlatform: 'Doe <strong>alles</strong> vanaf je telefoon of browser',
         },
-        helpText: 'Probeer de 2-minuten-demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
