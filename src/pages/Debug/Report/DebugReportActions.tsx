@@ -3,8 +3,8 @@ import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -82,7 +82,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (reportActionMessage.html) {
-                return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+                return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
             }
 
             return getReportActionMessageText(reportAction);
@@ -100,8 +100,19 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 reportActionID: reportAction.reportActionID,
                 text: getReportActionDebugText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+                keyForList: reportAction.reportActionID,
             }));
     }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+        }),
+        [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
+    );
 
     return (
         <ScrollView style={styles.mv3}>
@@ -113,12 +124,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 style={[styles.pb3, styles.ph3]}
             />
             <SelectionList
-                sections={[{data: searchedReportActions}]}
-                listItemTitleStyles={styles.fontWeightNormal}
-                textInputValue={searchValue}
-                textInputLabel={translate('common.search')}
-                headerMessage={getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue)}
-                onChangeText={setSearchValue}
+                data={searchedReportActions}
+                style={{listItemTitleStyles: styles.fontWeightNormal}}
+                textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={RadioListItem}
             />

@@ -49,6 +49,9 @@ type PopoverReportActionContextMenuProps = {
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
+
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
+
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -342,6 +345,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -360,6 +364,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    allSnapshots,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
@@ -387,6 +392,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         currentSearchHash,
         isOriginalReportArchived,
         email,
+        allSnapshots,
     ]);
 
     const hideDeleteModal = () => {

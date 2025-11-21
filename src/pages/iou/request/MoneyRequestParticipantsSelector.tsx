@@ -24,6 +24,7 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -108,6 +109,7 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -169,7 +171,7 @@ function MoneyRequestParticipantsSelector({
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -182,8 +184,21 @@ function MoneyRequestParticipantsSelector({
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
+        [
+            participants,
+            iouType,
+            action,
+            isCategorizeOrShareAction,
+            isPerDiemRequest,
+            isCorporateCardTransaction,
+            canShowManagerMcTest,
+            isPaidGroupPolicy,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
+        ],
     );
 
     const handleSelectionChange = useCallback(
@@ -394,9 +409,9 @@ function MoneyRequestParticipantsSelector({
             return 0;
         }
         let length = 0;
-        sections.forEach((section) => {
+        for (const section of sections) {
             length += section.data.length;
-        });
+        }
         return length;
     }, [areOptionsInitialized, sections]);
 

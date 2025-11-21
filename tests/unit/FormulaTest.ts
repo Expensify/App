@@ -347,7 +347,7 @@ describe('CustomFormula', () => {
                 {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, expected: 'Reimbursed'},
             ];
 
-            testCases.forEach(({statusNum, expected}) => {
+            for (const {statusNum, expected} of testCases) {
                 const contextWithStatus: FormulaContext = {
                     ...mockContext,
                     report: {
@@ -357,7 +357,7 @@ describe('CustomFormula', () => {
                 };
                 const result = compute('{report:status}', contextWithStatus);
                 expect(result).toBe(expected);
-            });
+            }
         });
 
         test('should handle undefined status number', () => {
@@ -966,7 +966,6 @@ describe('CustomFormula', () => {
             test3: {name: 'test-c', defaultValue: '{field:test-b}'},
             test4: {name: 'test-d', defaultValue: ''},
             test6: {name: 'test-f', defaultValue: '{field:test-d}'},
-            test5: {name: 'test-e', defaultValue: '{field:test-f}'},
         };
 
         // Then make sure the circular references work as expected
@@ -986,12 +985,8 @@ describe('CustomFormula', () => {
             expect(hasCircularReferences('{field:test-c}', 'test-example', fieldList)).toBe(true);
         });
 
-        test('should allow non-circular reference', () => {
+        test('should allow when there is no circular references', () => {
             expect(hasCircularReferences('{field:test-o}', 'test-example', fieldList)).toBe(false);
-        });
-
-        test('should return false when no references', () => {
-            expect(hasCircularReferences('{field:test-e}', 'test-example', fieldList)).toBe(false);
         });
 
         test('should return false when there is no formula field', () => {

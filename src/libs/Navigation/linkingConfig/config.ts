@@ -1004,10 +1004,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
@@ -1083,6 +1080,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                        [SCREENS.DOMAIN.VERIFY]: {
+                            path: ROUTES.DOMAIN_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.VERIFIED]: {
+                            path: ROUTES.DOMAIN_VERIFIED.route,
                         },
                     },
                 },
@@ -1555,19 +1558,28 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR.route,
                         [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
                         [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.route,
-                        [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION,
+                        [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
-                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
+                    screens: {
+                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
+                    screens: {
+                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -1740,6 +1752,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
+                    screens: {
+                        [SCREENS.EXPENSE_REPORT_RHP]: ROUTES.EXPENSE_REPORT_RHP.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {
                         [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
@@ -1866,13 +1883,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.DOMAIN.INITIAL]: {
+                    path: ROUTES.DOMAIN_INITIAL.route,
+                },
+                [SCREENS.DOMAIN.SAML]: {
+                    path: ROUTES.DOMAIN_SAML.route,
+                },
+            },
+        },
+
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
             screens: {
                 [SCREENS.SEARCH.ROOT]: {
                     path: ROUTES.SEARCH_ROOT.route,
-                },
-                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
-                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },
