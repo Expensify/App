@@ -13,6 +13,7 @@ import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData, setAccountError, signInWithShortLivedAuthToken} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -82,9 +83,9 @@ function SAMLSignInPage() {
             return;
         }
         hasOpenedAuthSession.current = true;
-        openAuthSessionAsync(SAMLUrl, 'expensify://open').then((response: WebBrowserAuthSessionResult) => {
+        openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL).then((response: WebBrowserAuthSessionResult) => {
             if (response.type !== 'success') {
-                Navigation.goBack()
+                Navigation.goBack();
                 return;
             }
             handleNavigationStateChange(response.url);
