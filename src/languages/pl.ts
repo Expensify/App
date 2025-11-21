@@ -3286,6 +3286,9 @@ ${
         whatsYourAddress: 'Jaki jest Twój adres?',
         whatAreTheLast: 'Jakie są ostatnie 4 cyfry numeru Social Security właściciela?',
         whatsYourLast: 'Jakie są ostatnie 4 cyfry Twojego numeru Social Security?',
+        whatsYourNationality: 'Jaki jest Twój kraj obywatelstwa?',
+        whatsTheOwnersNationality: 'Jaki jest kraj obywatelstwa właściciela?',
+        countryOfCitizenship: 'Kraj obywatelstwa',
         dontWorry: 'Nie martw się, nie przeprowadzamy żadnych osobistych sprawdzeń kredytowych!',
         last4: 'Ostatnie 4 cyfry numeru SSN',
         whyDoWeAsk: 'Dlaczego o to prosimy?',
@@ -6213,6 +6216,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7392,14 +7396,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Witamy w New Expensify!',
-        subtitle: 'Ma wszystko, co kochasz w naszej klasycznej wersji, wraz z całą masą ulepszeń, które jeszcze bardziej ułatwią Ci życie:',
+        subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
         confirmText: 'Zaczynajmy!',
         features: {
-            chat: 'Czatuj przy każdym wydatku, aby szybko wyjaśnić wątpliwości',
-            search: 'Bardziej zaawansowane wyszukiwanie na urządzeniach mobilnych, w przeglądarce i na komputerach',
-            concierge: 'Wbudowana Concierge AI do automatyzacji Twoich wydatków',
+            chat: '<strong>Czatuj bezpośrednio na dowolnym wydatku</strong>, raporcie lub przestrzeni roboczej',
+            scanReceipt: '<strong>Skanuj paragony</strong> i otrzymuj zwrot pieniędzy',
+            crossPlatform: 'Rób <strong>wszystko</strong> z telefonu lub przeglądarki',
         },
-        helpText: 'Wypróbuj 2-minutowe demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
