@@ -56,6 +56,7 @@ import {
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -622,6 +623,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getWorkspaceReportFieldDeleteMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
                     setClipboardMessage(getWorkspaceUpdateFieldMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
+                    Clipboard.setString(getWorkspaceAttendeeTrackingUpdateMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
                     Clipboard.setString(getWorkspaceReimbursementUpdateMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {

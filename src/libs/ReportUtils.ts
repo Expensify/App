@@ -199,6 +199,7 @@ import {
     getRetractedMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
@@ -5702,6 +5703,9 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
+        return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
+    }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
         return getActionableCardFraudAlertResolutionMessage(parentReportAction);
@@ -6592,7 +6596,7 @@ function buildOptimisticInvoiceReport(
         // We don't translate reportName because the server response is always in English
         reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         total: total * -1,
         participants: {
             [receiverAccountID]: {
