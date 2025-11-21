@@ -1,15 +1,16 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function FailedToLockAccountPage() {
+    const illustrations = useMemoizedLazyIllustrations(['LockOpen'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -24,7 +25,7 @@ function FailedToLockAccountPage() {
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <ConfirmationPage
-                    illustration={Illustrations.LockOpen}
+                    illustration={illustrations.LockOpen}
                     heading={translate('failedToLockAccountPage.failedToLockAccount')}
                     description={translate('failedToLockAccountPage.failedToLockAccountDescription')}
                     shouldShowButton
