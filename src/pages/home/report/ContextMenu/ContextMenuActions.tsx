@@ -682,7 +682,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getUpgradeWorkspaceMessage();
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-                    const displayMessage = Parser.htmlToText(getForcedCorporateUpgradeMessage(translate));
+                    const displayMessage = Parser.htmlToText(getForcedCorporateUpgradeMessage());
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     const displayMessage = getDowngradeWorkspaceMessage();

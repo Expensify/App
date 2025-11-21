@@ -47,7 +47,6 @@ function OptionRowLHNData({
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
-    const {translate} = useLocalize();
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
@@ -72,7 +71,6 @@ function OptionRowLHNData({
             card,
             lastAction,
             localeCompare,
-            translate,
             isReportArchived,
             lastActionReport,
             movedFromReport,
@@ -111,7 +109,6 @@ function OptionRowLHNData({
         lastMessageTextFromReport,
         card,
         localeCompare,
-        translate,
         isReportArchived,
         movedFromReport,
         movedToReport,
