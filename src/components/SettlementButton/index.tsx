@@ -51,6 +51,7 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
     kycWallAnchorAlignment = {
@@ -241,7 +242,7 @@ function SettlementButton({
             disabled: !!shouldDisableApproveButton,
         };
 
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true);
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType, true);
         const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
 
         const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
@@ -312,7 +313,7 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType, true);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),

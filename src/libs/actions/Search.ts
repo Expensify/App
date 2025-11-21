@@ -1064,15 +1064,15 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
 }
 
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
 /**
  * Return true if selected reports/transactions have the same USD currency.
  */
 function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
     return selectedReports?.length > 0
-        ? Object.values(selectedReports).every((report) => isCurrencySupportedForGlobalReimbursement(report?.currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true))
-        : Object.values(selectedTransactions).every((transaction) =>
-              isCurrencySupportedForGlobalReimbursement(transaction.currency as TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, true),
-          );
+        ? Object.values(selectedReports).every((report) => isCurrencySupportedForGlobalReimbursement(report?.currency as CurrencyType, true))
+        : Object.values(selectedTransactions).every((transaction) => isCurrencySupportedForGlobalReimbursement(transaction.currency as CurrencyType, true));
 }
 
 /**
