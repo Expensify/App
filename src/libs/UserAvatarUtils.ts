@@ -33,12 +33,15 @@ type CommonAvatarArgsType = {
 type DefaultAvatarArgsType = CommonAvatarArgsType & {
     /** Existing avatar URL */
     avatarURL?: string;
-    defaultAvatars?: Record<'ConciergeAvatar' | 'NotificationsAvatar' | 'FallbackAvatar', IconAsset>;
 };
 
 type GetAvatarArgsType = CommonAvatarArgsType & {
     /** The avatar source - can be a URL string or SVG component */
     avatarSource?: AvatarSource;
+};
+
+type DefaultAvatarsType = {
+    defaultAvatars: Record<'ConciergeAvatar' | 'NotificationsAvatar', IconAsset>;
 };
 
 /**
@@ -83,12 +86,12 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
  * @param args.defaultAvatars - ConciergeAvatar | NotificationsAvatar | FallbackAvatar
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
-function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType): IconAsset | undefined {
+function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType & DefaultAvatarsType): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return defaultAvatars?.ConciergeAvatar;
+        return defaultAvatars.ConciergeAvatar;
     }
     if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        return defaultAvatars?.NotificationsAvatar;
+        return defaultAvatars.NotificationsAvatar;
     }
 
     return avatarCatalogGetAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
@@ -214,7 +217,7 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
-function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, defaultAvatars}: GetAvatarArgsType & DefaultAvatarArgsType): AvatarSource | undefined {
+function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, defaultAvatars}: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource, defaultAvatars});
     }
@@ -260,7 +263,7 @@ function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
  * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The full-size avatar source
  */
-function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
+function getFullSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
     const source = getAvatar(args);
     if (typeof source !== 'string') {
         return source;
@@ -279,7 +282,7 @@ function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
  * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The small-size avatar source with _128 suffix (if applicable)
  */
-function getSmallSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
+function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
     const source = getAvatar(args);
     if (typeof source !== 'string') {
         return source;

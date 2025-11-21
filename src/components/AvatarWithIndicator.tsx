@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -29,7 +29,7 @@ type AvatarWithIndicatorProps = {
 
 function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon, isLoading = true}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const defaultAvatars = useDefaultAvatars();
 
     return (
         <Tooltip text={tooltipText}>
@@ -40,8 +40,8 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon,
                     <>
                         <Avatar
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={getSmallSizeAvatar({avatarSource: source, accountID})}
-                            fallbackIcon={fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon}
+                            source={getSmallSizeAvatar({avatarSource: source, accountID, defaultAvatars})}
+                            fallbackIcon={fallbackIcon === undefined ? defaultAvatars.FallbackAvatar : fallbackIcon}
                             avatarID={accountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />
