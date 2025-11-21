@@ -81,6 +81,7 @@ function SearchPageWide({
                 testID={Search.displayName}
                 shouldEnableMaxHeight
                 headerGapStyles={[styles.searchHeaderGap, styles.h0]}
+                shouldShowOfflineIndicatorInWideScreen={!!searchResults}
             >
                 <FullPageNotFoundView
                     shouldForceFullScreen
