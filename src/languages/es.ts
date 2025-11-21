@@ -937,6 +937,8 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: ({memo}) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
+        queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
+        dynamicExternalWorkflowCannotSubmit: 'Este informe no se puede enviar. Revise los comentarios para resolver.',
         trackedAmount: ({formattedAmount, comment}) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
