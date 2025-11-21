@@ -759,7 +759,7 @@ function getLastMessageTextForReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(getUpdateRoomDescriptionMessage(lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR)) {
         lastMessageTextFromReport = getRoomAvatarUpdatedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {

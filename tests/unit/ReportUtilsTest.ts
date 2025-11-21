@@ -24,6 +24,7 @@ import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
+    buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
     buildParticipantsFromAccountIDs,
@@ -1662,7 +1663,7 @@ describe('ReportUtils', () => {
                             currency: 'USD',
                         },
                     };
-
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const transaction: SearchTransaction = {
                         transactionID: 'txn1',
                         reportID: '2',
@@ -1671,6 +1672,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                     } as SearchTransaction;
 
                     const reportName = getSearchReportName({
@@ -9435,6 +9437,20 @@ describe('ReportUtils', () => {
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         await Onyx.clear();
     });
+
+    it('should create an invoice report with SUBMITTED status the same BE response', () => {
+        const mockChatReportID = 'chat-report-123';
+        const mockPolicyID = 'policy-456';
+        const mockReceiverAccountID = 789;
+        const mockReceiverName = 'John Doe';
+        const mockTotal = 100;
+        const mockCurrency = 'USD';
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport(mockChatReportID, mockPolicyID, mockReceiverAccountID, mockReceiverName, mockTotal, mockCurrency);
+
+        expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+    });
+
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
         await Onyx.clear();
 

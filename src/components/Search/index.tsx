@@ -55,7 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -265,6 +265,9 @@ function Search({
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
+
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
         if (!violations || !searchResults?.data) {
@@ -462,13 +465,22 @@ function Search({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (validGroupBy || isExpenseReportType) {
             for (const transactionGroup of data) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     continue;
                 }
+
+                // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
+                // This ensures report-level selection persists when new transactions are added.
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+
                 for (const transactionItem of transactionGroup.transactions) {
-                    if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
+                    const isSelected = transactionItem.transactionID in selectedTransactions;
+
+                    // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
+                    const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
+                    if (!shouldInclude) {
                         continue;
                     }
 
@@ -496,7 +508,7 @@ function Search({
                             transactionItem.policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -561,7 +573,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -720,6 +732,10 @@ function Search({
 
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: 'Search',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
@@ -730,6 +746,13 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
                 }
+
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -755,7 +778,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [accountID, searchResults?.data, searchResults?.search?.type]);
@@ -786,7 +809,6 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, validGroupBy);
 
@@ -941,10 +963,10 @@ function Search({
         navigation.setParams({q: newQuery});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
 
     return (
