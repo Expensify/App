@@ -5914,7 +5914,7 @@ ${
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                title: 'Report di spesa',
+                title: 'Avanzato',
                 subtitle: 'Automatizza la conformità, le approvazioni e il pagamento dei report di spesa.',
                 preventSelfApprovalsTitle: 'Impedisci auto-approvazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri del workspace di approvare i propri report di spesa.',

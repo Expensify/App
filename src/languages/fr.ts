@@ -5938,7 +5938,7 @@ ${
                 adultEntertainment: 'Divertissement pour adultes',
             },
             expenseReportRules: {
-                title: 'Rapports de dépenses',
+                title: 'Avancé',
                 subtitle: 'Automatisez la conformité des rapports de dépenses, les approbations et le paiement.',
                 preventSelfApprovalsTitle: 'Empêcher les auto-approbations',
                 preventSelfApprovalsSubtitle: "Empêcher les membres de l'espace de travail d'approuver leurs propres rapports de dépenses.",

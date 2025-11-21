@@ -5782,7 +5782,7 @@ ${
                 adultEntertainment: '成人娱乐',
             },
             expenseReportRules: {
-                title: '费用报告',
+                title: '高级',
                 subtitle: '自动化费用报告合规、审批和支付。',
                 preventSelfApprovalsTitle: '防止自我批准',
                 preventSelfApprovalsSubtitle: '防止工作区成员批准自己的费用报告。',

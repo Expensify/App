@@ -5901,7 +5901,7 @@ ${
                 adultEntertainment: 'Volwassenenentertainment',
             },
             expenseReportRules: {
-                title: 'Onkostendeclaraties',
+                title: 'Geavanceerd',
                 subtitle: 'Automatiseer de naleving van onkostendeclaraties, goedkeuringen en betalingen.',
                 preventSelfApprovalsTitle: 'Voorkom zelfgoedkeuringen',
                 preventSelfApprovalsSubtitle: 'Voorkom dat werkruimteleden hun eigen onkostendeclaraties goedkeuren.',
