@@ -150,7 +150,7 @@ describe('AssignCardFeedPage', () => {
         // Render the page
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
             policyID: policy.id,
-            feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}#1234`,
+            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, 1234),
         });
 
@@ -206,7 +206,7 @@ describe('AssignCardFeedPage', () => {
         // Render the page
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
             policyID: policy.id,
-            feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}#1234`,
+            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
         });
 
         // Verify the page renders

@@ -15,6 +15,7 @@ import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type AssignCardRoute =
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute>
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute>
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute>
     | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute>
@@ -406,6 +407,7 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
 
         const stepRoutes: Record<string, AssignCardRoute> = {
             [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(policyID, feed),
             [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
                 policyID,
                 feed,

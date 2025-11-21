@@ -571,6 +571,7 @@ const SCREENS = {
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
 
         COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: 'Workspace_CompanyCards_AssignCard_Assignee',
+        COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: 'Workspace_CompanyCards_AssignCard_InviteNewMember',
         COMPANY_CARDS_ASSIGN_CARD_SELECT: 'Workspace_CompanyCards_AssignCard_Select',
         COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP: 'Workspace_CompanyCards_AssignCard_TransactionStartDateStep',
         COMPANY_CARDS_ASSIGN_CARD_NAME: 'Workspace_CompanyCards_AssignCard_CardNameStep',

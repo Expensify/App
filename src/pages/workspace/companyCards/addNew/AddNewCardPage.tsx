@@ -4,7 +4,6 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';

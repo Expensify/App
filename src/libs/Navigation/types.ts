@@ -1180,6 +1180,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeed;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: {
         policyID: string;
         feed: CompanyCardFeed;

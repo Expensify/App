@@ -2171,6 +2171,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/assignee',
         getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/assignee` as const,
     },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/invite-new-member',
+        getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/invite-new-member` as const,
+    },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/select',
         getRoute: (policyID: string, feed: string) => `workspaces/${policyID}/company-cards/${feed}/assign-card/select` as const,
