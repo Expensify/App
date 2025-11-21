@@ -9025,8 +9025,17 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         const dewSubmitFailedAction = reportActionsArray.find((action) => isDynamicExternalWorkflowSubmitFailedAction(action));
         if (dewSubmitFailedAction) {
-            const submittedAction = reportActionsArray.find((action) => isSubmittedAction(action));
-            const shouldShowDEWError = !submittedAction || (submittedAction && dewSubmitFailedAction.created > submittedAction.created);
+            // find the most recent SUBMITTED action
+            const mostRecentSubmittedAction = reportActionsArray
+                .filter((action) => isSubmittedAction(action))
+                .reduce<ReportAction | undefined>((latest, current) => {
+                    if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                        return current;
+                    }
+                    return latest;
+                }, undefined);
+
+            const shouldShowDEWError = !mostRecentSubmittedAction || (mostRecentSubmittedAction.created && dewSubmitFailedAction.created > mostRecentSubmittedAction.created);
 
             if (shouldShowDEWError) {
                 reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
