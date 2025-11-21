@@ -269,6 +269,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        reportName: 'Nom du rapport',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1494,6 +1496,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Faut-il mettre en attente ou rejeter ?',
             educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
             holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
+            approveExpenseTitle: 'Approuvez d’autres dépenses tout en gardant les dépenses mises en attente assignées à vous.',
             heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
             rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
             reasonPageTitle: 'Rejeter la dépense',
@@ -3308,6 +3311,9 @@ ${
         whatsYourAddress: 'Quelle est votre adresse ?',
         whatAreTheLast: 'Quels sont les 4 derniers chiffres du numéro de sécurité sociale du propriétaire ?',
         whatsYourLast: 'Quels sont les 4 derniers chiffres de votre numéro de sécurité sociale ?',
+        whatsYourNationality: 'Quel est votre pays de citoyenneté ?',
+        whatsTheOwnersNationality: 'Quel est le pays de citoyenneté du propriétaire ?',
+        countryOfCitizenship: 'Pays de citoyenneté',
         dontWorry: 'Ne vous inquiétez pas, nous ne faisons aucune vérification de crédit personnel !',
         last4: 'Derniers 4 du SSN',
         whyDoWeAsk: 'Pourquoi demandons-nous cela ?',
@@ -5243,6 +5249,7 @@ ${
             issueCard: 'Émettre une carte',
             issueNewCard: {
                 whoNeedsCard: "Qui a besoin d'une carte ?",
+                inviteNewMember: 'Inviter un nouveau membre',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',
@@ -6236,6 +6243,7 @@ ${
             `a changé le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)}% (précédemment ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `a modifié la limite d'approbation manuelle pour toutes les dépenses à ${newLimit} (précédemment ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'activé' : 'désactivé'} remboursements pour cet espace de travail`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6260,6 +6268,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} suivi des participants`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',
