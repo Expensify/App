@@ -575,14 +575,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        introSelected,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
         currentUserPersonalDetails.accountID,
         isTaskActionable,
-        isSmallScreenWidth,
         isRootGroupChat,
         leaveChat,
+        isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
+        introSelected,
         expensifyIcons,
     ]);
 
