@@ -666,8 +666,10 @@ function Search({
 
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(item, hash, backTo);
-                return;
+                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, !item.isFromOneTransactionReport);
+                if (!item.isFromOneTransactionReport) {
+                    return;
+                }
             }
 
             if (isTransactionMemberGroupListItemType(item)) {
