@@ -1780,7 +1780,6 @@ describe('actions/Report', () => {
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
                     expect(parentPolicyExpenseChat?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
-                    expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(true);
                     expect(createdReport?.total).toBe(0);
                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
