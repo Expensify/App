@@ -41,4 +41,4 @@ function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
 
-export {startSpan, endSpan, getSpan};
+export {startSpan, endSpan, getSpan, cancelSpan};
