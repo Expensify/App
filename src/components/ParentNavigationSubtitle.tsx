@@ -14,7 +14,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchMoneyRequestReportParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -26,6 +26,9 @@ import TextLink from './TextLink';
 
 type ParentNavigationSubtitleProps = {
     parentNavigationSubtitleData: ParentNavigationSummaryParams;
+
+    /** Current Report ID (to check hasParentAccess) */
+    reportID?: string;
 
     /** parent Report ID */
     parentReportID?: string;
@@ -60,6 +63,7 @@ type ParentNavigationSubtitleProps = {
 
 function ParentNavigationSubtitle({
     parentNavigationSubtitleData,
+    reportID = '',
     parentReportActionID,
     parentReportID = '',
     pressableStyles,
@@ -82,13 +86,12 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
-    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
-    const hasAccessToParentReport = canCurrentUserOpenReport(parentReport, isParentReportArchived);
+    const hasAccessToParentReport = currentReport?.hasParentAccess !== false || isReportManager(currentReport);
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         const FullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
 
