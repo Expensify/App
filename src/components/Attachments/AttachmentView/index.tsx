@@ -131,11 +131,11 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery'] as const);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery'] as const);
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
@@ -292,7 +292,7 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={expensifyIcons.ArrowCircleClockwise}
+                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
@@ -312,7 +312,7 @@ function AttachmentView({
                     <>
                         <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={expensifyIcons.Gallery}
+                                icon={icons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}

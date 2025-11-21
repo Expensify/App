@@ -32,6 +32,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -124,7 +125,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 <MenuItem
                                     isAnonymousAction
                                     title={translate('common.download')}
-                                    icon={Expensicons.Download}
+                                    icon={icons.Download}
                                     onPress={() => qrCodeRef.current?.download?.()}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                 />

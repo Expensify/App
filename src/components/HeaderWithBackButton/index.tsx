@@ -75,6 +75,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -272,7 +273,7 @@ function HeaderWithBackButton({
                                         accessibilityLabel={translate('common.download')}
                                     >
                                         <Icon
-                                            src={Expensicons.Download}
+                                            src={icons.Download}
                                             fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                         />
                                     </PressableWithoutFeedback>

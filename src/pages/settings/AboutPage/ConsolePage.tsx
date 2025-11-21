@@ -42,6 +42,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'UploadAlt'] as const);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -182,7 +183,7 @@ function ConsolePage() {
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
                     large
-                    icon={Expensicons.Download}
+                    icon={icons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
                 {isAuthenticated && (
@@ -190,7 +191,7 @@ function ConsolePage() {
                         text={translate('initialSettingsPage.debugConsole.shareLog')}
                         onPress={shareLogs}
                         large
-                        icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
+                        icon={!isGeneratingLogsFile ? icons.UploadAlt : undefined}
                         style={[styles.flex1, styles.ml1]}
                         isLoading={isGeneratingLogsFile}
                     />

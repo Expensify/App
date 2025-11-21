@@ -69,6 +69,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -162,7 +163,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         <MenuItem
                             isAnonymousAction
                             title={translate('common.download')}
-                            icon={Expensicons.Download}
+                            icon={icons.Download}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />

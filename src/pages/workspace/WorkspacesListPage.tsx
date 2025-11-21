@@ -124,6 +124,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -338,7 +339,7 @@ function WorkspacesListPage() {
 
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
-                    icon: Expensicons.Building,
+                    icon: icons.Building,
                     text: translate('workspace.common.goToWorkspace'),
                     onSelected: item.action,
                 },
@@ -464,6 +465,7 @@ function WorkspacesListPage() {
             );
         },
         [
+            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,

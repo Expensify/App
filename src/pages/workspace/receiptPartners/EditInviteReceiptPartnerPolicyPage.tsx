@@ -5,8 +5,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -14,7 +12,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +45,7 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['SewerDino'] as const);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -263,7 +262,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.SewerDino}
+                icon={illustrations.SewerDino}
                 iconWidth={variables.uberEmptyListIconWidth}
                 iconHeight={variables.uberEmptyListIconHeight}
                 title={translate('workspace.receiptPartners.uber.emptyContent.title')}
@@ -274,7 +273,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5],
+        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5, illustrations.SewerDino],
     );
 
     return (

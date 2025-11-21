@@ -38,6 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
@@ -75,7 +76,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={expensifyIcons.ImageCropSquareMask}
                     name={icon.name}
                 />
             );

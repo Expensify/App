@@ -103,6 +103,7 @@ function AvatarWithImagePicker({
     editIcon = Expensicons.Pencil,
     name = '',
 }: AvatarWithImagePickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -174,7 +175,7 @@ function AvatarWithImagePicker({
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
         const menuItems: MenuItem[] = [
             {
-                icon: Expensicons.Upload,
+                icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     if (isSafari()) {
@@ -269,6 +270,7 @@ function AvatarWithImagePicker({
                                         editIcon={editIcon}
                                         size={size}
                                         type={type}
+                                        disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}
