@@ -27,9 +27,9 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
         [],
     );
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <ButtonWithDropdownMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             options={options}
         />

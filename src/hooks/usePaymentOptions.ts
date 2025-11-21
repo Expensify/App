@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -22,6 +21,7 @@ import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';

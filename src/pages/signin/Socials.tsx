@@ -1,16 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import variables from '@styles/variables';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type Social = {
     iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
@@ -53,7 +51,7 @@ function Socials() {
                     href={social.link}
                     onPress={(e) => {
                         e?.preventDefault();
-                        Link.openExternalLink(social.link);
+                        openExternalLink(social.link);
                     }}
                     accessible={false}
                     style={[styles.mr1, styles.mt1]}
