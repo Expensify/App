@@ -7390,14 +7390,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Witamy w New Expensify!',
-        subtitle: 'Ma wszystko, co kochasz w naszej klasycznej wersji, wraz z całą masą ulepszeń, które jeszcze bardziej ułatwią Ci życie:',
+        subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
         confirmText: 'Zaczynajmy!',
         features: {
-            chat: 'Czatuj przy każdym wydatku, aby szybko wyjaśnić wątpliwości',
-            search: 'Bardziej zaawansowane wyszukiwanie na urządzeniach mobilnych, w przeglądarce i na komputerach',
-            concierge: 'Wbudowana Concierge AI do automatyzacji Twoich wydatków',
+            chat: '<strong>Czatuj bezpośrednio na dowolnym wydatku</strong>, raporcie lub przestrzeni roboczej',
+            scanReceipt: '<strong>Skanuj paragony</strong> i otrzymuj zwrot pieniędzy',
+            crossPlatform: 'Rób <strong>wszystko</strong> z telefonu lub przeglądarki',
         },
-        helpText: 'Wypróbuj 2-minutowe demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
