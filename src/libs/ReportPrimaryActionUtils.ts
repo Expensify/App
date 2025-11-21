@@ -235,7 +235,6 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
         return false;
     }
 
-    // Don't allow unhold on reports in CLOSED/DONE state
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
         return false;
