@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -20,7 +20,7 @@ import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.HOLD>
-    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
