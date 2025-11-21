@@ -76,6 +76,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -85,7 +86,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = policy ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
-    const isSplitAvailable = currentReport && transaction && isSplitAction(currentReport, [transaction], currentPolicy);
+
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -138,12 +140,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
             if (!childTransactions.length && deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
-                Navigation.dismissModal();
+                Navigation.dismissToFirstRHP();
                 return;
             }
             // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
             if (childTransactions.length && deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-                Navigation.dismissModal();
+                Navigation.dismissToFirstRHP();
                 return;
             }
             // When we try to save one split during splits creation and if the data is not identical to the original transaction we should show the error
@@ -171,7 +173,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
         if (deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-            Navigation.dismissModal();
+            Navigation.dismissToFirstRHP();
             return;
         }
 
