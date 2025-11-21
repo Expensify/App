@@ -16,8 +16,21 @@ import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
 
-let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
+
+// Batch system for log transmission
+type PendingLogRequest = {
+    parameters: LogCommandParameters;
+    resolve: (value: {requestID: string}) => void;
+    reject: (error: Error) => void;
+    timestamp: number;
+};
+
+let logBatch: PendingLogRequest[] = [];
+let batchTimer: ReturnType<typeof setTimeout> | null = null;
+const BATCH_SEND_INTERVAL = 30 * 1000; // 30 seconds
+const MAX_BATCH_SIZE = 50; // Maximum logs per batch
+const MAX_BATCH_AGE = 60 * 1000; // Maximum age for a log in batch (60 seconds)
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
@@ -44,12 +57,106 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
     return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
+/**
+ * Send all batched logs to the server and resolve pending promises
+ */
+function sendBatchedLogs(): Promise<void> {
+    if (logBatch.length === 0) {
+        return Promise.resolve();
+    }
+
+    // Take all current logs from the batch
+    const currentBatch = logBatch;
+    logBatch = [];
+
+    // Combine all log packets into one
+    const combinedLogPackets = currentBatch.map(item => item.parameters.logPacket).join('\n');
+    const batchParameters: LogCommandParameters = {
+        logPacket: combinedLogPackets,
+        expensifyCashAppVersion: currentBatch.at(0)?.parameters.expensifyCashAppVersion ?? `expensifyCash[${getPlatform()}]${pkg.version}`,
+    };
+
+    // Send the combined logs and resolve/reject all pending promises
+    return LogCommand(batchParameters)
+        .then((response) => {
+            // Resolve all pending log requests with the server's request ID
+            currentBatch.forEach((item) => {
+                item.resolve(response);
+            });
+        })
+        .catch((error: unknown) => {
+            console.debug('[Log] Failed to send batched logs:', error);
+            // Reject all pending log requests with the error
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            currentBatch.forEach((item) => {
+                item.reject(errorObj);
+            });
+        });
+}
+
+/**
+ * Flush batched logs immediately
+ */
+function flushBatchedLogs(): Promise<void> {
+    if (batchTimer) {
+        clearTimeout(batchTimer);
+        batchTimer = null;
+    }
+    return sendBatchedLogs();
+}
+
+/**
+ * Start the batch timer if not already running
+ */
+function startBatchTimer(): void {
+    if (batchTimer) {
+        return;
+    }
+
+    batchTimer = setTimeout(() => {
+        sendBatchedLogs().then(() => {
+            batchTimer = null;
+            
+            // Restart timer if there are more logs in the batch
+            if (logBatch.length > 0) {
+                startBatchTimer();
+            }
+        });
+    }, BATCH_SEND_INTERVAL);
+}
+
+/**
+ * Add log parameters to the batch and return a promise that resolves with the actual request ID
+ */
+function addToBatch(parameters: LogCommandParameters): Promise<{requestID: string}> {
+    return new Promise((resolve, reject) => {
+        logBatch.push({
+            parameters,
+            resolve,
+            reject,
+            timestamp: Date.now(),
+        });
+
+        // Check if we should send the batch immediately
+        const shouldFlushImmediately = 
+            logBatch.length >= MAX_BATCH_SIZE || 
+            (logBatch.length > 0 && Date.now() - (logBatch.at(0)?.timestamp ?? Date.now()) > MAX_BATCH_AGE);
+
+        if (shouldFlushImmediately) {
+            flushBatchedLogs();
+        } else {
+            startBatchTimer();
+        }
+    });
+}
+
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
 type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
 
 /**
  * Network interface for logger.
+ * Now properly returns the actual request ID from the server after batching.
  */
 function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOptions): Promise<{requestID: string}> {
     const requestParams = params as RequestParams;
@@ -59,9 +166,15 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
-    clearTimeout(timeout);
-    timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-    return LogCommand(requestParams);
+    
+    // Add log to batch and return the promise that will resolve with the actual request ID
+    const batchParams: LogCommandParameters = {
+        logPacket: params.logPacket,
+        expensifyCashAppVersion: requestParams.expensifyCashAppVersion,
+    };
+    
+    // Return the promise from addToBatch which will resolve when the batch is sent
+    return addToBatch(batchParams);
 }
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
@@ -83,7 +196,6 @@ const Log = new Logger({
     maxLogLinesBeforeFlush: 150,
     isDebug: true,
 });
-timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 // eslint-disable-next-line no-restricted-properties
 const appGroupName = HybridAppModule.isHybridApp() ? 'group.com.expensify' : 'group.com.expensify.new';
