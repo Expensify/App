@@ -219,7 +219,6 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
