@@ -10349,7 +10349,12 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transacti
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {}
+function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
+    const transactionsByIouReportID = getReportTransactions(iouReportID);
+    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+    return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
+}
+
 /**
  * Checks if thread replies should be displayed
  */
