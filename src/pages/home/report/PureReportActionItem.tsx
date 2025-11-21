@@ -58,7 +58,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -100,6 +100,7 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
@@ -130,6 +131,7 @@ import {
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isSystemUserMentioned,
     isTagModificationAction,
     isTaskAction,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
@@ -905,7 +907,10 @@ function PureReportActionItem({
         const actionableMentionWhisperOptions = [];
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
-        if (isReportInPolicy && (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID))) {
+        // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
+        const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyUser(policy, login)) ?? false;
+
+        if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
@@ -1322,6 +1327,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldDeleteMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {

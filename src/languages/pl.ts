@@ -269,6 +269,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -1579,6 +1580,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
             educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
             holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
+            approveExpenseTitle: 'Zatwierdź inne wydatki, podczas gdy wydatki wstrzymane pozostają przypisane do Ciebie.',
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
@@ -3690,7 +3692,7 @@ ${
             expensifyCard: 'Expensify Card',
             companyCards: 'Karty firmowe',
             workflows: 'Przepływy pracy',
-            workspace: 'Workspace',
+            workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
@@ -5300,6 +5302,7 @@ ${
             issueCard: 'Wydaj kartę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
+                inviteNewMember: 'Zaproś nowego członka',
                 findMember: 'Znajdź członka',
                 chooseCardType: 'Wybierz typ karty',
                 physicalCard: 'Fizyczna karta',
@@ -6284,6 +6287,7 @@ ${
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodał podatek "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
