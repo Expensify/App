@@ -351,7 +351,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID]);
+    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
