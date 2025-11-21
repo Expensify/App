@@ -10,7 +10,6 @@ If you have a private domain (e.g., yourcompany.com), you can verify it in Expen
 
 # Verify Your Domain
 
-To unlock advanced security settings, the domain must be verified through DNS.
 
 ## Steps to verify your domain
 
