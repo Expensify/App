@@ -933,6 +933,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
+        visibilityVisible: {
+            ...visibility.visible,
+        },
+
         loadingVBAAnimation: {
             width: 140,
             height: 140,
