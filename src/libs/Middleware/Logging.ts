@@ -92,16 +92,16 @@ const Logging: Middleware = (response, request) => {
                 request,
             };
 
+            // If the command that failed is Log it's possible that the next call to Log may also fail.
+            // This will lead to infinitely complex log params that can eventually crash the app.
+            if (request.command === 'Log') {
+                delete logParams.request;
+            }
+
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 // Cancelled requests are normal and can happen when a user logs out.
                 Log.info('[Network] API request error: Request canceled', false, logParams);
             } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                // If the command that failed is Log it's possible that the next call to Log may also fail.
-                // This will lead to infinitely complex log params that can eventually crash the app.
-                if (request.command === 'Log') {
-                    delete logParams.request;
-                }
-
                 // Log when we get a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
