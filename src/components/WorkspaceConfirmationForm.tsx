@@ -4,6 +4,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -58,6 +59,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -125,7 +127,9 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 keyboardShouldPersistTaps="always"
             >
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
+                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>
+                        {isRestrictedPolicyCreation ? translate('workspace.emptyWorkspace.restrictedPolicySubtitle') : translate('workspace.emptyWorkspace.subtitle')}
+                    </Text>
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}

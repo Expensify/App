@@ -4902,6 +4902,8 @@ ${amount} para ${merchant} - ${date}`,
         emptyWorkspace: {
             title: 'No tienes espacios de trabajo',
             subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
+            restrictedPolicySubtitle:
+                'Su empresa restringe la creación de espacios de trabajo por usuarios que no son administradores. Puede solicitar acceso a un espacio de trabajo existente o contactar a un administrador interno para más información.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
