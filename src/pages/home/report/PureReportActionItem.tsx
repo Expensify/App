@@ -118,6 +118,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -130,6 +131,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -171,7 +173,7 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -772,6 +774,35 @@ function PureReportActionItem({
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                },
+            }));
+        }
+
+        if (isConciergeDescriptionOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+
+            if (isResolvedConciergeDescriptionOptions(action)) {
+                return [];
+            }
+
+            if (!reportActionReportID) {
+                return [];
+            }
+
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
+                onPress: () => {
+                    resolveConciergeDescriptionOptions(
+                        reportActionReportID,
+                        reportID,
+                        action.reportActionID,
+                        option,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                    );
                 },
             }));
         }
@@ -1464,8 +1495,15 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isActionableMentionWhisper(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            layout={
+                                                isActionableTrackExpense(action) ||
+                                                isConciergeCategoryOptions(action) ||
+                                                isConciergeDescriptionOptions(action) ||
+                                                isActionableMentionWhisper(action)
+                                                    ? 'vertical'
+                                                    : 'horizontal'
+                                            }
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeDescriptionOptions(action)}
                                         />
                                     )}
                                 </View>
