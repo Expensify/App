@@ -1370,6 +1370,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuchen Sie es später erneut.',
             genericSmartscanFailureMessage: 'Transaktion fehlt Felder',
+            genericDEWSubmitFailureMessage: 'Fehler beim dynamischen externen Workflow-Einreichung',
             duplicateWaypointsErrorMessage: 'Bitte entfernen Sie doppelte Wegpunkte',
             atLeastTwoDifferentWaypoints: 'Bitte geben Sie mindestens zwei verschiedene Adressen ein.',
             splitExpenseMultipleParticipantsErrorMessage:

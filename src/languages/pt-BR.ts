@@ -1364,6 +1364,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Por favor, tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Por favor, tente novamente mais tarde.',
             genericSmartscanFailureMessage: 'A transação está com campos faltando',
+            genericDEWSubmitFailureMessage: 'Falha no envio do fluxo de trabalho externo dinâmico',
             duplicateWaypointsErrorMessage: 'Por favor, remova os pontos de passagem duplicados.',
             atLeastTwoDifferentWaypoints: 'Por favor, insira pelo menos dois endereços diferentes.',
             splitExpenseMultipleParticipantsErrorMessage: 'Uma despesa não pode ser dividida entre um espaço de trabalho e outros membros. Por favor, atualize sua seleção.',

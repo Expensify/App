@@ -1373,6 +1373,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
             genericSmartscanFailureMessage: 'La transaction comporte des champs manquants',
+            genericDEWSubmitFailureMessage: 'Échec de la soumission du flux de travail externe dynamique',
             duplicateWaypointsErrorMessage: 'Veuillez supprimer les points de passage en double',
             atLeastTwoDifferentWaypoints: 'Veuillez entrer au moins deux adresses différentes.',
             splitExpenseMultipleParticipantsErrorMessage: "Une dépense ne peut pas être partagée entre un espace de travail et d'autres membres. Veuillez mettre à jour votre sélection.",
