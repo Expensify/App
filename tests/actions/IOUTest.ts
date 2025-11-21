@@ -120,6 +120,7 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissToFirstRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
@@ -4019,7 +4020,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: true,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4098,7 +4107,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: true,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4161,7 +4178,15 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4256,7 +4281,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4381,7 +4414,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4455,7 +4496,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4606,7 +4655,15 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4699,7 +4756,15 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4776,7 +4841,16 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                navigateToAfterDelete = deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                    isSingleTransactionView: true,
+                });
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4824,7 +4898,15 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                navigateToAfterDelete = deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4888,19 +4970,27 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
-            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, undefined, [], selectedTransactionIDs);
-            deleteMoneyRequest(
-                transaction2.transactionID,
-                moneyRequestAction2,
-                {},
-                {},
-                expenseReport,
-                expenseReport,
-                undefined,
-                undefined,
-                [transaction1.transactionID],
+            deleteMoneyRequest({
+                transactionID: transaction1.transactionID,
+                reportAction: moneyRequestAction1,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                isChatIOUReportArchived: undefined,
                 selectedTransactionIDs,
-            );
+            });
+            deleteMoneyRequest({
+                transactionID: transaction2.transactionID,
+                reportAction: moneyRequestAction2,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                isChatIOUReportArchived: undefined,
+                transactionIDsPendingDeletion: [transaction1.transactionID],
+                selectedTransactionIDs,
+            });
 
             await waitForBatchedUpdates();
 
@@ -7793,6 +7883,7 @@ describe('actions/IOU', () => {
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: 'merchant',
                     billable: false,
+                    reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
             });
@@ -9987,10 +10078,10 @@ describe('actions/IOU', () => {
             expect(nextStep?.message).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment, which should mention the admin
-            // The message should equal "Waiting for Admin User to pay"
+            // the next step should be about payment, which should mention "you" since the admin is the payer
+            // The message should equal "Waiting for you to pay %expenses."
             const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for an admin to pay %expenses.');
+            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
         });
     });
 
