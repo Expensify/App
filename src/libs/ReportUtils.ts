@@ -369,6 +369,7 @@ type OptimisticExpenseReport = Pick<
     | 'nonReimbursableTotal'
     | 'unheldNonReimbursableTotal'
     | 'parentReportID'
+    | 'created'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
     | 'participants'
@@ -388,6 +389,7 @@ type OptimisticNewReport = Pick<
     | 'total'
     | 'nonReimbursableTotal'
     | 'parentReportID'
+    | 'created'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
     | 'participants'
@@ -772,6 +774,7 @@ type OptimisticIOUReport = Pick<
     | 'unheldNonReimbursableTotal'
     | 'reportName'
     | 'parentReportID'
+    | 'created'
     | 'lastVisibleActionCreated'
     | 'fieldList'
     | 'parentReportActionID'
@@ -6504,6 +6507,7 @@ function buildOptimisticIOUReport(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
+    const created = DateUtils.getDBTime();
 
     const participants: Participants = {
         [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -6528,7 +6532,8 @@ function buildOptimisticIOUReport(
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
         parentReportID: chatReportID,
-        lastVisibleActionCreated: DateUtils.getDBTime(),
+        created,
+        lastVisibleActionCreated: created,
         fieldList: policy?.fieldList,
         parentReportActionID,
     };
@@ -6585,6 +6590,7 @@ function buildOptimisticInvoiceReport(
     currency: string,
 ): OptimisticExpenseReport {
     const formattedTotal = convertToDisplayString(total, currency);
+    const created = DateUtils.getDBTime();
     const invoiceReport = {
         reportID: generateReportID(),
         chatReportID,
@@ -6604,7 +6610,8 @@ function buildOptimisticInvoiceReport(
             },
         },
         parentReportID: chatReportID,
-        lastVisibleActionCreated: DateUtils.getDBTime(),
+        created,
+        lastVisibleActionCreated: created,
     };
 
     if (currentUserAccountID) {
@@ -6686,6 +6693,8 @@ function buildOptimisticExpenseReport(
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
+    const created = DateUtils.getDBTime();
+
     const expenseReport: OptimisticExpenseReport = {
         reportID: optimisticIOUReportID ?? generateReportID(),
         chatReportID,
@@ -6707,7 +6716,8 @@ function buildOptimisticExpenseReport(
             },
         },
         parentReportID: chatReportID,
-        lastVisibleActionCreated: DateUtils.getDBTime(),
+        created,
+        lastVisibleActionCreated: created,
         parentReportActionID,
     };
 
@@ -6742,6 +6752,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         total: 0,
         nonReimbursableTotal: 0,
         participants: {},
+        created: timeOfCreation,
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         parentReportID: parentReport?.reportID,
