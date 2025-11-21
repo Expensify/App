@@ -2065,7 +2065,8 @@ ${merchant}的${amount} - ${date}`,
         makeOrTrackPaymentsDescription: '添加授权付款人以便在Expensify中进行付款或跟踪在其他地方进行的付款。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
-        customApprovalWorkflowEnabledConciergeOnly: '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
         editor: {
             submissionFrequency: '选择Expensify在分享无错误支出前应等待的时间。',
         },
