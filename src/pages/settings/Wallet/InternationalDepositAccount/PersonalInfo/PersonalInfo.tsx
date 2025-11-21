@@ -33,16 +33,13 @@ function PersonalInfoPage() {
         const bankAccounts = plaidData?.bankAccounts ?? [];
 
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
-
-        if (selectedPlaidBankAccount) {
-            const bankAccountWithToken = selectedPlaidBankAccount.plaidAccessToken
-                ? selectedPlaidBankAccount
-                : {
-                      ...selectedPlaidBankAccount,
-                      plaidAccessToken: plaidData?.plaidAccessToken ?? '',
-                  };
-            addPersonalBankAccount(bankAccountWithToken);
-        }
+        const bankAccountWithToken = selectedPlaidBankAccount?.plaidAccessToken
+            ? selectedPlaidBankAccount
+            : {
+                  ...selectedPlaidBankAccount,
+                  plaidAccessToken: plaidData?.plaidAccessToken ?? '',
+              };
+        addPersonalBankAccount({...personalBankAccount, ...bankAccountWithToken});
     }, [plaidData, personalBankAccount]);
 
     const skipSteps = useMemo(() => getSkippedStepsPersonalInfo(privatePersonalDetails), [privatePersonalDetails]);
@@ -76,7 +73,7 @@ function PersonalInfoPage() {
     return (
         <InteractiveStepWrapper
             wrapperID={PersonalInfoPage.displayName}
-            headerTitle={translate('personalInfoStep.personalInfo')}
+            headerTitle={translate('bankAccount.addBankAccount')}
             handleBackButtonPress={handleBackButtonPress}
         >
             <SubStep
