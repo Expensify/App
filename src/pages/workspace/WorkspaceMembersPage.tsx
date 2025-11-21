@@ -9,7 +9,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
@@ -20,7 +19,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -82,6 +81,16 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {accountID: number; login: string};
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
+    const {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} = useMemoizedLazyExpensifyIcons([
+        'Download',
+        'FallbackAvatar',
+        'MakeAdmin',
+        'Plus',
+        'RemoveMembers',
+        'Table',
+        'User',
+        'UserEye',
+    ] as const);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -155,8 +164,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
@@ -395,19 +404,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         return result;
     }, [
-        isOffline,
-        currentUserLogin,
-        formatPhoneNumber,
-        invitedPrimaryToSecondaryLogins,
-        personalDetails,
-        policy?.owner,
-        policy?.ownerAccountID,
         policy?.employeeList,
+        policy?.ownerAccountID,
+        policy?.owner,
         policyMemberEmailsToAccountIDs,
-        policyOwner,
+        isOffline,
+        personalDetails,
+        isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
-        isPolicyAdmin,
+        formatPhoneNumber,
+        FallbackAvatar,
+        invitedPrimaryToSecondaryLogins,
+        policyOwner,
+        currentUserLogin,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -595,7 +605,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
+    }, [isPolicyAdmin, Table, translate, Download, isAccountLocked, isOffline, policyID, showLockedAccountModal]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {

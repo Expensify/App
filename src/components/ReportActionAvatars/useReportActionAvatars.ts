@@ -1,7 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -47,8 +48,10 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
 }) {
+    const {FallbackAvatar} = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
@@ -197,7 +200,7 @@ function useReportActionAvatars({
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
-    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
+    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isInvoiceReportActor = isAInvoiceReport && (!actorAccountID || displayAllActors || isAReportPreviewAction);

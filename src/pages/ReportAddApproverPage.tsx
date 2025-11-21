@@ -2,10 +2,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -32,8 +32,9 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
 
 function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
+    const {FallbackAvatar} = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const {isBetaEnabled} = usePermissions();
@@ -67,7 +68,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -80,7 +81,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, formatPhoneNumber]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

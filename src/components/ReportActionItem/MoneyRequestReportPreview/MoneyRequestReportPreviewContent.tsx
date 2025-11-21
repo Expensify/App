@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,6 +23,7 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -122,6 +122,7 @@ function MoneyRequestReportPreviewContent({
     onPress,
     forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
+    const Expensicons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'BackArrow', 'ArrowRight'] as const);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
@@ -137,7 +138,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -289,7 +290,7 @@ function MoneyRequestReportPreviewContent({
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true, formatPhoneNumber});
         }
 
         if (isApproved) {
@@ -300,7 +301,7 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
@@ -322,6 +323,7 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
         managerID,
+        formatPhoneNumber,
     ]);
 
     /*
