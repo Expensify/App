@@ -93,9 +93,13 @@ const Logging: Middleware = (response, request) => {
             };
 
             // If the command that failed is Log it's possible that the next call to Log may also fail.
-            // This will lead to infinitely complex log params that can eventually crash the app.
+            // This will lead to infinitely growing logPacket param inside request.data.logPacket.
+            // To escape it, we pass only command and type info as logParams.request.
             if (request.command === 'Log') {
-                delete logParams.request;
+                logParams.request = {
+                    command: request.command,
+                    type: request.type,
+                };
             }
 
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
