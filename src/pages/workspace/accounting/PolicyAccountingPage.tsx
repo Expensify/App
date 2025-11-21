@@ -92,9 +92,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyCard'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
     const accountingIntegrations = Object.values(connectionNames);

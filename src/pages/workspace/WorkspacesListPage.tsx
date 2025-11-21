@@ -124,7 +124,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -329,7 +329,6 @@ function WorkspacesListPage() {
     /**
      * Gets the menu item for each workspace
      */
-    const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
     const getWorkspaceMenuItem = useCallback(
         ({item, index}: GetWorkspaceMenuItem) => {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
