@@ -9479,87 +9479,88 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
-    it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
-        await Onyx.clear();
+        it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
+            await Onyx.clear();
 
-        const copilotEmail = 'copilot@example.com';
-        const delegatedAccess = {
-            delegate: copilotEmail,
-            delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
-        };
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
 
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
 
-        const expenseReport: Report = {
-            ...createExpenseReport(1234),
-            hasOutstandingChildRequest: true,
-        };
+            const expenseReport: Report = {
+                ...createExpenseReport(1234),
+                hasOutstandingChildRequest: true,
+            };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
-        expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
-        const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
-        expect(requiresAttention).toBe(true);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            expect(requiresAttention).toBe(true);
 
-        const reasonForOptionList = reasonForReportToBeInOptionList({
-            report: expenseReport,
-            chatReport: undefined,
-            currentReportId: undefined,
-            isInFocusMode: true,
-            betas: undefined,
-            doesReportHaveViolations: false,
-            excludeEmptyChats: false,
-            draftComment: undefined,
-            isReportArchived: undefined,
+            const reasonForOptionList = reasonForReportToBeInOptionList({
+                report: expenseReport,
+                chatReport: undefined,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: undefined,
+            });
+
+            expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            await Onyx.clear();
         });
 
-        expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+        it('should not surface a GBR when copiloted into an approver account with a report without outstanding child request', async () => {
+            await Onyx.clear();
 
-        await Onyx.clear();
-    });
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
 
-    it('should not surface a GBR when copiloted into an approver account with a report without outstanding child request', async () => {
-        await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
 
-        const copilotEmail = 'copilot@example.com';
-        const delegatedAccess = {
-            delegate: copilotEmail,
-            delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
-        };
+            const expenseReport: Report = {
+                ...createExpenseReport(1234),
+                isPinned: false,
+                isWaitingOnBankAccount: false,
+                hasOutstandingChildRequest: false,
+            };
 
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-        const expenseReport: Report = {
-            ...createExpenseReport(1234),
-            isPinned: false,
-            isWaitingOnBankAccount: false,
-            hasOutstandingChildRequest: false,
-        };
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            expect(reasonForAttention?.reason).toBe(undefined);
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            expect(requiresAttention).toBe(false);
 
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
-        expect(reasonForAttention?.reason).toBe(undefined);
+            const reasonForOptionList = reasonForReportToBeInOptionList({
+                report: expenseReport,
+                chatReport: undefined,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: undefined,
+            });
 
-        const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
-        expect(requiresAttention).toBe(false);
+            expect(reasonForOptionList).toBe(null);
 
-        const reasonForOptionList = reasonForReportToBeInOptionList({
-            report: expenseReport,
-            chatReport: undefined,
-            currentReportId: undefined,
-            isInFocusMode: true,
-            betas: undefined,
-            doesReportHaveViolations: false,
-            excludeEmptyChats: false,
-            draftComment: undefined,
-            isReportArchived: undefined,
+            await Onyx.clear();
         });
-
-        expect(reasonForOptionList).toBe(null);
-
-        await Onyx.clear();
     });
 });
