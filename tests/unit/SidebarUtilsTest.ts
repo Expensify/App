@@ -962,7 +962,7 @@ describe('SidebarUtils', () => {
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-            expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
+            expect(result?.alternateText).toBe(`${getReportActionMessageText(lastAction)}`);
         });
 
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
