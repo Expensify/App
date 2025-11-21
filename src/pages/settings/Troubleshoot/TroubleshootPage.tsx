@@ -69,13 +69,12 @@ function TroubleshootPage() {
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
-        if (!tryNewDot?.classicRedirect?.dismissed) {
+        const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
+        if (dismissedReasons?.length === 0) {
             return false;
         }
 
-        const dismissedReasons = tryNewDot.classicRedirect?.dismissedReasons;
-        let timestampToCheck: Date = tryNewDot.classicRedirect?.timestamp;
-
+        let timestampToCheck;
         if (dismissedReasons && dismissedReasons.length > 0) {
             const latestReason = dismissedReasons.reduce((latest, current) => {
                 const currentDate = current.timestamp;
@@ -91,7 +90,7 @@ function TroubleshootPage() {
 
         const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed, tryNewDot?.classicRedirect?.dismissedReasons]);
+    }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
