@@ -44,7 +44,7 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
@@ -94,7 +94,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                                 />
                             ) : (
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={icons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
                                     isButtonIcon

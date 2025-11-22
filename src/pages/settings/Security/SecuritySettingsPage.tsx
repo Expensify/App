@@ -57,7 +57,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ThreeDots', 'UserLock', 'UserPlus'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -147,7 +147,7 @@ function SecuritySettingsPage() {
             },
             {
                 translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: Expensicons.ArrowCollapse,
+                icon: icons.ArrowCollapse,
                 action: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -220,6 +220,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        icons.ArrowCollapse,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -258,7 +259,7 @@ function SecuritySettingsPage() {
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: Expensicons.ThreeDots,
+                        iconRight: icons.ThreeDots,
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,

@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -192,6 +193,7 @@ function PaymentMethodList({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
@@ -243,7 +245,7 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                        iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                             pressHandler({
@@ -354,7 +356,7 @@ function PaymentMethodList({
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
-                iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
             };
         });
@@ -376,6 +378,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         StyleUtils,
+        expensifyIcons.ThreeDots,
     ]);
 
     const onPressItem = useCallback(() => {

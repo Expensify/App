@@ -4,6 +4,7 @@ import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -427,7 +428,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -516,6 +517,7 @@ function MenuItem({
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
@@ -589,7 +591,7 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = (iconRight === undefined ? expensifyIcons.ArrowRight : iconRight) || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
@@ -949,7 +951,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={iconRight}
+                                                            src={iconRight === undefined ? expensifyIcons.ArrowRight : iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}

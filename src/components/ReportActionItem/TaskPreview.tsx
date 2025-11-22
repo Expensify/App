@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -13,6 +14,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -82,6 +84,8 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
@@ -178,7 +182,7 @@ function TaskPreview({
                     </View>
                 )}
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={expensifyIcons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                     additionalStyles={iconWrapperStyle}
                 />

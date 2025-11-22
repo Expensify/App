@@ -75,7 +75,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Download'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -223,7 +223,7 @@ function HeaderWithBackButton({
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
-                                src={Expensicons.BackArrow}
+                                src={icons.BackArrow}
                                 fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>

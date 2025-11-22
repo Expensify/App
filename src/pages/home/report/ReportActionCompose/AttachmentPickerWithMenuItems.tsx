@@ -137,7 +137,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Paperclip'] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -442,7 +442,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Collapse}
+                                                        src={icons.Collapse}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>
@@ -466,7 +466,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Expand}
+                                                        src={icons.Expand}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>

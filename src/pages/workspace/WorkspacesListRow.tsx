@@ -18,7 +18,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -128,6 +128,7 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
 
     const workspaceTypeIcon = useCallback(
@@ -300,7 +301,7 @@ function WorkspacesListRow({
                     {!isNarrow && (
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={expensifyIcons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
