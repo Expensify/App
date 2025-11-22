@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -104,8 +104,13 @@ function IOURequestStartPage({
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const isPolicyPerDiemRatesEmpty = isEmptyObject(perDiemCustomUnit?.rates);
     const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled) || (isFromGlobalCreate && doesPerDiemPolicyExist)) &&
+        !isPolicyPerDiemRatesEmpty;
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
