@@ -1,30 +1,39 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {QBDNonReimbursableExportAccountType, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from './Localize';
 
-function getQBONonReimbursableExportAccountType(translate: LocalizedTranslate, exportDestination: QBONonReimbursableExportAccountType | undefined): string {
+function getQBONonReimbursableExportAccountType(exportDestination: QBONonReimbursableExportAccountType | undefined): string {
     switch (exportDestination) {
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
-            return translate('workspace.qbo.bankAccount');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbo.bankAccount');
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-            return translate('workspace.qbo.creditCardAccount');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbo.creditCardAccount');
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
-            return translate('workspace.qbo.accountsPayable');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbo.accountsPayable');
         default:
-            return translate('workspace.qbo.account');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbo.account');
     }
 }
 
-function getQBDNonReimbursableExportAccountType(translate: LocalizedTranslate, exportDestination: QBDNonReimbursableExportAccountType | undefined): string {
+function getQBDNonReimbursableExportAccountType(exportDestination: QBDNonReimbursableExportAccountType | undefined): string {
     switch (exportDestination) {
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK:
-            return translate('workspace.qbd.bankAccount');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbd.bankAccount');
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-            return translate('workspace.qbd.creditCardAccount');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbd.creditCardAccount');
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
-            return translate('workspace.qbd.accountsPayable');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbd.accountsPayable');
         default:
-            return translate('workspace.qbd.account');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('workspace.qbd.account');
     }
 }
 

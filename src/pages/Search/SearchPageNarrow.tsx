@@ -1,11 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -153,17 +152,6 @@ function SearchPageNarrow({
         }
     }, []);
 
-    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
-    useEffect(() => {
-        if (!searchRouterListVisible) {
-            return;
-        }
-
-        addRouteKey(route.key);
-
-        return () => removeRouteKey(route.key);
-    }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
-
     if (!queryJSON) {
         return (
             <ScreenWrapper
@@ -190,7 +178,7 @@ function SearchPageNarrow({
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
@@ -279,7 +267,7 @@ function SearchPageNarrow({
                         />
                     </View>
                 )}
-                {shouldShowFooter && !searchRouterListVisible && (
+                {shouldShowFooter && (
                     <SearchPageFooter
                         count={footerData.count}
                         total={footerData.total}

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import BlockingView from './BlockingView';
@@ -33,7 +33,6 @@ type FullPageErrorViewProps = {
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
 
     if (shouldShow) {
         return (
@@ -43,7 +42,7 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
                     testID={testID}
                 >
                     <BlockingView
-                        icon={illustrations.BrokenMagnifyingGlass}
+                        icon={Illustrations.BrokenMagnifyingGlass}
                         iconWidth={variables.errorPageIconWidth}
                         iconHeight={variables.errorPageIconHeight}
                         title={title}

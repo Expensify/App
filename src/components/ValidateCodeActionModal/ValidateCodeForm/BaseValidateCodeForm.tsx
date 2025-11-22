@@ -9,6 +9,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
@@ -20,8 +21,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
-import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -116,8 +115,6 @@ function BaseValidateCodeForm({
     const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
-    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
-
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
@@ -126,12 +123,13 @@ function BaseValidateCodeForm({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
-    const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
+    const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const clearDefaultValidationCodeError = useCallback(() => {
         // Clear "Failed to send magic code" error
@@ -187,14 +185,6 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!isCountdownRunning) {
-            return;
-        }
-
-        countdownRef.current?.resetCountdown();
-    }, [isCountdownRunning]);
-
-    useEffect(() => {
         if (!validateCodeSent) {
             return;
         }
@@ -209,14 +199,24 @@ function BaseValidateCodeForm({
         }
     }, [validateCodeSent, wideRHPRouteKeys.length]);
 
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
+                setTimeRemaining(timeRemaining - 1);
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [timeRemaining]);
+
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
-        countdownRef.current?.resetCountdown();
-        setIsCountdownRunning(true);
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
@@ -274,11 +274,7 @@ function BaseValidateCodeForm({
         return getLatestErrorMessage(account ?? {});
     }, [canShowError, formError, account, translate]);
 
-    const shouldShowTimer = isCountdownRunning && !isOffline;
-
-    const handleCountdownFinish = useCallback(() => {
-        setIsCountdownRunning(false);
-    }, []);
+    const shouldShowTimer = timeRemaining > 0 && !isOffline;
 
     // latestValidateCodeError only holds an error related to bad magic code
     // while validateError holds flow-specific errors
@@ -298,9 +294,10 @@ function BaseValidateCodeForm({
             />
             {shouldShowTimer && (
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
-                    <ValidateCodeCountdown
-                        ref={countdownRef}
-                        onCountdownFinish={handleCountdownFinish}
+                    <RenderHTML
+                        html={translate('validateCodeForm.requestNewCode', {
+                            timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                        })}
                     />
                 </View>
             )}

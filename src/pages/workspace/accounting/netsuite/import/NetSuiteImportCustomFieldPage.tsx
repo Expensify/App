@@ -5,13 +5,13 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,11 +67,9 @@ function NetSuiteImportCustomFieldPage({
         params: {importCustomField},
     },
 }: NetSuiteImportCustomFieldPageProps) {
-    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
@@ -81,7 +79,7 @@ function NetSuiteImportCustomFieldPage({
             <WorkspaceEmptyStateSection
                 shouldStyleAsCard={false}
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={illustrations.FolderWithPapers}
+                icon={Illustrations.FolderWithPapers}
                 subtitleComponent={
                     <HelpLinkComponent
                         importCustomField={importCustomField}
@@ -93,7 +91,7 @@ function NetSuiteImportCustomFieldPage({
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
             />
         ),
-        [importCustomField, styles, translate, illustrations.FolderWithPapers],
+        [importCustomField, styles, translate],
     );
 
     const listHeaderComponent = useMemo(

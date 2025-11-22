@@ -2,13 +2,11 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
+import {isReportNotFound} from '@libs/ReportUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -47,8 +45,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         canBeMissing: false,
     });
-    const isReportArchived = useReportIsArchived(reportID);
-    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
@@ -64,14 +61,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const fetchReport = useCallback(() => {
         openReport(reportID, reportActionID);
     }, [reportID, reportActionID]);
-
-    // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
-    useEffect(() => {
-        if (canPerformWriteAction || !report || isEmptyObject(report)) {
-            return;
-        }
-        Navigation.dismissModal();
-    }, [canPerformWriteAction, report]);
 
     useEffect(() => {
         if (!reportID || !shouldFetchReport) {

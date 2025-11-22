@@ -1,12 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -125,7 +125,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         ],
     );
 
-    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
@@ -134,16 +134,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         localeCompare,
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
     });
-
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowSearchInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-        }),
-        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
-    );
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;
@@ -167,14 +157,16 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
-                        <SelectionList<WorkspaceListItemType>
+                        <SelectionList<WorkspaceListItem>
                             ListItem={UserListItem}
-                            data={data}
+                            sections={sections}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            textInputOptions={textInputOptions}
-                            initiallyFocusedItemKey={report.policyID}
+                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
+                            initiallyFocusedOptionKey={report.policyID}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                            disableMaintainingScrollPosition
                         />
                     )}
                 </>

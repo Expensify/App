@@ -1,7 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSettlementButtonPaymentMethods, handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
@@ -118,38 +115,34 @@ describe('getSettlementButtonPaymentMethods', () => {
     });
 
     it('should return payment method with wallet for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is true', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleWallet', {formattedAmount: ''}),
-            icon: icons.current.User,
+            icon: Expensicons.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method with personal bank account for PERSONAL_BANK_ACCOUNT when hasActivatedWallet is false', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, false, translate);
+        const result = getSettlementButtonPaymentMethods(false, translate);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: icons.current.User,
+            icon: Expensicons.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method with business bank account for BUSINESS_BANK_ACCOUNT', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate);
         expect(result[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: icons.current.Building,
+            icon: Expensicons.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         });
     });
 
     it('should return payment method elsewhere for ELSEWHERE', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate);
         expect(result[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]).toEqual({
             text: translate('iou.payElsewhere', {formattedAmount: ''}),
             icon: Expensicons.CheckCircle,
@@ -159,8 +152,7 @@ describe('getSettlementButtonPaymentMethods', () => {
     });
 
     it('should return all three payment methods', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate);
         expect(Object.keys(result)).toHaveLength(3);
         expect(result).toHaveProperty(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
         expect(result).toHaveProperty(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
@@ -171,8 +163,7 @@ describe('getSettlementButtonPaymentMethods', () => {
         {hasActivatedWallet: true, expectedPersonalKey: 'iou.settleWallet'},
         {hasActivatedWallet: false, expectedPersonalKey: 'iou.settlePersonal'},
     ])('should use correct texts for each payment method when hasActivatedWallet is $hasActivatedWallet', ({hasActivatedWallet, expectedPersonalKey}) => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, hasActivatedWallet, translate);
+        const result = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
         expect(translate).toHaveBeenCalledTimes(3);
         expect(translate).toHaveBeenCalledWith(expectedPersonalKey, {formattedAmount: ''});
         expect(translate).toHaveBeenCalledWith('iou.settleBusiness', {formattedAmount: ''});
@@ -185,38 +176,34 @@ describe('getSettlementButtonPaymentMethods', () => {
     it.each([
         {
             method: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            expectedIcon: Expensicons.User,
             expectedValue: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             description: 'PERSONAL_BANK_ACCOUNT',
         },
         {
             method: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            expectedIcon: Expensicons.Building,
             expectedValue: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             description: 'BUSINESS_BANK_ACCOUNT',
         },
         {
             method: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            expectedIcon: Expensicons.CheckCircle,
             expectedValue: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             description: 'ELSEWHERE',
         },
-    ])('should use correct icon and value for $description regardless of hasActivatedWallet', ({method, expectedValue}) => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const expectedIcons = {
-            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: icons.current.User,
-            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: icons.current.Building,
-            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: Expensicons.CheckCircle,
-        };
-        const resultWithWallet = getSettlementButtonPaymentMethods(icons.current, true, translate);
-        const resultWithoutWallet = getSettlementButtonPaymentMethods(icons.current, false, translate);
+    ])('should use correct icon and value for $description regardless of hasActivatedWallet', ({method, expectedIcon, expectedValue}) => {
+        const resultWithWallet = getSettlementButtonPaymentMethods(true, translate);
+        const resultWithoutWallet = getSettlementButtonPaymentMethods(false, translate);
         for (const result of [resultWithWallet, resultWithoutWallet]) {
             const paymentMethod = result[method];
-            expect(paymentMethod.icon).toBe(expectedIcons[expectedValue]);
+            expect(paymentMethod.icon).toBe(expectedIcon);
             expect(paymentMethod.value).toBe(expectedValue);
         }
     });
 
     it('should only set shouldUpdateSelectedIndex for elsewhere payment type', () => {
-        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'User'] as const));
-        const result = getSettlementButtonPaymentMethods(icons.current, true, translate);
+        const result = getSettlementButtonPaymentMethods(true, translate);
         expect(result[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].shouldUpdateSelectedIndex).toBe(false);

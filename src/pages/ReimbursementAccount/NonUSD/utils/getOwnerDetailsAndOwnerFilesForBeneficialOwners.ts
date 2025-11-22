@@ -21,11 +21,10 @@ const {
     CODICE_FISCALE,
     RESIDENTIAL_ADDRESS,
     FULL_NAME,
-    NATIONALITY,
     PREFIX,
 } = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY];
+const ownerDetailsFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
 const ownerFilesFields = [PROOF_OF_OWNERSHIP, COPY_OF_ID, ADDRESS_PROOF, CODICE_FISCALE];
 
 function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
@@ -35,7 +34,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
     for (const ownerKey of ownerKeys) {
         const ownerDetailsFullNameKey = `${PREFIX}_${ownerKey}_${FULL_NAME}` as const;
         const ownerDetailsResidentialAddressKey = `${PREFIX}_${ownerKey}_${RESIDENTIAL_ADDRESS}` as const;
-        const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${NATIONALITY}` as const;
+        const ownerDetailsNationalityKey = `${PREFIX}_${ownerKey}_${COUNTRY}` as const;
 
         for (const fieldName of ownerDetailsFields) {
             const ownerDetailsKey = `${PREFIX}_${ownerKey}_${fieldName}` as const;
@@ -60,7 +59,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 continue;
             }
 
-            if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE || fieldName === COUNTRY) {
+            if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
                 ownerDetails[ownerDetailsResidentialAddressKey] = ownerDetails[ownerDetailsResidentialAddressKey]
                     ? `${SafeString(ownerDetails[ownerDetailsResidentialAddressKey])}, ${SafeString(reimbursementAccountDraft[ownerDetailsKey])}`
                     : reimbursementAccountDraft[ownerDetailsKey];

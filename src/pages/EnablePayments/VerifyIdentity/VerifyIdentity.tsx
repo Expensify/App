@@ -5,20 +5,20 @@ import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Growl from '@libs/Growl';
-import {openOnfidoFlow, updateAddPersonalBankAccountDraft, verifyIdentity} from '@userActions/BankAccounts';
-import {updateCurrentStep} from '@userActions/Wallet';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,30 +27,33 @@ const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 function VerifyIdentity() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
-    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {canBeMissing: true, initWithStoredValues: false});
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {initWithStoredValues: false});
+
+    const openOnfidoFlow = () => {
+        BankAccounts.openOnfidoFlow();
+    };
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
-            verifyIdentity({
+            BankAccounts.verifyIdentity({
                 onfidoData: JSON.stringify({
                     ...onfidoData,
                     applicantID: walletOnfidoData?.applicantID,
                 }),
             });
-            updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
+            BankAccounts.updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
         },
         [walletOnfidoData?.applicantID],
     );
 
-    const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
+    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
 
     const handleOnfidoError = () => {
         Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
     };
 
     const goBack = () => {
-        updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+        Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     };
 
     return (
@@ -78,7 +81,7 @@ function VerifyIdentity() {
                         <>
                             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.m5, styles.ph5]}>
                                 <Icon
-                                    src={illustrations.ToddBehindCloud}
+                                    src={Illustrations.ToddBehindCloud}
                                     width={100}
                                     height={100}
                                 />

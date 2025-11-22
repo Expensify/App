@@ -18,29 +18,9 @@ import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-secon
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
-import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
-import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
-import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
-import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
-import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
-import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
-import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
-import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
-import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
-import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
-import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
-import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
-import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
-import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
-import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
-import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
-import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
-import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
-import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
-import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -122,30 +102,10 @@ const Illustrations = {
     ExpensifyCardIllustration,
 
     // Product Illustrations
-    Abracadabra,
-    BrokenCompanyCardBankConnection,
-    BrokenMagnifyingGlass,
-    EmptyStateExpenses,
-    HoldExpense,
-    ReceiptFairy,
-    FolderWithPapers,
-    Hands,
-    CardReplacementSuccess,
-    MagicCode,
     ModalHoldOrReject,
-    MushroomTopHat,
-    PaymentHands,
-    ReceiptsStackedOnPin,
-    RocketBlue,
-    RocketDude,
-    SewerDino,
-    SmartScan,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
-    ThreeLeggedLaptopWoman,
     ToddBehindCloud,
-    ToddInCar,
-    ToddWithPhones,
 
     // Educational Illustrations
     MultiScan,

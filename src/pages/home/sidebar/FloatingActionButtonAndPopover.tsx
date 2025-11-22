@@ -11,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -117,21 +116,8 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
-    const icons = useMemoizedLazyExpensifyIcons([
-        'CalendarSolid',
-        'Document',
-        'NewWorkspace',
-        'NewWindow',
-        'InvoiceGeneric',
-        'ReceiptScan',
-        'ChatBubble',
-        'Coins',
-        'Receipt',
-        'Cash',
-        'Transfer',
-        'MoneyCircle',
-    ] as const);
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric', 'ReceiptScan', 'ChatBubble', 'Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const theme = useTheme();
     const {translate} = useLocalize();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -452,7 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: getQuickActionIcon(icons, quickAction?.action),
+                    icon: getQuickActionIcon(quickAction?.action, icons),
                     text: quickActionTitle,
                     rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
@@ -490,7 +476,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
         return [];
     }, [
-        icons,
         translate,
         styles.pt3,
         styles.pb2,
@@ -554,7 +539,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ...(shouldShowCreateReportOption
             ? [
                   {
-                      icon: icons.Document,
+                      icon: Expensicons.Document,
                       text: translate('report.newReport.createReport'),
                       shouldCallAfterModalHide: shouldUseNarrowLayout,
                       onSelected: () => {
@@ -616,7 +601,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             {
                 icon: Expensicons.Suitcase,
                 text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
+                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
             },
         ],
@@ -636,7 +621,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                   {
                       displayInDefaultIconColor: true,
                       contentFit: 'contain' as ImageContentFit,
-                      icon: icons.NewWorkspace,
+                      icon: Expensicons.NewWorkspace,
                       iconWidth: variables.w46,
                       iconHeight: variables.h40,
                       text: translate('workspace.new.newWorkspace'),

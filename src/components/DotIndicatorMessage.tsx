@@ -1,10 +1,8 @@
 /* eslint-disable react/no-array-index-key */
-import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +14,7 @@ import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -47,7 +46,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
@@ -102,16 +100,13 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             );
         }
 
-        const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
-        const formattedMessage = typeof displayMessage === 'string' ? Str.htmlDecode(displayMessage) : displayMessage;
-
         return (
             <Text
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
             >
-                {formattedMessage}
+                {isTranslationKeyError(message) ? translate(message.translationKey) : message}
             </Text>
         );
     };
@@ -120,7 +115,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         <View style={[styles.dotIndicatorMessage, style]}>
             <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
-                    src={expensifyIcons.DotIndicator}
+                    src={Expensicons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>

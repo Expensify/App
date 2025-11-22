@@ -5,7 +5,7 @@ import type {PanGesture} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -43,8 +43,7 @@ type ImageCropViewProps = {
     maskImage?: IconAsset;
 };
 
-function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage, ...props}: ImageCropViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ImageCropCircleMask'] as const);
+function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage = Expensicons.ImageCropCircleMask, ...props}: ImageCropViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(containerSize, containerSize);
@@ -84,7 +83,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
                 />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
-                        src={maskImage ?? icons.ImageCropCircleMask}
+                        src={maskImage}
                         // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
                         // fill={theme.iconReversed}
                         width={containerSize}

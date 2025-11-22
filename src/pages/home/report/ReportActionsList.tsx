@@ -869,7 +869,7 @@ function ReportActionsList({
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
-                        shouldScrollToEndAfterLayout ? styles.visibilityHidden : styles.visibilityVisible,
+                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
                         shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
                     ]}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}

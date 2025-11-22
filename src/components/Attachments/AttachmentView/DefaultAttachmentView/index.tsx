@@ -3,9 +3,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,6 @@ type DefaultAttachmentViewProps = {
 };
 
 function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading, isDeleted}: DefaultAttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Paperclip'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,7 +43,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
-                    src={icon ?? icons.Paperclip}
+                    src={icon ?? Expensicons.Paperclip}
                 />
             </View>
 
@@ -54,7 +53,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                     <View style={styles.ml2}>
                         <Icon
                             fill={theme.icon}
-                            src={icons.Download}
+                            src={Expensicons.Download}
                         />
                     </View>
                 </Tooltip>

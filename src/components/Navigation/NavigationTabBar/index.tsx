@@ -241,10 +241,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         chatTabBrickRoad={chatTabBrickRoad}
                     />
                 )}
-                <View
-                    style={styles.leftNavigationTabBarContainer}
-                    testID={NavigationTabBar.displayName}
-                >
+                <View style={styles.leftNavigationTabBarContainer}>
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
@@ -393,10 +390,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View
-                style={styles.navigationTabBarContainer}
-                testID={NavigationTabBar.displayName}
-            >
+            <View style={styles.navigationTabBarContainer}>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}

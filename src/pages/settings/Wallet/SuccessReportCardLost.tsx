@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {CardReplacementSuccess} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,13 +11,12 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess'] as const);
 
     return (
         <ConfirmationPage
             heading={translate('reportCardLostOrDamaged.successTitle')}
             description={translate('reportCardLostOrDamaged.successDescription')}
-            illustration={illustrations.CardReplacementSuccess}
+            illustration={CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
                 Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));

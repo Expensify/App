@@ -4,9 +4,7 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -52,12 +50,12 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'MoneyBag'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['MoneyBag'] as const);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -74,7 +72,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
                 icon: Expensicons.Eye,
-                iconRight: icons.NewWindow,
+                iconRight: Expensicons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
@@ -84,7 +82,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
                 icon: icons.MoneyBag,
-                iconRight: icons.NewWindow,
+                iconRight: Expensicons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
@@ -118,7 +116,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons, styles, translate, waitForNavigate]);
+    }, [styles, translate, waitForNavigate, icons.MoneyBag]);
 
     const overlayContent = useCallback(
         () => (

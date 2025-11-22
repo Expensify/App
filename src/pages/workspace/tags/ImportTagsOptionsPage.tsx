@@ -15,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {close} from '@libs/actions/Modal';
 import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -112,17 +111,13 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             downloadMultiLevelTagsCSV(
                                 policyID,
                                 () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
+                                    setIsDownloadFailureModalVisible(true);
                                 },
                                 hasDependentTags,
                             );
                         } else {
                             downloadTagsCSV(policyID, () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
+                                setIsDownloadFailureModalVisible(true);
                             });
                         }
                     }}
@@ -144,17 +139,13 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         downloadMultiLevelTagsCSV(
                             policyID,
                             () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
+                                setIsDownloadFailureModalVisible(true);
                             },
                             hasDependentTags,
                         );
                     } else {
                         downloadTagsCSV(policyID, () => {
-                            close(() => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                            setIsDownloadFailureModalVisible(true);
                         });
                     }
                 }}

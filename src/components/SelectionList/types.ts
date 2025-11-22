@@ -1,10 +1,9 @@
 import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
-type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = {
     /** Array of items to display in the list */
     data: TItem[];
 

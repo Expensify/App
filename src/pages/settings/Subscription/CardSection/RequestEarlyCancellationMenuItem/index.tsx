@@ -1,14 +1,13 @@
 import React, {useContext} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationMenuItem() {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -23,7 +22,7 @@ function RequestEarlyCancellationMenuItem() {
     return (
         <MenuItem
             title={translate('subscription.requestEarlyCancellation.title')}
-            icon={icons.CalendarSolid}
+            icon={Expensicons.CalendarSolid}
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
             onPress={handleRequestEarlyCancellationPress}

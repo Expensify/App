@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import CONST from '@src/CONST';
@@ -11,8 +10,8 @@ import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    icons: Record<'CalendarSolid' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
     action: QuickActionName,
+    icons: Record<'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
 ): IconAsset | Extract<ExpensifyIconName, 'ReceiptScan' | 'MoneyCircle'> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -22,7 +21,7 @@ const getQuickActionIcon = (
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            return icons.CalendarSolid;
+            return Expensicons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:

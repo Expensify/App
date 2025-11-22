@@ -3,6 +3,7 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -10,7 +11,6 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -80,8 +80,6 @@ function SuggestionMention({
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
-
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
 
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
@@ -272,7 +270,7 @@ function SuggestionMention({
                     alternateText: translate('mentionSuggestions.hereAlternateText'),
                     icons: [
                         {
-                            source: expensifyIcons.Megaphone,
+                            source: Expensicons.Megaphone,
                             type: CONST.ICON_TYPE_AVATAR,
                         },
                     ],
@@ -323,7 +321,7 @@ function SuggestionMention({
                     icons: [
                         {
                             name: detail?.login,
-                            source: detail?.avatar ?? expensifyIcons.FallbackAvatar,
+                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
                             id: detail?.accountID,
@@ -334,7 +332,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [localeCompare, translate, expensifyIcons.Megaphone, expensifyIcons.FallbackAvatar, formatPhoneNumber, formatLoginPrivateDomain],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
     );
 
     const getRoomMentionOptions = useCallback(
@@ -431,19 +429,9 @@ function SuggestionMention({
         [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
-    const debouncedCalculateMentionSuggestion = useDebounce(
-        useCallback(
-            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
-                calculateMentionSuggestion(newValue, selectionStart, selectionEnd);
-            },
-            [calculateMentionSuggestion],
-        ),
-        CONST.TIMING.MENTION_SUGGESTION_DEBOUNCE_TIME,
-    );
-
     useEffect(() => {
-        debouncedCalculateMentionSuggestion(value, selection.start, selection.end);
-    }, [value, selection.start, selection.end, debouncedCalculateMentionSuggestion]);
+        calculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection, calculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();

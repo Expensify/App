@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '@components/Button';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -12,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function AddMembersButton() {
-    const icons = useMemoizedLazyExpensifyIcons(['UserPlus'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -27,7 +26,7 @@ function AddMembersButton() {
         <Button
             text={translate('subscription.yourPlan.addMembers')}
             style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-            icon={icons.UserPlus}
+            icon={Expensicons.UserPlus}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID))}
         />
     );
