@@ -6615,6 +6615,7 @@ const CONST = {
             UNHOLD: 'unhold',
             DELETE: 'delete',
             CHANGE_REPORT: 'changeReport',
+            SPLIT: 'split',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',

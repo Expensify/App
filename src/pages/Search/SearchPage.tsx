@@ -20,6 +20,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -73,7 +74,7 @@ import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUti
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -97,6 +98,8 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const allTransactions = useAllTransactions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -132,6 +135,7 @@ function SearchPage({route}: SearchPageProps) {
         'Exclamation',
         'SmartScan',
         'MoneyBag',
+        'ArrowSplit',
     ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -568,6 +572,26 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const firstTransactionKey = selectedTransactionsKeys.at(0);
+        const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
+
+        const areSplittable = !!firstTransactionMeta?.canSplit;
+        const areAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
+        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+
+        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
+
+        if (canSplitTransaction) {
+            options.push({
+                text: translate('iou.split'),
+                icon: expensifyIcons.ArrowSplit,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
+                onSelected: () => {
+                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                },
+            });
+        }
+
         const shouldShowDeleteOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
@@ -614,22 +638,24 @@ function SearchPage({route}: SearchPageProps) {
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        queryJSON,
-        clearSelectedTransactions,
+        selectedTransactionReportIDs,
         lastPaymentMethods,
+        selectedReportIDs,
+        allTransactions,
+        queryJSON,
+        selectedPolicyIDs,
+        policies,
+        integrationsExportTemplates,
+        csvExportLayouts,
+        clearSelectedTransactions,
+        beginExportWithTemplate,
+        bulkPayButtonOptions,
+        onBulkPaySelected,
+        allReports,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        beginExportWithTemplate,
-        integrationsExportTemplates,
-        csvExportLayouts,
-        policies,
-        bulkPayButtonOptions,
-        onBulkPaySelected,
-        selectedPolicyIDs,
-        selectedReportIDs,
-        selectedTransactionReportIDs,
         expensifyIcons,
     ]);
 
