@@ -33,6 +33,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
@@ -88,6 +89,7 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
@@ -184,4 +186,6 @@ export {
     BlueShield,
     OpenSafe,
     LaptopOnDeskWithCoffeeAndKey,
+    BankCoin,
+    WalletAlt2,
 };
