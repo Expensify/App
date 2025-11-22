@@ -47,7 +47,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -85,7 +85,7 @@ function TroubleshootPage() {
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -107,7 +107,7 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
