@@ -1,12 +1,13 @@
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -130,7 +132,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
-                                        src={Folder}
+                                        src={icons.Folder}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -146,7 +148,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.tags?.at(0) && (
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
                                     <Icon
-                                        src={Tag}
+                                        src={icons.Tag}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}

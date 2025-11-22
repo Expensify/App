@@ -45,6 +45,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onEndReached,
     onEndReachedThreshold,
     confirmButtonOptions,
+    children,
     customListHeader,
     customListHeaderContent,
     footerContent,
@@ -445,6 +446,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             </>
                         }
                     />
+                    {children}
                 </>
             )}
 
