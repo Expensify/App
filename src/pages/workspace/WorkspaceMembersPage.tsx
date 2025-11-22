@@ -209,18 +209,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
 
         if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
+            const ownerEmail = ownerDetails?.login;
+
             for (const login of selectedEmployees) {
+                if (!isApprover(policy, login)) {
+                    continue;
+                }
+
                 const accountID = policyMemberEmailsToAccountIDs[login];
                 const removedApprover = personalDetails?.[accountID];
+
                 if (!removedApprover?.login || !ownerEmail) {
                     continue;
                 }
+
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows,
                     removedApprover,
                     ownerDetails,
                 });
+
                 for (const workflow of updatedWorkflows) {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
@@ -233,6 +241,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         setRemoveMembersConfirmModalVisible(false);
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
