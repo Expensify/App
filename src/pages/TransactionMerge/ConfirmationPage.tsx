@@ -16,12 +16,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -90,6 +92,17 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
         if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            // Navigate to search money report screen if we're on Reports
+            if (isSearchTopmostFullScreenRoute()) {
+                // Close the current modal screen
+                Navigation.dismissModal();
+                // Ensure the dismiss completes first
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    // Navigate to the money request report in search results
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}), {forceReplace: true});
+                });
+                return;
+            }
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
         } else {
             Navigation.dismissModal();
