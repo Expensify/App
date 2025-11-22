@@ -14,8 +14,6 @@ import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
@@ -59,12 +57,11 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Bank'] as const);
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.

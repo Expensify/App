@@ -61,9 +61,8 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Wallet', 'Cash'] as const);
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'Wallet', 'Cash'] as const);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {accountID} = useCurrentUserPersonalDetails();

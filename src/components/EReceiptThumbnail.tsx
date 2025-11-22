@@ -11,8 +11,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -39,7 +37,7 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -48,7 +46,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
-    const icons = useMemoizedLazyExpensifyIcons(['EReceiptIcon'] as const);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
