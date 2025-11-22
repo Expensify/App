@@ -132,7 +132,6 @@ import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -1663,8 +1662,8 @@ describe('ReportUtils', () => {
                             currency: 'USD',
                         },
                     };
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const transaction: SearchTransaction = {
+
+                    const transaction: Transaction = {
                         transactionID: 'txn1',
                         reportID: '2',
                         amount: 1000,
@@ -1672,8 +1671,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    } as SearchTransaction;
+                    } as Transaction;
 
                     const reportName = getSearchReportName({
                         report: baseExpenseReport,
@@ -8204,6 +8202,20 @@ describe('ReportUtils', () => {
                 expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
             });
 
+            it('should return true when report is null and iouType is SUBMIT', () => {
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT)).toBe(true);
+            });
+
+            it('should return true when report is null, the iouType is SUBMIT, and the receipts do not include a user', () => {
+                const participants = [{accountID: 0, isPolicyExpenseChat: true, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(true);
+            });
+
+            it('should return false when report is null, the iouType is SUBMIT, and the receipts include a user', () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: false, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(false);
+            });
+
             it('should handle undefined policy type gracefully', () => {
                 const policyWithUndefinedType = {
                     ...createRandomPolicy(4),
@@ -8643,7 +8655,7 @@ describe('ReportUtils', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const mockSearchReport: SearchReport = {
+        const mockSearchReport: Report = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
@@ -8673,7 +8685,7 @@ describe('ReportUtils', () => {
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockOnyxReport);
@@ -8681,7 +8693,7 @@ describe('ReportUtils', () => {
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockDraftReport);
@@ -8689,14 +8701,14 @@ describe('ReportUtils', () => {
 
         test('returns fallback report when no other reports exist', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
         });
@@ -8728,7 +8740,7 @@ describe('ReportUtils', () => {
 
         test('prioritizes onyx report over draft report when both exist', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8738,7 +8750,7 @@ describe('ReportUtils', () => {
 
         test('prioritizes draft report over fallback when both exist', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
             expect(result).toEqual(mockDraftReport);
