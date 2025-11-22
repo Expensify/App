@@ -33,7 +33,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {getSnapshotKeys, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -44,8 +44,8 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import type {SearchReport} from '@src/types/onyx/SearchResults';
-import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -697,109 +697,41 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(
-    hash: number,
-    transactionIDList: string[],
-    allSnapshots: OnyxCollection<SearchResults>,
-    transactions: OnyxCollection<Transaction>,
-    currentSearchResults?: SearchResults,
-) {
-    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
-    const optimisticData: OnyxUpdate[] = [...loadingOptimisticData];
-    const failureData: OnyxUpdate[] = [];
 
-    const currentMetadata = currentSearchResults?.search;
-
-    // Calculate total amount of transactions being deleted
-    const deletedTotal = transactionIDList.reduce((sum, transactionID) => {
-        const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        return sum - (transaction?.convertedAmount ?? 0);
-    }, 0);
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-        value: {
-            search: {
-                ...(currentMetadata ?? {}),
-                count: Math.max(0, (currentMetadata?.count ?? 0) - transactionIDList.length),
-                total: (currentMetadata?.total ?? 0) - deletedTotal,
+    transactionIDList.forEach((transactionID) => {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const optimisticData: OnyxUpdate[] = [
+            ...loadingOptimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
             },
-        },
-    });
+        ];
 
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-        value: {
-            search: currentMetadata,
-        },
-    });
-
-    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        transactionIDList.forEach((transactionID) => {
-            allSnapshotKeys.forEach((key) => {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key,
-                    value: {
-                        data: {
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                            },
-                        } as Partial<Transaction>,
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},
                     },
-                });
+                },
+            },
+        ];
 
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key,
-                    value: {
-                        data: {
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                                pendingAction: null,
-                            },
-                        } as Partial<Transaction>,
-                    },
-                });
-            });
-
-            if (transactions) {
-                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-
-                if (transaction) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                    });
-
-                    failureData.push({
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        value: {...transaction, pendingAction: null},
-                    });
-
-                    const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === 1;
-
-                    if (shouldDeleteIOUReport) {
-                        optimisticData.push({
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
-                            value: {
-                                pendingFields: {
-                                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                                },
-                            },
-                        });
-                    }
-                }
-            }
-        });
-    }
-
-    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
+        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
+    });
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
