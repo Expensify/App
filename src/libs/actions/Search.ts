@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -49,6 +49,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
@@ -1062,13 +1063,15 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
 }
 
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
 /**
  * Return true if selected reports/transactions have the same USD currency.
  */
 function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
     return selectedReports?.length > 0
-        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
-        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+        ? Object.values(selectedReports).every((report) => isCurrencySupportedForGlobalReimbursement(report?.currency as CurrencyType, true))
+        : Object.values(selectedTransactions).every((transaction) => isCurrencySupportedForGlobalReimbursement(transaction.currency as CurrencyType, true));
 }
 
 /**

@@ -21,7 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
@@ -55,7 +55,6 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
-
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
     kycWallAnchorAlignment = {
@@ -247,7 +246,7 @@ function SettlementButton({
             disabled: !!shouldDisableApproveButton,
         };
 
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType, true);
         const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
 
         const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
@@ -318,7 +317,7 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType, true);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
