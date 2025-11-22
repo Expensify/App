@@ -32,6 +32,7 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -200,9 +201,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 }
             }
 
-            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+            const defaultActionableSearchQuery =
+                getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
     }, [selectedTab, typeMenuSections, savedSearches]);
 

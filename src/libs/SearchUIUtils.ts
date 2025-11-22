@@ -543,6 +543,10 @@ function getSuggestedSearches(
     };
 }
 
+function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
+    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ?? menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+}
+
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -2596,6 +2600,7 @@ function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) 
 
 export {
     getSuggestedSearches,
+    getDefaultActionableSearchMenuItem,
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
