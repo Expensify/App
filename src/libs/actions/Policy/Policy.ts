@@ -83,7 +83,9 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -107,6 +109,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -132,6 +135,7 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type ReportNextStep from '../../../types/onyx/ReportNextStep';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -200,6 +204,12 @@ type SetWorkspaceReimbursementActionParams = {
     reimburserEmail: string;
     lastPaymentMethod?: LastPaymentMethodType | string;
     shouldUpdateLastPaymentMethod?: boolean;
+};
+
+type SetWorkspaceApprovalModeAdditionalData = {
+    reportNextSteps?: OnyxCollection<ReportNextStep>;
+    transactionViolations?: OnyxCollection<TransactionViolations>;
+    betas?: Beta[];
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -751,7 +761,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, additionalData: SetWorkspaceApprovalModeAdditionalData = {}) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -760,6 +770,54 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         approver,
         approvalMode,
     };
+    const updatedPolicy = {
+        ...(policy ?? {}),
+        ...value,
+    } as OnyxEntry<Policy>;
+
+    const nextStepOptimisticData: OnyxUpdate[] = [];
+    const nextStepFailureData: OnyxUpdate[] = [];
+    const {reportNextSteps, transactionViolations, betas} = additionalData;
+    const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
+    const resolvedBetas: Beta[] = betas ?? [];
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
+    const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
+        (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+    );
+
+    affectedReports.forEach((report) => {
+        const reportID = report?.reportID;
+
+        if (!reportID) {
+            return;
+        }
+
+        const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
+        const currentNextStep: OnyxEntry<ReportNextStep> | null = reportNextSteps?.[nextStepKey] ?? null;
+        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStep = buildNextStepNew({
+            report,
+            policy: updatedPolicy,
+            currentUserAccountIDParam: sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: sessionEmail ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        nextStepOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: nextStepKey,
+            value: optimisticNextStep,
+        });
+
+        nextStepFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: nextStepKey,
+            value: currentNextStep ?? null,
+        });
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -771,6 +829,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepOptimisticData.length > 0) {
+        optimisticData.push(...nextStepOptimisticData);
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -785,6 +846,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepFailureData.length > 0) {
+        failureData.push(...nextStepFailureData);
+    }
 
     const successData: OnyxUpdate[] = [
         {
