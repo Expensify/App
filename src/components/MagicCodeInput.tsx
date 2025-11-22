@@ -184,7 +184,7 @@ function MagicCodeInput({
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();

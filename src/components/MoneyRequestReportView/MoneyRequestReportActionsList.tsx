@@ -193,7 +193,7 @@ function MoneyRequestReportActionsList({
                 policyID: policy?.id,
             });
         },
-        [report, policy],
+        [report, policy?.id],
     );
 
     const {
@@ -404,7 +404,7 @@ function MoneyRequestReportActionsList({
         }
 
         return [null, -1];
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
+    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions.length, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -442,7 +442,7 @@ function MoneyRequestReportActionsList({
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = visibleReportActions.length;
         hasNewestReportActionRef.current = hasNewestReportAction;
-    }, [lastActionIndex, reportActions, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
+    }, [lastActionIndex, reportActions.length, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
