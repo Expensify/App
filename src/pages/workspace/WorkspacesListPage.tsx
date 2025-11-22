@@ -124,14 +124,13 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Transfer'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Transfer'] as const);
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});

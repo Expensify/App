@@ -69,13 +69,12 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Cash'] as const);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);

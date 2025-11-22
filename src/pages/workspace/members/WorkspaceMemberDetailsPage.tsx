@@ -74,13 +74,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Transfer'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const icons = useMemoizedLazyExpensifyIcons(['Transfer'] as const);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});

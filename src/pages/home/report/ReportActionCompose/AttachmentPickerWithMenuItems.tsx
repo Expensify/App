@@ -137,13 +137,12 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip', 'InvoiceGeneric', 'Coins', 'Receipt', 'Cash', 'Transfer', 'Receipt', 'MoneyCircle'] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric', 'Coins', 'Receipt', 'Cash', 'Transfer', 'Receipt', 'MoneyCircle'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});

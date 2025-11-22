@@ -41,11 +41,10 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Mail'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Mail'] as const);
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
     const {isOffline} = useNetwork();
