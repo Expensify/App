@@ -48,22 +48,22 @@ function MoneyRequestReportGroupHeader({
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const displayName = group.groupName || translate(isGroupedByTag ? 'search.noTag' : 'search.noCategory');
     const formattedAmount = convertToDisplayString(Math.abs(group.totalAmount), currency);
 
-    const shouldShowCheckbox = isSelectionModeEnabled || !isSmallScreenWidth;
+    const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
     const DESKTOP_HEIGHT = 28;
     const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
     const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
 
-    const conditionalHeight = isSmallScreenWidth
+    const conditionalHeight = shouldUseNarrowLayout
         ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
         : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT};
 
-    const textStyle = isSmallScreenWidth
+    const textStyle = shouldUseNarrowLayout
         ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
         : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT};
 
