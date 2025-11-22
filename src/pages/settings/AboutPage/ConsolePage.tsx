@@ -54,6 +54,7 @@ function ConsolePage() {
     const theme = useTheme();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
     const isAuthenticated = useIsAuthenticated();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -73,7 +74,7 @@ function ConsolePage() {
                 },
             },
             {
-                icon: Expensicons.Globe,
+                icon: expensifyIcons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
@@ -84,7 +85,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate, expensifyIcons.Globe],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});

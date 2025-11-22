@@ -79,7 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Globe', 'MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -640,7 +640,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         {shouldShowEnableGlobalReimbursementsButton && (
                             <MenuItem
                                 title={translate('common.enableGlobalReimbursements')}
-                                icon={Expensicons.Globe}
+                                icon={expensifyIcons.Globe}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
