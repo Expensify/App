@@ -1,9 +1,12 @@
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as PolicyUtils from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import type {Policy} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -620,7 +623,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
+                const expectedResult = `changed the Category based on past activity to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -639,12 +642,38 @@ describe('ModifiedExpenseMessage', () => {
                 },
             };
 
-            it('returns the correct text message with MCC attribution', () => {
-                const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
+            it('returns the correct text message with MCC attribution for non-admin', () => {
+                const expectedResult = `changed the Category based on workspace rule to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
                 expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct workspace rules link for admin', () => {
+                // The shouldConvertToLowercase: !source parameter prevents buildMessageFragmentForValue
+                // from calling .toLowerCase() on the entire HTML anchor tag, which would corrupt
+                // the policyID in the href attribute and cause navigation to fail.
+
+                const mockPolicy: Policy = {
+                    id: 'AbC123XyZ789', // Mixed case to verify exact preservation
+                    name: 'Test Policy',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                };
+
+                jest.spyOn(PolicyUtils, 'getPolicy').mockReturnValue(mockPolicy);
+                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+
+                const result = getForReportAction({reportAction, policyID: mockPolicy.id});
+
+                // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
+                expect(result).toContain(`workspaces/${mockPolicy.id}/rules`);
+                expect(result).toContain('href=');
+                expect(result).toContain('workspace rules</a>');
             });
         });
 
@@ -660,7 +689,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `set the category based on past activity to "Travel"`;
+                const expectedResult = `set the Category based on past activity to "Travel"`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -680,7 +709,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `removed the category based on past activity (previously "Travel")`;
+                const expectedResult = `removed the Category based on past activity (previously "Travel")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -719,7 +748,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message without attribution', () => {
-                const expectedResult = `changed the category to "Travel" (previously "Food")`;
+                const expectedResult = `changed the Category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
