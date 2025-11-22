@@ -172,6 +172,7 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
+    isCurrentUserSubmitter,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -4670,6 +4671,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
+        transactionID &&
         policy &&
         isPaidGroupPolicy(policy) &&
         !isInvoice &&
@@ -4685,7 +4687,23 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedReimbursable ||
             hasModifiedTaxCode)
     ) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const originalTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        let currentTransactionViolations = originalTransactionViolations;
+
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                currentTransactionViolations = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+                // Optimistically remove the violation immediately
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: currentTransactionViolations,
+                });
+            }
+        }
+
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
         const optimisticViolations =
             hasModifiedAmount || hasModifiedDate || hasModifiedCurrency
@@ -4705,7 +4723,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
+            value: originalTransactionViolations,
         });
         if (hash) {
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -4724,7 +4742,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: originalTransactionViolations,
                     },
                 },
             });
