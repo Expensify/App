@@ -283,6 +283,14 @@ function BaseVideoPlayer({
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
 
+                // Sync playback speed updates from fullscreen mode after leaving it
+                currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+                    if (!('rate' in status) || !status.rate) {
+                        return;
+                    }
+                    setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+                });
+
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
