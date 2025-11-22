@@ -6386,6 +6386,7 @@ ${
             delete: 'Elimina',
             hold: 'Attendere',
             unhold: 'Rimuovi blocco',
+            reject: 'Rifiuta',
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
         },
         filtersHeader: 'Filtri',

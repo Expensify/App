@@ -23,7 +23,7 @@ type RejectReasonFormViewProps = {
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */
-    backTo: Route;
+    backTo?: Route;
 };
 
 function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
