@@ -5904,7 +5904,7 @@ ${
                 adultEntertainment: 'Entretenimento adulto',
             },
             expenseReportRules: {
-                title: 'Relatórios de despesas',
+                title: 'Avançado',
                 subtitle: 'Automatize a conformidade, aprovações e pagamentos de relatórios de despesas.',
                 preventSelfApprovalsTitle: 'Prevenir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que os membros do espaço de trabalho aprovem seus próprios relatórios de despesas.',
@@ -5920,8 +5920,7 @@ ${
                 autoPayApprovedReportsLockedSubtitle: 'Vá para mais recursos e ative os fluxos de trabalho, depois adicione pagamentos para desbloquear este recurso.',
                 autoPayReportsUnderTitle: 'Relatórios de pagamento automático abaixo de',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Acesse [mais recursos](${moreFeaturesLink}) e habilite fluxos de trabalho, depois adicione ${featureName} para desbloquear esse recurso.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Adicione ${featureName} para desbloquear esse recurso.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Acesse [mais recursos](${moreFeaturesLink}) e habilite ${featureName} para desbloquear este recurso.`,
             },

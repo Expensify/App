@@ -5934,7 +5934,7 @@ ${
                 adultEntertainment: 'Erwachsenenunterhaltung',
             },
             expenseReportRules: {
-                title: 'Spesenabrechnungen',
+                title: 'Fortgeschritten',
                 subtitle: 'Automatisieren Sie die Einhaltung von Spesenabrechnungen, Genehmigungen und Zahlungen.',
                 preventSelfApprovalsTitle: 'Selbstgenehmigungen verhindern',
                 preventSelfApprovalsSubtitle: 'Verhindern Sie, dass Arbeitsbereichsmitglieder ihre eigenen Spesenabrechnungen genehmigen.',
@@ -5951,8 +5951,7 @@ ${
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu Weitere Funktionen und aktivieren Sie Workflows, dann fügen Sie Zahlungen hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte unter Auto-Zahlung',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie Workflows. Fügen Sie dann ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Fügen Sie ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie ${featureName}, um diese Funktion freizuschalten.`,
             },

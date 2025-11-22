@@ -4,15 +4,18 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPendingEnforcementSetting} from '@libs/actions/Policy/EnforcementSettings';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable, hasVBBA} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasVBBA, isControlPolicy} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {PendingEnforcementSetting} from '@src/types/onyx';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -23,15 +26,29 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policyID);
+    const isPolicyPendingCreation = isOffline && policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
         if (variant === 'unlock') {
-            return translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName, moreFeaturesLink});
+            return translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName});
         }
         return translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName, moreFeaturesLink});
+    };
+
+    const handleToggleWithUpgradeCheck = (isEnabled: boolean, action: () => void, settingType: PendingEnforcementSetting['setting']) => {
+        if (!policyID) {
+            return;
+        }
+        if (isEnabled && !isControlPolicy(policy)) {
+            setPendingEnforcementSetting({policyID, setting: settingType});
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
+            return;
+        }
+        action();
     };
 
     const optionItems = [
@@ -43,10 +60,11 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPolicyPendingCreation,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
-            onToggle: (isEnabled: boolean) => setPolicyPreventSelfApproval(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) =>
+                handleToggleWithUpgradeCheck(isEnabled, () => setPolicyPreventSelfApproval(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.PREVENT_SELF_APPROVAL),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -56,12 +74,11 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPolicyPendingCreation,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
-            onToggle: (isEnabled: boolean) => {
-                enableAutoApprovalOptions(policyID, isEnabled);
-            },
+            onToggle: (isEnabled: boolean) =>
+                handleToggleWithUpgradeCheck(isEnabled, () => enableAutoApprovalOptions(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.AUTO_APPROVE_COMPLIANT_REPORTS),
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
@@ -98,10 +115,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             shouldParseSubtitle: autoPayApprovedReportsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
-            onToggle: (isEnabled: boolean) => {
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
-            },
-            disabled: autoPayApprovedReportsUnavailable,
+            onToggle: (isEnabled: boolean) =>
+                handleToggleWithUpgradeCheck(isEnabled, () => enablePolicyAutoReimbursementLimit(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.AUTO_PAY_APPROVED_REPORTS),
+            disabled: autoPayApprovedReportsUnavailable || isPolicyPendingCreation,
             showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption,

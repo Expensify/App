@@ -5865,7 +5865,7 @@ ${
                 adultEntertainment: 'アダルトエンターテインメント',
             },
             expenseReportRules: {
-                title: '経費報告書',
+                title: '上級',
                 subtitle: '経費報告のコンプライアンス、承認、支払いを自動化します。',
                 preventSelfApprovalsTitle: '自己承認を防ぐ',
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分の経費報告書を承認するのを防ぎます。',
@@ -5881,8 +5881,7 @@ ${
                 autoPayApprovedReportsLockedSubtitle: 'その他の機能に移動してワークフローを有効にし、その後、支払いを追加してこの機能をアンロックしてください。',
                 autoPayReportsUnderTitle: '以下の金額未満のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の完全に準拠した経費報告書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `[さらに多くの機能](${moreFeaturesLink})にアクセスしてワークフローを有効にし、${featureName}を追加してこの機能のロックを解除してください。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `[さらに多くの機能](${moreFeaturesLink})にアクセスし、${featureName}を有効にしてこの機能のロックを解除してください。`,
             },
