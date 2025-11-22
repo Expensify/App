@@ -4,6 +4,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -655,8 +656,8 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: 'Travel',
                     oldCategory: 'Food',
-                    source: 'agentZero',
-                },
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message with AI attribution', () => {
@@ -675,8 +676,8 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: 'Travel',
                     oldCategory: 'Food',
-                    source: 'mccMapping',
-                },
+                    source: CONST.CATEGORY_SOURCE.MCC,
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message with MCC attribution', () => {
@@ -695,8 +696,8 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: 'Travel',
                     oldCategory: '',
-                    source: 'agentZero',
-                },
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message with AI attribution', () => {
@@ -715,8 +716,8 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: '',
                     oldCategory: 'Travel',
-                    source: 'agentZero',
-                },
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message with AI attribution', () => {
@@ -735,7 +736,7 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: 'Travel',
                     oldCategory: 'Food',
-                },
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message without attribution', () => {
@@ -754,8 +755,8 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {
                     category: 'Travel',
                     oldCategory: 'Food',
-                    source: 'manual',
-                },
+                    source: CONST.CATEGORY_SOURCE.MANUAL,
+                } as OriginalMessageModifiedExpense,
             };
 
             it('returns the correct text message without attribution', () => {
