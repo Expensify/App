@@ -122,6 +122,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
+        if (onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_PERSONAL_DETAILS.route)) {
+            return onboardingInitialPath;
+        }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 

@@ -71,6 +71,9 @@ type SettlementButtonProps = {
     /** Whether the button should be disabled */
     isDisabled?: boolean;
 
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
+
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
 

@@ -6,11 +6,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import DomainsListRow from '@components/Domain/DomainsListRow';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {DomainItem} from '@components/Domain/DomainMenuItem';
+import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -24,10 +24,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import Text from '@components/Text';
+import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,7 +37,6 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
@@ -65,9 +65,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,11 +90,10 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         policyID?: string;
         isJoinRequestPending?: boolean;
     };
-type DomainItem = {listItemType: 'domain'; title: string; action: () => void; disabled: boolean} & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
+
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
 
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
-type GetDomainMenuItem = {item: DomainItem; index: number};
 
 /**
  * Dismisses the errors on one item
@@ -127,9 +124,9 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -209,16 +206,17 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(
-            policyIDToDelete,
-            policyNameToDelete,
+        deleteWorkspace({
+            policyID: policyIDToDelete,
+            activePolicyID,
+            policyName: policyNameToDelete,
             lastAccessedWorkspacePolicyID,
-            defaultCardFeeds,
+            policyCardFeeds: defaultCardFeeds,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            lastPaymentMethod,
-        );
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setIsDeleteModalOpen(false);
             setPolicyIDToDelete(undefined);
@@ -340,7 +338,7 @@ function WorkspacesListPage() {
 
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
-                    icon: Expensicons.Building,
+                    icon: icons.Building,
                     text: translate('workspace.common.goToWorkspace'),
                     onSelected: item.action,
                 },
@@ -466,6 +464,7 @@ function WorkspacesListPage() {
             );
         },
         [
+            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
@@ -488,36 +487,6 @@ function WorkspacesListPage() {
         ],
     );
 
-    /**
-     * Gets the menu item for each domain
-     */
-    const getDomainMenuItem = useCallback(
-        ({item, index}: GetDomainMenuItem) => (
-            <OfflineWithFeedback
-                key={`domain_${item.title}_${index}`}
-                pendingAction={item.pendingAction}
-                style={styles.mb2}
-            >
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="row"
-                    style={styles.mh5}
-                    onPress={item.action}
-                    disabled={item.disabled}
-                >
-                    {({hovered}) => (
-                        <DomainsListRow
-                            title={item.title}
-                            isHovered={hovered}
-                            shouldShowRightIcon={!item.disabled}
-                        />
-                    )}
-                </PressableWithoutFeedback>
-            </OfflineWithFeedback>
-        ),
-        [styles],
-    );
-
     const navigateToWorkspace = useCallback(
         (policyID: string) => {
             // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
@@ -530,7 +499,12 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(() => openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL), []);
+    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isValidated: boolean}) => {
+        if (isValidated) {
+            return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+        }
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
+    }, []);
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
@@ -611,11 +585,14 @@ function WorkspacesListPage() {
                 return domainItems;
             }
 
+            const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
+                accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: navigateToDomain,
-                disabled: !adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`],
+                action: () => navigateToDomain({accountID: domain.accountID, isValidated: domain.validated}),
+                isAdmin,
+                isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
             });
 
@@ -694,35 +671,6 @@ function WorkspacesListPage() {
             />
         );
     };
-
-    const getWorkspacesEmptyStateComponent = useCallback(
-        () => (
-            <EmptyStateComponent
-                SkeletonComponent={WorkspaceRowSkeleton}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.WorkspacePlanet}
-                title={translate('workspace.emptyWorkspace.title')}
-                subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                titleStyles={styles.pt2}
-                headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
-                lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
-                headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-                buttons={
-                    isRestrictedPolicyCreation
-                        ? []
-                        : [
-                              {
-                                  success: true,
-                                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                                  buttonText: translate('workspace.new.newWorkspace'),
-                              },
-                          ]
-                }
-            />
-        ),
-        [StyleUtils, styles, translate, isRestrictedPolicyCreation],
-    );
-
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
         return true;
@@ -752,7 +700,12 @@ function WorkspacesListPage() {
                 }
 
                 case 'domain': {
-                    return getDomainMenuItem({item, index});
+                    return (
+                        <DomainMenuItem
+                            item={item}
+                            index={index}
+                        />
+                    );
                 }
 
                 case 'domains-header': {
@@ -764,14 +717,14 @@ function WorkspacesListPage() {
                 }
 
                 case 'workspaces-empty-state': {
-                    return getWorkspacesEmptyStateComponent();
+                    return <WorkspacesEmptyStateComponent />;
                 }
 
                 default:
                     return null;
             }
         },
-        [getDomainMenuItem, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, styles, translate],
+        [getWorkspaceMenuItem, styles, translate],
     );
 
     if (!workspaces.length && !domains.length) {
@@ -781,7 +734,14 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={
+                    shouldUseNarrowLayout && (
+                        <NavigationTabBar
+                            selectedTab={NAVIGATION_TABS.WORKSPACES}
+                            shouldShowFloatingCameraButton={false}
+                        />
+                    )
+                }
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <View style={styles.topBarWrapper}>
@@ -792,7 +752,9 @@ function WorkspacesListPage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
                 ) : (
-                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>{getWorkspacesEmptyStateComponent()}</ScrollView>
+                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
+                        <WorkspacesEmptyStateComponent />
+                    </ScrollView>
                 )}
                 {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
@@ -805,7 +767,14 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                shouldUseNarrowLayout && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>

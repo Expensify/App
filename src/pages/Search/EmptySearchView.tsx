@@ -1,3 +1,4 @@
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
@@ -10,7 +11,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
+import {PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -22,6 +23,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -35,8 +38,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -80,17 +82,6 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
@@ -110,21 +101,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
         canBeMissing: true,
     });
 
-    const isUserPaidPolicyMemberSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
-        },
-        [currentUserPersonalDetails.login],
-    );
-
-    const [isUserPaidPolicyMember = false] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY,
-        {
-            canBeMissing: true,
-            selector: isUserPaidPolicyMemberSelector,
-        },
-        [isUserPaidPolicyMemberSelector],
-    );
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
 
     return (
         <SearchScopeProvider>
@@ -171,6 +148,21 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Alert'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.Alert],
+    );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
