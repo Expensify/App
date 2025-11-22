@@ -65,7 +65,7 @@ function TransactionPreviewContent({
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -121,8 +121,9 @@ function TransactionPreviewContent({
                 violationMessage,
                 reportActions,
                 originalTransaction,
+                locale: preferredLocale,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, preferredLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
