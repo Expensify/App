@@ -77,6 +77,8 @@ function handleActionButtonPress(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
     onDEWModalOpen?: () => void,
+    isDelegateAccessRestricted?: boolean,
+    onDelegateAccessRestricted?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -91,9 +93,17 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
                 return;
