@@ -572,7 +572,10 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member and the request fails
             mockFetch?.fail?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            const allPersonalDetails = {
+                [userAccountID]: {login: userEmail},
+            } as unknown as PersonalDetailsList;
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID}, [], allPersonalDetails);
 
             await waitForBatchedUpdates();
 
