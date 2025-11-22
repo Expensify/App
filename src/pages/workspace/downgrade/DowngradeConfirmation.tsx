@@ -20,12 +20,12 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat'] as const);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {
-            return adminPoliciesSelector(policies, currentUserPersonalDetails.login ?? '');
+            return adminPoliciesSelector(policies, login ?? '');
         },
-        [currentUserPersonalDetails.login],
+        [login],
     );
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
