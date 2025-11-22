@@ -714,7 +714,7 @@ function deleteMoneyRequestOnSearch(
     // Calculate total amount of transactions being deleted
     const deletedTotal = transactionIDList.reduce((sum, transactionID) => {
         const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        return sum - (transaction?.convertedAmount ?? 0);
+        return sum - (transaction?.groupAmount ?? 0);
     }, 0);
 
     optimisticData.push({
