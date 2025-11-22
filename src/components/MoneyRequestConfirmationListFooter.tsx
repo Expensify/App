@@ -369,7 +369,7 @@ function MoneyRequestConfirmationListFooter({
     const taxRateTitle = getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
-    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
+    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate' || !rate;
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
@@ -508,7 +508,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
+                    title={!rate ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -535,6 +535,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
+                    errorText={shouldDisplayDistanceRateError ? translate('violations.customUnitOutOfPolicy') : ''}
                     interactive={!!rate && !isReadOnly}
                 />
             ),
