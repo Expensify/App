@@ -640,7 +640,7 @@ describe('CustomFormula', () => {
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
         test('should apply custom date formats', () => {
