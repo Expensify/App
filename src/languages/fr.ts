@@ -5929,7 +5929,7 @@ ${
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients.',
                 nonBillable: 'Non-facturable',
                 nonBillableDescription: 'Les dépenses sont occasionnellement refacturées aux clients.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Reçus électroniques',
                 eReceiptsHint: `Les reçus électroniques sont créés automatiquement [pour la plupart des transactions de crédit en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',

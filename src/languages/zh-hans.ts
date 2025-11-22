@@ -5774,7 +5774,7 @@ ${
                 billableDescription: '费用通常会重新计费给客户。',
                 nonBillable: '非计费',
                 nonBillableDescription: '费用有时会重新计入客户账单。',
-                eReceipts: 'eReceipts',
+                eReceipts: '电子收据',
                 eReceiptsHint: `电子收据是自动创建的[用于大多数美元贷记交易](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '参与者跟踪',
                 attendeeTrackingHint: '跟踪每笔费用的每人成本。',
