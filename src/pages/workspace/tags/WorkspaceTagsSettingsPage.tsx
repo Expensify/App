@@ -54,7 +54,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
-    const {tags: policyTags} = policyData;
+    const {tagLists: policyTags} = policyData;
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
