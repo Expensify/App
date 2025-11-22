@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -49,6 +50,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
     /** Custom label of the last name input */
     customLastNameLabel?: string;
+
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    shouldShowPatriotActLink?: boolean;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -64,6 +68,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
+    shouldShowPatriotActLink = false,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -147,7 +152,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                 />
-                {shouldShowHelpLinks && <HelpLinks />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
