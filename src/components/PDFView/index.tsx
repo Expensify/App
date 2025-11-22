@@ -1,10 +1,10 @@
 import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
+import React, {memo, Suspense, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {PDFPreviewer} from '@components/PDF';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,36 +97,38 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                 style={outerContainerStyle}
                 tabIndex={0}
             >
-                <PDFPreviewer
-                    contentContainerStyle={style as CSSProperties}
-                    file={sourceURL}
-                    pageMaxWidth={variables.pdfPageMaxWidth}
-                    isSmallScreen={shouldUseNarrowLayout}
-                    maxCanvasWidth={maxCanvasWidth}
-                    maxCanvasHeight={maxCanvasHeight}
-                    maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={
-                        <FullScreenLoadingIndicator
-                            style={
-                                isUsedAsChatAttachment && [
-                                    styles.chatItemPDFAttachmentLoading,
-                                    StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                                    styles.pRelative,
-                                ]
-                            }
-                        />
-                    }
-                    shouldShowErrorComponent={false}
-                    onLoadError={onLoadError}
-                    renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
-                        <PDFPasswordForm
-                            isFocused={!!isFocused}
-                            isPasswordInvalid={isPasswordInvalid}
-                            onSubmit={onSubmit}
-                            onPasswordUpdated={onPasswordChange}
-                        />
-                    )}
-                />
+                <Suspense fallback={null}>
+                    <PDFPreviewer
+                        contentContainerStyle={style as CSSProperties}
+                        file={sourceURL}
+                        pageMaxWidth={variables.pdfPageMaxWidth}
+                        isSmallScreen={shouldUseNarrowLayout}
+                        maxCanvasWidth={maxCanvasWidth}
+                        maxCanvasHeight={maxCanvasHeight}
+                        maxCanvasArea={maxCanvasArea}
+                        LoadingComponent={
+                            <FullScreenLoadingIndicator
+                                style={
+                                    isUsedAsChatAttachment && [
+                                        styles.chatItemPDFAttachmentLoading,
+                                        StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                                        styles.pRelative,
+                                    ]
+                                }
+                            />
+                        }
+                        shouldShowErrorComponent={false}
+                        onLoadError={onLoadError}
+                        renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
+                            <PDFPasswordForm
+                                isFocused={!!isFocused}
+                                isPasswordInvalid={isPasswordInvalid}
+                                onSubmit={onSubmit}
+                                onPasswordUpdated={onPasswordChange}
+                            />
+                        )}
+                    />
+                </Suspense>
             </View>
         );
     };
