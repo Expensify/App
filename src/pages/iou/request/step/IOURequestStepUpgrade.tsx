@@ -160,6 +160,7 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            onboardingPurposeSelected,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);
