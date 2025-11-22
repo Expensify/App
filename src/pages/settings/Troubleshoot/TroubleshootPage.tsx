@@ -4,8 +4,6 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -47,7 +45,6 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -68,15 +65,32 @@ function TroubleshootPage() {
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'Bug', 'RotateLeft', 'Download'] as const);
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
-        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+        const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
+        if (dismissedReasons?.length === 0) {
             return false;
         }
-        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+
+        let timestampToCheck;
+        if (dismissedReasons && dismissedReasons.length > 0) {
+            const latestReason = dismissedReasons.reduce((latest, current) => {
+                const currentDate = current.timestamp;
+                const latestDate = latest.timestamp;
+                return currentDate > latestDate ? current : latest;
+            });
+            timestampToCheck = latestReason.timestamp;
+        }
+
+        if (!timestampToCheck) {
+            return false;
+        }
+
+        const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+    }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
@@ -85,7 +99,7 @@ function TroubleshootPage() {
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: expensifyIcons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -107,24 +121,24 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, expensifyIcons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: Expensicons.Bug,
+            icon: expensifyIcons.Bug,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
-                icon: Expensicons.RotateLeft,
+                icon: expensifyIcons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
-                icon: icons.Download,
+                icon: expensifyIcons.Download,
                 action: exportOnyxState,
             },
         ];
@@ -144,7 +158,17 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
+    }, [
+        expensifyIcons.Bug,
+        expensifyIcons.RotateLeft,
+        expensifyIcons.Download,
+        waitForNavigate,
+        exportOnyxState,
+        shouldStoreLogs,
+        classicRedirectMenuItem,
+        translate,
+        styles.sectionMenuItemTopDescription,
+    ]);
 
     return (
         <ScreenWrapper
