@@ -1,6 +1,9 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
@@ -106,6 +109,9 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
+    AmexCardCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    VisaCompanyCardDetail,
     CompanyCardsEmptyState,
     CompanyCardsPendingState,
     PendingBank,
