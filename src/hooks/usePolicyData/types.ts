@@ -1,12 +1,13 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 
 type PolicyData = {
-    policy: OnyxValueWithOfflineFeedback<Policy>;
+    policyID: string;
+    policy: OnyxEntry<Policy>;
     tags: PolicyTagLists;
-    categories: PolicyCategories;
-    reports: Array<OnyxValueWithOfflineFeedback<Report>>;
+    categories: OnyxEntry<PolicyCategories>;
+    reports: Array<OnyxEntry<Report>>;
     transactionsAndViolations: ReportTransactionsAndViolationsDerivedValue;
 };
 
