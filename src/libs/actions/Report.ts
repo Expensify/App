@@ -1136,7 +1136,11 @@ function openReport(
                 onboardingMessage.tasks = updatedTasks;
             }
 
-            const onboardingData = prepareOnboardingOnyxData(introSelected, choice, onboardingMessage);
+            const onboardingData = prepareOnboardingOnyxData({
+                introSelected,
+                engagementChoice: choice,
+                onboardingMessage,
+            });
 
             if (onboardingData) {
                 optimisticData.push(...onboardingData.optimisticData, {
@@ -4239,6 +4243,7 @@ function completeOnboarding({
     selectedInterestedFeatures = [],
     shouldSkipTestDriveModal,
     isInvitedAccountant,
+    onboardingPurposeSelected,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4253,8 +4258,9 @@ function completeOnboarding({
     selectedInterestedFeatures?: string[];
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
 }) {
-    const onboardingData = prepareOnboardingOnyxData(
+    const onboardingData = prepareOnboardingOnyxData({
         introSelected,
         engagementChoice,
         onboardingMessage,
@@ -4265,7 +4271,8 @@ function completeOnboarding({
         companySize,
         selectedInterestedFeatures,
         isInvitedAccountant,
-    );
+        onboardingPurposeSelected,
+    });
     if (!onboardingData) {
         return;
     }
