@@ -255,7 +255,7 @@ function SearchAutocompleteList({
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     })();
 
-    const hasAutocompleteList = getHasOptions(currentType);
+    const hasAutocompleteList = getHasOptions(translate, currentType);
     const isAutocompleteList = (() => {
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.CHAT:
