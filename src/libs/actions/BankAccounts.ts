@@ -264,16 +264,28 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string, lastPaymentMethod?: LastPaymentMethodType | string | undefined) {
+function addPersonalBankAccount(
+    account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
+    policyID?: string,
+    source?: string,
+    lastPaymentMethod?: LastPaymentMethodType | string | undefined,
+) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
-        routingNumber: account.routingNumber,
-        accountNumber: account.accountNumber,
+        routingNumber: account?.routingNumber,
+        accountNumber: account?.accountNumber,
         isSavings: account.isSavings ?? false,
-        setupType: 'plaid',
-        bank: account.bankName,
-        plaidAccountID: account.plaidAccountID,
-        plaidAccessToken: account.plaidAccessToken,
+        setupType: account?.setupType,
+        bank: account?.bankName,
+        plaidAccountID: account?.plaidAccountID,
+        plaidAccessToken: account?.plaidAccessToken,
+        phoneNumber: account?.phoneNumber,
+        legalFirstName: account?.legalFirstName,
+        legalLastName: account?.legalLastName,
+        addressStreet: account?.addressStreet,
+        addressCity: account?.addressCity,
+        addressState: account?.addressState,
+        addressZip: account?.addressZipCode,
     };
     if (policyID) {
         parameters.policyID = policyID;
