@@ -131,9 +131,9 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ChatBubbleReply', 'ChatBubbleUnread', 'Mail'] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ChatBubbleReply', 'ChatBubbleUnread', 'Mail'] as const);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
@@ -387,7 +387,8 @@ function BaseReportActionContextMenu({
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                        const icon = typeof contextAction.icon === 'string' ? expensifyIcons[contextAction.icon] : contextAction.icon;
+                        const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
+                        const successIcon = typeof contextAction.successIcon === 'string' ? icons[contextAction.successIcon] : contextAction.successIcon;
 
                         return (
                             <ContextMenuItem
@@ -397,7 +398,7 @@ function BaseReportActionContextMenu({
                                 buttonRef={isMenuAction ? threeDotRef : {current: null}}
                                 icon={icon}
                                 text={text ?? ''}
-                                successIcon={contextAction.successIcon}
+                                successIcon={successIcon}
                                 successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={isMini}
                                 key={contextAction.textTranslateKey}
