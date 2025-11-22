@@ -68,7 +68,7 @@ import type {
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -1099,7 +1099,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
-    transaction: OnyxEntry<Transaction | SearchTransaction>,
+    transaction: OnyxEntry<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail?: string,
 ): TransactionViolations | undefined {
@@ -1132,7 +1132,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transaction: Transaction | SearchTransaction, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function hasBrokenConnectionViolation(transaction: Transaction, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
@@ -1247,7 +1247,7 @@ function shouldShowViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | SearchTransaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     if (!transactions) {
         return false;
     }
@@ -1269,7 +1269,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
-function hasAnyTransactionWithoutRTERViolation(transactions: Transaction[] | SearchTransaction[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function hasAnyTransactionWithoutRTERViolation(transactions: Transaction[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
@@ -1424,7 +1424,7 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
     );
 }
 
-function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 

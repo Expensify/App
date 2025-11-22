@@ -392,7 +392,12 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
-function getReportNextStep(currentNextStep: ReportNextStep | undefined, moneyRequestReport: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>, policy: OnyxEntry<Policy>) {
+function getReportNextStep(
+    currentNextStep: ReportNextStepDeprecated | undefined,
+    moneyRequestReport: OnyxEntry<Report>,
+    transactions: Array<OnyxEntry<Transaction>>,
+    policy: OnyxEntry<Policy>,
+) {
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
 
     if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
