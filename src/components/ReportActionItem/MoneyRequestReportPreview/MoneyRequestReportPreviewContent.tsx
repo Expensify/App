@@ -92,8 +92,10 @@ import type {MoneyRequestReportPreviewContentProps} from './types';
 
 const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
 
+const onScrollToIndexFailed = () => {};
 function MoneyRequestReportPreviewContent({
     iouReportID,
+    newTransactionIDs,
     chatReportID,
     action,
     containerStyles,
@@ -413,6 +415,19 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        setTimeout(() => {
+            carouselRef.current?.scrollToIndex({index});
+        }, CONST.ANIMATED_TRANSITION);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -777,6 +792,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
+                                                onScrollToIndexFailed={onScrollToIndexFailed}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}

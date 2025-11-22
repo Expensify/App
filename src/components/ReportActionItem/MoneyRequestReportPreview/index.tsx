@@ -2,6 +2,8 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useNewTransactions from '@hooks/useNewTransactions';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -108,6 +110,9 @@ function MoneyRequestReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true});
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
+    const newTransactionIDs = newTransactions.map((transaction) => transaction.transactionID);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -129,6 +134,7 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+            shouldHighlight={newTransactionIDs.includes(item.transactionID)}
         />
     );
 
@@ -136,6 +142,7 @@ function MoneyRequestReportPreview({
 
     return (
         <MoneyRequestReportPreviewContent
+            newTransactionIDs={newTransactionIDs}
             iouReportID={iouReportID}
             chatReportID={chatReportID}
             iouReport={iouReport}
