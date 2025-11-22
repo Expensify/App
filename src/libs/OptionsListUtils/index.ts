@@ -2,7 +2,6 @@
 import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
-import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -140,7 +139,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -262,10 +260,10 @@ Onyx.connect({
         allReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
-        Object.entries(allReportActions).forEach((reportActions) => {
+        for (const reportActions of Object.entries(allReportActions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
-                return;
+                continue;
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
@@ -305,10 +303,10 @@ Onyx.connect({
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
                 delete lastVisibleReportActions[reportID];
-                return;
+                continue;
             }
             lastVisibleReportActions[reportID] = reportActionForDisplay;
-        });
+        }
     },
 });
 
@@ -327,23 +325,25 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }
-    accountIDs?.forEach((accountID) => {
-        const cleanAccountID = Number(accountID);
-        if (!cleanAccountID) {
-            return;
-        }
-        let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
-        if (!personalDetail) {
-            personalDetail = {} as PersonalDetails;
-        }
+    if (accountIDs) {
+        for (const accountID of accountIDs) {
+            const cleanAccountID = Number(accountID);
+            if (!cleanAccountID) {
+                continue;
+            }
+            let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
+            if (!personalDetail) {
+                personalDetail = {} as PersonalDetails;
+            }
 
-        if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-        }
+            if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+            }
 
-        personalDetail.accountID = cleanAccountID;
-        personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
-    });
+            personalDetail.accountID = cleanAccountID;
+            personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
+        }
+    }
     return personalDetailsForAccountIDs;
 }
 
@@ -438,11 +438,12 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
 
     if (
+        !lastReportAction ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastReportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
         return false;
@@ -513,17 +514,17 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(/\s+/));
-    const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
+    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
+    const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
     let matching = true;
-    searchWords.forEach((word) => {
+    for (const word of searchWords) {
         // if one of the word is not matching, we don't need to check further
         if (!matching) {
-            return;
+            continue;
         }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
-    });
+    }
     return matching;
 }
 
@@ -759,7 +760,7 @@ function getLastMessageTextForReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(getUpdateRoomDescriptionMessage(lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR)) {
         lastMessageTextFromReport = getRoomAvatarUpdatedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
@@ -1187,7 +1188,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
-        Object.values(reports).forEach((report) => {
+        for (const report of Object.values(reports)) {
             const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
 
             if (reportMapEntry) {
@@ -1198,7 +1199,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             if (reportOption) {
                 allReportOptions.push(reportOption);
             }
-        });
+        }
     }
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
@@ -1285,9 +1286,9 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
         return [];
     }
 
-    options.forEach((option) => {
+    for (const option of options) {
         if (filter && !filter(option)) {
-            return;
+            continue;
         }
         if (limit !== undefined && heap.size() >= limit) {
             const peekedValue = heap.peek();
@@ -1301,7 +1302,7 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
         } else {
             heap.push(option);
         }
-    });
+    }
     Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     return [...heap].reverse();
 }
@@ -1685,6 +1686,8 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         includeDomainEmail = false,
         loginsToExclude = {},
         excludeNonAdminWorkspaces,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1725,6 +1728,11 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
+
+    if (isPolicyExpenseChat && isRestrictedToPreferredPolicy && option.policyID !== preferredPolicyID) {
+        return false;
+    }
+
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
     if (!includeP2P && !isPolicyExpenseChat) {
         return false;
@@ -1962,12 +1970,12 @@ function getValidOptions(
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             if (!option.login) {
-                return;
+                continue;
             }
             loginsToExclude[option.login] = true;
-        });
+        }
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
@@ -1976,9 +1984,9 @@ function getValidOptions(
     let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
 
+    const searchTerms = processSearchString(searchString);
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = processSearchString(searchString);
 
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
@@ -2059,7 +2067,11 @@ function getValidOptions(
 
             return false;
         });
-        recentReportOptions = recentAttendees as Array<SearchOption<Report>>;
+        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
+        }
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -2077,7 +2089,6 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = processSearchString(searchString);
         const filteringFunction = (personalDetail: OptionData) => {
             if (
                 !personalDetail?.login ||
@@ -2236,40 +2247,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-type GetAttendeeOptionsParams = {
-    reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
-    betas: OnyxEntry<Beta[]>;
-    attendees: Attendee[];
-    recentAttendees: Attendee[];
-    draftComments: OnyxCollection<string>;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-    includeOwnedWorkspaceChats: boolean;
-    includeP2P: boolean;
-    includeInvoiceRooms: boolean;
-    action: IOUAction | undefined;
-    countryCode: number;
-};
-
-function getAttendeeOptions({
-    reports,
-    personalDetails,
-    betas,
-    attendees,
-    recentAttendees,
-    draftComments,
-    nvpDismissedProductTraining,
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeInvoiceRooms = false,
-    action = undefined,
-    countryCode = CONST.DEFAULT_COUNTRY_CODE,
-}: GetAttendeeOptionsParams) {
-    const personalDetailList = keyBy(
-        personalDetails.map(({item}) => item),
-        'accountID',
-    );
-
+function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsList>, attendees: Attendee[], recentAttendees: Attendee[]): Option[] {
     const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
     if (!recentAttendeeHasCurrentUser && currentUserLogin) {
         const details = getPersonalDetailByEmail(currentUserLogin);
@@ -2291,27 +2269,9 @@ function getAttendeeOptions({
             login: attendee.email ?? attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+        .map((attendee) => getParticipantsOption(attendee, personalDetails));
 
-    return getValidOptions(
-        {reports, personalDetails},
-        draftComments,
-        nvpDismissedProductTraining,
-        {
-            betas,
-            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats,
-            includeRecentReports: false,
-            includeP2P,
-            includeSelectedOptions: false,
-            includeSelfDM: false,
-            includeInvoiceRooms,
-            action,
-            recentAttendees: filteredRecentAttendees,
-        },
-        countryCode,
-    );
+    return filteredRecentAttendees;
 }
 
 /**
@@ -2525,7 +2485,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
                 const values: string[] = [];
                 if (item.text) {
                     values.push(StringUtils.normalizeAccents(item.text));
-                    values.push(StringUtils.normalizeAccents(item.text).replace(/['-]/g, ''));
+                    values.push(StringUtils.normalizeAccents(item.text).replaceAll(/['-]/g, ''));
                 }
 
                 if (item.login) {
@@ -2842,7 +2802,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getAttendeeOptions,
+    getFilteredRecentAttendees,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,

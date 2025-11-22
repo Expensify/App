@@ -143,6 +143,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -226,44 +228,46 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         const selectedOptions: TItem[] = [];
 
-        sections.forEach((section, sectionIndex) => {
+        for (const [sectionIndex, section] of sections.entries()) {
             const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            section.data?.forEach((item, optionIndex) => {
-                // Add item to the general flattened array
-                allOptions.push({
-                    ...item,
-                    sectionIndex,
-                    index: optionIndex,
-                });
+            if (section.data) {
+                for (const [optionIndex, item] of section.data.entries()) {
+                    // Add item to the general flattened array
+                    allOptions.push({
+                        ...item,
+                        sectionIndex,
+                        index: optionIndex,
+                    });
 
-                // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (isItemDisabled || item.isDisabledCheckbox) {
-                    disabledOptionsIndexes.push(disabledIndex);
-                    if (isItemDisabled) {
-                        disabledArrowKeyOptionsIndexes.push(disabledIndex);
+                    // If disabled, add to the disabled indexes array
+                    const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    if (isItemDisabled || item.isDisabledCheckbox) {
+                        disabledOptionsIndexes.push(disabledIndex);
+                        if (isItemDisabled) {
+                            disabledArrowKeyOptionsIndexes.push(disabledIndex);
+                        }
+                    }
+                    disabledIndex += 1;
+
+                    // Account for the height of the item in getItemLayout
+                    const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
+                    itemLayouts.push({length: fullItemHeight, offset});
+                    offset += fullItemHeight;
+
+                    if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
+                        selectedOptions.push(item);
                     }
                 }
-                disabledIndex += 1;
-
-                // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
-                itemLayouts.push({length: fullItemHeight, offset});
-                offset += fullItemHeight;
-
-                if (isItemSelected(item) && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
-                    selectedOptions.push(item);
-                }
-            });
+            }
 
             // We're not rendering any section footer, but we need to push to the array
             // because React Native accounts for it in getItemLayout
             itemLayouts.push({length: 0, offset});
-        });
+        }
 
         // We're not rendering the list footer, but we need to push to the array
         // because React Native accounts for it in getItemLayout
@@ -417,8 +421,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     }, []);
 
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -434,6 +442,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        onArrowUpDownCallback,
     });
 
     useEffect(() => {
@@ -634,6 +643,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
+    const setCurrentHoverIndex = useCallback(
+        (hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            currentHoverIndexRef.current = hoverIndex;
+        },
+        [currentHoverIndexRef, shouldDisableHoverStyle],
+    );
+
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -642,7 +661,15 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
+            <View
+                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
+                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseLeave={(e) => {
+                    e.stopPropagation();
+                    setCurrentHoverIndex(null);
+                }}
+            >
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -678,6 +705,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
+                    shouldDisableHoverStyle={shouldDisableHoverStyle}
+                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
@@ -890,9 +919,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>();
-            items.forEach((item) => {
+            for (const item of items) {
                 newItemsToHighlight.add(item);
-            });
+            }
             const index = flattenedSections.allOptions.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
             scrollToIndex(index);
             setItemsToHighlight(newItemsToHighlight);

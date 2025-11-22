@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -24,11 +25,14 @@ type DomainsListRowProps = {
     /** Items for the three dots menu */
     menuItems?: PopoverMenuItem[];
 
-    /** The type of brick road indicator to show. */
+    /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
+    /** Icon to display at the end of the row */
+    rightIcon: ReactElement<typeof Icon>;
 };
 
-function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems, rightIcon}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -79,13 +83,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         )}
                     </View>
                 </View>
-                <View style={styles.touchableButtonImage}>
-                    <Icon
-                        src={Expensicons.NewWindow}
-                        fill={isHovered ? theme.iconHovered : theme.icon}
-                        isButtonIcon
-                    />
-                </View>
+                <View style={styles.touchableButtonImage}>{rightIcon}</View>
             </View>
         </View>
     );

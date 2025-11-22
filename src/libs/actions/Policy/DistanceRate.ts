@@ -27,12 +27,12 @@ import type {OnyxData} from '@src/types/onyx/Request';
  */
 function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
     const customUnitRateArray: Rate[] = [];
-    customUnitRates.forEach((rate) => {
+    for (const rate of customUnitRates) {
         const cleanedRate = {...rate};
         delete cleanedRate.pendingFields;
         delete cleanedRate.errorFields;
         customUnitRateArray.push(cleanedRate);
-    });
+    }
 
     return customUnitRateArray;
 }
