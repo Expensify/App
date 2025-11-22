@@ -29,6 +29,7 @@ import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils'
 import Performance from '@libs/Performance';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -95,8 +96,11 @@ function IOURequestStartPage({
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabled = useMemo(
+        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
+        [allPolicies, currentUserPersonalDetails.login],
+    );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
@@ -121,6 +125,7 @@ function IOURequestStartPage({
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
@@ -143,6 +148,7 @@ function IOURequestStartPage({
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
+            currentUserPersonalDetails,
         });
         // eslint-disable-next-line
     }, []);
@@ -164,9 +170,21 @@ function IOURequestStartPage({
                 parentReport,
                 currentDate,
                 lastSelectedDistanceRates,
+                currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, transaction?.isFromGlobalCreate, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
+        [
+            transaction?.iouRequestType,
+            transaction?.isFromGlobalCreate,
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+        ],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.

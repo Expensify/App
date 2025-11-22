@@ -330,7 +330,7 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
-    approvalWorkflow.approvers.forEach((approver, approverIndex) => {
+    for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
         if (!approver) {
             errors[`approver-${approverIndex}`] = 'common.error.fieldRequired';
         }
@@ -338,7 +338,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
-    });
+    }
 
     if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
         errors.members = 'common.error.fieldRequired';
