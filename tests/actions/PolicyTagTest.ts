@@ -585,17 +585,13 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             // When the tag is renamed
-            const policyData = {
-                policy: fakePolicy,
-                tags: fakePolicyTags,
-                categories: {},
-                reports: [],
-                transactionsAndViolations: {},
-            };
+
             renamePolicyTag(
-                policyData,
+                policyData.current,
                 {
                     oldName: oldTagName,
                     newName: newTagName,
@@ -640,19 +636,14 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             mockFetch.fail();
 
             // When the tag rename fails
-            const policyData = {
-                policy: fakePolicy,
-                tags: fakePolicyTags,
-                categories: {},
-                reports: [],
-                transactionsAndViolations: {},
-            };
             renamePolicyTag(
-                policyData,
+                policyData.current,
                 {
                     oldName: oldTagName,
                     newName: newTagName,
@@ -682,19 +673,14 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, existingPolicyTags);
+            await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             // When trying to rename a tag with invalid index
-            const policyData = {
-                policy: fakePolicy,
-                tags: {},
-                categories: {},
-                reports: [],
-                transactionsAndViolations: {},
-            };
 
             expect(() => {
                 renamePolicyTag(
-                    policyData,
+                    policyData.current,
                     {
                         oldName: 'oldTag',
                         newName: 'newTag',
@@ -742,17 +728,12 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             // When the tag is renamed
-            const policyData = {
-                policy: fakePolicy,
-                tags: fakePolicyTags,
-                categories: {},
-                reports: [],
-                transactionsAndViolations: {},
-            };
             renamePolicyTag(
-                policyData,
+                policyData.current,
                 {
                     oldName: oldTagName,
                     newName: newTagName,
@@ -789,7 +770,7 @@ describe('actions/Policy', () => {
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             await waitFor(() => {
-                expect(policyData.current.policy).toBeDefined();
+                expect(policyData.current?.policy).toBeDefined();
             });
 
             // When renaming tag with data from usePolicyData
@@ -1708,8 +1689,8 @@ describe('actions/Policy', () => {
             rerender(fakePolicy.id);
 
             // Then the policy should be updated optimistically
-            expect(policyData.current.policy?.areTagsEnabled).toBe(true);
-            expect(policyData.current.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(policyData.current?.policy?.areTagsEnabled).toBe(true);
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             // And a default tag list should be created
             const defaultTag = Object.values(policyData.current?.tags ?? {}).at(0);
@@ -1723,7 +1704,7 @@ describe('actions/Policy', () => {
 
             rerender(fakePolicy.id);
             // And after API success, pending fields should be cleared
-            expect(policyData.current.policy?.pendingFields?.areTagsEnabled).toBeFalsy();
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBeFalsy();
         });
 
         it('should disable tags and update existing tag list', async () => {
@@ -1749,9 +1730,9 @@ describe('actions/Policy', () => {
 
             // Then the policy should be updated optimistically
             rerender(fakePolicy.id);
-            expect(policyData.current.policy?.areTagsEnabled).toBe(false);
-            expect(policyData.current.policy?.requiresTag).toBe(false);
-            expect(policyData.current.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(policyData.current?.policy?.areTagsEnabled).toBe(false);
+            expect(policyData.current?.policy?.requiresTag).toBe(false);
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             // And all tags should be disabled
             for (const tagName of Object.keys(existingTags)) {
@@ -1764,7 +1745,7 @@ describe('actions/Policy', () => {
 
             // And after API success, pending fields should be cleared
             rerender(fakePolicy.id);
-            expect(policyData.current.policy?.pendingFields).toBeDefined();
+            expect(policyData.current?.policy?.pendingFields).toBeDefined();
         });
 
         it('should reset changes when API returns error', async () => {
@@ -1789,8 +1770,8 @@ describe('actions/Policy', () => {
             rerender(fakePolicy.id);
 
             // After the API request failure, the policy should be reset to original state
-            expect(policyData.current.policy.areTagsEnabled).toBe(false);
-            expect(policyData.current.policy.pendingFields?.areTagsEnabled).toBeUndefined();
+            expect(policyData.current?.policy?.areTagsEnabled).toBe(false);
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBeUndefined();
             expect(policyData.current.tags).toMatchObject({});
         });
 
@@ -1806,15 +1787,15 @@ describe('actions/Policy', () => {
 
             const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            expect(policyData.current.policy).toBeDefined();
+            expect(policyData.current?.policy).toBeDefined();
 
             enablePolicyTags(policyData.current, true);
             await waitForBatchedUpdates();
             rerender(fakePolicy.id);
 
             // Then the policy should be updated optimistically
-            expect(policyData.current.policy.areTagsEnabled).toBe(true);
-            expect(policyData.current.policy.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(policyData.current?.policy?.areTagsEnabled).toBe(true);
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
@@ -1822,8 +1803,8 @@ describe('actions/Policy', () => {
             rerender(fakePolicy.id);
 
             // And after API success, policy should be enabled
-            expect(policyData.current.policy.areTagsEnabled).toBe(true);
-            expect(policyData.current.policy.pendingFields?.areTagsEnabled).toBeUndefined();
+            expect(policyData.current?.policy?.areTagsEnabled).toBe(true);
+            expect(policyData.current?.policy?.pendingFields?.areTagsEnabled).toBeUndefined();
 
             // And default tag list should be created
             expect(policyData.current.tags.Tag).toBeDefined();

@@ -11,7 +11,6 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import PolicyDistanceRateTaxRateEditPage from '@pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage';
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
