@@ -6,7 +6,6 @@ import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
-import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
@@ -211,7 +210,6 @@ import Zoom from '@assets/images/zoom.svg';
 
 export {
     ReceiptBody,
-    ActiveRoomAvatar,
     All,
     Android,
     Apple,
