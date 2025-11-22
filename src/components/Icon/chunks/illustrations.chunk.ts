@@ -51,6 +51,7 @@ import Abacus from '@assets/images/simple-illustrations/simple-illustration__aba
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -87,6 +88,7 @@ import Luggage from '@assets/images/simple-illustrations/simple-illustration__lu
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
@@ -168,6 +170,7 @@ const Illustrations = {
     InvoiceBlue,
     MagnifyingGlassMoney,
     MoneyReceipts,
+    MoneyIntoWallet,
     MoneyWings,
     PerDiem,
     RealtimeReport,
@@ -182,6 +185,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    ShareBank,
     Luggage,
     Puzzle,
     Abacus,

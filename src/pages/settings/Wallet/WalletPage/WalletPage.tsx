@@ -9,8 +9,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -24,7 +22,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -69,6 +67,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         canBeMissing: true,
         selector: fundListSelector,
     });
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet'] as const);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -79,7 +78,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Hourglass', 'Exclamation', 'Wallet', 'Star', 'UserPlus', 'Trashcan', 'Globe'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -89,6 +88,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
+    const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowCardMenu, setShouldShowCardMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
@@ -175,6 +175,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
+            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+                setShouldShowShareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
+            }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
                 selectedPaymentMethod: accountData ?? {},
@@ -231,6 +234,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
         setShowConfirmDeleteModal(false);
+        setShouldShowShareButton(false);
     }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const hideCardMenu = useCallback(() => {
@@ -363,7 +367,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={Illustrations.MoneyIntoWallet}
+            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
@@ -504,7 +508,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     <MenuItem
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
+                                                        icon={expensifyIcons.Transfer}
                                                         onPress={(event) => {
                                                             triggerKYCFlow({event});
                                                         }}
@@ -522,7 +526,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Hourglass}
+                                                            src={expensifyIcons.Hourglass}
                                                             fill={theme.icon}
                                                         />
 
@@ -535,7 +539,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Exclamation}
+                                                            src={expensifyIcons.Exclamation}
                                                             fill={theme.icon}
                                                         />
 
@@ -547,7 +551,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             return (
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
-                                                    icon={Expensicons.Wallet}
+                                                    icon={expensifyIcons.Wallet}
                                                     ref={buttonRef as ForwardedRef<View>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
@@ -612,7 +616,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Star}
+                                icon={expensifyIcons.Star}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
@@ -625,9 +629,23 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 numberOfLinesTitle={0}
                             />
                         )}
+                        {shouldShowShareButton && (
+                            <MenuItem
+                                title={translate('common.share')}
+                                icon={expensifyIcons.UserPlus}
+                                onPress={() => {
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
+                                        return;
+                                    }
+                                    closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                                }}
+                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                            />
+                        )}
                         <MenuItem
                             title={translate('common.delete')}
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             onPress={() => {
                                 if (isAccountLocked) {
                                     closeModal(() => showLockedAccountModal());
@@ -640,7 +658,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         {shouldShowEnableGlobalReimbursementsButton && (
                             <MenuItem
                                 title={translate('common.enableGlobalReimbursements')}
-                                icon={Expensicons.Globe}
+                                icon={expensifyIcons.Globe}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());

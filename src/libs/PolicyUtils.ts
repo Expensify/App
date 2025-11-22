@@ -4,11 +4,12 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import {getBankAccountFromID} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {BankAccountShareDetails, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -37,6 +38,8 @@ import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {formatMemberForList} from './OptionsListUtils';
+import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
@@ -181,6 +184,45 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
+}
+
+/** Return admins from active policies */
+function getActiveAllAdminsFromWorkspaces(
+    policies: OnyxCollection<Policy> | null,
+    currentUserLogin: string | undefined,
+    bankAccountID: string | undefined,
+    bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
+): MemberForList[] {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const adminMap = new Map<string, MemberForList>();
+    Object.values(activePolicies ?? {}).forEach((policy) => {
+        getAdminEmployees(policy).forEach((admin) => {
+            const accountID = admin.email ? getAccountIDsByLogins([admin.email]).at(0) : undefined;
+            const isBankAlreadyShared = !!(bankAccountID && accountID && bankAccountShareDetails?.[`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${accountID}`]);
+            if (!admin?.email || adminMap.has(admin.email) || isBankAlreadyShared || currentBankAccount?.accountData?.sharees?.includes(admin?.email)) {
+                return;
+            }
+            const personalDetails = getPersonalDetailByEmail(admin.email);
+            if (!personalDetails) {
+                return;
+            }
+
+            adminMap.set(
+                admin.email,
+                formatMemberForList({
+                    text: personalDetails?.displayName,
+                    alternateText: personalDetails?.login,
+                    keyForList: personalDetails?.login,
+                    accountID: personalDetails?.accountID,
+                    login: personalDetails?.login,
+                    pendingAction: personalDetails?.pendingAction,
+                    reportID: '',
+                }),
+            );
+        });
+    });
+    return Array.from(adminMap.values());
 }
 
 function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
@@ -1649,6 +1691,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getActiveAllAdminsFromWorkspaces,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,

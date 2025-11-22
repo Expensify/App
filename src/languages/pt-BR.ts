@@ -2014,6 +2014,12 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirme sua conta bancária',
         personalBankAccounts: 'Contas bancárias pessoais',
         businessBankAccounts: 'Contas bancárias empresariais',
+        shareBankAccount: 'Compartilhar conta bancária',
+        bankAccountShared: 'Conta bancária compartilhada',
+        shareBankAccountTitle: 'Selecione os administradores com quem compartilhar esta conta bancária:',
+        shareBankAccountSuccess: 'Conta bancária compartilhada!',
+        shareBankAccountSuccessDescription: 'Os administradores selecionados receberão uma mensagem de confirmação do Concierge.',
+        shareBankAccountFailure: 'Ocorreu um erro inesperado ao tentar compartilhar a conta bancária. Tente novamente.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

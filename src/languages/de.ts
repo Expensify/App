@@ -2025,6 +2025,12 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
         personalBankAccounts: 'Persönliche Bankkonten',
         businessBankAccounts: 'Geschäftsbankkonten',
+        shareBankAccount: 'Bankkonto teilen',
+        bankAccountShared: 'Geteiltes Bankkonto',
+        shareBankAccountTitle: 'Wählen Sie die Administratoren aus, mit denen dieses Bankkonto geteilt werden soll:',
+        shareBankAccountSuccess: 'Bankkonto geteilt!',
+        shareBankAccountSuccessDescription: 'Die ausgewählten Administratoren erhalten eine Bestätigungsnachricht vom Concierge.',
+        shareBankAccountFailure: 'Beim Versuch, das Bankkonto freizugeben, ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
