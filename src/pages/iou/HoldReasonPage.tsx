@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -24,9 +25,10 @@ type HoldReasonPageProps =
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {transactionID, reportID, backTo, searchHash} = route.params;
+    const {transactionID, reportID, backTo} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const ancestors = useAncestors(report);
     const {selectedTransactionIDs} = useSearchContext();
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
@@ -42,7 +44,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, searchHash);
+        putOnHold(transactionID, values.comment, reportID, ancestors);
         Navigation.goBack(backTo);
     };
 

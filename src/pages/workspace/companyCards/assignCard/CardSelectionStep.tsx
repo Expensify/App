@@ -2,7 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
@@ -13,23 +12,24 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
     /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
+    feed: CompanyCardFeed;
 
     /** Current policy id */
     policyID: string | undefined;
@@ -39,16 +39,17 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [list] = useCardsList(feed);
+    const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -66,7 +67,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations)}
+                src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -129,7 +130,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
-                        src={BrokenMagnifyingGlass}
+                        src={lazyIllustrations.BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />

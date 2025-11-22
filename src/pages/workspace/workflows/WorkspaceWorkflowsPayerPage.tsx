@@ -60,12 +60,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                return;
+                continue;
             }
 
             const isOwner = policy?.owner === details?.login;
@@ -73,7 +73,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
-                return;
+                continue;
             }
 
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
@@ -105,7 +105,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             } else {
                 policyAdminDetails.push(formattedMember);
             }
-        });
+        }
         return [policyAdminDetails, authorizedPayerDetails];
     }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, formatPhoneNumber]);
 
