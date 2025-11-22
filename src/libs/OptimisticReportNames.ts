@@ -43,7 +43,7 @@ function getTitleFieldFromPolicy(policyId: string | undefined, context: UpdateCo
 /**
  * Get the object type from an Onyx key
  */
-function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'unknown' {
+function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'personalDetails' | 'unknown' {
     if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
         return 'report';
     }
@@ -52,6 +52,9 @@ function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transacti
     }
     if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
         return 'transaction';
+    }
+    if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+        return 'personalDetails';
     }
     return 'unknown';
 }
@@ -154,6 +157,28 @@ function getReportByTransactionID(transactionID: string, context: UpdateContext)
 }
 
 /**
+ * Get all reports where the given accountID is the submitter or manager
+ */
+function getReportsWithUserAsSubmitterOrManager(accountID: number, allReports: Record<string, Report>, context: UpdateContext): Report[] {
+    return Object.values(allReports).filter((report) => {
+        if (!report) {
+            return false;
+        }
+
+        // Check if this user is the submitter or manager
+        const isSubmitter = report.ownerAccountID === accountID;
+        const isManager = report.managerID === accountID;
+
+        if (!isSubmitter && !isManager) {
+            return false;
+        }
+
+        // Only process reports that should have their names computed
+        return shouldComputeReportName(report, context);
+    });
+}
+
+/**
  * Generate the Onyx key for a report
  */
 function getReportKey(reportID: string): OnyxKey {
@@ -198,7 +223,7 @@ function isValidReportType(reportType?: string): boolean {
  * Compute a new report name if needed based on an optimistic update
  */
 function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
-    const {allPolicies} = context;
+    const {allPolicies, allPersonalDetails} = context;
 
     // If no report is provided, extract it from the update (for new reports)
     const targetReport = report ?? (incomingUpdate.value as Report);
@@ -231,7 +256,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
             // Checking if the formula part is affected in this manner works, but it could certainly be more precise.
             // For example, a policy update only affects the part if the formula in the policy changed, or if the report part references a field on the policy.
             // However, if we run into performance problems, this would be a good place to optimize.
-            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
+            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy' || updateType === 'personalDetails';
         }
         if (part.type === FORMULA_PART_TYPES.FIELD) {
             return updateType === 'report';
@@ -251,18 +276,27 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
+    const submitterAccountID = updatedReport.ownerAccountID ? String(updatedReport.ownerAccountID) : undefined;
+    const managerAccountID = updatedReport.managerID ? String(updatedReport.managerID) : undefined;
+    const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;
+    const managerPersonalDetails = managerAccountID ? (allPersonalDetails[managerAccountID] ?? undefined) : undefined;
+
     // Compute the new name
     const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
+        submitterPersonalDetails,
+        managerPersonalDetails,
         allTransactions: context.allTransactions,
+        pendingUpdates: context.pendingUpdates,
     };
 
     const newName = compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
-    if (newName && newName !== targetReport.reportName) {
+    // Note: We explicitly allow empty strings (e.g., when submission info returns empty after retract)
+    if (newName !== targetReport.reportName) {
         Log.info('[OptimisticReportNames] Report name computed', false, {
             updateType,
             isNewReport: !report,
@@ -358,6 +392,36 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                             },
                         });
                     }
+                }
+                break;
+            }
+
+            case 'personalDetails': {
+                const personalDetailsUpdate = update.value as Record<string, unknown>;
+                if (personalDetailsUpdate && typeof personalDetailsUpdate === 'object') {
+                    Object.keys(personalDetailsUpdate).forEach((accountIDStr) => {
+                        const accountID = Number(accountIDStr);
+                        if (!accountID) {
+                            return;
+                        }
+
+                        const affectedReports = getReportsWithUserAsSubmitterOrManager(accountID, allReports, context);
+
+                        for (const report of affectedReports) {
+                            const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+
+                            if (reportNameUpdate) {
+                                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                                additionalUpdates.push({
+                                    key: getReportKey(report.reportID),
+                                    onyxMethod: Onyx.METHOD.MERGE,
+                                    value: {
+                                        reportName: reportNameUpdate,
+                                    },
+                                });
+                            }
+                        }
+                    });
                 }
                 break;
             }

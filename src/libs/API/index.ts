@@ -95,7 +95,9 @@ function prepareRequest<TCommand extends ApiCommand>(
             Onyx.update(optimisticData);
         } else {
             try {
-                const context = getUpdateContext();
+                // Pass the pending optimistic updates to the context so formula computation can access them
+                // This solves the timing issue where report state updates before reportActions are applied to Onyx
+                const context = getUpdateContext(optimisticData);
                 const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
                 Onyx.update(processedOptimisticData);
             } catch (error) {
