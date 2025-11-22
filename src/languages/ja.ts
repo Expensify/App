@@ -2691,6 +2691,10 @@ ${
             title: 'メンバーを招待する',
             subtitle: '経費を会計士と管理・共有したり、友達と旅行グループを始めたりしましょう。',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'ワークスペースの作成は管理者のみに制限されています。以下のいずれかのワークスペースに参加するか、詳細は管理者にお問い合わせください。',
+            skipForNow: '今はスキップ',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'これを再び表示しないでください',
@@ -5116,6 +5120,8 @@ ${
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書の管理、経費精算、出張管理、請求書の送信などができます。',
+            restrictedPolicySubtitle:
+                'あなたの会社では、管理者以外のユーザーによるワークスペースの作成が制限されています。既存のワークスペースへのアクセスをリクエストするか、社内の管理者にお問い合わせください。',
             createAWorkspaceCTA: '開始する',
             features: {
                 trackAndCollect: '領収書を追跡して収集する',

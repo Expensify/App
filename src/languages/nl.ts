@@ -2701,6 +2701,11 @@ ${
             title: 'Leden uitnodigen',
             subtitle: 'Beheer en deel je uitgaven met een accountant of start een reisgroep met vrienden.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Het aanmaken van werkruimtes is voorbehouden aan beheerders. Sluit je aan bij een van de onderstaande werkruimtes of neem contact op met je beheerder voor meer informatie.',
+            skipForNow: 'Voor nu overslaan',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Toon me dit niet meer',
@@ -5151,6 +5156,8 @@ ${
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Beheer bonnetjes, vergoed uitgaven, regel reizen, verstuur facturen en meer.',
+            restrictedPolicySubtitle:
+                'Uw bedrijf beperkt het aanmaken van werkruimten door niet-beheerders. U kunt toegang aanvragen tot een bestaande werkruimte of contact opnemen met een interne beheerder voor meer informatie.',
             createAWorkspaceCTA: 'Aan de slag',
             features: {
                 trackAndCollect: 'Volg en verzamel bonnetjes',

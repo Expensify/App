@@ -2700,6 +2700,11 @@ ${
             title: 'Invita membri',
             subtitle: 'Gestisci e condividi le tue spese con un commercialista o avvia un gruppo di viaggio con gli amici.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La creazione di spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi di lavoro qui sotto oppure contatta il tuo amministratore per maggiori informazioni.',
+            skipForNow: 'Salta per ora',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',
@@ -5158,6 +5163,8 @@ ${
         emptyWorkspace: {
             title: 'Non hai spazi di lavoro',
             subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
+            restrictedPolicySubtitle:
+                'La tua azienda limita la creazione di spazi di lavoro da parte di utenti non amministratori. Puoi richiedere l’accesso a uno spazio di lavoro esistente o contattare un amministratore interno per maggiori informazioni.',
             createAWorkspaceCTA: 'Inizia',
             features: {
                 trackAndCollect: 'Traccia e raccogli ricevute',

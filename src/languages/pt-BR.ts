@@ -2696,6 +2696,11 @@ ${
             title: 'Convidar membros',
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'A criação de espaços de trabalho está restrita aos administradores. Entre em um dos espaços de trabalho abaixo ou contate seu administrador para obter mais informações.',
+            skipForNow: 'Pular por enquanto',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não me mostre isso novamente',
@@ -5144,6 +5149,8 @@ ${
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
+            restrictedPolicySubtitle:
+                'Sua empresa restringe a criação de workspaces por usuários não administradores. Você pode solicitar acesso a um workspace existente ou entrar em contato com um administrador interno para mais informações.',
             createAWorkspaceCTA: 'Começar',
             features: {
                 trackAndCollect: 'Acompanhe e colete recibos',
