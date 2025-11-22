@@ -608,11 +608,11 @@ function WorkspacesListPage() {
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === policyID);
         if (duplicateWorkspaceIndex >= 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                clearDuplicateWorkspace();
+            });
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            clearDuplicateWorkspace();
-        });
     }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
     const listHeaderComponent = (
