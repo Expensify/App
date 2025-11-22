@@ -59,9 +59,6 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
-
-        /** Sort order index for displaying rates */
-        index?: number;
     },
     keyof TaxRateAttributes
 >;
