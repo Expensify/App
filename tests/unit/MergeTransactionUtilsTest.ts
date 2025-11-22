@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     buildMergedTransactionData,
     getDisplayValue,
@@ -7,6 +6,7 @@ import {
     getMergeFieldTranslationKey,
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
+    getRateFromMerchant,
     getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
@@ -15,22 +15,14 @@ import {
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
-import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 describe('MergeTransactionUtils', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        return waitForBatchedUpdates();
-    });
-
     describe('getSourceTransactionFromMergeTransaction', () => {
         it('should return undefined when mergeTransaction is undefined', () => {
             // Given a null merge transaction
@@ -111,6 +103,23 @@ describe('MergeTransactionUtils', () => {
             // Then it should return true because all transactions have valid receipts
             expect(result).toBe(true);
         });
+
+        it('should return false when both transactions are distance requests', () => {
+            // Given two distance request transactions (with or without receipts)
+            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
+            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
+
+            distanceTransaction1.receipt = {receiptID: 333};
+            distanceTransaction2.receipt = {receiptID: 444};
+
+            const transactions = [distanceTransaction1, distanceTransaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return false because distance requests skip receipt review
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeFieldValue', () => {
@@ -149,18 +158,6 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the category value from the transaction
             expect(result).toBe('Food');
-        });
-
-        it('should return currency value from transaction', () => {
-            // Given a transaction with a currency value
-            const transaction = createRandomTransaction(0);
-            transaction.currency = CONST.CURRENCY.EUR;
-
-            // When we get the currency field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'currency');
-
-            // Then it should return the currency value from the transaction
-            expect(result).toBe(CONST.CURRENCY.EUR);
         });
 
         it('should handle amount field for unreported expense correctly', () => {
@@ -519,7 +516,8 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
-                reportName: 'Test Report',
+                waypoints: {waypoint0: {name: 'Selected waypoint'}},
+                customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -537,6 +535,8 @@ describe('MergeTransactionUtils', () => {
                 comment: {
                     ...targetTransaction.comment,
                     comment: 'Merged description',
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
+                    waypoints: {waypoint0: {name: 'Selected waypoint'}},
                 },
                 reimbursable: false,
                 billable: true,
@@ -545,7 +545,6 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
-                reportName: 'Test Report',
             });
         });
     });
@@ -752,61 +751,6 @@ describe('MergeTransactionUtils', () => {
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
         });
-
-        it('should return "None" for unreported reportID', () => {
-            // Given a transaction with unreported reportID
-            const transaction = {
-                ...createRandomTransaction(0),
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-            };
-
-            // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
-
-            // Then it should return translated "None"
-            expect(result).toBe('common.none');
-        });
-
-        it("should return transaction's reportName when available for reportID", () => {
-            // Given a transaction with reportID and reportName
-            const transaction = {
-                ...createRandomTransaction(0),
-                reportID: '123',
-                reportName: 'Test Report Name',
-            };
-
-            // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
-
-            // Then it should return the reportName
-            expect(result).toBe('Test Report Name');
-        });
-
-        it("should return report's name when no reportName available on transaction", async () => {
-            // Given a random report
-            const reportID = 456;
-            const report = {
-                ...createRandomReport(reportID, undefined),
-                reportName: 'Test Report Name',
-            };
-
-            // Store the report in Onyx
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await waitForBatchedUpdates();
-
-            // Given a transaction with reportID but no reportName
-            const transaction = {
-                ...createRandomTransaction(0),
-                reportID: report.reportID,
-                reportName: undefined,
-            };
-
-            // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
-
-            // Then it should return the report's name from Onyx
-            expect(result).toBe(report.reportName);
-        });
     });
 
     describe('getMergeFieldUpdatedValues', () => {
@@ -842,22 +786,47 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
-        it('should include reportName when field is reportID', () => {
-            // Given a transaction with a reportID and reportName
+        it('should include additional fields when merchant field is selected for distance request', () => {
+            // Given a distance request transaction
             const transaction = {
-                ...createRandomTransaction(0),
-                reportID: '123',
-                reportName: 'Test Report',
+                ...createRandomDistanceRequestTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: 2500,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'unit123',
+                        quantity: 25.5,
+                    },
+                    waypoints: {
+                        waypoint0: {name: 'Start Location', address: '123 Start St'},
+                        waypoint1: {name: 'End Location', address: '456 End Ave'},
+                    },
+                },
             };
-            const fieldValue = '456';
+            const fieldValue = 'New Distance Merchant';
 
-            // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues(transaction, 'reportID', fieldValue);
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
 
-            // Then it should include both reportID and reportName
+            // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({
-                reportID: '456',
-                reportName: 'Test Report',
+                merchant: 'New Distance Merchant',
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'unit123',
+                    quantity: 25.5,
+                },
+                waypoints: {
+                    waypoint0: {name: 'Start Location', address: '123 Start St'},
+                    waypoint1: {name: 'End Location', address: '456 End Ave'},
+                },
+                routes: null,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             });
         });
     });
@@ -891,6 +860,30 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the generic error message with lowercase field name
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('getRateFromMerchant', () => {
+        it('should return empty string for undefined merchant', () => {
+            // Given an undefined merchant
+            const merchant = undefined;
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return empty string
+            expect(result).toBe('');
+        });
+
+        it('should extract rate from distance merchant string', () => {
+            // Given a distance merchant string with rate
+            const merchant = '5.2 mi @ $0.50 / mi';
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return the rate portion
+            expect(result).toBe('$0.50 / mi');
         });
     });
 });

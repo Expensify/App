@@ -38,6 +38,81 @@ nameOfTheKey: ({amount, dateTime}) => `User has sent <strong>${amount}</strong> 
 
 This is because the order of phrases might vary from one language to another, and LLMs will be able to produce better translations will the full context of the phrase. If rich formatting is needed, use HTML in the string and render it with react-native-render-html.
 
+### - String concatenation SHOULD NOT be used for translations
+Always prefer whole phrases over string concatenation, even if the result is more verbose:
+
+```ts
+// BAD
+{
+    receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        let message = 'Receipt required';
+        if (formattedLimit ?? category) {
+            message += ' over';
+            if (formattedLimit) {
+                message += ` ${formattedLimit}`;
+            }
+            if (category) {
+                message += ' category limit';
+            }
+        }
+        return message;
+    },
+    addExpenseApprovalsTask: ({workspaceMoreFeaturesLink}) =>
+        `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+        '\n' +
+        `Here's how:\n` +
+        '\n' +
+        '1. Go to *Workspaces*.\n' +
+        '2. Select your workspace.\n' +
+        '3. Click *More features*.\n' +
+        '4. Enable *Workflows*.\n' +
+        '5. Navigate to *Workflows* in the workspace editor.\n' +
+        '6. Enable *Add approvals*.\n' +
+        `7. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+        '\n' +
+        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+}
+
+// GOOD
+{
+    receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        if (formattedLimit && category) {
+            return `Receipt required over ${formattedLimit} category limit`;
+        }
+
+        if (formattedLimit) {
+            return `Receipt required over ${formattedLimit}`;
+        }
+
+        if (category) {
+            return `Receipt required over category limit`;
+        }
+
+        return 'Receipt required';
+    },
+    addExpenseApprovalsTask: ({workspaceMoreFeaturesLink}) =>
+        dedent(`
+            *Add expense approvals* to review your team's spend and keep it under control.
+
+            Here's how:
+
+            1. Go to *Workspaces*.
+            2. Select your workspace.
+            3. Click *More features*.
+            4. Enable *Workflows*.
+            5. Navigate to *Workflows* in the workspace editor.
+            6. Enable *Add approvals*.
+            7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
+
+            [Take me to more features](${workspaceMoreFeaturesLink}).
+        `),
+    },
+}
+
+```
+
+This provides our AI translation LLM with more context to translate the whole phrase as one string, producing higher quality results.
+
 ### - Plural forms MUST be handled correctly using plural translation objects
 When working with translations that involve plural forms, it's important to handle different cases correctly:
 

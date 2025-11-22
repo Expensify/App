@@ -14,7 +14,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -53,6 +53,9 @@ type ParentNavigationSubtitleProps = {
 
     /** The style of the status text container */
     statusTextContainerStyles?: StyleProp<ViewStyle>;
+
+    /** The number of lines for the subtitle */
+    subtitleNumberOfLines?: number;
 };
 
 function ParentNavigationSubtitle({
@@ -66,6 +69,7 @@ function ParentNavigationSubtitle({
     statusTextBackgroundColor,
     statusTextColor,
     statusTextContainerStyles,
+    subtitleNumberOfLines = 1,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -95,7 +99,7 @@ function ParentNavigationSubtitle({
 
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
-            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
                 const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
                 if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
                     const moneyRequestReportID = (lastRoute?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
@@ -117,6 +121,16 @@ function ParentNavigationSubtitle({
             }
         }
 
+        // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
+        // to preserve the search context instead of navigating away.
+        if (openParentReportInCurrentTab && currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
+            if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+                return;
+            }
+        }
+
         if (isVisibleAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
         } else {
@@ -125,12 +139,11 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1, styles.mnw0]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
             {!!statusText && (
                 <View
                     style={[
                         styles.reportStatusContainer,
-                        styles.flexShrink0,
                         styles.mr1,
                         {
                             backgroundColor: statusTextBackgroundColor,
@@ -142,8 +155,8 @@ function ParentNavigationSubtitle({
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}
-                numberOfLines={1}
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1, textStyles]}
+                numberOfLines={subtitleNumberOfLines}
             >
                 {!!reportName && (
                     <>
@@ -154,6 +167,7 @@ function ParentNavigationSubtitle({
                             onPress={onPress}
                             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
                             style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link, textStyles]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {reportName}
                         </TextLink>
