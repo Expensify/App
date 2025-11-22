@@ -23,10 +23,6 @@ on:
         description: Web deploy status
         required: true
         type: string
-      desktop:
-        description: Desktop deploy status
-        required: true
-        type: string
     secrets:
       OS_BOTIFY_TOKEN:
         description: Token for accessing Mobile-Expensify repository
@@ -64,15 +60,6 @@ on:
           - skipped
       web:
         description: Web deploy status
-        required: true
-        type: choice
-        options:
-          - success
-          - failure
-          - cancelled
-          - skipped
-      desktop:
-        description: Desktop deploy status
         required: true
         type: choice
         options:
@@ -118,7 +105,6 @@ jobs:
           DEPLOY_VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ inputs.android }}
-          DESKTOP: ${{ inputs.desktop }}
           IOS: ${{ inputs.ios }}
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
