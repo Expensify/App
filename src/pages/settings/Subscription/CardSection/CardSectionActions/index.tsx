@@ -29,7 +29,7 @@ function CardSectionActions() {
                 onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
             },
         ],
-        [translate],
+        [translate, icons.CreditCard, icons.MoneyCircle],
     );
 
     return (

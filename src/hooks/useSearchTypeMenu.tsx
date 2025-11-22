@@ -190,24 +190,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [
-        typeMenuSections,
-        translate,
-        styles.textSupporting,
-        savedSearchesMenuItems,
-        activeItemIndex,
-        theme.iconSuccessFill,
-        theme.border,
-        expensifyIcons.Checkmark,
-        expensifyIcons.Receipt,
-        expensifyIcons.ChatBubbles,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.CreditCard,
-        expensifyIcons.MoneyHourglass,
-        expensifyIcons.CreditCardHourglass,
-        expensifyIcons.Bank,
-        singleExecution,
-    ]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons, singleExecution]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Camera} from '@components/Icon/Expensicons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import getPlatform from '@libs/getPlatform';

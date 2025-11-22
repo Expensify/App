@@ -465,6 +465,7 @@ function WorkspacesListPage() {
         },
         [
             icons.Building,
+            icons.Transfer,
             session?.email,
             session?.accountID,
             activePolicyID,

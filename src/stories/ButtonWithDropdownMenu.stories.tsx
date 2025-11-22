@@ -24,7 +24,7 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
             {value: 'One', text: 'One', icon: icons.Wallet},
             {value: 'Two', text: 'Two', icon: icons.Wallet},
         ],
-        [],
+        [icons.Wallet],
     );
 
     return (

@@ -513,7 +513,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         showDelegateNoAccessModal,
         reportID,
         allTransactionDrafts,
-        icons,
     ]);
 
     const isTravelEnabled = useMemo(() => {
