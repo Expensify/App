@@ -1883,10 +1883,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         customRules?: string;
 
         /** ReportID of the admins room for this workspace */
-        chatReportIDAdmins?: number;
+        chatReportIDAdmins?: string;
 
         /** ReportID of the announce room for this workspace */
-        chatReportIDAnnounce?: number;
+        chatReportIDAnnounce?: string;
 
         /** All the integration connections attached to the policy */
         connections?: Connections;
