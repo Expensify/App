@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,12 +65,20 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
 
     const filteredDaysOfMonth = daysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
 
-    const headerMessage = searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '';
-
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
         Policy.setWorkspaceAutoReportingMonthlyOffset(policy?.id ?? '-1', item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? ''));
     };
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('workflowsPage.submissionFrequencyDateOfMonth'),
+            value: searchText,
+            onChangeText: setSearchText,
+            headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
+        }),
+        [searchText, filteredDaysOfMonth, setSearchText, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -94,17 +102,14 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                     />
 
                     <SelectionList
-                        sections={[{data: filteredDaysOfMonth}]}
-                        textInputLabel={translate('workflowsPage.submissionFrequencyDateOfMonth')}
-                        textInputValue={searchText}
-                        onChangeText={setSearchText}
-                        headerMessage={headerMessage}
+                        data={filteredDaysOfMonth}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectDayOfMonth}
+                        textInputOptions={textInputOptions}
+                        initiallyFocusedItemKey={offset.toString()}
                         shouldSingleExecuteRowSelect
-                        initiallyFocusedOptionKey={offset.toString()}
-                        showScrollIndicator
                         addBottomSafeAreaPadding
+                        showScrollIndicator
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
