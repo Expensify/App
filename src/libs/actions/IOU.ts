@@ -217,6 +217,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
+    getTransactionType,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -6639,6 +6640,69 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function duplicateTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>,
+    targetReport: OnyxTypes.Report,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+) {
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const waypoints = Object.keys(transaction.comment?.waypoints ?? {}).length ? transaction.comment?.waypoints : undefined;
+
+    const params = {
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            participant: participants,
+        },
+        policyParams: {
+            policy: targetPolicy,
+        },
+        gpsPoint: null,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+            amount: (transaction.modifiedAmount || transaction.amount) * -1,
+            attendees: transaction.comment?.attendees,
+            comment: transaction.comment?.comment?.trim() ?? '',
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            currency: transaction.modifiedCurrency || transaction.currency,
+            customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction.receipt?.isTestDriveReceipt,
+            mcc: transaction.modifiedMCC || transaction.mcc,
+            merchant: transaction.modifiedMerchant || transaction.merchant,
+            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+            originalTransactionID: transaction.comment?.originalTransactionID,
+            source: transaction.comment?.source,
+            taxAmount: transaction.taxAmount ? transaction.taxAmount * -1 : 0,
+            validWaypoints: waypoints,
+            waypoints,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        backToReport: false,
+    };
+
+    const transactionType = getTransactionType(transaction);
+
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            params.participants = participants;
+            return createDistanceRequest(params);
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            params.customUnit = transaction.comment?.customUnit;
+            return submitPerDiemExpense(params);
+        default:
+            return requestMoney(params);
+    }
+    
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -14635,6 +14699,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,

@@ -58,6 +58,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
@@ -585,6 +586,35 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const isExpenseReport = isExpenseReportUtils(report);
+
+    if (!isExpenseReport) {
+        return false;
+    }
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserOwner = managerID === currentUserAccountID;
+
+    if (!isCurrentUserOwner) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+    const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
+
+    if (isManagedCardTransaction) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     report,
@@ -677,6 +707,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
+    if (isDuplicateAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -746,6 +780,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
