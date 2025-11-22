@@ -160,6 +160,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             currentUserPersonalDetails.lastName,
             onboardingAdminsChatReportID,
             onboardingPolicyID,
+            onboardingPurposeSelected,
             isSmallScreenWidth,
             isBetaEnabled,
             session?.email,
