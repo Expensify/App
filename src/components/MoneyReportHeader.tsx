@@ -1230,6 +1230,11 @@ function MoneyReportHeader({
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (dismissedRejectUseExplanation) {
                     if (requestParentReportAction) {
                         rejectMoneyRequestReason(requestParentReportAction);

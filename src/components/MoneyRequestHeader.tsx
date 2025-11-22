@@ -385,6 +385,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (dismissedRejectUseExplanation) {
                     if (parentReportAction) {
                         rejectMoneyRequestReason(parentReportAction);
