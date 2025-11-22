@@ -34,6 +34,8 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
 
+    const reservationConfirmation = reservation.confirmations?.at(0)?.value ?? reservation?.reservationID;
+
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{reservation.vendor}</Text>
@@ -77,8 +79,10 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
             {!!reservation.reservationID && (
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    title={reservationConfirmation}
+                    interactive={false}
+                    copyValue={reservationConfirmation}
+                    copyable={!!reservationConfirmation?.length}
                 />
             )}
             {!!displayName && (
