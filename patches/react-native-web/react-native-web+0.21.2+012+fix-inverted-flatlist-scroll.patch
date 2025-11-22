@@ -1,0 +1,64 @@
+diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+index 42c4984..42647f5 100644
+--- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+@@ -322,6 +322,7 @@ class VirtualizedList extends StateSafePureComponent {
+     this._nestedChildLists = new ChildListCollection();
+     this._offsetFromParentVirtualizedList = 0;
+     this._prevParentOffset = 0;
++    this._prevDataLength = 0;
+     this._scrollMetrics = {
+       contentLength: 0,
+       dOffset: 0,
+@@ -382,6 +383,20 @@ class VirtualizedList extends StateSafePureComponent {
+         this._totalCellLength += next.length - (curr ? curr.length : 0);
+         this._totalCellsMeasured += curr ? 0 : 1;
+         this._averageCellLength = this._totalCellLength / this._totalCellsMeasured;
++        if (index < Object.keys(this._frames).length) {
++          const doesFrameWithTheSameIndexExist = Object.entries(this._frames).some(([key, frame]) => frame.index === index && key !== cellKey);
++          if (doesFrameWithTheSameIndexExist) {
++            Object.keys(this._frames).forEach(key => {
++              if (this._frames[key].index >= index) {
++                this._frames[key] = {
++                  ...this._frames[key],
++                  offset: this._frames[key].offset + next.length,
++                  index: this._frames[key].index + 1,
++                }
++              }
++            });
++          }
++        };
+         this._frames[cellKey] = next;
+         this._highestMeasuredFrameIndex = Math.max(this._highestMeasuredFrameIndex, index);
+         this._scheduleCellsToRenderUpdate();
+@@ -399,6 +414,22 @@ class VirtualizedList extends StateSafePureComponent {
+         this._frames[cellKey] = _objectSpread(_objectSpread({}, curr), {}, {
+           inLayout: false
+         });
++        if (this._prevDataLength !== this.props.data.length) {
++          Object.keys(this._frames).forEach(key => {
++            if (this._frames[key].index > curr.index) {
++              this._frames[key] = {
++                ...this._frames[key],
++                offset: this._frames[key].offset - curr.length,
++                index: this._frames[key].index - 1,
++              }
++            }
++          });
++          delete this._cellRefs[cellKey];
++        } else {
++          this._frames[cellKey] = _objectSpread(_objectSpread({}, curr), {}, {
++            inLayout: false
++          });
++        }
+       }
+     };
+     this._onLayout = e => {
+@@ -1250,6 +1281,7 @@ class VirtualizedList extends StateSafePureComponent {
+     var _this$props7 = this.props,
+       data = _this$props7.data,
+       extraData = _this$props7.extraData;
++      this._prevDataLength = prevProps.data.length;
+     if (data !== prevProps.data || extraData !== prevProps.extraData) {
+       // clear the viewableIndices cache to also trigger
+       // the onViewableItemsChanged callback with the new data
