@@ -20,7 +20,7 @@ Editing restrictions apply based on expense type and report status.
 
 ## Company Card Expenses
 - **Amount cannot be edited** for expenses imported from a company card.
-- **Category, tag, and billable status** can be edited if the report is Open or Processing.
+- **Category, tag, and billable status** can be edited if the report is in a Draft or Outstanding state.
 - **Receipt images** can be added or replaced at any time.
 
 ## Submitted and Approved Expenses
@@ -128,7 +128,7 @@ If Expensify detects potential duplicates, you'll see a **Resolve Now** button.
 
 # Delete an Expense
 
-The submitter can only delete expenses, and the report must be in the Open state.
+The submitter can only delete expenses, and the report must be in a Draft state.
 
 1. Navigate to the **Expenses** tab.
 2. Select the expense you want to delete.
@@ -186,7 +186,7 @@ Resolving duplicates helps keep your reports clean and accurate.
 No, it's only possible to add one attachment per expense. 
 
 ## Who can edit an expense?
-- **Expense owner**: Can edit expenses if the report is Open.
+- **Expense owner**: Can edit expenses if the report is a Draft.
 - **Approvers and Workspace Admins**: Can edit submitted expenses before final approval.
 - **Finance teams** might have additional permissions based on workspace settings.
 
@@ -214,7 +214,7 @@ Yes. Expensify auto-merges SmartScanned receipts with matching card transactions
 - If the receipt comes first, the card transaction merges into the receipt.
 - If the card comes first, the receipt merges into the card.
 - Merchant names from SmartScan will override merchant names from the card.
-- Merging can occur even after reports are submitted, approved, or reimbursed.
+- Merging can occur even after reports are submitted (outstanding), approved, or paid.
 
 **Merging won't happen automatically:**
 - SmartScan is skipped.
@@ -224,7 +224,7 @@ Yes. Expensify auto-merges SmartScanned receipts with matching card transactions
 ## Should I wait for merging before submitting reports?
 No need to wait. Matching expenses can still merge post-submission.
 
-- **Personal cards**: Will merge if reimbursable status matches, or only when the report is Open.
+- **Personal cards**: Will merge if reimbursable status matches, or only when the report is a Draft.
 - **Company cards**: Merge regardless of status, unless it changes the reimbursable total of a submitted report. To prevent issues, default cash expenses to non-reimbursable.
 
 ## Why didn’t my expenses merge automatically?
@@ -239,5 +239,5 @@ No need to wait. Matching expenses can still merge post-submission.
 - Receipt is reimbursable and report is submitted.
 - Expenses are in different Expensify accounts.
 
-You can still merge expenses manually if both are **Unreported** or **Open** and exist in the same account.
+You can still merge expenses manually if both are **Unreported** or **Draft** and exist in the same account.
 
