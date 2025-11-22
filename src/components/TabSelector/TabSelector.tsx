@@ -43,7 +43,11 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'User', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Receipt' | 'ReceiptScan', IconAsset>,
+    route: string,
+    translate: LocaleContextProps['translate'],
+): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
@@ -54,7 +58,7 @@ function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'Us
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
+            return {icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
             return {icon: icons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
@@ -64,7 +68,7 @@ function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'Us
         case CONST.TAB.SHARE.SHARE:
             return {icon: icons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+            return {icon: icons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
@@ -87,7 +91,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Receipt', 'ReceiptScan'] as const);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();

@@ -87,7 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Emoji', 'CreditCard', 'Wallet'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -194,7 +194,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.wallet',
-                icon: Expensicons.Wallet,
+                icon: icons.Wallet,
                 screenName: SCREENS.SETTINGS.WALLET.ROOT,
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
@@ -217,7 +217,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         if (subscriptionPlan) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
-                icon: Expensicons.CreditCard,
+                icon: icons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
                     !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)
@@ -253,6 +253,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         billingDisputePending,
         retryBillingFailed,
         freeTrialText,
+        icons.Wallet,
+        icons.CreditCard,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {
@@ -442,7 +444,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     <Text style={styles.primaryMediumText}>{emojiCode}</Text>
                                 ) : (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}

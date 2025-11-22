@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
@@ -47,6 +49,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 
     const isLoadedRef = useRef(false);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody'] as const);
 
     const {
         amount: transactionAmount,
@@ -87,7 +90,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                 <View style={styles.eReceiptContentContainer}>
                     <View>
                         <ImageSVG
-                            src={Expensicons.ReceiptBody}
+                            src={icons.ReceiptBody}
                             fill={theme.textColorfulBackground}
                             contentFit="fill"
                         />

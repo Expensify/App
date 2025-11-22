@@ -79,7 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Wallet'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -504,7 +504,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     <MenuItem
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
+                                                        icon={expensifyIcons.Transfer}
                                                         onPress={(event) => {
                                                             triggerKYCFlow({event});
                                                         }}
@@ -547,7 +547,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             return (
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
-                                                    icon={Expensicons.Wallet}
+                                                    icon={expensifyIcons.Wallet}
                                                     ref={buttonRef as ForwardedRef<View>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {

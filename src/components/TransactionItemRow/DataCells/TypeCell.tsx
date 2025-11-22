@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -10,17 +11,18 @@ import {getTransactionType, isExpensifyCardTransaction, isPending} from '@libs/T
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-const getTypeIcon = (type?: string) => {
+const getTypeIcon = (icons: Record<'CreditCard' | 'Cash', IconAsset>, type?: string) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return Expensicons.CreditCard;
+            return icons.CreditCard;
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
             return Expensicons.Car;
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
-            return Expensicons.Cash;
+            return icons.Cash;
     }
 };
 
@@ -38,11 +40,12 @@ const getTypeText = (type?: string): TranslationPaths => {
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'CreditCardHourglass', 'Cash'] as const);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const theme = useTheme();
     const type = getTransactionType(transactionItem, cardList);
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(type);
+    const typeIcon = isPendingExpensifyCardTransaction ? icons.CreditCardHourglass : getTypeIcon(icons, type);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
     const styles = useThemeStyles();
 

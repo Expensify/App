@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
@@ -9,12 +10,15 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (icons: Record<'CalendarSolid', IconAsset>, action: QuickActionName): IconAsset => {
+const getQuickActionIcon = (
+    icons: Record<'CalendarSolid' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
+    action: QuickActionName,
+): IconAsset | Extract<ExpensifyIconName, 'ReceiptScan' | 'MoneyCircle'> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.REQUEST);
+            return getIconForAction(CONST.IOU.TYPE.REQUEST, icons);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.ReceiptScan;
+            return 'ReceiptScan';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
@@ -22,19 +26,19 @@ const getQuickActionIcon = (icons: Record<'CalendarSolid', IconAsset>, action: Q
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return getIconForAction(CONST.IOU.TYPE.SPLIT);
+            return getIconForAction(CONST.IOU.TYPE.SPLIT, icons);
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return getIconForAction(CONST.IOU.TYPE.SEND);
+            return getIconForAction(CONST.IOU.TYPE.SEND, icons);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.TRACK);
+            return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return Expensicons.ReceiptScan;
+            return 'ReceiptScan';
         default:
-            return Expensicons.MoneyCircle;
+            return 'MoneyCircle';
     }
 };
 
