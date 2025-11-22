@@ -1422,12 +1422,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Garder tout',
-        confirmApprove: 'Confirmer le montant approuvé',
-        confirmApprovalAmount: "Approuvez uniquement les dépenses conformes, ou approuvez l'ensemble du rapport.",
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Cette dépense est en attente. Voulez-vous approuver quand même ?',
-            other: 'Ces dépenses sont en attente. Voulez-vous approuver quand même ?',
-        }),
+        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: "Payez ce qui n'est pas en attente, ou payez l'intégralité du rapport.",
         confirmPayAllHoldAmount: () => ({

@@ -1416,12 +1416,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複の一部はすでに承認または支払済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
-        confirmApprove: '承認金額を確認',
-        confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'この経費は保留中です。それでも承認しますか？',
-            other: 'これらの経費は保留中です。それでも承認しますか？',
-        }),
+        confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmPay: '支払い金額を確認',
         confirmPayAmount: '保留されていないものを支払うか、レポート全体を支払う。',
         confirmPayAllHoldAmount: () => ({
