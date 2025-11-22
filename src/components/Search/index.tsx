@@ -33,6 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -671,10 +672,14 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
-
+            let IOUReportAction;
+            if (isTransactionItem) {
+                const expenseReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`] ?? {};
+                IOUReportAction = getIOUActionForTransactionID(Object.values(expenseReportActions), item.transactionID);
+            }
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(item, hash, backTo);
+            if (isTransactionItem && IOUReportAction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                createAndOpenSearchTransactionThread(item, backTo, IOUReportAction?.childReportID);
                 return;
             }
 
@@ -720,8 +725,8 @@ function Search({
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
             const reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? item.transactionThreadReportID
+                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && IOUReportAction?.childReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? IOUReportAction?.childReportID
                     : item.reportID;
 
             if (!reportID) {
@@ -733,11 +738,15 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
+                const expenseReportActionsOfFirstTransaction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstTransaction?.reportID}`] ?? {};
+                const IOUReportActionOfFirstTransaction = firstTransaction?.transactionID
+                    ? getIOUActionForTransactionID(Object.values(expenseReportActionsOfFirstTransaction), firstTransaction?.transactionID)
+                    : undefined;
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
+                    if (IOUReportActionOfFirstTransaction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, backTo, IOUReportActionOfFirstTransaction?.childReportID, transactionPreviewData, false);
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, IOUReportActionOfFirstTransaction?.childReportID);
                     }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
@@ -753,12 +762,12 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData, IOUReportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense, reportActions],
     );
 
     const currentColumns = useMemo(() => {

@@ -60,11 +60,11 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 /**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
-function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-        ? transactionItem.transactionThreadReportID
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID !== CONST.REPORT.UNREPORTED_REPORT_ID && IOUTransactionID
+        ? IOUTransactionID
         : transactionItem.reportID;
 }
 
