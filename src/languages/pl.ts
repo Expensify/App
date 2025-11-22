@@ -2696,6 +2696,11 @@ ${
             title: 'Zaproś członków',
             subtitle: 'Zarządzaj i udostępniaj swoje wydatki księgowemu lub rozpocznij grupę podróżniczą z przyjaciółmi.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Tworzenie obszarów roboczych jest ograniczone do administratorów. Dołącz do jednego z obszarów roboczych poniżej lub skontaktuj się ze swoim administratorem, aby uzyskać więcej informacji.',
+            skipForNow: 'Pomiń na razie',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nie pokazuj mi tego ponownie',
