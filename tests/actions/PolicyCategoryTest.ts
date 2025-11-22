@@ -2,9 +2,16 @@ import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
+import {
+    createPolicyCategory,
+    deleteWorkspaceCategories,
+    enablePolicyCategories,
+    renamePolicyCategory,
+    setWorkspaceCategoryEnabled,
+    setWorkspaceRequiresCategory,
+} from '@libs/actions/Policy/Category';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as Category from '@src/libs/actions/Policy/Category';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -38,7 +45,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.setWorkspaceRequiresCategory(policyData.current, true);
+            setWorkspaceRequiresCategory(policyData.current, true);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -78,7 +85,7 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -125,7 +132,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.renamePolicyCategory(policyData.current, {
+            renamePolicyCategory(policyData.current, {
                 oldName: oldCategoryName ?? '',
                 newName: newCategoryName,
             });
@@ -180,7 +187,8 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+
+            setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -227,7 +235,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -267,6 +275,7 @@ describe('actions/PolicyCategory', () => {
             };
             const fakeCategories = createRandomPolicyCategories(3);
             const fakeTags = createRandomPolicyTags('Fake tag', 3);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // Then pause the network requests to test the offline behaviour
             mockFetch?.pause?.();
@@ -278,7 +287,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then disable the categories feature
-            Category.enablePolicyCategories(fakePolicy.id, false, fakeTags, fakeCategories, undefined, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, false, false);
 
             // Then verify the categories feature are disabled and all the lists are disabled too (offline + online behaviour)
             await waitForBatchedUpdates();
@@ -329,6 +338,7 @@ describe('actions/PolicyCategory', () => {
             };
             const fakeCategories = createRandomPolicyCategories(3);
             const fakeTags = createRandomPolicyTags('Fake tag', 3);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             // Then pause the network requests to test the offline behaviour
             mockFetch?.pause?.();
@@ -341,7 +351,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then enable the categories feature
-            Category.enablePolicyCategories(fakePolicy.id, true, fakeTags, fakeCategories, undefined, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, true, false);
 
             // Then verify the categories feature are enabled and all the lists are enabled too (offline + online behaviour)
             await waitForBatchedUpdates();
