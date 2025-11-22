@@ -1,9 +1,15 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {adminPoliciesSelector} from '@src/selectors/Policy';
+import type {Policy} from '@src/types/onyx';
 
 type Props = {
     onConfirmDowngrade: () => void;
@@ -14,7 +20,15 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat'] as const);
-    const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(policyID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const selector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return adminPoliciesSelector(policies, currentUserPersonalDetails.login ?? '');
+        },
+        [currentUserPersonalDetails.login],
+    );
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
     return (
         <ConfirmationPage
