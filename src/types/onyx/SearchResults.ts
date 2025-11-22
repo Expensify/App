@@ -12,7 +12,7 @@ import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
-import type ReportActionName from './ReportActionName';
+import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
 
@@ -125,9 +125,6 @@ type SearchReport = {
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
@@ -159,43 +156,10 @@ type SearchReport = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
-    accountID: number;
-
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
-
-    /** The report action created date */
-    created: string;
-
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
-
-        /** The text content of the fragment. */
-        text: string;
-
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-
-    /** The name of the report */
-    reportName: string;
-};
-
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -211,12 +175,6 @@ type SearchTransaction = {
 
     /** If the transaction can be deleted */
     canDelete: boolean;
-
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -252,13 +210,13 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
     category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
@@ -292,9 +250,6 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -414,9 +369,6 @@ type SearchWithdrawalIDGroup = {
     debitPosted: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
@@ -428,9 +380,10 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
@@ -451,13 +404,12 @@ export type {
     ListItemType,
     ListItemDataType,
     SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
-    SearchReportAction,
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,
