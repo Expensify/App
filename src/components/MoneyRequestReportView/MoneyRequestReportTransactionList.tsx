@@ -70,8 +70,6 @@ import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
-3;
-
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
     report: OnyxTypes.Report;
