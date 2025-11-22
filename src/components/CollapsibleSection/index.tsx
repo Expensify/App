@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -32,6 +32,7 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
 
     /**
      * Expands/collapses the section
@@ -40,7 +41,7 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
         setIsExpanded(!isExpanded);
     };
 
-    const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
+    const src = isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow;
 
     return (
         <View style={[styles.mt4, wrapperStyle]}>

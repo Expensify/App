@@ -49,6 +49,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined =
         !isValidated && isAdmin
@@ -94,7 +95,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                                 />
                             ) : (
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={expensifyIcons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
                                     isButtonIcon

@@ -1,16 +1,18 @@
 import type {Video} from 'expo-av';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -28,7 +30,7 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: MutableRefObject<Video | null>;
+    videoPlayerRef: RefObject<Video | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -68,6 +70,8 @@ function VideoPlayerControls({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
     const onLayout = (event: LayoutChangeEvent) => {
@@ -128,7 +132,7 @@ function VideoPlayerControls({
                             small={small}
                         />
                         <IconButton
-                            src={Expensicons.ThreeDots}
+                            src={expensifyIcons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}
