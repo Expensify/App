@@ -21,7 +21,7 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'ChatBubble'] as const);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
