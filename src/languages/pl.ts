@@ -2665,12 +2665,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: dedent(`
-                # Twój bezpłatny okres próbny właśnie się rozpoczął! Zajmijmy się konfiguracją.
-                👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Po utworzeniu obszaru roboczego wykorzystaj w pełni 30‑dniowy bezpłatny okres próbny, wykonując poniższe kroki!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Twój bezpłatny okres próbny się rozpoczął! Zacznijmy konfigurację.
+                        👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już obszar roboczy, aby pomóc w zarządzaniu paragonami i wydatkami Twojego zespołu. Aby jak najlepiej wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj pozostałe kroki konfiguracji poniżej!
+                    `)
+                    : dedent(`
+                        # Rozpoczęła się Twoja bezpłatna wersja próbna! Zacznijmy konfigurację.
+                        👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy masz już utworzony obszar roboczy, wykorzystaj w pełni 30-dniową bezpłatną wersję próbną, wykonując poniższe kroki!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+                '# Zacznijmy konfigurację\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już przestrzeń roboczą, aby pomóc Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30‑dniowy bezpłatny okres próbny, wykonaj pozostałe kroki konfiguracji poniżej!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:
