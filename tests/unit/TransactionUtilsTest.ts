@@ -452,17 +452,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowRTERViolationMessage', () => {
-        it('should return true if transaction is receipt being scanned', () => {
-            const transaction = generateTransaction({
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
-                },
-            });
-            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
-        });
-    });
-
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
@@ -781,7 +770,7 @@ describe('TransactionUtils', () => {
                 },
             });
             const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-            const result = TransactionUtils.isViolationDismissed(transaction, violation);
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL);
             expect(result).toBe(true);
         });
     });

@@ -190,7 +190,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     // We handle RTER violations independently because those are not configured via policy workflows
     const isAdmin = isPolicyAdmin(policy);
     const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, currentUserEmail);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
     if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {

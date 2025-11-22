@@ -186,6 +186,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
+    currentUserEmail,
     originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -197,6 +198,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    currentUserEmail: string;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -212,7 +214,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy;
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail, true) && isPaidGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -340,6 +342,7 @@ function createTransactionPreviewConditionals({
     isBillSplit,
     isReportAPolicyExpenseChat,
     areThereDuplicates,
+    currentUserEmail,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
@@ -349,6 +352,7 @@ function createTransactionPreviewConditionals({
     isBillSplit: boolean;
     isReportAPolicyExpenseChat: boolean;
     areThereDuplicates: boolean;
+    currentUserEmail: string;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
@@ -359,7 +363,7 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations) && iouReport && isPaidGroupPolicyUtil(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail) && iouReport && isPaidGroupPolicyUtil(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -379,8 +383,8 @@ function createTransactionPreviewConditionals({
         isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
-        hasWarningTypeViolation(transaction, violations) ||
-        hasViolation(transaction, violations, true) ||
+        hasWarningTypeViolation(transaction, violations, currentUserEmail) ||
+        hasViolation(transaction, violations, currentUserEmail, true) ||
         (isDistanceRequest(transaction) &&
             violations?.some(
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
