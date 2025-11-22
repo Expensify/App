@@ -190,7 +190,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         <TransactionItemRow
                             report={transaction.report}
                             transactionItem={transaction}
-                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
+                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', transaction.report, transaction.policy)}
                             isSelected={!!transaction.isSelected}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
