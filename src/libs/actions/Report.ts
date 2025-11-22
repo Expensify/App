@@ -786,6 +786,18 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
+/**
+ * Checks if a report has only one transaction associated with it
+ * NOTE: This function should not be exported because it accesses module-level Onyx data (allReportActions, allReports)
+ * which can become stale. Each file should implement its own version using local Onyx collections.
+ * See tests/actions/EnforceActionExportRestrictions.ts for more details.
+ */
+function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
+    const reportActions = allReportActions?.[`${report?.reportID}`] ?? ([] as ReportAction[]);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+    return !!ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions);
+}
+
 function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1857,27 +1869,61 @@ function handlePreexistingReport(report: Report) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+        // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
+        // Or we optimistically created a thread report under a comment that already has an associated child chat report.
         // In this case, the API will let us know by returning a preexistingReportID.
         // We should clear out the optimistically created report and re-route the user to the preexisting report.
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+
+            if (!parentReportActionID) {
+                // Clear the optimistic DM/group-DM
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    // Replacing the existing report's participants to avoid duplicates
+                    participants: existingReport?.participants ?? report.participants,
+                });
+            } else {
+                // Clear the optimistic thread report
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                });
+                // Update the parent report action to point to the preexisting thread report
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {childReportID: preexistingReportID},
+                });
+            }
         };
+
+        const isParentOneTransactionReport = isOneTransactionReport(parentReport);
+
         // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`)) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
+                if (!parentReportActionID || !isParentOneTransactionReport) {
+                    // We are either in a DM/group-DM that do not have a parent report,
+                    // a thread under any comment,
+                    // or transaction thread report under an IOU report action that its parent IOU report is not a one expense report,
+                    // we need to navigate to the preexisting report chat
+                    // because we cleared the optimistically created report in the callback
+                    Navigation.setParams({reportID: preexistingReportID.toString()});
+                } else {
+                    // We are in a transaction thread report under an IOU report action where the parent IOU report is a one transaction report
+                    // We need to navigate to the one expense report screen instead of the preexisting report chat
+                    // because we cleared the optimistically created transaction thread report in the callback
+                    // and the one transaction should be accessed via the one expense report screen
+                    Navigation.setParams({reportID: parentReportID});
+                }
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1890,15 +1936,25 @@ function handlePreexistingReport(report: Report) {
             return;
         }
 
+        if (isParentOneTransactionReport && (activeRoute.includes(`/r/${parentReportID}`) || activeRoute.includes(`/search/view/${parentReportID}`))) {
+            callback();
+            // We are already on the parent one expense report, so just call the API to fetch report data
+            openReport(parentReportID);
+            return;
+        }
+
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
         // after that clear the optimistically created report
         const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+
+        // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
+        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
         if (!draftReportComment) {
             callback();
             return;
         }
 
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        saveReportDraftComment(reportToCopyDraftTo, draftReportComment, callback);
     });
 }
 
