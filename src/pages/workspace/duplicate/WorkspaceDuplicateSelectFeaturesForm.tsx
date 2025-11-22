@@ -136,7 +136,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       translation: translate('workspace.common.rules'),
                       value: 'rules',
                       alternateText: rules.length
-                          ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
+                          ? `${rules.length} ${translate('common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
                           : undefined,
                   }
                 : undefined,
