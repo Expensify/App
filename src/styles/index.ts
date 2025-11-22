@@ -357,7 +357,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
+            minHeight: 16,
         },
 
         reportStatusText: {
@@ -1449,6 +1449,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         lh140Percent: {
             lineHeight: '140%',
+        },
+
+        lhUndefined: {
+            lineHeight: undefined,
         },
 
         formHelp: {
@@ -4092,7 +4096,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorButton: {
-            height: variables.tabSelectorButtonHeight,
+            minHeight: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4425,6 +4429,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
+        },
+
+        textMicroSupportingPadding: {
+            padding: variables.paddingSmall,
         },
 
         mapViewContainer: {
