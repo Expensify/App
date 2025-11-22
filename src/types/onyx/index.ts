@@ -75,6 +75,7 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivateSubscription from './PrivateSubscription';
+import type ProactiveAppReview from './ProactiveAppReview';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -285,4 +286,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    ProactiveAppReview,
 };

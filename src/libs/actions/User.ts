@@ -1475,6 +1475,81 @@ function requestUnlockAccount() {
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
 }
 
+type RespondToProactiveAppReviewParams = {
+    response: 'positive' | 'negative' | 'skip';
+    optimisticReportActionID?: string;
+    conciergeChatReportID?: string;
+};
+
+/**
+ * Respond to the proactive app review prompt and optionally create a Concierge message
+ */
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', message?: string, conciergeChatReportID?: string) {
+    const params: RespondToProactiveAppReviewParams = {response};
+    if (conciergeChatReportID) {
+        params.conciergeChatReportID = conciergeChatReportID;
+    }
+    let optimisticData: OnyxUpdate[] = [];
+    let successData: OnyxUpdate[] = [];
+    let failureData: OnyxUpdate[] = [];
+
+    // For positive/negative responses, create an optimistic Concierge message
+    if (message && conciergeChatReportID && response !== 'skip') {
+        const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID);
+        const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
+        const currentTime = DateUtils.getDBTime();
+
+        params.optimisticReportActionID = optimisticReportActionID;
+
+        optimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: optimisticReportAction.reportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+                value: {
+                    lastVisibleActionCreated: optimisticReportAction.reportAction.created,
+                    lastMessageText: message,
+                    lastActorAccountID: conciergeAccountID,
+                    lastReadTime: currentTime,
+                },
+            },
+        ];
+
+        successData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ];
+
+        failureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ];
+    }
+
+    API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1515,4 +1590,5 @@ export {
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
+    respondToProactiveAppReview,
 };
