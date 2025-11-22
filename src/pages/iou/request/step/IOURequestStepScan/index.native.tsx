@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import {transactionDraftReceiptsSelector, transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
@@ -88,6 +88,8 @@ import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
+type ReceiptWithTransactionID = Receipt & {transactionID: string};
+
 function IOURequestStepScan({
     report,
     route: {
@@ -140,6 +142,10 @@ function IOURequestStepScan({
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
+        canBeMissing: true,
+    });
+    const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: transactionDraftReceiptsSelector,
         canBeMissing: true,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
@@ -649,6 +655,16 @@ function IOURequestStepScan({
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
 
+    const submitMultiScanReceipts = () => {
+        const transactionReceipts = (optimisticTransactionsReceipts ?? [])
+            .filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source)
+            .map((receipt) => ({
+                ...receipt,
+                file: receiptFiles.find((receiptFile) => receiptFile.transactionID === receipt.transactionID)?.file,
+            }));
+        submitReceipts(transactionReceipts);
+    };
+
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
     const capturePhoto = useCallback(() => {
@@ -963,7 +979,7 @@ function IOURequestStepScan({
                 {canUseMultiScan && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitReceipts}
+                        submit={submitMultiScanReceipts}
                     />
                 )}
 
