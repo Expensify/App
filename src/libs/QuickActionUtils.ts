@@ -11,8 +11,8 @@ import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    action: QuickActionName,
     icons: Record<'CalendarSolid' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
+    action: QuickActionName,
 ): IconAsset | Extract<ExpensifyIconName, 'ReceiptScan' | 'MoneyCircle'> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
