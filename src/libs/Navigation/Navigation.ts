@@ -1,7 +1,6 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {InteractionManager} from 'react-native';
@@ -11,7 +10,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -198,35 +197,24 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
-        const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = routePath.match(/^(?:search\/)?(?:r|e)\/(\d+)(?:\/\d+)?$/);
-        const reportID = reportIDMatch?.at(1);
-        if (reportID) {
-            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-            let span = getSpan(spanId);
-
-            if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
-                span = startSpan(spanId, {
-                    name: spanName,
-                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                });
-            }
-            span.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+    if (route.startsWith('r/') || route.startsWith('search/r/')) {
+        const reportIDMatch = route.match(/^(?:search\/)?r\/(\w+)/);
+        if (reportIDMatch?.at(1)) {
+            const reportID = reportIDMatch.at(1);
+            const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: spanName,
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                attributes: {
+                    reportID,
+                },
             });
         }
     }
+
     linkTo(navigationRef.current, route, options);
 }
+
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -614,30 +602,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
 };
 
 /**
- * Returns to the first screen in the Right Hand Modal stack, dismissing all the others.
- */
-const dismissToFirstRHP = () => {
-    const rootState = navigationRef.getRootState();
-    if (!rootState) {
-        return;
-    }
-
-    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
-
-    if (!rhpState) {
-        return;
-    }
-
-    const routesToPop = rhpState.routes.length - 1;
-    if (routesToPop <= 0) {
-        dismissModal();
-        return;
-    }
-
-    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
-};
-
-/**
  * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
  */
 function popToTop() {
@@ -776,7 +740,6 @@ export default {
     onModalDismissedOnce,
     fireModalDismissed,
     isValidateLoginFlow,
-    dismissToFirstRHP,
 };
 
 export {navigationRef};
