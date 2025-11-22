@@ -818,7 +818,7 @@ function changeTransactionsReport(
 
         transactionsMoved = true;
 
-        const oldReportID = transaction.reportID;
+        const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
@@ -1139,7 +1139,7 @@ function changeTransactionsReport(
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORT_ID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
-                : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
+                : buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
