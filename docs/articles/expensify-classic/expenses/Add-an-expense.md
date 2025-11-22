@@ -72,6 +72,7 @@ Track business travel with distance-based expenses using one of these methods. M
 2. Under **Distance**, select:
    - **Manually create** – enter miles and rate. Tap **More options** for category, description, report.
    - **Odometer** – enter pre/post trip readings and rate. Tap **More options** to complete.
+   - **Start GPS** – Tap **Start** at the start of your trip, and tap **Stop** when you reach your destination. For best results, keep the Expensify app open. 
 3. Tap **Save**.
 
 ## Available options for tracking distance
@@ -81,7 +82,7 @@ Track business travel with distance-based expenses using one of these methods. M
 - **Mobile app**
   - **Manually create** – enter miles and rate.
   - **Odometer** – log before/after readings.
-  - **Start GPS** – currently unavailable.
+  - **Start GPS** – automatically tracks your mileage using GPS. 
 
 ---
 

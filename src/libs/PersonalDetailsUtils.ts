@@ -36,6 +36,23 @@ Onyx.connect({
     },
 });
 
+let hiddenTranslation = '';
+let youTranslation = '';
+
+Onyx.connect({
+    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    initWithStoredValues: false,
+    callback: (value) => {
+        if (value ?? true) {
+            return;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        hiddenTranslation = translateLocal('common.hidden');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        youTranslation = translateLocal('common.you').toLowerCase();
+    },
+});
+
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -43,8 +60,7 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    youAfterTranslation = translateLocal('common.you').toLowerCase(),
+    youAfterTranslation = youTranslation,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
@@ -53,7 +69,7 @@ function getDisplayNameOrDefault(
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
-        displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
     // If the displayName is not set by the user, the backend sets the displayName same as the login so
@@ -84,8 +100,7 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return shouldFallbackToHidden ? translateLocal('common.hidden') : '';
+    return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
 /**
@@ -180,13 +195,13 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
 function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
-    logins.forEach((login, index) => {
+    for (const [index, login] of logins.entries()) {
         const accountID = accountIDs.at(index) ?? -1;
         if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }
-    });
+    }
 
     return {newAccountIDs, newLogins};
 }
@@ -203,7 +218,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
-    newLogins.forEach((login, index) => {
+    for (const [index, login] of newLogins.entries()) {
         const accountID = newAccountIDs.at(index) ?? -1;
         personalDetailsNew[accountID] = {
             login,
@@ -217,7 +232,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
          * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
          */
         personalDetailsCleanup[accountID] = null;
-    });
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -296,7 +311,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
 
     // Remove the last comma of the address
-    return formattedAddress.trim().replace(/,$/, '');
+    return formattedAddress.trim().replaceAll(/,$/g, '');
 }
 
 /**
@@ -406,6 +421,20 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
     return login ? Str.removeSMSDomain(login) : '';
 };
 
+/**
+ * Checks whether any personal details are missing
+ */
+function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return (
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0
+    );
+}
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -425,4 +454,5 @@ export {
     getShortMentionIfFound,
     getLoginByAccountID,
     getPhoneNumber,
+    arePersonalDetailsMissing,
 };

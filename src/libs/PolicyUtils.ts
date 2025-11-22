@@ -33,7 +33,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -289,7 +289,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
  * Checks if a specific user is a member of the policy.
  */
 function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
-    return !!policy && !!userLogin && !!policy.employeeList?.[userLogin];
+    return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
 }
 
 function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
@@ -364,25 +364,25 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: n
 function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-    Object.keys(members).forEach((email) => {
+    for (const email of Object.keys(members)) {
         if (!includeMemberWithErrors) {
             const member = members?.[email];
             if (Object.keys(member?.errors ?? {})?.length > 0) {
-                return;
+                continue;
             }
         }
         if (!includeMemberWithPendingDelete) {
             const member = members?.[email];
             if (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
+                continue;
             }
         }
         const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
-            return;
+            continue;
         }
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
-    });
+    }
     return memberEmailsToAccountIDs;
 }
 
@@ -392,17 +392,17 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
 function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     const policyEmployeeList = employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(policyEmployeeList).forEach((email) => {
+    for (const email of Object.keys(policyEmployeeList)) {
         const policyEmployee = policyEmployeeList?.[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (policyEmployee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyEmployee?.errors ?? {}).length > 0) {
-            return;
+            continue;
         }
         if (!email) {
-            return;
+            continue;
         }
         memberEmailsToExclude.push(email);
-    });
+    }
 
     return memberEmailsToExclude;
 }
@@ -486,7 +486,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\:/g, CONST.COLON);
+    return tag?.replaceAll('\\:', CONST.COLON);
 }
 
 /**
@@ -670,22 +670,22 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
 
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
-function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    Object.values(allPolicies ?? {})?.forEach((policy) => {
+    Object.values(policies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }
-        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
-                return;
+                continue;
             }
             if (allTaxRates[taxRate.name].includes(taxRateKey)) {
-                return;
+                continue;
             }
             allTaxRates[taxRate.name].push(taxRateKey);
-        });
+        }
     });
     return allTaxRates;
 }
@@ -1338,11 +1338,8 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
-function hasNoPolicyOtherThanPersonalType() {
-    return (
-        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .length === 0
-    );
+function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
+    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
@@ -1461,17 +1458,10 @@ function hasOtherControlWorkspaces(currentPolicyID: string) {
 // If the user is an admin for multiple policies, we can render the page as it contains a condition
 // to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
 // If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
-
-function canModifyPlan(policyID?: string) {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
-
-    if (!policyID) {
-        return ownerPolicies.length > 1;
+function canModifyPlan(ownerPolicies: Policy[] | undefined, policy: OnyxEntry<Policy>) {
+    if (!policy?.id) {
+        return (ownerPolicies?.length ?? 0) > 1;
     }
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
 
     return !!policy && isPolicyAdmin(policy);
 }
@@ -1513,22 +1503,21 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
         return undefined;
     }
     const domainOccurrences = {} as Record<string, number>;
-    Object.keys(policy.employeeList ?? {})
+    for (const memberDomain of Object.keys(policy.employeeList ?? {})
         .concat(policy.owner)
-        .map((email) => Str.extractEmailDomain(email).toLowerCase())
-        .forEach((memberDomain) => {
-            if (!acceptedDomains.includes(memberDomain)) {
-                return;
-            }
-            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
-        });
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())) {
+        if (!acceptedDomains.includes(memberDomain)) {
+            continue;
+        }
+        domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+    }
     let mostFrequent = {domain: '', count: 0};
-    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+    for (const [domain, count] of Object.entries(domainOccurrences)) {
         if (count <= mostFrequent.count) {
-            return;
+            continue;
         }
         mostFrequent = {domain, count};
-    });
+    }
     if (mostFrequent.count === 0) {
         return undefined;
     }
@@ -1694,7 +1683,7 @@ export {
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
-    hasNoPolicyOtherThanPersonalType,
+    hasOnlyPersonalPolicies,
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
