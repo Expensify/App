@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
@@ -15,6 +15,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptLocationMarker'] as const);
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -88,7 +89,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ReceiptLocationMarker}
+            iconSource={illustrations.ReceiptLocationMarker}
             iconFill={false}
             iconWidth={140}
             iconHeight={120}

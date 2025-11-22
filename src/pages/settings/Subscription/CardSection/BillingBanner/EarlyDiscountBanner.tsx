@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,7 +49,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
     const [isDismissed, setIsDismissed] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
+    const {asset: TreasureChest} = useMemoizedLazyAsset(() => loadIllustration('TreasureChest' as IllustrationName));
     useEffect(() => {
         const intervalID = setInterval(() => {
             setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
@@ -145,7 +147,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
                 seconds: discountInfo?.seconds,
             })}
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel, isSubscriptionPage && StyleUtils.getTextColorStyle(theme.trialTimer)]}
-            icon={Illustrations.TreasureChest}
+            icon={TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}
         />
     );

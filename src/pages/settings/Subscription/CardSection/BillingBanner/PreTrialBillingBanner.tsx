@@ -1,24 +1,26 @@
 import React from 'react';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getChatUsedForOnboarding} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
 function PreTrialBillingBanner() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const {asset: TreasureChest} = useMemoizedLazyAsset(() => loadIllustration('TreasureChest' as IllustrationName));
     const navigateToChat = () => {
-        const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
+        const reportUsedForOnboarding = getChatUsedForOnboarding();
 
         if (!reportUsedForOnboarding) {
-            Report.navigateToConciergeChat();
+            navigateToConciergeChat();
             return;
         }
 
@@ -40,7 +42,7 @@ function PreTrialBillingBanner() {
                     {translate('subscription.billingBanner.preTrial.subtitleEnd')}
                 </Text>
             }
-            icon={Illustrations.TreasureChest}
+            icon={TreasureChest}
         />
     );
 }

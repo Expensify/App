@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,21 +29,6 @@ import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
-const ExpensifyFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.ChatBubbles,
-        translationKey: 'migratedUserWelcomeModal.features.chat',
-    },
-    {
-        icon: Illustrations.Flash,
-        translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
-    },
-    {
-        icon: Illustrations.ExpensifyMobileApp,
-        translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
-    },
-];
-
 function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,6 +38,25 @@ function MigratedUserWelcomeModal() {
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+
+    const ExpensifyFeatures = useMemo<FeatureListItem[]>(
+        () => [
+            {
+                icon: Illustrations.ChatBubbles,
+                translationKey: 'migratedUserWelcomeModal.features.chat',
+            },
+            {
+                icon: Illustrations.Flash,
+                translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
+            },
+            {
+                icon: illustrations.ExpensifyMobileApp,
+                translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
+            },
+        ],
+        [illustrations.ExpensifyMobileApp],
+    );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
