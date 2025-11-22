@@ -43,7 +43,6 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -55,14 +54,14 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
+import type {PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MemberRightIcon from './MemberRightIcon';
@@ -133,7 +132,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler'] as const);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -205,38 +203,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
-        // Check if any of the members are approvers
-        const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
-
-        if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
-            for (const login of selectedEmployees) {
-                const accountID = policyMemberEmailsToAccountIDs[login];
-                const removedApprover = personalDetails?.[accountID];
-                if (!removedApprover?.login || !ownerEmail) {
-                    continue;
-                }
-                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-                    approvalWorkflows,
-                    removedApprover,
-                    ownerDetails,
-                });
-                for (const workflow of updatedWorkflows) {
-                    if (workflow?.removeApprovalWorkflow) {
-                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                        removeApprovalWorkflowAction(updatedWorkflow, policy);
-                    } else {
-                        updateApprovalWorkflow(workflow, [], [], policy);
-                    }
-                }
-            }
-        }
-
         setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs);
+            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs, approvalWorkflows, personalDetails);
         });
     };
 
