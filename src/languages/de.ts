@@ -2948,6 +2948,7 @@ ${
             ownershipPercentage: 'Bitte geben Sie eine gültige Prozentzahl ein.',
             deletePaymentBankAccount:
                 'Dieses Bankkonto kann nicht gelöscht werden, da es für Expensify-Karten-Zahlungen verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an den Concierge.',
+            sameDepositAndWithdrawalAccount: 'Die Einzahlungs- und Auszahlungskonten sind identisch.',
         },
     },
     addPersonalBankAccount: {

@@ -1,13 +1,14 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {translate, translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -73,7 +74,17 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 
 // We can assume that if error is a string, it has already been translated because it is server error
 function getErrorMessageWithTranslationData(error: string | null): string {
-    return error ?? '';
+    if (!error) {
+        return '';
+    }
+
+    const currentLocale = IntlStore.getCurrentLocale();
+
+    if (error === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        return translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount');
+    }
+
+    return error;
 }
 
 type OnyxDataWithErrors = {
