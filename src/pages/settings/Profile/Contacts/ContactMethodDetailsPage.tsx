@@ -348,7 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             requestContactMethodValidateCode(contactMethod);
                         }}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        forwardedRef={validateCodeFormRef}
+                        ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
