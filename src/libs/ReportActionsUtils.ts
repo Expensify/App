@@ -532,7 +532,7 @@ function getCombinedReportActions(
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (isEmpty(transactionThreadReportID) || isSentMoneyReport) {
+    if (!transactionThreadReportID || isSentMoneyReport) {
         return reportActions;
     }
 
