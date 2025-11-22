@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {adminPoliciesSelector} from '@src/selectors/Policy';
+import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 type Props = {
@@ -23,7 +23,7 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {
-            return adminPoliciesSelector(policies, login ?? '');
+            return activeAdminPoliciesSelector(policies, login ?? '');
         },
         [login],
     );

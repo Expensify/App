@@ -12,8 +12,10 @@ const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CO
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
-const adminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => {
-    const adminPolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyAdmin(policy, currentUserAccountLogin));
+const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => {
+    const adminPolicies = Object.values(policies ?? {}).filter(
+        (policy): policy is Policy => policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isPolicyAdmin(policy, currentUserAccountLogin),
+    );
     return adminPolicies;
 };
 
@@ -35,4 +37,4 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, adminPoliciesSelector};
+export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector};
