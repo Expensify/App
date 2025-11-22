@@ -1,4 +1,8 @@
+import {computePerDiemExpenseAmount} from '@libs/actions/IOU';
+import {convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {handleNegativeAmountFlipping, validateAmount} from '@libs/MoneyRequestUtils';
+import CONST from '@src/CONST';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -73,6 +77,45 @@ describe('ReportActionsUtils', () => {
 
             expect(mockToggleNegative).toHaveBeenCalledTimes(1);
             expect(result).toBe('');
+        });
+    });
+
+    describe('Per Diem Amount Validation', () => {
+        it('should validate per diem amount correctly when amount is within limits', () => {
+            const customUnit: TransactionCustomUnit = {
+                subRates: [
+                    {id: 'rate1', name: 'Breakfast', quantity: 2, rate: 5000}, // 2 * $50.00 = $100.00
+                    {id: 'rate2', name: 'Lunch', quantity: 1, rate: 2500}, // 1 * $25.00 = $25.00
+                ],
+            };
+
+            const iouCurrencyCode = CONST.CURRENCY.USD;
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+
+            const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
+            const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
+
+            expect(perDiemAmountInCents).toBe(12500); // $125.00 in cents
+            expect(perDiemAmountString).toBe('125.00');
+            expect(validateAmount(perDiemAmountString, decimals)).toBe(true);
+        });
+
+        it('should reject per diem amount when it exceeds AMOUNT_MAX_LENGTH', () => {
+            const customUnit: TransactionCustomUnit = {
+                subRates: [
+                    {id: 'rate1', name: 'Breakfast', quantity: 1000, rate: 12345678}, // 1000 * $123,456.78 = $123,456,780.00
+                ],
+            };
+
+            const iouCurrencyCode = CONST.CURRENCY.USD;
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+
+            const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
+            const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
+
+            expect(perDiemAmountInCents).toBe(12345678000); // $123,456,780.00 in cents
+            expect(perDiemAmountString).toBe('123456780.00'); // 9 digits (exceeds AMOUNT_MAX_LENGTH of 8)
+            expect(validateAmount(perDiemAmountString, decimals)).toBe(false);
         });
     });
 });
