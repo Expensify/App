@@ -128,8 +128,7 @@ function SearchFiltersBar({
         localeCompare,
     });
 
-    const workspaceCount = useMemo(() => workspaces.reduce((count, section) => count + section.data.length, 0), [workspaces]);
-    const shouldDisplayWorkspaceFilter = workspaceCount >= 2;
+    const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
 
     const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
         return workspaces
