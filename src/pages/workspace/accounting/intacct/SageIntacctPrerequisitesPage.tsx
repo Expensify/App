@@ -5,12 +5,13 @@ import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -28,6 +29,7 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
@@ -38,8 +40,8 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             {
                 title: translate('workspace.intacct.downloadExpensifyPackage'),
                 key: 'workspace.intacct.downloadExpensifyPackage',
-                icon: Expensicons.Download,
-                iconRight: Expensicons.NewWindow,
+                icon: icons.Download,
+                iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
                     fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
@@ -57,7 +59,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 title: translate('workspace.intacct.followSteps'),
                 key: 'workspace.intacct.followSteps',
                 icon: Expensicons.Task,
-                iconRight: Expensicons.NewWindow,
+                iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
                     openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
@@ -72,7 +74,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 numberOfLinesTitle: 3,
             },
         ],
-        [translate],
+        [icons.Download, icons.NewWindow, translate],
     );
 
     return (

@@ -3,9 +3,11 @@ import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useIsResizing from '@hooks/useIsResizing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +43,7 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'User', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
@@ -54,17 +56,17 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
         case CONST.TAB_REQUEST.SCAN:
             return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
+            return {icon: icons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
         case CONST.TAB_REQUEST.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
         case CONST.TAB.SHARE.SHARE:
-            return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
+            return {icon: icons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
             return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
-            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+            return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
             return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
@@ -85,6 +87,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User'] as const);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -137,7 +140,7 @@ function TabSelector({
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
+                    const {icon, title, testID} = getIconTitleAndTestID(icons, route.name, translate);
                     const onPress = () => {
                         if (isActive) {
                             return;

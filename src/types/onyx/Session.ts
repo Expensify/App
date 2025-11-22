@@ -37,6 +37,9 @@ type Session = {
     /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
 
+    /** User signed in with SAML */
+    signedInWithSAML?: boolean;
+
     /** Indicates whether the user is re-authenticating with shortLivedToken */
     isAuthenticatingWithShortLivedToken?: boolean;
 

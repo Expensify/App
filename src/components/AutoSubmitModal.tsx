@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {InteractionManager, View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,6 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
@@ -33,6 +35,7 @@ function AutoSubmitModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptsStackedOnPin'] as const);
 
     const onClose = useCallback((willShowAgain: boolean) => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -50,7 +53,7 @@ function AutoSubmitModal() {
             title={translate('autoSubmitModal.title')}
             description={translate('autoSubmitModal.description')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ReceiptsStackedOnPin}
+            image={illustrations.ReceiptsStackedOnPin}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             imageWidth={variables.changePolicyEducationModalIconWidth}

@@ -7,12 +7,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
 import type {SortableColumnName} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
+    icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
 };
@@ -51,7 +53,7 @@ function SortableTableHeader({
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
-                {columns.map(({columnName, translationKey, isColumnSortable}) => {
+                {columns.map(({columnName, translationKey, icon, isColumnSortable}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
                     }
@@ -64,6 +66,7 @@ function SortableTableHeader({
                         <SortableHeaderText
                             key={columnName}
                             text={translationKey ? translate(translationKey) : ''}
+                            icon={icon}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}

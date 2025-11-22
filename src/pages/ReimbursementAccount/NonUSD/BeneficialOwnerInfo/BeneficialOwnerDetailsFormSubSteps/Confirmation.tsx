@@ -12,20 +12,20 @@ import SafeString from '@src/utils/SafeString';
 
 type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
 
-const {PREFIX, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PREFIX, NATIONALITY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
-    const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerCountryInputID]);
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerNationality);
 
     const summaryItems = useMemo(
         () => [
@@ -38,11 +38,19 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                title: CONST.ALL_COUNTRIES[values.nationality as keyof typeof CONST.ALL_COUNTRIES],
+                description: translate('ownershipInfoStep.countryOfCitizenship'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
                 title: values.ownershipPercentage,
                 description: translate('ownershipInfoStep.ownershipPercentage'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(1);
+                    onMove(2);
                 },
             },
             {
@@ -50,17 +58,17 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 description: translate('common.dob'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
-            ...(beneficialOwnerCountry === CONST.COUNTRY.US
+            ...(beneficialOwnerNationality === CONST.COUNTRY.US
                 ? [
                       {
                           title: values.ssnLast4,
                           description: translate('ownershipInfoStep.last4'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(4);
+                              onMove(5);
                           },
                       },
                   ]
@@ -70,7 +78,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 description: translate('ownershipInfoStep.address'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(3);
+                    onMove(4);
                 },
             },
             ...(isDocumentNeededStatus.isProofOfOwnershipNeeded
@@ -80,7 +88,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.proofOfBeneficialOwner'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -92,7 +100,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.copyOfID'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -104,7 +112,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.proofOfAddress'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -116,14 +124,14 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.codiceFiscale'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
                 : []),
         ],
         [
-            beneficialOwnerCountry,
+            beneficialOwnerNationality,
             isDocumentNeededStatus.isCodiceFiscaleNeeded,
             isDocumentNeededStatus.isCopyOfIDNeeded,
             isDocumentNeededStatus.isProofOfAddressNeeded,
@@ -137,6 +145,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             values.dob,
             values.firstName,
             values.lastName,
+            values.nationality,
             values.ownershipPercentage,
             values.proofOfOwnership,
             values.ssnLast4,

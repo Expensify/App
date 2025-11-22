@@ -3,10 +3,12 @@ import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +39,7 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetailsPage({route}: TripDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -114,7 +117,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.modifyTrip')}
                         icon={Expensicons.Pencil}
-                        iconRight={Expensicons.NewWindow}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsModifyTripLoading(true);
@@ -129,7 +132,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.tripSupport')}
                         icon={Expensicons.Phone}
-                        iconRight={Expensicons.NewWindow}
+                        iconRight={icons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
                             setIsTripSupportLoading(true);

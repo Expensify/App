@@ -9,6 +9,7 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -21,6 +22,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -85,6 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -184,7 +187,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
-                icon: Expensicons.Profile,
+                icon: icons.Profile,
                 screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                 brickRoadIndicator: profileBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
@@ -199,7 +202,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.preferences',
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
             },
@@ -232,6 +235,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
+        icons.Gear,
+        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
@@ -299,7 +304,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                     action: () => {
@@ -309,7 +314,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.whatIsNew',
                     icon: Expensicons.TreasureChest,
-                    iconRight: Expensicons.NewWindow,
+                    iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.WHATS_NEW_URL,
                     action: () => {
@@ -343,7 +348,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
+    }, [icons.NewWindow, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
 
     /**
      * Return JSX.Element with menu items

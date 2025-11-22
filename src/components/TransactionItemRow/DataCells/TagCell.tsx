@@ -1,16 +1,17 @@
 import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagForDisplay} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Tag'] as const);
     const styles = useThemeStyles();
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
-            icon={Expensicons.Tag}
+            icon={icons.Tag}
             showTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}

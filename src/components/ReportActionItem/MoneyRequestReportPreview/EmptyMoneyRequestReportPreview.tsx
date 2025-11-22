@@ -1,14 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function EmptyMoneyRequestReportPreview() {
+    const icons = useMemoizedLazyExpensifyIcons(['Folder'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -22,7 +23,7 @@ function EmptyMoneyRequestReportPreview() {
                         fill={theme.border}
                         height={64}
                         width={64}
-                        src={Expensicons.Folder}
+                        src={icons.Folder}
                     />
                     <Text style={[styles.textAlignCenter, styles.textSupporting, styles.fontSizeLabel]}>{translate('search.moneyRequestReport.emptyStateTitle')}</Text>
                 </View>

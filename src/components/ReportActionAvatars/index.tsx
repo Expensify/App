@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, InvitedEmailsToAccountIDs, ReportAction} from '@src/types/onyx';
+import type {CompanyCardFeed, InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -16,11 +16,17 @@ type ReportActionAvatarsProps = {
     /** Report ID for the report action avatars */
     reportID?: string;
 
+    /** Report data for the report action avatars. When provided, this will be used as a fallback if the snapshot is undefined */
+    report?: OnyxEntry<Report>;
+
     /** Action for the report action avatars */
     action?: OnyxEntry<ReportAction>;
 
     /** Policy ID for the workspace avatar */
     policyID?: string;
+
+    /** Policy data for the workspace avatar. When provided, this will be used as a fallback if the snapshot is undefined */
+    policy?: OnyxEntry<Policy>;
 
     /** Single avatar container styles */
     singleAvatarContainerStyle?: ViewStyle[];
@@ -76,9 +82,11 @@ type ReportActionAvatarsProps = {
  */
 function ReportActionAvatars({
     reportID: potentialReportID,
+    report: reportProp,
     action,
     accountIDs: passedAccountIDs = [],
     policyID,
+    policy: policyProp,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
@@ -102,7 +110,10 @@ function ReportActionAvatars({
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
+    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
+    // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to reportProp while the data is being fetched.
+    const report = reportFromOnyx ?? reportProp;
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
@@ -120,6 +131,7 @@ function ReportActionAvatars({
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
+        policy: policyProp,
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
