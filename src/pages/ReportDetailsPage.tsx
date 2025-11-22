@@ -728,6 +728,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
                 <ParentNavigationSubtitle
                     parentNavigationSubtitleData={parentNavigationSubtitleData}
+                    reportID={report?.reportID}
                     parentReportID={report?.parentReportID}
                     parentReportActionID={report?.parentReportActionID}
                     pressableStyles={[styles.mt1, styles.mw100]}
@@ -777,6 +778,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
             parentNavigationSubtitleData={parentNavigationSubtitleData}
+            reportID={report?.reportID}
             parentReportID={report?.parentReportID}
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
