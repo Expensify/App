@@ -929,6 +929,13 @@ function clearAllFilters() {
     Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
 }
 
+/**
+ * Sets whether the search query should be displayed in the search input field
+ */
+function setSearchContext(shouldShowSearchQuery: boolean) {
+    Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
+}
+
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     Object.values(FILTER_KEYS)
@@ -1178,6 +1185,7 @@ export {
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,
+    setSearchContext,
     deleteSavedSearch,
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,

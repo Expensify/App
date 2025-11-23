@@ -16,7 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAdvancedFilters} from '@libs/actions/Search';
+import {clearAdvancedFilters, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
@@ -185,6 +185,7 @@ function SearchAutocompleteInput({
     const clearFilters = useCallback(() => {
         clearAdvancedFilters();
         onSearchQueryChange('');
+        setSearchContext(false);
 
         // Check if we are on the search page before clearing query. If we are using the popup search menu,
         // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate

@@ -5,7 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import {clearAllFilters} from '@libs/actions/Search';
+import {clearAllFilters, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -97,6 +97,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 ...baseMenuItem,
                 onSelected: () => {
                     clearAllFilters();
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -170,6 +171,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
                                 clearAllFilters();
+                                setSearchContext(false);
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });

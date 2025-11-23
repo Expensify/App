@@ -25,7 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
-import {clearAllFilters} from '@libs/actions/Search';
+import {clearAllFilters, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -71,10 +71,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
 
-    // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
+    const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
+    const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
+
+    const [textInputValue, setTextInputValue] = useState('');
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState('');
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
@@ -108,9 +110,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
-        setTextInputValue(isDefaultQuery ? '' : queryText);
-        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText]);
+        const newValue = shouldShowQuery ? queryText : '';
+
+        setTextInputValue(newValue);
+        setAutocompleteQueryValue(newValue);
+    }, [isDefaultQuery, queryText, shouldShowQuery]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
@@ -205,6 +209,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 return;
             }
 
+            setSearchContext(true);
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
