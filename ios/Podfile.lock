@@ -171,6 +171,8 @@ PODS:
     - Yoga
   - ExpoSecureStore (14.2.4):
     - ExpoModulesCore
+  - ExpoVideo (3.0.11):
+    - ExpoModulesCore
   - fast_float (8.0.0)
   - FBLazyVector (0.81.4)
   - Firebase/Analytics (11.13.0):
@@ -3423,7 +3425,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNAppleAuthentication (2.2.2):
+  - RNAppleAuthentication (2.5.0):
     - React-Core
   - RNCClipboard (1.15.0):
     - boost
@@ -4158,6 +4160,7 @@ DEPENDENCIES:
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
+  - ExpoVideo (from `../node_modules/expo-video/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -4370,6 +4373,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
+  ExpoVideo:
+    :path: "../node_modules/expo-video/ios"
   fast_float:
     :podspec: "../node_modules/react-native/third-party-podspecs/fast_float.podspec"
   FBLazyVector:
@@ -4646,6 +4651,7 @@ SPEC CHECKSUMS:
   ExpoImageManipulator: 7cb78b082bcc767b97867d833ce614ace424cd97
   ExpoModulesCore: e1b5401a7af4c7dbf4fe26b535918a72c6ed8a7b
   ExpoSecureStore: 3f1b632d6d40bcc62b4983ef9199cd079592a50a
+  ExpoVideo: 6ffaf450d18b2ca33bdf92acaea80271b4a06c92
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 941bef1c8eeabd9fe1f501e30a5220beee913886
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
@@ -4782,7 +4788,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 2cfa890e84ecf7f3a708f1ed9c0f2c0b22a23c9a
   ReactCommon: e9ab32f1d1482d207867b4fdd139361302b9dcc6
   ReactNativeHybridApp: 16ebccf5382436fcb9303ab5f4b50d9942bccf5c
-  RNAppleAuthentication: 4272012a6745519a2411889894eb69a3f553c9f9
+  RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
   RNCClipboard: e7da00b1612a8faf2309c6636043713cfe11092e
   RNCPicker: eb89e9d8bbd728bc00c48d294553f5968900f874
   RNDeviceInfo: f4e8dcaba08a5d3a703d30ad41e964e21148d7e2
