@@ -14,6 +14,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -643,6 +644,36 @@ const ViolationsUtils = {
                 return shouldShowViolation(report, policy, violation.name, currentUserEmail);
             });
         });
+    },
+
+    /**
+     * Removes AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense.
+     * Returns the filtered violations and optionally adds optimistic data to remove the violation.
+     */
+    removeAutoReportedRejectedExpenseViolation(
+        transactionViolations: TransactionViolation[],
+        transactionID: string,
+        iouReport: OnyxEntry<Report> | null,
+        isFromExpenseReport: boolean,
+        optimisticData: OnyxUpdate[],
+    ): TransactionViolation[] {
+        let currentTransactionViolations = transactionViolations;
+
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                currentTransactionViolations = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+                // Optimistically remove the violation immediately
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: currentTransactionViolations,
+                });
+            }
+        }
+
+        return currentTransactionViolations;
     },
 };
 
