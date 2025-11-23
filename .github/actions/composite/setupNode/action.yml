@@ -25,7 +25,6 @@ runs:
         cache: npm
         cache-dependency-path: |
           normalized-package-lock.json
-          desktop/package-lock.json
 
     - id: cache-node-modules
       # v4
