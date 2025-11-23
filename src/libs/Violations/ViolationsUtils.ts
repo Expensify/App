@@ -14,7 +14,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
