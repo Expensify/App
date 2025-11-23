@@ -483,7 +483,7 @@ function Search({
                 if (transactionGroup.transactions.length === 0 && isTransactionReportGroupListItemType(transactionGroup)) {
                     const reportKey = transactionGroup.keyForList;
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        return;
+                        continue;
                     }
                     if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup, accountID);
@@ -492,7 +492,7 @@ function Search({
                             isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
                         };
                     }
-                    return;
+                    continue;
                 }
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
