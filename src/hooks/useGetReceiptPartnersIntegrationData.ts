@@ -1,14 +1,14 @@
 import {useCallback} from 'react';
 import CONST from '@src/CONST';
 import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import usePolicy from './usePolicy';
-import { useMemoizedLazyExpensifyIcons } from './useLazyAsset';
 
 export default function useGetReceiptPartnersIntegrationData(policyID?: string) {
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Uber'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['Uber'] as const);
     const uber = policy?.receiptPartners?.uber;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const shouldShowEnterCredentialsError = !!uber?.error;

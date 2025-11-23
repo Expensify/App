@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -13,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type HangTightProps = {
     /** ID of policy */
@@ -27,7 +27,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
-    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;

@@ -5,16 +5,16 @@ import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 const INACTIVE_POSITION_Y = -255;
 
@@ -27,7 +27,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const [duration, setDuration] = useState<number>();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark'] as const);
 
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
@@ -36,7 +36,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         string,
         {
             /** Expensicon for the page */
-            icon: React.FC<SvgProps>;
+            icon: React.FC<SvgProps> | IconAsset;
 
             /** Color for the icon (should be from theme) */
             iconColor: string;

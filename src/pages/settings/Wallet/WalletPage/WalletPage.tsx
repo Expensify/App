@@ -535,7 +535,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={icons.Exclamation}
+                                                            src={expensifyIcons.Exclamation}
                                                             fill={theme.icon}
                                                         />
 

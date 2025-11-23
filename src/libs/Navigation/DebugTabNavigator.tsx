@@ -20,7 +20,7 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document'|'Exclamation'|'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
             return {icon: icons.Info, title: translate('debug.details')};

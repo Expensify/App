@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -14,7 +14,7 @@ type InlineSystemMessageProps = {
 function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
     if (!message) {
         return null;
     }
