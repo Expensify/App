@@ -51,7 +51,7 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
@@ -158,7 +158,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
-                icon: expensifyIcons?.NetSuiteSquare as IconAsset,
+                icon: expensifyIcons?.NetSuiteSquare,
                 setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
