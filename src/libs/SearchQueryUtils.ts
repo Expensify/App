@@ -348,10 +348,10 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     for (const {filterString, filterKey} of query.flatFilters
         .map((filter) => {
-            const filterKey = filter.key;
+            const _filterKey = filter.key;
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
-            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
+            return {filterString: buildFilterValuesString(_filterKey, filters), _filterKey};
         })
         .sort((a, b) => customCollator.compare(a.filterString, b.filterString))) {
         if (!similarSearchIgnoredFilters.has(filterKey)) {

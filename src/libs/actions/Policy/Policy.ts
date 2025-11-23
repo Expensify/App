@@ -2359,7 +2359,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        for (const iouReport of Object.values(allReports ?? {}).filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)) {
+        const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
+        for (const iouReport of iouReports) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
                 continue;
@@ -2369,7 +2370,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [iouReport?.policyID]: {
+                    [iouReport.policyID]: {
                         iou: {
                             name: policyID,
                         },
