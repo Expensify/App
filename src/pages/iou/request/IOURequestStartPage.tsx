@@ -105,11 +105,11 @@ function IOURequestStartPage({
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    const hasPolicyPerDiemRates = isEmptyObject(perDiemCustomUnit?.rates);
+    const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT &&
         iouType !== CONST.IOU.TYPE.TRACK &&
-        ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && !hasPolicyPerDiemRates) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+        ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
