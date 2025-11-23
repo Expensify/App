@@ -272,6 +272,16 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/prefer-narrow-hook-dependencies': [
+                'error',
+                {
+                    stableObjectPatterns: [
+                        '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
+                        '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
+                        '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
+                    ],
+                },
+            ],
 
             // React and React Native specific rules
             'react-native-a11y/has-accessibility-hint': ['off'],
