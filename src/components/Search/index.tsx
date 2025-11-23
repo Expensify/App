@@ -497,7 +497,11 @@ function Search({
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
-                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+                // Also check if the report itself was selected (when it was empty) by checking the reportID key
+                const reportKey = transactionGroup.keyForList;
+                const wasReportSelected = reportKey && reportKey in selectedTransactions;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const hasAnySelected = isExpenseReportType && (wasReportSelected || transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions));
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const isSelected = transactionItem.transactionID in selectedTransactions;
