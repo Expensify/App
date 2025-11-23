@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type HangTightProps = {
     /** ID of policy */
@@ -27,7 +27,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
-
+    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const)
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
@@ -85,7 +85,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     style={[styles.w100]}
                     onPress={handleSendReminder}
                     large
-                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : Expensicons.Bell}
+                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : icons.Bell}
                     text={translate('signerInfoStep.sendReminder')}
                     isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 />
