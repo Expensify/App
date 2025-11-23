@@ -26,7 +26,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const context = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const ancestors = useAncestors(report);
 
@@ -36,13 +35,12 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
                 context.clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, context.selectedTransactionIDs, comment, allTransactions, allReportActions);
+                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
                 context.clearSelectedTransactions();
             }
-
             Navigation.goBack();
         },
-        [route.name, context.clearSelectedTransactions, context.currentSearchHash, context.selectedTransactionIDs, reportID, allTransactions, ancestors, allReportActions],
+        [route.name, context, reportID, allTransactions, allReportActions, ancestors],
     );
 
     const validate = useCallback(
