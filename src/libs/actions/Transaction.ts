@@ -719,14 +719,15 @@ function changeTransactionsReport(
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    const existingSelfDMReportID = findSelfDMReportID();
-    let selfDMReport: Report | undefined;
+    let selfDMReportID = findSelfDMReportID();
+    let selfDMReport: Report | undefined = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let selfDMCreatedReportAction: ReportAction | undefined;
 
-    if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    if (!selfDMReport && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        selfDMReportID = selfDMReport.reportID;
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -751,6 +752,11 @@ function changeTransactionsReport(
                 value: {
                     [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
             },
         );
 
@@ -797,6 +803,11 @@ function changeTransactionsReport(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                 value: null,
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: null,
+            },
         );
     }
 
@@ -808,8 +819,6 @@ function changeTransactionsReport(
 
     for (const transaction of transactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
-        const selfDMReportID = existingSelfDMReportID ?? selfDMReport?.reportID;
 
         const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
         if (!transaction.reportID || transaction.reportID === reportID) {
@@ -1171,11 +1180,11 @@ function changeTransactionsReport(
                 : {}),
         };
 
-        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
+        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
-                selfDMReportID: selfDMReport.reportID,
+                selfDMReportID,
                 selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID,
             };
         } else {
@@ -1287,7 +1296,7 @@ function changeTransactionsReport(
     }
 
     // 9. Update next step for report
-    const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
+    const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : reportID;
     const destinationReport = destinationReportID
         ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
           (destinationReportID === newReport?.reportID ? newReport : undefined) ??

@@ -92,7 +92,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
-import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -4811,15 +4811,16 @@ function deleteAppReport(reportID: string | undefined) {
 
     let selfDMReportID = findSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let selfDMCreatedReportActionID: string | undefined;
     let createdAction: ReportAction;
-    let selfDMParameters: SelfDMParameters = {};
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMReportID = selfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+        selfDMCreatedReportActionID = createdAction.reportActionID;
+
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -4844,6 +4845,11 @@ function deleteAppReport(reportID: string | undefined) {
                 value: {
                     [createdAction.reportActionID]: createdAction,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
             },
         );
 
@@ -4874,6 +4880,12 @@ function deleteAppReport(reportID: string | undefined) {
                 },
             },
         );
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.SELF_DM_REPORT_ID,
+            value: null,
+        });
     }
 
     // 1. Get all report transactions
@@ -5114,8 +5126,8 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
-        selfDMReportID: selfDMParameters.reportID,
-        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
+        selfDMReportID,
+        selfDMCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});
