@@ -28,21 +28,22 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
-    const [searchValue, setSearchValue] = useState('');
     const isOptionSelected = useRef(false);
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    useEffect(() => {
+    const initialSearchValue = useMemo(() => {
         if (isLoadingApp && !currentUserPersonalDetails.pronouns) {
-            return;
+            return '';
         }
         const currentPronounsText = CONST.PRONOUNS_LIST.find((value) => value === currentPronounsKey);
+        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
+    }, [isLoadingApp, currentPronounsKey, currentUserPersonalDetails.pronouns, translate]);
 
-        setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
+    const [searchValue, setSearchValue] = useState(initialSearchValue);
 
-        // Only need to update search value when the first time the data is loaded
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
+    useEffect(() => {
+        setSearchValue(initialSearchValue);
+    }, [initialSearchValue]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {
         const pronouns = CONST.PRONOUNS_LIST.map((value) => {
@@ -76,10 +77,10 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
 
     const textInputOptions = useMemo(
         () => ({
-            onChangeText: setSearchValue,
             label: translate('pronounsPage.pronouns'),
-            placeholder: translate('pronounsPage.placeholderText'),
             value: searchValue,
+            onChangeText: setSearchValue,
+            placeholder: translate('pronounsPage.placeholderText'),
             headerMessage: searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '',
         }),
         [translate, searchValue, filteredPronounsList?.length],
