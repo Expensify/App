@@ -450,7 +450,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
-        for (const failure of suppressedFailures) {
+        for (const [, failure] of suppressedFailures) {
             if (!failure.reason) {
                 continue;
             }
@@ -482,7 +482,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     }
 
     const distinctFileNames = new Set<string>();
-    for (const failure of failures) {
+    for (const [, failure] of failures) {
         distinctFileNames.add(failure.file);
     }
 
@@ -490,7 +490,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
-    for (const failure of failures) {
+    for (const [, failure] of failures) {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
         logNote(`${TAB}${failure.reason ?? 'No reason provided'}`);
