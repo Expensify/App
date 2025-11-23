@@ -1,11 +1,12 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,6 +38,7 @@ function SearchFiltersWorkspacePage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const selectionListRef = useRef<SelectionListHandle>(null);
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
@@ -58,6 +60,10 @@ function SearchFiltersWorkspacePage() {
 
             if (optionIndex === -1 && option?.policyID) {
                 setSelectedOptions([...selectedOptions, option.policyID]);
+
+                requestAnimationFrame(() => {
+                    selectionListRef.current?.scrollAndHighlightItem([option.keyForList]);
+                });
             } else {
                 const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
                 setSelectedOptions(newSelectedOptions);
@@ -105,6 +111,7 @@ function SearchFiltersWorkspacePage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
                         <SelectionList<WorkspaceListItem>
+                            ref={selectionListRef}
                             data={data}
                             ListItem={UserListItem}
                             onSelectRow={selectWorkspace}
@@ -112,6 +119,7 @@ function SearchFiltersWorkspacePage() {
                             canSelectMultiple
                             shouldUseDefaultRightHandSideCheckmark
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                             footerContent={
                                 <SearchFilterPageFooterButtons
                                     applyChanges={applyChanges}
