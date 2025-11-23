@@ -23,7 +23,7 @@ runs:
       with:
         node-version-file: '.nvmrc'
         cache: npm
-        cache-dependency-path: 'normalized-package-lock.json'
+        cache-dependency-path: normalized-package-lock.json
 
     - id: cache-node-modules
       # v4
