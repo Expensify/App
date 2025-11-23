@@ -167,11 +167,24 @@ function useSelectedTransactionsActions({
                 options.push({
                     ...action,
                     value: `report-action-${index}`,
-                    onSelected: () => {
-                        originalOnSelected?.();
-                        // Clear selections after executing the report-level action
-                        clearSelectedTransactions(true);
-                    },
+                    // If action has subMenuItems, map them with wrapped callbacks
+                    ...(action.subMenuItems && {
+                        subMenuItems: action.subMenuItems.map((subItem) => ({
+                            ...subItem,
+                            onSelected: () => {
+                                subItem.onSelected?.();
+                                clearSelectedTransactions(true);
+                            },
+                        })),
+                    }),
+                    // Only add onSelected if no subMenuItems
+                    ...(!action.subMenuItems && {
+                        onSelected: () => {
+                            originalOnSelected?.();
+                            // Clear selections after executing the report-level action
+                            clearSelectedTransactions(true);
+                        },
+                    }),
                 });
             });
         }
