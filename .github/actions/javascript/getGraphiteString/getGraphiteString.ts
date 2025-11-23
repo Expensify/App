@@ -23,7 +23,7 @@ const run = () => {
 
     // Initialize string to store Graphite metrics
     let graphiteString = '';
-    let timestamp: number;
+    let timestamp: number | null = null;
 
     // Iterate over each entry
     for (const entry of regressionEntries) {
