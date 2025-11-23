@@ -818,7 +818,11 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
         case 'to':
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
-            // TODO: Replace with proper submission date logic
+            // TODO: Waiting for backend to add report.submitted field
+            // Backend issue: https://github.com/Expensify/Expensify/issues/568267
+            // Backend uses report.submitted for {report:submit:date} but this field is not currently returned to App.
+            // Decision: Do NOT compute optimistically - leave uncomputed/grayed out while offline to avoid timestamp mismatch.
+            // Temporary: Using report.created as placeholder until backend adds report.submitted field.
             const submittedDate = context.report.created;
             const format = subPath.length > 0 ? subPath.join(':') : undefined;
             const formattedDate = formatDate(submittedDate, format);
@@ -856,6 +860,10 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
             return String(personalDetails.accountID ?? '');
         case 'customfield1':
         case 'customfield2': {
+            // TODO: Waiting for backend to add policy.glCodes field
+            // Backend issue: https://github.com/Expensify/Expensify/issues/568268
+            // Backend checks policy.glCodes (areGlCodesEnabled) before returning employeeUserID/employeePayrollID
+            // We need policy.glCodes field in Onyx to match backend behavior
             const email = personalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
