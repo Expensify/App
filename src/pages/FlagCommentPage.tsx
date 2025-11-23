@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
@@ -34,10 +35,10 @@ type Severity = ValueOf<typeof CONST.MODERATION>;
 type SeverityItem = {
     severity: Severity;
     name: string;
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | IconAsset;
     description: string;
     furtherDetails: string;
-    furtherDetailsIcon: React.FC<SvgProps>;
+    furtherDetailsIcon: React.FC<SvgProps> | IconAsset;
 };
 
 type SeverityItemList = SeverityItem[];
@@ -54,7 +55,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = getReportID(route);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne', 'FlagLevelTwo', 'FlagLevelThree'] as const);
     // Handle threads if needed
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;
