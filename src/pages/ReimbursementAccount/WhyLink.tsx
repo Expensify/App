@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -18,11 +19,12 @@ function WhyLink({containerStyles}: WhyLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <Icon
-                src={Expensicons.QuestionMark}
+                src={icons.QuestionMark}
                 width={12}
                 height={12}
                 fill={theme.icon}

@@ -29,7 +29,7 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
@@ -58,7 +58,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             {
                 title: translate('workspace.intacct.followSteps'),
                 key: 'workspace.intacct.followSteps',
-                icon: Expensicons.Task,
+                icon: icons.Task,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {

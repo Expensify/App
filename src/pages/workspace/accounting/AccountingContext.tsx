@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -59,6 +60,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare'] as const);
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -75,6 +77,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
+                accountingIcons,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -118,7 +121,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key)?.setupConnectionFlow;
+        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key, undefined, undefined, undefined, accountingIcons)?.setupConnectionFlow;
     };
 
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;

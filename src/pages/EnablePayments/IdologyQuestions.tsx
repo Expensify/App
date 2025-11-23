@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,6 +41,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
@@ -134,7 +136,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                         <Icon
-                            src={Expensicons.QuestionMark}
+                            src={icons.QuestionMark}
                             width={12}
                             height={12}
                             fill={theme.icon}

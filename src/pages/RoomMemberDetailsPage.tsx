@@ -35,7 +35,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
 function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -118,7 +118,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                 <View style={styles.w100}>
                     <MenuItem
                         title={translate('common.profile')}
-                        icon={Expensicons.Info}
+                        icon={icons.Info}
                         onPress={navigateToProfile}
                         shouldShowRightIcon
                     />

@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,6 +28,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud'] as const)
 
     const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
@@ -43,7 +45,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
         <View style={[containerStyles, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
-                src={Expensicons.OfflineCloud}
+                src={icons.OfflineCloud}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />

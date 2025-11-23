@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -25,6 +26,7 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass'])
     const {translate} = useLocalize();
 
     const cabinClassMapping: Record<string, string> = {
@@ -54,7 +56,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             {!!layover && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5, styles.mv3, styles.gap2]}>
                     <Icon
-                        src={Expensicons.Hourglass}
+                        src={expensifyIcons.Hourglass}
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
                         fill={theme.icon}

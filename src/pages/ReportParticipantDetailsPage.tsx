@@ -35,7 +35,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -133,7 +133,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                     )}
                     <MenuItem
                         title={translate('common.profile')}
-                        icon={Expensicons.Info}
+                        icon={icons.Info}
                         onPress={navigateToProfile}
                         shouldShowRightIcon
                     />
