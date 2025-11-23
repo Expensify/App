@@ -2069,7 +2069,7 @@ function isCorrectSearchUserName(displayName?: string) {
 
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
-    icons: Record<'Document', IconAsset>,
+    icons: Record<'Document' | 'ThumbsUp', IconAsset>,
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
