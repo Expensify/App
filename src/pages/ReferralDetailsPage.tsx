@@ -26,7 +26,7 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow','QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'QuestionMark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);

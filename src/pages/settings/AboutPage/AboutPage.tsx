@@ -48,7 +48,7 @@ type MenuItem = {
 
 function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const)
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);

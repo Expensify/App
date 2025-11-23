@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -23,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+
 type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
 type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps;
@@ -53,7 +54,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = getReportID(route);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne'] as const)
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne'] as const);
     // Handle threads if needed
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;

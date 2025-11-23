@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -9,6 +8,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,7 +27,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug',] as const)
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug'] as const);
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (

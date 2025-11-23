@@ -9,8 +9,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -27,8 +27,8 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
-    
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
         onNext,

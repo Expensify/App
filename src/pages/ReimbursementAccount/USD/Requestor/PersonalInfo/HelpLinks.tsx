@@ -1,10 +1,10 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +19,7 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <Icon

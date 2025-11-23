@@ -3,8 +3,8 @@ import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
-import useLocalize from '@hooks/useLocalize';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -121,7 +121,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key, undefined, undefined, undefined, accountingIcons)?.setupConnectionFlow;
+        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key, undefined, undefined, undefined, accountingIcons)
+            ?.setupConnectionFlow;
     };
 
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;

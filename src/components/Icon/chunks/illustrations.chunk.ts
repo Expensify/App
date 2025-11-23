@@ -19,6 +19,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
+import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -68,6 +69,7 @@ import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-ill
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
@@ -82,9 +84,6 @@ import CompanyCard from '@assets/images/simple-illustrations/simple-illustration
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
-import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
-
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
@@ -177,7 +176,7 @@ const Illustrations = {
     Mailbox,
     ShieldYellow,
     PalmTree,
-    PaymentHands
+    PaymentHands,
 };
 
 /**

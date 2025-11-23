@@ -2,13 +2,13 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +40,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);

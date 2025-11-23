@@ -128,7 +128,7 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass' as const])
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass' as const]);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
 
     const workspaceTypeIcon = useCallback(

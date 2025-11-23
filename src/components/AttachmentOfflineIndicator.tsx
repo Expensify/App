@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -16,7 +16,7 @@ type AttachmentOfflineIndicatorProps = {
 
 function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud'])
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

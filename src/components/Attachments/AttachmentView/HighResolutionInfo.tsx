@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +14,7 @@ function HighResolutionInfo({isUploaded}: {isUploaded: boolean}) {
     const styles = useThemeStyles();
     const stylesUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, stylesUtils.getHighResolutionInfoWrapperStyle(isUploaded)]}>
             <Icon

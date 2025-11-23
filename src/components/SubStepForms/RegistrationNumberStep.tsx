@@ -5,11 +5,11 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
@@ -51,7 +51,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const)
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
