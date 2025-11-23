@@ -62,6 +62,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
 
     const stepFields = useMemo(
         () => [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
         [inputIDs],
     );
 

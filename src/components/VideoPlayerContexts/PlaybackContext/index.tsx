@@ -126,6 +126,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
         }),
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
         [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
     );
 

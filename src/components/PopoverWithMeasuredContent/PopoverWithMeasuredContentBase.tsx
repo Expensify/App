@@ -182,6 +182,7 @@ function PopoverWithMeasuredContentBase({
         }
 
         return result;
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
     }, [adjustedAnchorPosition, positionCalculations, anchorAlignment.vertical, windowHeight, popoverHeight, shouldMeasureAnchorPositionFromTop]);
 
     return isContentMeasured ? (
