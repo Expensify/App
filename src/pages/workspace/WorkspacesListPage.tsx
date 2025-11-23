@@ -601,11 +601,11 @@ function WorkspacesListPage() {
     }, [navigateToDomain, allDomains, adminAccess]);
 
     useEffect(() => {
-        const policyID = duplicateWorkspace?.policyID;
-        if (!policyID || !filteredWorkspaces.length || !isFocused) {
+        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
             return;
         }
-        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === policyID);
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
         if (duplicateWorkspaceIndex >= 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
