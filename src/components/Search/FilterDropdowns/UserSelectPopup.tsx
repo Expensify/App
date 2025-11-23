@@ -64,7 +64,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         }, []);
     }, [value, personalDetails]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         initialSelected: initialSelectedOptions,
@@ -156,6 +156,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
                 showLoadingPlaceholder={!areOptionsInitialized}
+                onEndReached={onListEndReached}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>

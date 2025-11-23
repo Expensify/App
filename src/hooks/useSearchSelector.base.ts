@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getPersonalDetailSearchTerms, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -365,7 +365,12 @@ function useSearchSelectorBase({
 
     const selectedOptionsForDisplay = useMemo(() => {
         return selectedOptions.filter((option) => {
-            return !!option.text?.toLowerCase().includes(computedSearchTerm) || !!option.login?.toLowerCase().includes(computedSearchTerm);
+            const personalDetailSearchTerms = getPersonalDetailSearchTerms(option);
+            return (
+                !!option.text?.toLowerCase().includes(computedSearchTerm) ||
+                !!option.login?.toLowerCase().includes(computedSearchTerm) ||
+                personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
+            );
         });
     }, [selectedOptions, computedSearchTerm]);
 

@@ -51,7 +51,7 @@ function useOptions() {
     const {contacts} = useContactImport();
 
     // Filter options which include recent reports, recent contacts, selfDM, invite option and match with the search term
-    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions} = useSearchSelector({
+    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, debouncedSearchTerm, toggleSelection, availableOptions, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -134,6 +134,7 @@ function useOptions() {
         selectedOptions,
         headerMessage,
         toggleSelection,
+        onListEndReached,
     };
 }
 
@@ -163,8 +164,19 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized, toggleSelection} =
-        useOptions();
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        selectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+        toggleSelection,
+        onListEndReached,
+    } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
@@ -377,6 +389,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
                 textInputAutoFocus={false}
+                onEndReached={onListEndReached}
             />
         </ScreenWrapper>
     );
