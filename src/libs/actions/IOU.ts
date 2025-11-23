@@ -8967,7 +8967,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
 
     const errorKey = DateUtils.getMicroseconds();
 
-    let originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
+    const originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
     Object.values(iouReportActions ?? {}).forEach((action) => {
         if (action.reportActionID === reportAction.reportActionID) {
             return;
