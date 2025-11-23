@@ -64,20 +64,20 @@ const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
 
     // Map SYNTAX_FILTER_KEYS values to their user-friendly names
-    for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+    Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
-            continue;
+            return;
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
-    }
+    });
 
     // Map SYNTAX_ROOT_KEYS values to their user-friendly names
-    for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
-            continue;
+            return;
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
-    }
+    });
 
     return map;
 };
@@ -190,7 +190,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
     const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
 
     let filterValueString = '';
-    for (const [index, queryFilter] of queryFilters.entries()) {
+    queryFilters.forEach((queryFilter, index) => {
         const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
@@ -204,7 +204,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else {
             filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
-    }
+    });
 
     return filterValueString;
 }
@@ -248,12 +248,12 @@ function getFilters(queryJSON: SearchQueryJSON) {
                 value: node.right as string | number,
             });
         } else {
-            for (const element of node.right) {
+            node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
                     value: element,
                 });
-            }
+            });
         }
         filters.push({key: nodeKey, filters: filterArray});
     }
@@ -346,24 +346,25 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     // their value when computing the similarSearchHash
     const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
 
-    for (const {filterString, filterKey} of query.flatFilters
+    query.flatFilters
         .map((filter) => {
-            const _filterKey = filter.key;
+            const filterKey = filter.key;
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
-            return {filterString: buildFilterValuesString(_filterKey, filters), _filterKey};
+            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
-        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))) {
-        if (!similarSearchIgnoredFilters.has(filterKey)) {
-            filterSet.add(filterKey);
-        }
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
+        .forEach(({filterString, filterKey}) => {
+            if (!similarSearchIgnoredFilters.has(filterKey)) {
+                filterSet.add(filterKey);
+            }
 
-        if (similarSearchValueBasedFilters.has(filterKey)) {
-            filterSet.add(filterString.trim());
-        }
+            if (similarSearchValueBasedFilters.has(filterKey)) {
+                filterSet.add(filterString.trim());
+            }
 
-        orderedQuery += ` ${filterString}`;
-    }
+            orderedQuery += ` ${filterString}`;
+        });
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
@@ -478,13 +479,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
-    for (const filter of providedFilterKeys) {
+    providedFilterKeys.forEach((filter) => {
         if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
-            continue;
+            return;
         }
 
         supportedFilterValues[filter] = undefined;
-    }
+    });
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
@@ -623,15 +624,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
-    for (const dateKey of DATE_FILTER_KEYS) {
+    DATE_FILTER_KEYS.forEach((dateKey) => {
         const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
-    }
+    });
 
-    for (const filterKey of AMOUNT_FILTER_KEYS) {
+    AMOUNT_FILTER_KEYS.forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
-    }
+    });
 
     return filtersString.filter(Boolean).join(' ').trim();
 }
@@ -1017,7 +1018,7 @@ function buildUserReadableQueryString(
                 acc.push({operator: filter.operator, value});
 
                 return acc;
-            }, []);
+            }, [] as QueryFilter[]);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             displayQueryFilters = queryFilter.reduce((acc, filter) => {
                 const cardValue = filter.value.toString();
@@ -1031,7 +1032,7 @@ function buildUserReadableQueryString(
                     }
                 }
                 return acc;
-            }, []);
+            }, [] as QueryFilter[]);
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
@@ -1162,14 +1163,14 @@ function getCurrentSearchQueryJSON() {
 
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
     if (!lastSearchNavigatorState) {
         return;
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    if (!lastSearchRoute?.params) {
+    if (!lastSearchRoute || !lastSearchRoute.params) {
         return;
     }
 

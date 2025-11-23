@@ -8886,7 +8886,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
     ];
 
     if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        for (const key of allSnapshotKeys) {
+        allSnapshotKeys.forEach((key) => {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key,
@@ -8910,7 +8910,7 @@ function deleteMoneyRequest(params: DeleteMoneyRequestInputParams): Route | unde
                     } as Partial<OnyxTypes.Transaction>,
                 },
             });
-        }
+        });
     }
 
     if (reportPreviewAction?.reportActionID) {
@@ -14024,7 +14024,7 @@ function updateSplitTransactions({
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
-        if (!customUnitRate?.enabled) {
+        if (!customUnitRate || !customUnitRate.enabled) {
             // Show error to user
             Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.invalidRate'),
@@ -14056,9 +14056,9 @@ function updateSplitTransactions({
     const sumOfCurrentSplits = changesInReportTotal + splitExpensesTotal;
     const calculatedNewReportTotal = isCreationOfSplits ? reportTotal - changesInReportTotal : -sumOfCurrentSplits;
 
-    const successData = [];
-    const failureData = [];
-    const optimisticData = [];
+    const successData = [] as OnyxUpdate[];
+    const failureData = [] as OnyxUpdate[];
+    const optimisticData = [] as OnyxUpdate[];
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
