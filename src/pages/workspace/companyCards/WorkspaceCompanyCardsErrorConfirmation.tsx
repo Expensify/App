@@ -1,10 +1,10 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {BrokenCompanyCardBankConnection} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +24,7 @@ type WorkspaceCompanyCardsErrorConfirmationProps = {
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection'] as const);
     const policy = usePolicy(policyID);
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
     const [cardsList] = useCardsList(policyID, newFeed);
@@ -39,9 +40,9 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         }
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
-        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
-            .filter((feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .at(0);
+        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).find(
+            (feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
         deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, newFeed, cardIDs, feedToOpen);
     };
 
@@ -98,7 +99,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
                     </TextLink>
                 </Text>
             }
-            illustration={BrokenCompanyCardBankConnection}
+            illustration={illustrations.BrokenCompanyCardBankConnection}
             shouldShowButton
             illustrationStyle={styles.errorStateCardIllustration}
             onButtonPress={onButtonPress}

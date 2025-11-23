@@ -33,7 +33,6 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTaxAmount,
     setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
@@ -109,6 +108,8 @@ function IOURequestStepAmount({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -177,10 +178,6 @@ function IOURequestStepAmount({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
-        // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
-        // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
-        setMoneyRequestTaxAmount(transactionID, null);
-
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -226,6 +223,7 @@ function IOURequestStepAmount({
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -244,6 +242,7 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         },
+                        isASAPSubmitBetaEnabled,
                     });
                     return;
                 }
@@ -258,8 +257,8 @@ function IOURequestStepAmount({
             return;
         }
 
-        // User started from global + menu with CREATE flow
-        // If they manually selected a recipient, keep it; otherwise auto-assign default workspace
+        // Starting from global + menu means no participant context exists yet,
+        // so we need to handle participant selection based on available workspace settings
         if (
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
@@ -269,24 +268,37 @@ function IOURequestStepAmount({
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-            const firstParticipant = transaction?.participants?.at(0);
+            const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
-            // Check if user manually selected a recipient different from default workspace
-            const {hasManualSelection} = hasManuallySelectedParticipant(firstParticipant, activePolicyExpenseChat?.reportID);
-
-            if (hasManualSelection) {
-                const targetReportID = transaction?.reportID;
-                const selectedReport = targetReportID ? getReportOrDraftReport(targetReportID) : null;
-                const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, targetReportID));
-                });
-            } else {
+            const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
                 });
+            };
+
+            if (isReturningFromConfirmationPage) {
+                const firstParticipant = transaction?.participants?.at(0);
+                const isP2PChat = isParticipantP2P(firstParticipant);
+                const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
+
+                // P2P chats don't support negative amounts, so reset to default workspace when amount is negative.
+                if (isP2PChat && isNegativeAmount) {
+                    resetToDefaultWorkspace();
+                    return;
+                }
+
+                // Preserve user's participant selection to avoid forcing them back to default workspace.
+                const iouReportID = transaction?.reportID;
+                const selectedReport = iouReportID ? getReportOrDraftReport(iouReportID) : null;
+                const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+                const chatReportID = selectedReport?.chatReportID ?? iouReportID;
+
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
+                });
+            } else {
+                resetToDefaultWorkspace();
             }
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -376,17 +388,10 @@ function IOURequestStepAmount({
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
 /**
- * Determines if user has manually selected a participant different from the default workspace
+ * Check if the participant is a P2P chat
  */
-function hasManuallySelectedParticipant(
-    firstParticipant: {reportID?: string; accountID?: number; isPolicyExpenseChat?: boolean} | undefined,
-    activePolicyExpenseChatReportID: string | undefined,
-): {hasDifferentWorkspace: boolean; isP2PChat: boolean; hasManualSelection: boolean} {
-    const hasDifferentWorkspace = !!(firstParticipant?.reportID && firstParticipant.reportID !== activePolicyExpenseChatReportID);
-    const isP2PChat = !!(firstParticipant?.accountID && !firstParticipant.isPolicyExpenseChat);
-    const hasManualSelection = hasDifferentWorkspace || isP2PChat;
-
-    return {hasDifferentWorkspace, isP2PChat, hasManualSelection};
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
 }
 
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
@@ -396,4 +401,4 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
-export {hasManuallySelectedParticipant};
+export {isParticipantP2P};
