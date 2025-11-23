@@ -79,7 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Hourglass'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -522,7 +522,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Hourglass}
+                                                            src={expensifyIcons.Hourglass}
                                                             fill={theme.icon}
                                                         />
 

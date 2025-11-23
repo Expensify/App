@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseMessage} from '@libs/NextStepUtils';
@@ -32,12 +33,12 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         const messageArray = nextStep?.message;
         return parseMessage(messageArray);
     }, [nextStep?.message]);
-
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass'] as const);
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
-                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? Expensicons.Hourglass}
+                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
                     fill={theme.icon}
