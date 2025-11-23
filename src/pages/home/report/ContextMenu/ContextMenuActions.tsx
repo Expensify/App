@@ -230,9 +230,47 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Checkmark' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan' | 'ThreeDots'>;
+    icon:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              | 'Download'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Checkmark'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'ThreeDots'
+          >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Checkmark' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan' | 'ThreeDots'>;
+    successIcon?:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              | 'Download'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Checkmark'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'ThreeDots'
+          >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
