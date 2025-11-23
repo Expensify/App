@@ -549,12 +549,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [isAnonymousUser]);
 
     useEffect(() => {
-        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReportID || !reportMetadata.hasOnceLoadedReportActions) {
+        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
             return;
         }
 
         createOneTransactionThreadReport();
-    }, [reportMetadata.hasOnceLoadedReportActions, transactionThreadReportID, createOneTransactionThreadReport]);
+    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, createOneTransactionThreadReport, transactionThreadReportID]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
