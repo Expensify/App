@@ -852,6 +852,7 @@ function MoneyReportHeader({
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
+                        // eslint-disable-next-line unicorn/no-array-for-each
                         IOUActions.forEach(changeMoneyRequestHoldStatus);
                         return;
                     }

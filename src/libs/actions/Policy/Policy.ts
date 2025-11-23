@@ -540,6 +540,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     }
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
