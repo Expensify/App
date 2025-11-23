@@ -12,6 +12,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -268,10 +269,12 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -694,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        reportName: 'Nazwa raportu',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -797,18 +801,33 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'przejdź do aplikacji internetowej',
     },
     validateCodeModal: {
-        successfulSignInTitle: 'Abrakadabra, jesteś zalogowany!',
+        successfulSignInTitle: dedent(`
+            Abrakadabra,
+            zalogowano Cię!
+        `),
         successfulSignInDescription: 'Wróć do swojej oryginalnej karty, aby kontynuować.',
         title: 'Oto Twój magiczny kod',
-        description: 'Proszę wprowadzić kod z urządzenia, na którym został pierwotnie zażądany',
-        doNotShare: 'Nie udostępniaj swojego kodu nikomu. Expensify nigdy nie poprosi Cię o jego podanie!',
+        description: dedent(`
+            Wprowadź kod z urządzenia,
+            na którym pierwotnie o niego poproszono
+        `),
+        doNotShare: dedent(`
+            Nie udostępniaj nikomu swojego kodu.
+            Expensify nigdy nie poprosi cię o niego!
+        `),
         or: ', lub',
         signInHere: 'zaloguj się tutaj',
         expiredCodeTitle: 'Kod magiczny wygasł',
         expiredCodeDescription: 'Wróć do oryginalnego urządzenia i poproś o nowy kod',
         successfulNewCodeRequest: 'Kod został wysłany. Proszę sprawdzić swoje urządzenie.',
-        tfaRequiredTitle: 'Wymagana dwuetapowa weryfikacja',
-        tfaRequiredDescription: 'Proszę wprowadzić kod uwierzytelniania dwuskładnikowego, gdzie próbujesz się zalogować.',
+        tfaRequiredTitle: dedent(`
+            Uwierzytelnianie dwuskładnikowe
+            wymagane
+        `),
+        tfaRequiredDescription: dedent(`
+            Wprowadź kod uwierzytelniania dwuskładnikowego
+            w miejscu, w którym próbujesz się zalogować.
+        `),
         requestOneHere: 'poproś o jeden tutaj.',
     },
     moneyRequestConfirmationList: {
@@ -1469,6 +1488,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
             educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
             holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
+            approveExpenseTitle: 'Zatwierdź inne wydatki, podczas gdy wydatki wstrzymane pozostają przypisane do Ciebie.',
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
@@ -1593,7 +1613,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'Wyszukaj, aby zobaczyć opcje',
     },
     contacts: {
-        contactMethod: 'Metoda kontaktu',
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
@@ -1846,8 +1865,11 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Nie będziesz już potrzebować aplikacji uwierzytelniającej, aby zalogować się do Expensify.',
         stepCodes: 'Kody odzyskiwania',
         keepCodesSafe: 'Zachowaj te kody odzyskiwania w bezpiecznym miejscu!',
-        codesLoseAccess:
-            'Jeśli stracisz dostęp do aplikacji uwierzytelniającej i nie masz tych kodów, stracisz dostęp do swojego konta.\n\nUwaga: Ustawienie uwierzytelniania dwuskładnikowego spowoduje wylogowanie ze wszystkich innych aktywnych sesji.',
+        codesLoseAccess: dedent(`
+            Jeśli utracisz dostęp do swojej aplikacji uwierzytelniającej i nie masz tych kodów, stracisz dostęp do swojego konta.
+
+            Uwaga: Skonfigurowanie uwierzytelniania dwuskładnikowego wyloguje Cię ze wszystkich pozostałych aktywnych sesji.
+        `),
         errorStepCodes: 'Proszę skopiować lub pobrać kody przed kontynuowaniem.',
         stepVerify: 'Zweryfikuj',
         scanCode: 'Zeskanuj kod QR za pomocą swojego',
@@ -2405,19 +2427,20 @@ ${amount} dla ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Dodaj zatwierdzanie wydatków*, aby kontrolować wydatki swojego zespołu i utrzymać je pod kontrolą.\n` +
-                    '\n' +
-                    `Jak to zrobić:\n` +
-                    '\n' +
-                    '1. Przejdź do *Obszary robocze*.\n' +
-                    '2. Wybierz swój obszar roboczy.\n' +
-                    '3. Kliknij *Więcej funkcji*.\n' +
-                    '4. Włącz *Przepływy pracy*.\n' +
-                    '5. Przejdź do *Przepływy pracy* w edytorze obszaru roboczego.\n' +
-                    '6. Włącz *Dodaj zatwierdzenia*.\n' +
-                    `7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Możesz to zmienić na dowolnego administratora po zaproszeniu zespołu.\n` +
-                    '\n' +
-                    `[Przejdź do więcej funkcji](${workspaceMoreFeaturesLink}).`,
+                    dedent(`
+                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki zespołu i trzymać je pod kontrolą.
+
+                        Oto jak:
+
+                        1. Przejdź do *Przestrzenie robocze*.
+                        2. Wybierz swoją przestrzeń roboczą.
+                        3. Kliknij *Więcej funkcji*.
+                        4. Włącz *Przepływy pracy*.
+                        5. Przejdź do *Przepływy pracy* w edytorze przestrzeni roboczej.
+                        6. Włącz *Dodaj zatwierdzanie*.
+                        7. Domyślnie zostaniesz osobą zatwierdzającą wydatki. Po zaproszeniu zespołu możesz zmienić to na dowolnego administratora.
+
+                        [Przejdź do Więcej funkcji](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een werkruimte`,
@@ -2426,193 +2449,210 @@ ${amount} dla ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*Maak een werkruimte* om uitgaven te volgen, bonnen te scannen, te chatten en meer.\n' +
-                    '\n' +
-                    '1. Klik op *Werkruimtes* > *Nieuwe werkruimte*.\n' +
-                    '\n' +
-                    `*Uw nieuwe werkruimte is klaar!* [Bekijk hem](${workspaceSettingsLink}).`,
+                    dedent(`
+                        *Utwórz przestrzeń roboczą* do śledzenia wydatków, skanowania paragonów, czatowania i nie tylko.
+
+                        1. Kliknij *Przestrzenie robocze* > *Nowa przestrzeń robocza*.
+
+                        *Twoja nowa przestrzeń robocza jest gotowa!* [Zobacz](${workspaceSettingsLink}).`),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) in`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*Stel categorieën in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
-                    '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '2. Selecteer uw werkruimte.\n' +
-                    '3. Klik op *Categorieën*.\n' +
-                    '4. Schakel alle categorieën uit die u niet nodig heeft.\n' +
-                    '5. Voeg uw eigen categorieën toe rechtsboven.\n' +
-                    '\n' +
-                    `[Breng me naar de categorie-instellingen van de werkruimte](${workspaceCategoriesLink}).\n` +
-                    '\n' +
-                    `![Stel categorieën in](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *Skonfiguruj kategorie*, aby Twój zespół mógł kodować wydatki dla łatwiejszego raportowania.
+
+                        1. Kliknij *Workspaces*.
+                        3. Wybierz swój workspace.
+                        4. Kliknij *Categories*.
+                        5. Wyłącz wszystkie kategorie, których nie potrzebujesz.
+                        6. Dodaj własne kategorie w prawym górnym rogu.
+
+                        [Przejdź do ustawień kategorii workspace'u](${workspaceCategoriesLink}).
+
+                        ![Skonfiguruj kategorie](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Dien een uitgave in',
-                description:
-                    '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Uitgave aanmaken*.\n' +
-                    '3. Voer een bedrag in of scan een bon.\n' +
-                    `4. Voeg het e-mailadres of telefoonnummer van uw baas toe.\n` +
-                    '5. Klik op *Aanmaken*.\n' +
-                    '\n' +
-                    'En u bent klaar!',
+                description: dedent(`
+                    *Dodaj wydatek* poprzez wprowadzenie kwoty lub zeskanowanie paragonu.
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Utwórz wydatek*.
+                    3. Wprowadź kwotę lub zeskanuj paragon.
+                    4. Dodaj adres e-mail lub numer telefonu swojego przełożonego.
+                    5. Kliknij *Utwórz*.
+
+                    I gotowe!
+                `),
             },
             adminSubmitExpenseTask: {
                 title: 'Dien een uitgave in',
-                description:
-                    '*Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Uitgave aanmaken*.\n' +
-                    '3. Voer een bedrag in of scan een bon.\n' +
-                    '4. Bevestig de details.\n' +
-                    '5. Klik op *Aanmaken*.\n' +
-                    '\n' +
-                    `En u bent klaar!`,
+                description: dedent(`
+                    *Zgłoś wydatek* poprzez wprowadzenie kwoty lub zeskanowanie paragonu.
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Utwórz wydatek*.
+                    3. Wpisz kwotę lub zeskanuj paragon.
+                    4. Potwierdź szczegóły.
+                    5. Kliknij *Utwórz*.
+
+                    I gotowe!
+                `),
             },
             trackExpenseTask: {
                 title: 'Volg een uitgave',
-                description:
-                    '*Volg een uitgave* in elke valuta, of u nu een bon heeft of niet.\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Uitgave aanmaken*.\n' +
-                    '3. Voer een bedrag in of scan een bon.\n' +
-                    '4. Kies uw *persoonlijke* ruimte.\n' +
-                    '5. Klik op *Aanmaken*.\n' +
-                    '\n' +
-                    'En u bent klaar! Jazeker, zo makkelijk is het.',
+                description: dedent(`
+                    *Śledź wydatek* w dowolnej walucie, niezależnie od tego, czy masz paragon, czy nie.
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Utwórz wydatek*.
+                    3. Wprowadź kwotę lub zeskanuj paragon.
+                    4. Wybierz swoją *osobistą* przestrzeń.
+                    5. Kliknij *Utwórz*.
+
+                    I gotowe! Tak, to takie proste.
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' z'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'swoim' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' swój' : ' z'} ${integrationName}, aby automatycznie kategoryzować wydatki i synchronizować dane, co ułatwi zamknięcie miesiąca.\n` +
-                    '\n' +
-                    '1. Kliknij *Przestrzenie robocze*.\n' +
-                    '2. Wybierz swoją przestrzeń roboczą.\n' +
-                    '3. Kliknij *Księgowość*.\n' +
-                    `4. Znajdź ${integrationName}.\n` +
-                    '5. Kliknij *Połącz*.\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Przejdź do księgowości](${workspaceAccountingLink}).\n\n![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+                        Połącz ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'twój' : 'Do'} ${integrationName}, aby umożliwić automatyczne kategoryzowanie wydatków i synchronizację, co ułatwia zamknięcie miesiąca.
+
+                        1. Kliknij *Workspaces*.
+                        2. Wybierz swoją przestrzeń roboczą.
+                        3. Kliknij *Accounting*.
+                        4. Znajdź ${integrationName}.
+                        5. Kliknij *Connect*.
+
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? dedent(`[Przejdź do księgowości](${workspaceAccountingLink}).
+
+                                      ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `Verbind uw bedrijfskaart om uitgaven automatisch te importeren en te coderen.\n` +
-                    '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '2. Selecteer uw werkruimte.\n' +
-                    '3. Klik op *Bedrijfskaarten*.\n' +
-                    '4. Volg de aanwijzingen om uw kaart te verbinden.\n' +
-                    '\n' +
-                    `[Breng me naar het verbinden van mijn bedrijfskaarten](${corporateCardLink}).`,
+                    dedent(`
+                        Połącz swoją kartę służbową, aby automatycznie importować i kategoryzować wydatki.
+
+                        1. Kliknij *Workspaces*.
+                        2. Wybierz swój workspace.
+                        3. Kliknij *Corporate cards*.
+                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
+
+                        [Przejdź do połączenia moich kart służbowych](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
-                    '*Nodig uw team* uit voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.\n' +
-                    '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '2. Selecteer uw werkruimte.\n' +
-                    '3. Klik op *Leden* > *Lid uitnodigen*.\n' +
-                    '4. Voer e-mailadressen of telefoonnummers in. \n' +
-                    '5. Voeg een aangepast uitnodigingsbericht toe als u dat wilt!\n' +
-                    '\n' +
-                    `[Breng me naar werkruimtemedewerkers](${workspaceMembersLink}).\n` +
-                    '\n' +
-                    `![Nodig uw team uit](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *Zaproś swój zespół* do Expensify, aby mogli już dziś zacząć śledzić wydatki.
+
+                        1. Kliknij *Obszary robocze*.
+                        3. Wybierz swój obszar roboczy.
+                        4. Kliknij *Członkowie* > *Zaproś członka*.
+                        5. Wpisz adresy e-mail lub numery telefonów.
+                        6. Dodaj własną wiadomość z zaproszeniem, jeśli chcesz!
+
+                        [Przejdź do członków obszaru roboczego](${workspaceMembersLink}).
+
+                        ![Zaproś swój zespół](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*Stel categorieën en tags in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
-                    '\n' +
-                    `Importeer ze automatisch door [uw boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via uw [werkruimte-instellingen](${workspaceCategoriesLink}).`,
+                    dedent(`
+                        *Skonfiguruj kategorie i tagi*, aby Twój zespół mógł księgować wydatki dla łatwiejszego raportowania.
+
+                        Importuj je automatycznie, [łącząc swoje oprogramowanie księgowe](${workspaceAccountingLink}), lub skonfiguruj je ręcznie w [ustawieniach przestrzeni roboczej](${workspaceCategoriesLink}).`),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Stel [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
-                    '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '2. Selecteer uw werkruimte.\n' +
-                    '3. Klik op *Meer functies*.\n' +
-                    '4. Schakel *Tags* in.\n' +
-                    '5. Navigeer naar *Tags* in de werkruimteditor.\n' +
-                    '6. Klik op *+ Tag toevoegen* om uw eigen tags te maken.\n' +
-                    '\n' +
-                    `[Breng me naar meer functies](${workspaceMoreFeaturesLink}).\n` +
-                    '\n' +
-                    `![Stel tags in](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        Używaj tagów, aby dodawać dodatkowe szczegóły wydatków, takie jak projekty, klienci, lokalizacje i działy. Jeśli potrzebujesz wielu poziomów tagów, możesz przejść na plan Control.
+
+                        1. Kliknij *Workspaces*.
+                        3. Wybierz swój workspace.
+                        4. Kliknij *More features*.
+                        5. Włącz *Tags*.
+                        6. Przejdź do *Tags* w edytorze workspace.
+                        7. Kliknij *+ Add tag*, aby utworzyć własny tag.
+
+                        [Przejdź do sekcji More features](${workspaceMoreFeaturesLink}).
+
+                        ![Skonfiguruj tagi](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Zaproś swojego [księgowego](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Zaproś swojego księgowego*, aby współpracował w Twojej przestrzeni roboczej i zarządzał wydatkami firmowymi.\n' +
-                    '\n' +
-                    '1. Kliknij *Przestrzenie robocze*.\n' +
-                    '2. Wybierz swoją przestrzeń roboczą.\n' +
-                    '3. Kliknij *Członkowie*.\n' +
-                    '4. Kliknij *Zaproś członka*.\n' +
-                    '5. Wpisz adres e-mail swojego księgowego.\n' +
-                    '\n' +
-                    `[Zaproś swojego księgowego teraz](${workspaceMembersLink}).`,
+                    dedent(`
+                        *Zaproś swojego księgowego* do współpracy w Twoim obszarze roboczym i zarządzania wydatkami firmowymi.
+
+                        1. Kliknij *Workspaces*.
+                        2. Wybierz swój obszar roboczy.
+                        3. Kliknij *Members*.
+                        4. Kliknij *Invite member*.
+                        5. Wpisz adres e-mail swojego księgowego.
+
+                        [Zaproś swojego księgowego teraz](${workspaceMembersLink}).`),
             },
             startChatTask: {
                 title: 'Start een chat',
-                description:
-                    '*Start een chat* met iedereen met behulp van hun e-mailadres of telefoonnummer.\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Start chat*.\n' +
-                    '3. Voer een e-mailadres of telefoonnummer in.\n' +
-                    '\n' +
-                    'Als ze Expensify nog niet gebruiken, worden ze automatisch uitgenodigd.\n' +
-                    '\n' +
-                    'Elke chat wordt ook omgezet in een e-mail of sms waar ze direct op kunnen reageren.',
+                description: dedent(`
+                    *Rozpocznij czat* z dowolną osobą, używając jej adresu e‑mail lub numeru telefonu.
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Rozpocznij czat*.
+                    3. Wprowadź adres e‑mail lub numer telefonu.
+
+                    Jeśli dana osoba nie korzysta jeszcze z Expensify, zostanie zaproszona automatycznie.
+
+                    Każdy czat będzie też wysłany jako e‑mail lub SMS, na który ta osoba może odpowiedzieć bezpośrednio.
+                `),
             },
             splitExpenseTask: {
-                title: 'Podziel wydatek',
-                description:
-                    '*Splits uitgaven* met één of meer personen.\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Start chat*.\n' +
-                    '3. Voer e-mailadressen of telefoonnummers in.\n' +
-                    '4. Klik op de grijze *+*-knop in de chat > *Splits uitgave*.\n' +
-                    '5. Maak de uitgave aan door *Handmatig*, *Scannen* of *Afstand* te selecteren.\n' +
-                    '\n' +
-                    'Voeg gerust meer details toe als u wilt, of stuur het gewoon op. Laten we ervoor zorgen dat u wordt terugbetaald!',
+                title: 'Splits een uitgave',
+                description: dedent(`
+                    *Podziel wydatki* z jedną lub kilkoma osobami.
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Rozpocznij czat*.
+                    3. Wprowadź adresy e-mail lub numery telefonów.
+                    4. Kliknij szary przycisk *+* na czacie > *Podziel wydatek*.
+                    5. Utwórz wydatek, wybierając *Ręcznie*, *Skan* lub *Dystans*.
+
+                    Możesz dodać więcej szczegółów, jeśli chcesz, albo po prostu wyślij. Pomożemy ci odzyskać pieniądze!
+                `),
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Oto jak przejrzeć i zaktualizować ustawienia obszaru roboczego:\n' +
-                    '1. Kliknij Obszary robocze.\n' +
-                    '2. Wybierz swój obszar roboczy.\n' +
-                    '3. Przejrzyj i zaktualizuj swoje ustawienia.\n' +
-                    `[Przejdź do swojego obszaru roboczego.](${workspaceSettingsLink})`,
+                    dedent(`
+                        Oto jak przejrzeć i zaktualizować ustawienia obszaru roboczego:
+                        1. Kliknij Obszary robocze.
+                        2. Wybierz swój obszar roboczy.
+                        3. Przejrzyj i zaktualizuj ustawienia.
+                        [Przejdź do swojego obszaru roboczego.](${workspaceSettingsLink})`),
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
-                description:
-                    'Zo maakt u een rapport:\n' +
-                    '\n' +
-                    `1. Klik op de +-knop.\n` +
-                    '2. Kies *Rapport aanmaken*.\n' +
-                    '3. Klik op *Uitgave toevoegen*.\n' +
-                    '4. Voeg uw eerste uitgave toe.\n' +
-                    '\n' +
-                    'En u bent klaar!',
+                description: dedent(`
+                    Oto jak utworzyć raport:
+
+                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    2. Wybierz *Utwórz raport*.
+                    3. Kliknij *Dodaj wydatek*.
+                    4. Dodaj swój pierwszy wydatek.
+
+                    I gotowe!
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2625,8 +2665,10 @@ ${amount} dla ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage:
-                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, wykorzystaj w pełni swoje 30 dni bezpłatnego okresu próbnego, postępując zgodnie z poniższymi krokami!',
+            onboardingManageTeamMessage: dedent(`
+                # Twój bezpłatny okres próbny właśnie się rozpoczął! Zajmijmy się konfiguracją.
+                👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Po utworzeniu obszaru roboczego wykorzystaj w pełni 30‑dniowy bezpłatny okres próbny, wykonując poniższe kroki!
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -3245,6 +3287,9 @@ ${amount} dla ${merchant} - ${date}`,
         whatsYourAddress: 'Jaki jest Twój adres?',
         whatAreTheLast: 'Jakie są ostatnie 4 cyfry numeru Social Security właściciela?',
         whatsYourLast: 'Jakie są ostatnie 4 cyfry Twojego numeru Social Security?',
+        whatsYourNationality: 'Jaki jest Twój kraj obywatelstwa?',
+        whatsTheOwnersNationality: 'Jaki jest kraj obywatelstwa właściciela?',
+        countryOfCitizenship: 'Kraj obywatelstwa',
         dontWorry: 'Nie martw się, nie przeprowadzamy żadnych osobistych sprawdzeń kredytowych!',
         last4: 'Ostatnie 4 cyfry numeru SSN',
         whyDoWeAsk: 'Dlaczego o to prosimy?',
@@ -3341,8 +3386,11 @@ ${amount} dla ${merchant} - ${date}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale dla Sygnatariuszy, Użytkowników Upoważnionych i Właścicieli Korzyści.',
         PDSandFSG: 'Dokumentacja ujawnienia PDS + FSG',
-        PDSandFSGDescription:
-            'Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych do zasilania Globalnych Zwrotów w Expensify. Zgodnie z australijskimi przepisami dostarczamy Ci Przewodnik po Usługach Finansowych (FSG) i Oświadczenie o Ujawnieniu Produktu (PDS) Corpay.\n\nProsimy o uważne przeczytanie dokumentów FSG i PDS, ponieważ zawierają one pełne szczegóły i ważne informacje na temat produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do przyszłego wglądu.',
+        PDSandFSGDescription: dedent(`
+            Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych i zasilać funkcję Global Reimbursements w Expensify. Zgodnie z przepisami australijskimi udostępniamy Ci Przewodnik Corpay po usługach finansowych (FSG) oraz Dokument ujawniający informacje o produkcie (PDS).
+
+            Prosimy o uważne zapoznanie się z dokumentami FSG i PDS, ponieważ zawierają pełne szczegóły i ważne informacje dotyczące produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do przyszłego wglądu.
+        `),
         pleaseUpload: 'Proszę przesłać dodatkową dokumentację poniżej, aby pomóc nam zweryfikować Twoją tożsamość jako dyrektora jednostki gospodarczej.',
         enterSignerInfo: 'Wprowadź dane osoby podpisującej',
         thisStep: 'Ten krok został zakończony',
@@ -3549,7 +3597,7 @@ ${amount} dla ${merchant} - ${date}`,
             expensifyCard: 'Expensify Card',
             companyCards: 'Karty firmowe',
             workflows: 'Przepływy pracy',
-            workspace: 'Workspace',
+            workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
@@ -4162,30 +4210,42 @@ ${amount} dla ${merchant} - ${date}`,
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Raporty wydatków',
-                        reimbursableDescription: 'Wydatki z własnej kieszeni zostaną wyeksportowane jako raporty wydatków do NetSuite.',
-                        nonReimbursableDescription: 'Wydatki z kart firmowych będą eksportowane jako raporty wydatków do NetSuite.',
+                        reimbursableDescription: dedent(`
+                            Wydatki z własnej kieszeni zostaną wyeksportowane jako zapisy księgowe do konta NetSuite wskazanego poniżej.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Wydatki z firmowych kart zostaną wyeksportowane jako księgowania do wskazanego poniżej konta NetSuite.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Faktury od dostawców',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Wydatki z własnej kieszeni zostaną wyeksportowane jako zapisy księgowe do konta NetSuite wskazanego poniżej.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Wydatki z firmowych kart zostaną wyeksportowane jako księgowania do wskazanego poniżej konta NetSuite.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Zapisy w dzienniku',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Wydatki z własnej kieszeni zostaną wyeksportowane jako zapisy księgowe do konta NetSuite wskazanego poniżej.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Wydatki z firmowych kart zostaną wyeksportowane jako księgowania do wskazanego poniżej konta NetSuite.
+
+                            Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Settings > Domains > Company Cards*.
+                        `),
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5147,6 +5207,7 @@ ${amount} dla ${merchant} - ${date}`,
             issueCard: 'Wydaj kartę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
+                inviteNewMember: 'Zaproś nowego członka',
                 findMember: 'Znajdź członka',
                 chooseCardType: 'Wybierz typ karty',
                 physicalCard: 'Fizyczna karta',
@@ -5820,7 +5881,7 @@ ${amount} dla ${merchant} - ${date}`,
                 billableDescription: 'Wydatki są najczęściej ponownie fakturowane klientom',
                 nonBillable: 'Niepodlegające fakturowaniu',
                 nonBillableDescription: 'Wydatki są czasami ponownie fakturowane klientom.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'ePokwitowania',
                 eReceiptsHint: `ePokwitowania są tworzone automatycznie [dla większości transakcji kredytowych w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
@@ -6131,6 +6192,32 @@ ${amount} dla ${merchant} - ${date}`,
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodał podatek "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `zmienił nazwę podatku z "${oldValue}" na "${newValue}"`;
+                }
+                case 'code': {
+                    return `zmienił kod podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'rate': {
+                    return `zmienił stawkę podatku "${taxName}" z "${oldValue}" na "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `wyłączył podatek "${taxName}"` : `włączył podatek "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -6215,7 +6302,10 @@ ${amount} dla ${merchant} - ${date}`,
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby utworzyć raport.',
             },
             emptyInvoiceResults: {
-                title: 'Nie utworzyłeś jeszcze żadnych faktur.',
+                title: dedent(`
+                    Nie utworzono jeszcze
+                    żadnych faktur
+                `),
                 subtitle: 'Wyślij fakturę lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby wysłać fakturę.',
             },
@@ -6782,17 +6872,16 @@ ${amount} dla ${merchant} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
         receiptNotSmartScanned: 'Paragon i szczegóły wydatku dodane ręcznie.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Wymagany paragon';
-            if (formattedLimit ?? category) {
-                message += 'ponad';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'limit kategorii';
-                }
+            if (formattedLimit && category) {
+                return `Wymagany paragon powyżej limitu kategorii ${formattedLimit}`;
             }
-            return message;
+            if (formattedLimit) {
+                return `Wymagany paragon powyżej ${formattedLimit}`;
+            }
+            if (category) {
+                return `Paragon wymagany powyżej limitu kategorii`;
+            }
+            return 'Wymagany paragon';
         },
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
@@ -7216,7 +7305,10 @@ ${amount} dla ${merchant} - ${date}`,
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby dodać współpilota. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zaktualizować swojego pilota.`,
         notAllowed: 'Nie tak szybko...',
-        noAccessMessage: 'Jako współpilot nie masz dostępu do tej strony. Przepraszamy!',
+        noAccessMessage: dedent(`
+            Jako kopilot nie masz dostępu do
+            tej strony. Przepraszamy!
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `Jako <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> ${accountOwnerEmail} nie masz uprawnień do wykonania tej akcji. Przepraszamy!`,
         copilotAccess: 'Dostęp do Copilot',
@@ -7363,8 +7455,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         modal: {
             title: 'Wypróbuj nas w wersji testowej',
-            description: 'Weź szybką wycieczkę po produkcie, aby szybko się zorientować. Żadnych przystanków nie potrzeba!',
-            confirmText: 'Rozpocznij jazdę próbną',
+            description: 'Skorzystaj z krótkiego przewodnika po produkcie, aby szybko się wdrożyć.',
+            confirmText: 'Rozpocznij wersję demonstracyjną',
             helpText: 'Pomiń',
             employee: {
                 description:
@@ -7518,6 +7610,16 @@ ${amount} dla ${merchant} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>Domena <strong>${domainName}</strong> została pomyślnie zweryfikowana i możesz teraz skonfigurować SAML oraz inne funkcje zabezpieczeń.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'Jednokrotne logowanie SAML (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> to funkcja bezpieczeństwa, która daje Ci większą kontrolę nad tym, w jaki sposób członkowie z adresami e‑mail w domenie <strong>${domainName}</strong> logują się do Expensify. Aby ją włączyć, musisz potwierdzić, że jesteś uprawnionym administratorem firmy.</muted-text>`,
+            fasterAndEasierLogin: 'Szybsze i łatwiejsze logowanie',
+            moreSecurityAndControl: 'Więcej bezpieczeństwa i kontroli',
+            onePasswordForAnything: 'Jedno hasło do wszystkiego',
+        },
+        goToDomain: 'Przejdź do domeny',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

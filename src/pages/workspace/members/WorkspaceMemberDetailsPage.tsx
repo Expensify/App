@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -19,6 +20,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -72,6 +74,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -252,7 +255,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => {
+        for (const workflow of updatedWorkflows) {
             if (workflow?.removeApprovalWorkflow) {
                 const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
@@ -260,7 +263,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             } else {
                 updateApprovalWorkflow(workflow, [], [], policy);
             }
-        });
+        }
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
@@ -384,7 +387,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                    icon={Expensicons.RemoveMembers}
+                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
                                 />
                             )}

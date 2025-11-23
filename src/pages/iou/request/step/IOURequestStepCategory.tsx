@@ -6,14 +6,15 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -49,6 +50,7 @@ function IOURequestStepCategory({
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -69,8 +71,7 @@ function IOURequestStepCategory({
 
     const report = reportReal ?? reportDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyData = usePolicyData(policy?.id);
     const {currentSearchHash} = useSearchContext();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -172,7 +173,7 @@ function IOURequestStepCategory({
                 <View style={[styles.flex1]}>
                     <WorkspaceEmptyStateSection
                         shouldStyleAsCard={false}
-                        icon={Illustrations.EmptyStateExpenses}
+                        icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         containerStyle={[styles.flex1, styles.justifyContentCenter]}
@@ -189,7 +190,7 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy?.areCategoriesEnabled) {
-                                        enablePolicyCategories(policyID, true, policyTagLists, policyCategories, allTransactionViolations, false);
+                                        enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
                                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {

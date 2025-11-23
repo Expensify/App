@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import CollapsibleSection from '@components/CollapsibleSection';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +12,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
+    const icons = useMemoizedLazyExpensifyIcons(['Printer'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -101,7 +102,7 @@ function LongTermsForm() {
             <View style={styles.flexRow}>
                 <Icon
                     fill={theme.icon}
-                    src={Expensicons.Printer}
+                    src={icons.Printer}
                 />
                 <TextLink
                     style={styles.ml1}
