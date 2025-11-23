@@ -4,7 +4,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import Text from '@components/Text';

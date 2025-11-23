@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

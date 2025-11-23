@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';

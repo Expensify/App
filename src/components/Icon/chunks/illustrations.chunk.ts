@@ -83,6 +83,8 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
+
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
@@ -175,6 +177,7 @@ const Illustrations = {
     Mailbox,
     ShieldYellow,
     PalmTree,
+    PaymentHands
 };
 
 /**

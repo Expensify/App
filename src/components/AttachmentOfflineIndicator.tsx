@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type AttachmentOfflineIndicatorProps = {

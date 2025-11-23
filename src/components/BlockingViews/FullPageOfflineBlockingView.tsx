@@ -1,5 +1,4 @@
 import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
