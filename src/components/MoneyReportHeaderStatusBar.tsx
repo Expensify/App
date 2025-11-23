@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
@@ -20,20 +19,23 @@ type MoneyReportHeaderStatusBarProps = {
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
-const iconMap: IconMap = {
-    [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
-    [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
-    [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
-};
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch'] as const);
+    const iconMap: IconMap = useMemo(
+        () => ({
+            [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
+            [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
+            [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
+        }),
+        [icons],
+    );
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
         return parseMessage(messageArray);
     }, [nextStep?.message]);
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass'] as const);
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
