@@ -54,7 +54,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
                 if (approvalWorkflow?.members) {
-                    for (const member of approvalWorkflow?.members) {
+                    for (const member of approvalWorkflow.members) {
                         pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
                     }
                 }

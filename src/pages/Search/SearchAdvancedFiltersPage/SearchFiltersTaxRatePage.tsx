@@ -24,7 +24,7 @@ function SearchFiltersTaxRatePage() {
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
     for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {
         if (searchAdvancedFiltersForm?.taxRate) {
-            for (const taxRateKey of searchAdvancedFiltersForm?.taxRate) {
+            for (const taxRateKey of searchAdvancedFiltersForm.taxRate) {
                 if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
                     continue;
                 }

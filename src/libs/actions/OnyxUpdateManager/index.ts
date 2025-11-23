@@ -205,7 +205,7 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
     // Consolidate all of the given Onyx updates
     const onyxUpdates: OnyxUpdate[] = [];
     if (onyxUpdatesFromServer?.updates) {
-        for (const updateEvent of onyxUpdatesFromServer?.updates) {
+        for (const updateEvent of onyxUpdatesFromServer.updates) {
             onyxUpdates.push(...updateEvent.data);
         }
     }

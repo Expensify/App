@@ -57,7 +57,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
             if (corpayFields?.formFields) {
-                for (const field of corpayFields?.formFields) {
+                for (const field of corpayFields.formFields) {
                     const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
                     if (field.isRequired && !values[fieldID]) {

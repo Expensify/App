@@ -94,7 +94,7 @@ function ScheduleCallPage() {
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-            for (const timeSlot of guideSchedule?.timeSlots) {
+            for (const timeSlot of guideSchedule?.timeSlots ?? []) {
                 allSlots.push({
                     guideAccountID: Number(guideAccountID),
                     guideEmail: guideSchedule.guideEmail,
