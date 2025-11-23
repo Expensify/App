@@ -91,7 +91,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate],
+        [policy, policyID, translate, accountingIcons],
     );
 
     const closeConfirmationModal = () => {

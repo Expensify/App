@@ -144,7 +144,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
+    }, [icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem, icons.Bug]);
 
     return (
         <ScreenWrapper

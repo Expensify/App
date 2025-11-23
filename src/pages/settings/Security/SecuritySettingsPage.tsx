@@ -210,6 +210,7 @@ function SecuritySettingsPage() {
         }));
     }, [
         icons.UserLock,
+        icons.Shield,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,

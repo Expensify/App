@@ -425,7 +425,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
-        icons.Gear,
+        icons,
         policy,
         isSyncInProgress,
         policyID,
@@ -509,6 +509,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
+        icons,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {

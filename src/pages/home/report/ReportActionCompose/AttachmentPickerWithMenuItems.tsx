@@ -311,7 +311,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
-    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID, icons.Task]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
