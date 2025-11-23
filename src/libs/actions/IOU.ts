@@ -172,7 +172,6 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
-    isCurrentUserSubmitter,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
