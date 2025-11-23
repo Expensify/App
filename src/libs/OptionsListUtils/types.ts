@@ -238,6 +238,7 @@ type PreviewConfig = {
     isDisabled?: boolean | null;
     selected?: boolean;
     isSelected?: boolean;
+    shouldUnreadBeBold?: boolean;
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {

@@ -835,7 +835,7 @@ function createOption(
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): SearchOptionData {
-    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
+    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, shouldUnreadBeBold = false, selected, isSelected, isDisabled} = config ?? {};
 
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
@@ -916,13 +916,15 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
 
-        const oneTransactionThreadReportID =
-            report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
-                ? getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[report.reportID])
-                : undefined;
-        const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+        if (shouldUnreadBeBold) {
+            const oneTransactionThreadReportID =
+                report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
+                    ? getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[report.reportID])
+                    : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
-        result.isUnread = isUnread(report, oneTransactionThreadReport, !!result.private_isArchived) && !!report.lastActorAccountID;
+            result.isUnread = isUnread(report, oneTransactionThreadReport, !!result.private_isArchived) && !!report.lastActorAccountID;
+        }
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
@@ -1163,6 +1165,7 @@ function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    shouldUnreadBeBold = false,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1186,7 +1189,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report, {shouldUnreadBeBold}, reportAttributesDerived),
         },
     };
 }
@@ -1199,7 +1202,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     if (reports) {
         for (const report of Object.values(reports)) {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, true);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
