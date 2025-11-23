@@ -155,7 +155,7 @@ function getLastPolicyPaymentMethod(
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
     const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
-    return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
+    return result;
 }
 
 function getReportType(reportID?: string) {
@@ -431,7 +431,7 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-    transactionIDList.forEach((transactionID) => {
+    for (const transactionID of transactionIDList) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
         const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
@@ -446,7 +446,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
                 },
             });
         }
-    });
+    }
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
@@ -738,8 +738,8 @@ function deleteMoneyRequestOnSearch(
     });
 
     if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        transactionIDList.forEach((transactionID) => {
-            allSnapshotKeys.forEach((key) => {
+        for (const transactionID of transactionIDList) {
+            for (const key of allSnapshotKeys) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
@@ -763,7 +763,7 @@ function deleteMoneyRequestOnSearch(
                         } as Partial<Transaction>,
                     },
                 });
-            });
+            }
 
             if (transactions) {
                 const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -796,7 +796,7 @@ function deleteMoneyRequestOnSearch(
                     }
                 }
             }
-        });
+        }
     }
 
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
@@ -806,16 +806,16 @@ type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const reportIDListParams: string[] = [];
-    reportIDList.forEach((reportID) => {
+    for (const reportID of reportIDList) {
         const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
         if (allTransactionIDs.every((transactionID) => transactionIDList.includes(transactionID))) {
             if (reportIDListParams.includes(reportID)) {
-                return;
+                continue;
             }
             reportIDListParams.push(reportID);
         }
-    });
+    }
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
@@ -824,13 +824,13 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     }) as Params;
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
             formData.append(key, SafeString(value));
         }
-    });
+    }
 
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
@@ -931,21 +931,19 @@ function clearAllFilters() {
 
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
-    Object.values(FILTER_KEYS)
-        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
-        .forEach((key) => {
-            if (key === FILTER_KEYS.TYPE) {
-                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                return;
-            }
+    for (const key of Object.values(FILTER_KEYS).filter((key) => key !== FILTER_KEYS.GROUP_BY)) {
+        if (key === FILTER_KEYS.TYPE) {
+            values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            continue;
+        }
 
-            if (key === FILTER_KEYS.STATUS) {
-                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                return;
-            }
+        if (key === FILTER_KEYS.STATUS) {
+            values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            continue;
+        }
 
-            values[key] = null;
-        });
+        values[key] = null;
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }

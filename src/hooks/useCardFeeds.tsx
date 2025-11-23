@@ -46,13 +46,13 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
                 return acc;
             }
 
-            Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
+            for (const [key, feedSettings] of Object.entries(feed.settings.companyCards)) {
                 const feedName = key as CompanyCardFeed;
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNicknames = feed.settings.companyCardNicknames?.[feedName];
 
                 if (feedSettings.preferredPolicy !== policyID || acc.settings.companyCards[feedName]) {
-                    return;
+                    continue;
                 }
 
                 const domainID = onyxKey.split('_').at(-1);
@@ -65,7 +65,7 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
                 if (feedCompanyCardNicknames) {
                     acc.settings.companyCardNicknames[feedName] = feedCompanyCardNicknames;
                 }
-            });
+            }
 
             return acc;
         }, result);

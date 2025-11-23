@@ -39,7 +39,7 @@ function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreen
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const lastSearchNavigator = navigation.getState().routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    const lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
     if (lastSearchRoute) {
@@ -127,13 +127,13 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                TABS_TO_PRELOAD.filter((tabName) => {
+                for (const tabName of TABS_TO_PRELOAD.filter((tabName) => {
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     return !isCurrentTab && !isRouteAlreadyPreloaded;
-                }).forEach((tabName) => {
+                })) {
                     preloadTab(tabName, navigation, subscriptionPlan);
-                });
+                }
             }, TIMING_TO_CALL_PRELOAD);
         }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
     );

@@ -424,12 +424,12 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             continue;
         }
 
-        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
+        for (const key of Object.keys(getCompanyFeeds(cardFeeds, true, true))) {
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
-                return;
+                continue;
             }
 
             cardFeedsForDisplay[id] = {
@@ -438,7 +438,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 fundID,
                 name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
             };
-        });
+        }
     }
 
     for (const card of Object.values(allCards)) {
@@ -478,7 +478,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
             continue;
         }
 
-        Object.entries(getCompanyFeeds(cardFeeds, true, true)).forEach(([key, feedData]) => {
+        for (const [key, feedData] of Object.entries(getCompanyFeeds(cardFeeds, true, true))) {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
@@ -489,7 +489,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 fundID,
                 name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
             });
-        });
+        }
     }
 
     return cardFeedsForDisplayPerPolicy;

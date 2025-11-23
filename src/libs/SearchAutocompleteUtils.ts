@@ -28,10 +28,9 @@ function parseForAutocomplete(text: string) {
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
     const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
-    tagListsUnpacked
-        .map(getTagNamesFromTagsLists)
-        .flat()
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
+        uniqueTagNames.add(tag);
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -40,10 +39,11 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
  */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
     const uniqueTagNames = new Set<string>();
-    Object.values(allRecentTags ?? {})
+    for (const tag of Object.values(allRecentTags ?? {})
         .map((recentTag) => Object.values(recentTag ?? {}))
-        .flat(2)
-        .forEach((tag) => uniqueTagNames.add(tag));
+        .flat(2)) {
+        uniqueTagNames.add(tag);
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -52,7 +52,11 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+    Object.values(allPolicyCategories ?? {}).map((policyCategories) => {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category.name);
+        }
+    });
     return Array.from(uniqueCategoryNames);
 }
 
@@ -61,7 +65,11 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
+    Object.values(allRecentCategories ?? {}).map((policyCategories) => {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category);
+        }
+    });
     return Array.from(uniqueCategoryNames);
 }
 

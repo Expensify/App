@@ -82,9 +82,9 @@ describe('AddUnreportedExpense', () => {
             const sections = createUnreportedExpenseSections(transactions);
 
             expect(sections.at(0)?.data).toHaveLength(3);
-            sections.at(0)?.data.forEach((transaction) => {
+            for (const transaction of sections.at(0)?.data) {
                 expect(transaction.isDisabled).toBe(false);
-            });
+            }
         });
 
         it('should handle transaction list with only deleted transactions', () => {
@@ -106,10 +106,10 @@ describe('AddUnreportedExpense', () => {
             const sections = createUnreportedExpenseSections(transactions);
 
             expect(sections.at(0)?.data).toHaveLength(2);
-            sections.at(0)?.data.forEach((transaction) => {
+            for (const transaction of sections.at(0)?.data) {
                 expect(transaction.isDisabled).toBe(true);
                 expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            });
+            }
         });
     });
 });

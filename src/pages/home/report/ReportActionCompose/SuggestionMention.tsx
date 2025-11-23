@@ -315,7 +315,7 @@ function SuggestionMention({
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
             const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
-            sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
+            for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
                     text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
@@ -330,7 +330,7 @@ function SuggestionMention({
                         },
                     ],
                 });
-            });
+            }
 
             return suggestions;
         },
@@ -340,9 +340,9 @@ function SuggestionMention({
     const getRoomMentionOptions = useCallback(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
-            Object.values(reportBatch ?? {}).forEach((report) => {
+            for (const report of Object.values(reportBatch ?? {})) {
                 if (!canReportBeMentionedWithinPolicy(report, policyID)) {
-                    return;
+                    continue;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
@@ -351,7 +351,7 @@ function SuggestionMention({
                         alternateText: report.reportName,
                     });
                 }
-            });
+            }
 
             return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         },
@@ -384,7 +384,7 @@ function SuggestionMention({
 
                 prefix = suggestionWord.substring(1);
                 prefixType = suggestionWord.substring(0, 1);
-            } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
+            } else if (secondToLastWord?.startsWith('@') && secondToLastWord.length > 1) {
                 atSignIndex = leftString.lastIndexOf(secondToLastWord) + afterLastBreakLineIndex;
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
