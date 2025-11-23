@@ -647,7 +647,7 @@ const ViolationsUtils = {
     },
 
     /**
-     * Removes AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense.
+     * Removes AUTO_REPORTED_REJECTED_EXPENSE violation. Useful when submitter edits the expense.
      * Returns the filtered violations and optionally adds optimistic data to remove the violation.
      */
     removeAutoReportedRejectedExpenseViolation(
