@@ -65,6 +65,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
     }, [insets, shouldSuppressTooltip]);
 
     useEffect(() => {

@@ -303,6 +303,7 @@ function NumberWithSymbolForm({
             const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
             setNewNumber(newNumber);
         },
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
         [currentNumber, selection, shouldUpdateSelection, setNewNumber],
     );
 

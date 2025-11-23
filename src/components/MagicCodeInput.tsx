@@ -169,7 +169,7 @@ function MagicCodeInput({
 
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet

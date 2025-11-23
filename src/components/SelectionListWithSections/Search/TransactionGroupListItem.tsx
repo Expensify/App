@@ -78,7 +78,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem],
+        [oneTransactionItem?.moneyRequestReportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,

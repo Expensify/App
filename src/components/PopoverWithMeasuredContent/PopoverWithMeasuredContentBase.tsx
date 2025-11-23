@@ -148,6 +148,7 @@ function PopoverWithMeasuredContentBase({
             ...horizontalConstraint,
             ...verticalConstraint,
         };
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const positionCalculations = useMemo(() => {

@@ -404,7 +404,7 @@ function MoneyRequestReportActionsList({
         }
 
         return [null, -1];
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions.length, unreadMarkerTime]);
+    }, [visibleReportActions, earliestReceivedOfflineMessageIndex, currentUserAccountID, prevVisibleActionsMap, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
