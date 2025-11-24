@@ -47,10 +47,7 @@ function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensPa
         const queryJSON = buildSearchQueryJSON(q);
         if (queryJSON) {
             const query = buildSearchQueryString(queryJSON);
-            navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {
-                screen: SCREENS.SEARCH.ROOT,
-                params: {q: query, ...rest},
-            });
+            navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: query, ...rest}});
             return;
         }
     }
