@@ -571,7 +571,6 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
-                disabled: isRejectDisabled,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
