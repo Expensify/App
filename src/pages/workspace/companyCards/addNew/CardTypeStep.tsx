@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -7,8 +7,8 @@ import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -96,7 +96,7 @@ function CardTypeStep() {
     const isNewCardTypeSelected = typeSelected !== feedType;
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data.selectedCountry);
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!typeSelected) {
             setIsError(true);
         } else {
@@ -109,7 +109,7 @@ function CardTypeStep() {
                 isEditing: false,
             });
         }
-    };
+    }, [bankName, isNewCardTypeSelected, isOtherBankSelected, typeSelected]);
 
     useEffect(() => {
         setTypeSelected(addNewCard?.data.feedType);
@@ -127,6 +127,15 @@ function CardTypeStep() {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+        }),
+        [submit, translate],
+    );
+
     return (
         <ScreenWrapper
             testID={CardTypeStep.displayName}
@@ -141,18 +150,16 @@ function CardTypeStep() {
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.yourCardProvider')}</Text>
             <SelectionList
+                data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setIsError(false);
                 }}
-                sections={[{data}]}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.feedType}
+                initiallyFocusedItemKey={addNewCard?.data.feedType}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
                 addBottomSafeAreaPadding
             >
                 {isError && (

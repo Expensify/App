@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
+        reportName: 'Berichtsname',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -3311,6 +3312,9 @@ ${
         whatsYourAddress: 'Wie lautet Ihre Adresse?',
         whatAreTheLast: 'Was sind die letzten 4 Ziffern der Sozialversicherungsnummer des Eigentümers?',
         whatsYourLast: 'Was sind die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsYourNationality: 'Was ist Ihr Staatsangehörigkeitsland?',
+        whatsTheOwnersNationality: 'Was ist das Staatsangehörigkeitsland des Eigentümers?',
+        countryOfCitizenship: 'Staatsangehörigkeitsland',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4: 'Letzte 4 der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
@@ -5922,8 +5926,8 @@ ${
                 billableDescription: 'Spesen werden meist an Kunden weiterberechnet.',
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
-                eReceipts: 'eReceipts',
-                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
+                eReceipts: 'eQuittungen',
+                eReceiptsHint: `eQuittungen werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
@@ -6262,6 +6266,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
