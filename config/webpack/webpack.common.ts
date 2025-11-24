@@ -103,7 +103,7 @@ const getCommonConfiguration = ({file = '.env'}: Environment): Configuration => 
                 isWeb: true,
                 isProduction: file === '.env.production',
                 isStaging: file === '.env.staging',
-                useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (['.env.production', '.env.staging'].includes(file)),
+                useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || ['.env.production', '.env.staging'].includes(file),
             }),
             new PreloadWebpackPlugin({
                 rel: 'preload',
@@ -325,18 +325,7 @@ const getCommonConfiguration = ({file = '.env'}: Environment): Configuration => 
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
             // without this, web will try to use native implementations and break in not very obvious ways.
-            extensions: [
-                '.web.js',
-                '.website.js',
-                '.js',
-                '.jsx',
-                '.web.ts',
-                '.website.ts',
-                '.website.tsx',
-                '.ts',
-                '.web.tsx',
-                '.tsx',
-            ],
+            extensions: ['.web.js', '.website.js', '.js', '.jsx', '.web.ts', '.website.ts', '.website.tsx', '.ts', '.web.tsx', '.tsx'],
             fallback: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process/browser': require.resolve('process/browser'),

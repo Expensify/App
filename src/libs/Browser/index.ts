@@ -1,15 +1,4 @@
-import type {
-    GetBrowser,
-    IsChromeIOS,
-    IsMobile,
-    IsMobileChrome,
-    IsMobileIOS,
-    IsMobileSafari,
-    IsMobileSafariOnIos26,
-    IsMobileWebKit,
-    IsModernSafari,
-    IsSafari,
-} from './types';
+import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsModernSafari, IsSafari} from './types';
 
 const getBrowser: GetBrowser = () => '';
 

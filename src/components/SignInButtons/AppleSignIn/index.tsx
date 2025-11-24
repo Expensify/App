@@ -78,7 +78,7 @@ function AppleSignInDiv({onPointerDown}: AppleSignInDivProps) {
         };
     }, [preferredLocale]);
 
-    return(
+    return (
         <div
             id="appleid-signin"
             data-mode="logo-only"
@@ -101,11 +101,7 @@ function SingletonAppleSignInButton({onPointerDown}: SingletonAppleSignInButtonP
     if (!isFocused) {
         return null;
     }
-    return (
-        <AppleSignInDiv
-            onPointerDown={onPointerDown}
-        />
-    );
+    return <AppleSignInDiv onPointerDown={onPointerDown} />;
 }
 
 function AppleSignIn({onPointerDown}: AppleSignInProps) {
@@ -128,11 +124,7 @@ function AppleSignIn({onPointerDown}: AppleSignInProps) {
         return null;
     }
 
-    return (
-        <SingletonAppleSignInButton
-            onPointerDown={onPointerDown}
-        />
-    );
+    return <SingletonAppleSignInButton onPointerDown={onPointerDown} />;
 }
 
 AppleSignIn.displayName = 'AppleSignIn';

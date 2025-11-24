@@ -244,9 +244,7 @@ function ReportActionAvatarSubscript({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View
-                        style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}
-                    >
+                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[

@@ -94,17 +94,4 @@ const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
     return isMobileSafari() && getOSAndName().osVersion === '26';
 };
 
-
-
-export {
-    getBrowser,
-    isMobile,
-    isMobileIOS,
-    isMobileSafari,
-    isMobileWebKit,
-    isSafari,
-    isModernSafari,
-    isMobileChrome,
-    isChromeIOS,
-    isMobileSafariOnIos26,
-};
+export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isModernSafari, isMobileChrome, isChromeIOS, isMobileSafariOnIos26};
