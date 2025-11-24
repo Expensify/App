@@ -8922,6 +8922,10 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
         const transactions = getReportTransactions(potentialReport.reportID);
 
+        if (!isOpenReport(potentialReport)) {
+            return false;
+        }
+
         return (
             !isInvoiceReport(potentialReport) &&
             ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', policy, transactions) &&
@@ -12279,7 +12283,7 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const isReportSettled = isSettled(report);
     const isCurrentUserReportOwner = isReportOwner(report);
-    const doesReportHasViolations = hasReportViolations(report?.reportID);
+    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
