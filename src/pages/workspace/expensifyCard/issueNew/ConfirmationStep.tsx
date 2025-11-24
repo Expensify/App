@@ -116,7 +116,9 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
 
     // Don't show validateCode errors on the main screen - they should only appear in the modal
     // This prevents the error from flashing on screen before the modal opens
-    const errorMessage = hasValidateCodeError ? '' : (getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : ''));
+    const errorMessage = hasValidateCodeError
+        ? ''
+        : getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
