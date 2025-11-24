@@ -13,6 +13,9 @@ type SilentCommentUpdaterProps = {
 
     /** The ref to check whether the comment saving is in progress */
     isCommentPendingSaved: React.RefObject<boolean>;
+
+    /** The ref to check whether we're transitioning to a preexisting report */
+    isTransitioningToPreExistingReport: React.RefObject<boolean>;
 };
 
 export default SilentCommentUpdaterProps;

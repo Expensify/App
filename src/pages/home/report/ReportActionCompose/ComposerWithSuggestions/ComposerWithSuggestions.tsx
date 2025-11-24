@@ -276,6 +276,9 @@ function ComposerWithSuggestions({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
+    // The ref to check whether we're transitioning to a preexisting report
+    const isTransitioningToPreExistingReport = useRef(false);
+
     const animatedRef = useAnimatedRef();
     /**
      * Set the TextInput Ref
@@ -313,6 +316,10 @@ function ComposerWithSuggestions({
                 callback();
                 return;
             }
+
+            // Mark that we're transitioning to a preexisting report
+            // This prevents SilentCommentUpdater from overwriting the draft
+            isTransitioningToPreExistingReport.current = true;
             saveReportDraftComment(preexistingReportID, commentRef.current, callback);
         });
 
@@ -876,6 +883,7 @@ function ComposerWithSuggestions({
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
+                    isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
                 />
             )}
 
