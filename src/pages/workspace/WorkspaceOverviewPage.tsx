@@ -338,7 +338,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
             policy?.connections?.xero?.config?.export?.exporter,
-            policy?.connections?.netsuite?.options.config.exporter,
+            policy?.connections?.netsuite?.options?.config?.exporter,
         ];
         const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policy?.technicalContact;
