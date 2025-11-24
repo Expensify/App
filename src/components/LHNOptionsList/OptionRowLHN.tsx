@@ -26,6 +26,7 @@ import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -169,6 +170,10 @@ function OptionRowLHN({
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
         Timing.start(CONST.TIMING.OPEN_REPORT);
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+            name: 'OptionRowLHN',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
 
         event?.preventDefault();
         // Enable Composer to focus on clicking the same chat after opening the context menu.

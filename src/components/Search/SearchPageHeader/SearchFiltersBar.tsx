@@ -137,6 +137,27 @@ function SearchFiltersBar({
         return [options, value];
     }, [allPolicies, email, unsafeType]);
 
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (isExpenseReportType) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactions, isExpenseReportType, selectedTransactionsKeys.length]);
+
     const [groupByOptions, groupBy] = useMemo(() => {
         const options = getGroupByOptions();
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
@@ -665,9 +686,7 @@ function SearchFiltersBar({
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
