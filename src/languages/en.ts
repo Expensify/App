@@ -778,18 +778,6 @@ const translations = {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app later to download the latest changes.',
     },
-    deeplinkWrapper: {
-        launching: 'Launching Expensify',
-        expired: 'Your session has expired.',
-        signIn: 'Please sign in again.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
-        loggedInAs: ({email}: LoggedInAsParams) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
-        doNotSeePrompt: "Can't see the prompt?",
-        tryAgain: 'Try again',
-        or: ', or',
-        continueInWeb: 'continue to the web app',
-    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,
@@ -2998,6 +2986,7 @@ const translations = {
         chooseAnAccount: 'Choose an account',
         connectOnlineWithPlaid: 'Log into your bank',
         connectManually: 'Connect manually',
+        desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',

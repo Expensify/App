@@ -20,7 +20,7 @@ type CustomWebpackConfig = {
     };
 };
 
-type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
+type CustomWebpackFunction = ({file}: Environment) => CustomWebpackConfig;
 
 type WebpackModule = {
     default: CustomWebpackFunction;
