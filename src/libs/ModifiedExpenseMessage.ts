@@ -387,9 +387,13 @@ function getForReportAction({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
+            newBillable,
+            oldBillable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -401,9 +405,15 @@ function getForReportAction({
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
+        const oldReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        const newReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            newReimbursable,
+            oldReimbursable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
