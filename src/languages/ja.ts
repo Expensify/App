@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        reportName: 'レポート名',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1489,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '保留しますか、それとも却下しますか？',
             educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
             holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
+            approveExpenseTitle: '保留中の経費はあなたに割り当てられたまま、他の経費を承認できます。',
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
@@ -3277,6 +3279,9 @@ ${
         whatsYourAddress: '住所は何ですか？',
         whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
         whatsYourLast: 'あなたの社会保障番号の最後の4桁は何ですか？',
+        whatsYourNationality: 'あなたの市民権の国はどこですか？',
+        whatsTheOwnersNationality: '所有者の市民権の国はどこですか？',
+        countryOfCitizenship: '市民権の国',
         dontWorry: 'ご安心ください、私たちは個人の信用調査を行いません！',
         last4: 'SSNの下4桁',
         whyDoWeAsk: 'なぜこれを尋ねるのですか？',
@@ -5177,6 +5182,7 @@ ${
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
@@ -5845,7 +5851,7 @@ ${
                 billableDescription: '経費は多くの場合、クライアントに再請求されます。',
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eレシート',
                 eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
@@ -6177,6 +6183,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7354,14 +7361,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'New Expensifyへようこそ！',
-        subtitle: '従来のエクスペリエンスでお好きだった要素はすべてそのままに、毎日をさらに簡単にする数多くのアップグレードを搭載しています：',
+        subtitle: '新しいExpensifyは、素晴らしい自動化機能に加えて、驚くべきコラボレーション機能を備えています。',
         confirmText: '行きましょう！',
         features: {
-            chat: 'どの経費でもチャットして、疑問を素早く解決しましょう',
-            search: 'モバイル、Web、デスクトップで、より強力な検索',
-            concierge: '内蔵の Concierge AI が経費の自動化を支援します',
+            chat: '<strong>任意の経費</strong>、レポート、またはワークスペースで直接チャット',
+            scanReceipt: '<strong>領収書をスキャン</strong>して払い戻しを受ける',
+            crossPlatform: '<strong>すべて</strong>を携帯電話やブラウザから行う',
         },
-        helpText: '2分のデモを試す',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
