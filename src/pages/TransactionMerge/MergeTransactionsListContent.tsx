@@ -49,13 +49,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-    const originalSourceTransactionID = sourceTransaction?.comment?.originalTransactionID;
-    const originalSourceTransaction = originalSourceTransactionID ? transactions?.[originalSourceTransactionID] : undefined;
+    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const currentUserLogin = session?.email;
 
     useEffect(() => {
@@ -143,7 +143,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalSourceTransaction, localeCompare);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalTargetTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -152,7 +152,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
-    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, localeCompare]);
+    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, originalTargetTransaction, localeCompare]);
 
     if (eligibleTransactions?.length === 0) {
         return (

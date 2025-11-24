@@ -199,12 +199,14 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
+ * @param originalTargetTransaction - The original transaction of target transaction
+ * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
 function getMergeableDataAndConflictFields(
     targetTransaction: OnyxEntry<Transaction>,
     sourceTransaction: OnyxEntry<Transaction>,
-    originalSourceTransaction: OnyxEntry<Transaction>,
+    originalTargetTransaction: OnyxEntry<Transaction>,
     localeCompare: (a: string, b: string) => number,
 ) {
     const conflictFields: string[] = [];
@@ -224,7 +226,7 @@ function getMergeableDataAndConflictFields(
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(targetTransaction, originalSourceTransaction);
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(targetTransaction, originalTargetTransaction);
             if (isManagedCardTransaction(targetTransaction) || isExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
