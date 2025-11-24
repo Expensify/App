@@ -43,9 +43,6 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Whether setting SAML required setting has failed and why */
         samlRequiredError?: OnyxCommon.Errors;
     };
-
-    /** Whether setting SAML metadata failed and why */
-    samlMetadataError: OnyxCommon.Errors;
 }>;
 
 /** Model of SAML metadata */
@@ -88,6 +85,9 @@ type SamlMetadata = {
 
     /** Whether fetching the SAML metadata has failed and why */
     errors: OnyxCommon.Errors;
+
+    /** Whether setting SAML metadata failed and why */
+    samlMetadataError: OnyxCommon.Errors;
 };
 
 export {type SamlMetadata};

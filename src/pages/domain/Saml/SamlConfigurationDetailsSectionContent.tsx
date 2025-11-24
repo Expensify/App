@@ -7,11 +7,10 @@ import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSamlSettings, setSamlMetadata} from '@libs/actions/Domain';
+import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {domainSamlMetadataErrorSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ScimTokenContent from './ScimTokenContent';
 
@@ -30,8 +29,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [samlMetadataError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainSamlMetadataErrorSelector});
-    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`, {canBeMissing: true});
+    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true});
 
     useEffect(() => {
         if (!domainName) {
@@ -69,10 +67,10 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
                 numberOfLines={9}
                 multiline
-                onValueCommitted={(value) => {
-                    setSamlMetadata(accountID, domainName ?? '', {metaIdentity: value});
+                onValueCommitted={(metaIdentity) => {
+                    setSamlIdentity(accountID, domainName, metaIdentity);
                 }}
-                errorText={getLatestErrorMessage({errors: samlMetadataError})}
+                errorText={getLatestErrorMessage({errors: samlMetadata.samlMetadataError})}
                 maxLength={Infinity}
                 enabledWhenOffline={false}
             />

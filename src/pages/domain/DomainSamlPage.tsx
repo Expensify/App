@@ -96,7 +96,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
                     <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-                        {domain?.validated ? (
+                        {domain?.validated && domainName ? (
                             <>
                                 <Section
                                     title={translate('domain.samlLogin.title')}
@@ -107,7 +107,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 >
                                     <SamlLoginSectionContent
                                         accountID={accountID}
-                                        domainName={domainName ?? ''}
+                                        domainName={domainName}
                                         isSamlEnabled={isSamlEnabled}
                                         isSamlRequired={isSamlRequired}
                                     />
@@ -124,7 +124,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                     >
                                         <SamlConfigurationDetailsSectionContent
                                             accountID={accountID}
-                                            domainName={domainName ?? ''}
+                                            domainName={domainName}
                                             shouldShowScimToken={isSamlRequired && !!domainSettings.oktaSCIM}
                                         />
                                     </Section>

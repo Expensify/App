@@ -5,7 +5,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SamlMetadata} from '@src/types/onyx';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
@@ -93,36 +92,30 @@ function openDomainInitialPage(domainName: string) {
 }
 
 /**
- * Sets SAML metadata for a domain, e.g. the identity provider xml
+ * Sets SAML identity provider metadata for a domain
  */
-function setSamlMetadata(accountID: number, domainName: string, settings: Partial<SamlMetadata>) {
+function setSamlIdentity(accountID: number, domainName: string, metaIdentity: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`,
             value: {
                 samlMetadataError: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
-            value: {
-                ...settings,
+                metaIdentity,
             },
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`,
             value: {
                 samlMetadataError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlConfigurationDetails.setMetadataGenericError'),
             },
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_SAML_METADATA, {...settings, domainName}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.SET_SAML_IDENTITY, {domainName, metaIdentity}, {optimisticData, failureData});
 }
 
 /**
@@ -132,24 +125,18 @@ function getSamlSettings(accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`,
             value: {
                 isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {
                 samlMetadataError: null,
+                errors: null,
             },
         },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`,
             value: {
                 isLoading: null,
             },
@@ -158,7 +145,7 @@ function getSamlSettings(accountID: number, domainName: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_PRIVATE_SAML_METADATA}${accountID}`,
+            key: `${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`,
             value: {
                 isLoading: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('domain.samlConfigurationDetails.fetchError'),
@@ -324,6 +311,6 @@ export {
     resetSamlEnabledError,
     setSamlRequired,
     resetSamlRequiredError,
-    setSamlMetadata,
+    setSamlIdentity,
     getScimToken,
 };
