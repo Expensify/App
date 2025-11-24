@@ -1,5 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {MultifactorAuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 
 /** Model of commands data */
 type Data = {
@@ -46,7 +46,7 @@ type Response = {
     publicKeys?: string[];
 
     /** Multifactor authentication challenge object */
-    challenge?: MultifactorAuthenticationChallenge;
+    challenge?: MultifactorAuthenticationChallengeObject;
 
     /** User session auth token when connecting as a delegate */
     restrictedToken?: string;

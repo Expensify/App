@@ -1,4 +1,4 @@
-import type {MultifactorAuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
 import type {ReadCommands, WriteCommands} from './types';
 
 const WRITE_COMMANDS = {
@@ -46,7 +46,7 @@ const STORAGE: {
     publicKeys: Record<string, string[]>;
     validateCodes: Record<string, number[]>;
     OTPs: Record<string, number[]>;
-    challenges: Record<string, MultifactorAuthenticationChallenge>;
+    challenges: Record<string, MultifactorAuthenticationChallengeObject>;
 } = {
     publicKeys: {},
     validateCodes: {},

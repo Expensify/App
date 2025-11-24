@@ -1,5 +1,4 @@
-import { PixelRatio } from 'react-native';
-
+import {PixelRatio} from 'react-native';
 
 /**
  * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
