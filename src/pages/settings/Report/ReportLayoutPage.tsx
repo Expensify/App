@@ -70,6 +70,7 @@ function ReportLayoutPage() {
                 data={layoutOptions}
                 ListItem={SingleSelectListItem}
                 onSelectRow={onSelectGroupBy}
+                shouldHighlightSelectedItem={false}
                 initiallyFocusedItemKey={layoutOptions.find((option) => option.isSelected)?.keyForList}
             />
         </ScreenWrapper>
