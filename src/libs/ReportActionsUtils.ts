@@ -274,6 +274,10 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
 
+function isHoldAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.HOLD);
+}
+
 function isReimbursementDirectionInformationRequiredAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED> {
@@ -2855,6 +2859,24 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceAttendeeTrackingUpdateMessage(action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
+function getWorkspaceReimbursementUpdateMessage(action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED && typeof enabled === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateReimbursementEnabled', {enabled});
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
@@ -3414,6 +3436,7 @@ export {
     isTrackExpenseAction,
     isTransactionThread,
     isTripPreview,
+    isHoldAction,
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
@@ -3456,6 +3479,8 @@ export {
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,

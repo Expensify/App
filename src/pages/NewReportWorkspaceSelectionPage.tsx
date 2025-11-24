@@ -3,16 +3,16 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,6 +64,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar'] as const);
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
@@ -247,47 +248,46 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         return Object.values(policies)
             .filter(
                 (policy) =>
-                    shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) &&
+                    shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) &&
                     !policy?.isJoinRequestPending &&
                     policy?.isPolicyExpenseChatEnabled &&
                     (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),
             )
-            .map((policy) => ({
+            .map((policy, index) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                         id: policy?.id,
                     },
                 ],
-                keyForList: policy?.id,
+                keyForList: `${policy?.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             }))
             .sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, isOffline, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions]);
+    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, expensifyIcons.FallbackWorkspaceAvatar]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),
         [debouncedSearchTerm, usersWorkspaces],
     );
 
-    const sections = useMemo(() => {
-        const options: Array<SectionListDataType<WorkspaceListItem>> = [
-            {
-                data: filteredAndSortedUserWorkspaces,
-                shouldShow: true,
-            },
-        ];
-        return options;
-    }, [filteredAndSortedUserWorkspaces]);
-
     const areResultsFound = filteredAndSortedUserWorkspaces.length > 0;
-    const headerMessage = getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
+        }),
+        [areResultsFound, debouncedSearchTerm, searchTerm, setSearchTerm, translate, usersWorkspaces.length],
+    );
 
     return (
         <ScreenWrapper
@@ -308,13 +308,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>
                             <SelectionList<WorkspaceListItem>
+                                data={filteredAndSortedUserWorkspaces}
                                 ListItem={UserListItem}
-                                sections={sections}
                                 onSelectRow={selectPolicy}
-                                textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
-                                textInputValue={searchTerm}
-                                onChangeText={setSearchTerm}
-                                headerMessage={headerMessage}
+                                textInputOptions={textInputOptions}
                                 showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             />
                         </>
