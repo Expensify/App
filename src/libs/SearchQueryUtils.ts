@@ -1396,7 +1396,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
     const escapedText = StringUtils.normalizeAccents(searchText)
         .toLowerCase()
         .trim()
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());

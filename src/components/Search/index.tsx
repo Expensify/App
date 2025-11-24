@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -55,6 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -93,14 +94,16 @@ type SearchProps = {
 const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return [
         item.keyForList,
         {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -173,14 +176,16 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
             canDelete: item.canDelete,
-            canHold: item.canHold,
+            canHold: canHoldRequest,
             isHeld: isOnHold(item),
-            canUnhold: item.canUnhold,
+            canUnhold: canUnholdRequest,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
                 CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -259,6 +264,7 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -271,6 +277,7 @@ function Search({
         const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 
         for (const key of transactionKeys) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
             if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
                 continue;
@@ -456,21 +463,38 @@ function Search({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            data.forEach((transactionGroup) => {
+        if (validGroupBy || isExpenseReportType) {
+            for (const transactionGroup of data) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    return;
+                    continue;
                 }
-                transactionGroup.transactions.forEach((transactionItem) => {
-                    if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                        return;
+
+                // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
+                // This ensures report-level selection persists when new transactions are added.
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+
+                for (const transactionItem of transactionGroup.transactions) {
+                    const isSelected = transactionItem.transactionID in selectedTransactions;
+
+                    // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
+                    const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
+                    if (!shouldInclude) {
+                        continue;
                     }
+
+                    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                        transactionItem.report,
+                        transactionItem.reportAction,
+                        transactionItem.holdReportAction,
+                        transactionItem,
+                        transactionItem.policy,
+                    );
 
                     newTransactionList[transactionItem.transactionID] = {
                         action: transactionItem.action,
-                        canHold: transactionItem.canHold,
+                        canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
-                        canUnhold: transactionItem.canUnhold,
+                        canUnhold: canUnholdRequest,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
                             CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -482,7 +506,7 @@ function Search({
                             transactionItem.policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canDelete: transactionItem.canDelete,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -492,22 +516,30 @@ function Search({
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
-                });
-            });
+                }
+            }
         } else {
-            data.forEach((transactionItem) => {
+            for (const transactionItem of data) {
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
-                    return;
+                    continue;
                 }
                 if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                    return;
+                    continue;
                 }
+
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                    transactionItem.report,
+                    transactionItem.reportAction,
+                    transactionItem.holdReportAction,
+                    transactionItem,
+                    transactionItem.policy,
+                );
 
                 newTransactionList[transactionItem.transactionID] = {
                     action: transactionItem.action,
-                    canHold: transactionItem.canHold,
+                    canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
-                    canUnhold: transactionItem.canUnhold,
+                    canUnhold: canUnholdRequest,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
                         CONST.EDIT_REQUEST_FIELD.REPORT,
@@ -529,7 +561,7 @@ function Search({
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
-            });
+            }
         }
         if (isEmptyObject(newTransactionList)) {
             return;
@@ -539,7 +571,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -607,9 +639,9 @@ function Search({
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                currentTransactions.forEach((transaction) => {
+                for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
-                });
+                }
 
                 setSelectedTransactions(reducedSelectedTransactions, data);
                 return;
@@ -698,6 +730,10 @@ function Search({
 
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+                name: 'Search',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
@@ -733,7 +769,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
     }, [accountID, searchResults?.data, searchResults?.search?.type]);
@@ -764,7 +800,6 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, validGroupBy);
 
@@ -855,12 +890,19 @@ function Search({
         );
     }, [clearSelectedTransactions, data, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedSelectedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
+
+    const onLayoutSkeleton = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+    }, []);
 
     if (shouldShowLoadingState) {
         return (
@@ -868,6 +910,7 @@ function Search({
                 entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1]}
+                onLayout={onLayoutSkeleton}
             >
                 <SearchRowSkeleton
                     shouldAnimate
@@ -916,10 +959,10 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
 
     return (

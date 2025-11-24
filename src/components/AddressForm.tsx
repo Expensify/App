@@ -99,14 +99,14 @@ function AddressForm({
             }
 
             // Add "Field required" errors if any required field is empty
-            requiredFields.forEach((fieldKey) => {
+            for (const fieldKey of requiredFields) {
                 const fieldValue = values[fieldKey] ?? '';
                 if (isRequiredFulfilled(fieldValue)) {
-                    return;
+                    continue;
                 }
 
                 errors[fieldKey] = translate('common.error.fieldRequired');
-            });
+            }
 
             if (values.addressLine1.length > CONST.FORM_CHARACTER_LIMIT) {
                 errors.addressLine1 = translate('common.error.characterLimitExceedCounter', {
