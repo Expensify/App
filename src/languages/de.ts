@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1345,7 +1346,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `verschobene Ausgabe von persönlichem Bereich zu ${workspaceName ?? `chatten mit ${reportName}`}`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
-        tagSelection: 'Wählen Sie ein Tag aus, um Ihre Ausgaben besser zu organisieren.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Wählen Sie ${policyTagListName ?? 'ein Tag'}, um Ihre Ausgaben besser zu organisieren.`,
         categorySelection: 'Wählen Sie eine Kategorie, um Ihre Ausgaben besser zu organisieren.',
         error: {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie eine andere Kategorie.',
@@ -2109,6 +2110,10 @@ ${amount} für ${merchant} - ${date}`,
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
         makeOrTrackPaymentsDescription: 'Fügen Sie einen autorisierten Zahler für Zahlungen in Expensify hinzu oder verfolgen Sie Zahlungen, die anderswo getätigt wurden.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wenden Sie sich bitte an Ihren <account-manager-link>Account Manager</account-manager-link> oder <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wenden Sie sich bitte an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wählen Sie, wie lange Expensify warten soll, bevor fehlerfreie Ausgaben geteilt werden.',
         },

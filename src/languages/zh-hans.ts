@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1322,7 +1323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `将费用从个人空间移动到${workspaceName ?? `与${reportName}聊天`}`,
         movedToPersonalSpace: '将费用移至个人空间',
-        tagSelection: '选择一个标签以更好地组织您的支出。',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `选择${policyTagListName ?? '一个标签'}以更好地管理您的支出。`,
         categorySelection: '选择一个类别以更好地组织您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
@@ -2066,6 +2067,10 @@ ${merchant}的${amount} - ${date}`,
         addApprovalsDescription: '在授权付款之前需要额外批准。',
         makeOrTrackPaymentsTitle: '进行或跟踪付款',
         makeOrTrackPaymentsDescription: '添加授权付款人以便在Expensify中进行付款或跟踪在其他地方进行的付款。',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
         editor: {
             submissionFrequency: '选择Expensify在分享无错误支出前应等待的时间。',
         },
