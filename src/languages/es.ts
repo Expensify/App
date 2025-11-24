@@ -7733,7 +7733,7 @@ ${amount} para ${merchant} - ${date}`,
         goToDomain: 'Ir al dominio',
         samlLogin: {
             title: 'Inicio de sesión SAML',
-            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO).</a></muted-text>`,
             enableSamlLogin: 'Habilitar inicio de sesión SAML',
             allowMembers: 'Permitir que los miembros inicien sesión con SAML.',
             requireSamlLogin: 'Requerir inicio de sesión SAML',
