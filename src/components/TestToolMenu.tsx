@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
+import useNativeBiometrics from '@components/MultifactorAuthentication/useNativeBiometrics';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';

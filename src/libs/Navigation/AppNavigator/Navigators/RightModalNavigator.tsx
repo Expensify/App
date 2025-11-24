@@ -5,7 +5,7 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import MultifactorAuthenticationContextProvider from '@components/MultifactorAuthenticationContext';
+import MultifactorAuthenticationContextProvider from '@components/MultifactorAuthentication/Context';
 import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
