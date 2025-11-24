@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -35,6 +35,7 @@ import type {Report} from '@src/types/onyx';
 
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
+    const [selectedAssignee, setSelectedAssignee] = useState(false);
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
@@ -43,6 +44,8 @@ function TaskAssigneeSelectorModal() {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    console.log(selectedAssignee);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -167,6 +170,7 @@ function TaskAssigneeSelectorModal() {
                     );
                     // Pass through the selected assignee
                     editTaskAssignee(
+                        selectedAssignee,
                         report,
                         currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
@@ -203,6 +207,16 @@ function TaskAssigneeSelectorModal() {
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
+
+    useEffect(() => {
+        sections.forEach((section) => {
+            section.data.forEach((option) => {
+                if (task?.assigneeAccountID === option.accountID) {
+                    setSelectedAssignee(option?.isSelected ?? true);
+                }
+            });
+        });
+    }, [task?.assigneeAccountID, sections]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);

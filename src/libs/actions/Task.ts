@@ -650,6 +650,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 }
 
 function editTaskAssignee(
+    selectedAssignee: boolean,
     report: OnyxTypes.Report,
     sessionAccountID: number,
     assigneeEmail: string,
@@ -784,6 +785,7 @@ function editTaskAssignee(
     }
 
     const parameters: EditTaskAssigneeParams = {
+        selectedAssignee,
         taskReportID: report.reportID,
         assignee: assigneeEmail,
         editedTaskReportActionID: editTaskReportAction.reportActionID,

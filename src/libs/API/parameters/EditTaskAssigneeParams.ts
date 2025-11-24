@@ -1,4 +1,5 @@
 type EditTaskAssigneeParams = {
+    selectedAssignee?: boolean;
     taskReportID?: string;
     assignee?: string;
     editedTaskReportActionID?: string;
