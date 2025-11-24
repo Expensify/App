@@ -6,9 +6,9 @@ import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,24 +16,30 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-function ManageTrips() {
+type ManageTripsProps = {
+    policyID: string;
+};
+
+function ManageTrips({policyID}: ManageTripsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
             {
-                icon: Illustrations.PiggyBank,
+                icon: illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
             },
             {
-                icon: Illustrations.TravelAlerts,
+                icon: illustrations.TravelAlerts,
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [],
+        [illustrations.PiggyBank, illustrations.TravelAlerts],
     );
 
     const navigateToBookTravelDemo = () => {

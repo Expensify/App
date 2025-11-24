@@ -11,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {PiggyBank, TravelAlerts} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -24,6 +23,7 @@ import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -148,18 +148,20 @@ function EmptySearchViewContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
             {
-                icon: PiggyBank,
+                icon: illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
             },
             {
-                icon: TravelAlerts,
+                icon: illustrations.TravelAlerts,
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [],
+        [illustrations.PiggyBank, illustrations.TravelAlerts],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -293,7 +295,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(

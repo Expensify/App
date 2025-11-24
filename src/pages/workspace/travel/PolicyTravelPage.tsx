@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Luggage} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -35,6 +35,7 @@ function WorkspaceTravelPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
+    const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -65,7 +66,7 @@ function WorkspaceTravelPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={Luggage}
+                    icon={illustrations.Luggage}
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}

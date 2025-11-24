@@ -1,7 +1,7 @@
 import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
 import FeatureList from '@components/FeatureList';
-import {PendingTravel} from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -15,6 +15,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PendingTravel'] as const);
+
     return (
         <FeatureList
             menuItems={[]}
@@ -22,7 +24,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
             subtitle={translate('workspace.moreFeatures.travel.getStarted.subtitle')}
             onCtaPress={handleCtaPress}
             illustrationBackgroundColor={colors.tangerine700}
-            illustration={PendingTravel}
+            illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
             illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
             titleStyles={styles.textHeadlineH1}

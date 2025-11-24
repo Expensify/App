@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {beforeAll} from '@jest/globals';
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -24,6 +24,7 @@ import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
+    buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
     buildParticipantsFromAccountIDs,
@@ -1662,7 +1663,7 @@ describe('ReportUtils', () => {
                             currency: 'USD',
                         },
                     };
-
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const transaction: SearchTransaction = {
                         transactionID: 'txn1',
                         reportID: '2',
@@ -1671,6 +1672,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                     } as SearchTransaction;
 
                     const reportName = getSearchReportName({
@@ -3575,6 +3577,31 @@ describe('ReportUtils', () => {
                 });
             });
             expect(canDeleteMoneyRequestReport(invoiceReport, [], [])).toBe(true);
+        });
+
+        it('should allow deletion if the expense report is submitted but not yet approved by anyone', async () => {
+            const expenseReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+            // since it relies on the session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+            expect(canDeleteMoneyRequestReport(expenseReport, [], [])).toBe(true);
         });
     });
 
@@ -9410,6 +9437,20 @@ describe('ReportUtils', () => {
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         await Onyx.clear();
     });
+
+    it('should create an invoice report with SUBMITTED status the same BE response', () => {
+        const mockChatReportID = 'chat-report-123';
+        const mockPolicyID = 'policy-456';
+        const mockReceiverAccountID = 789;
+        const mockReceiverName = 'John Doe';
+        const mockTotal = 100;
+        const mockCurrency = 'USD';
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport(mockChatReportID, mockPolicyID, mockReceiverAccountID, mockReceiverName, mockTotal, mockCurrency);
+
+        expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+    });
+
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
         await Onyx.clear();
 
@@ -9491,6 +9532,92 @@ describe('ReportUtils', () => {
 
         expect(reasonForOptionList).toBe(null);
 
+        await Onyx.clear();
+    });
+
+    it('should stop surfacing a GBR for a workspace once it is archived', async () => {
+        await Onyx.clear();
+
+        const adminAccountID = 42;
+        const policyID = 'policy-to-delete';
+        const expenseReportID = '20000';
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            policyID,
+            hasOutstandingChildRequest: true,
+            iouReportID: expenseReportID,
+        };
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+            reportID: expenseReportID,
+            chatReportID: chatReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: adminAccountID,
+            currency: CONST.CURRENCY.USD,
+            total: 10000,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+            policyID,
+        };
+        const reimbursementQueuedAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            childReportID: expenseReportID,
+            originalMessage: {
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+            }),
+        ]);
+        await waitForBatchedUpdates();
+
+        const {result: archiveState, unmount} = renderHook(() => useReportIsArchived(chatReport.reportID));
+        const reasonBeforeDelete = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: archiveState.current,
+        });
+
+        expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+        const archiveTimestamp = DateUtils.getDBTime();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, {private_isArchived: archiveTimestamp});
+            await waitForBatchedUpdates();
+        });
+
+        expect(archiveState.current).toBe(true);
+
+        const reasonAfterDelete = reasonForReportToBeInOptionList({
+            report: chatReport,
+            chatReport,
+            currentReportId: '',
+            isInFocusMode: false,
+            betas: [CONST.BETAS.DEFAULT_ROOMS],
+            doesReportHaveViolations: false,
+            excludeEmptyChats: false,
+            draftComment: '',
+            isReportArchived: archiveState.current,
+        });
+
+        expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
+
+        unmount();
         await Onyx.clear();
     });
 });

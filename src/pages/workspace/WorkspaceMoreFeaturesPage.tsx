@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Hoverable from '@components/Hoverable';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -133,6 +132,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Luggage',
         'Car',
         'Gears',
+        'ReceiptPartners',
     ] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -426,7 +426,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
         integrateItems.push({
-            icon: Illustrations.ReceiptPartners,
+            icon: illustrations.ReceiptPartners,
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
