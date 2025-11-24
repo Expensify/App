@@ -137,7 +137,6 @@ function BaseVideoPlayer({
         if (!(shouldShowErrorIndicator && currentTime <= 0)) {
             return;
         }
-        setIsFirstLoad(true);
         videoPlayerRef.current.replaceAsync(sourceURL);
     }, [currentTime, pauseVideo, shouldShowErrorIndicator, sourceURL]);
 
