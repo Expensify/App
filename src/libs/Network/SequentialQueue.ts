@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {AppState} from 'react-native';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
@@ -278,7 +279,16 @@ function process(): Promise<void> {
                         transactionID: requestToProcess?.data?.transactionID,
                     });
                     Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                    Log.info('[API_DEBUG] Starting persistence', false, {
+                        operation: 'removal',
+                        appState: AppState.currentState, // 'active', 'background', 'inactive'
+                    });
+                    const removalStartTime = Date.now();
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                    // After persistence completes (in endRequestAndRemoveFromQueue):
+                    Log.info('[API_DEBUG] SequentialQueue - Removal persistence duration', false, {
+                        durationMs: Date.now() - removalStartTime,
+                    });
 
                     if (requestToProcess.queueFlushedData) {
                         Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
@@ -296,6 +306,10 @@ function process(): Promise<void> {
                             transactionID: requestToProcess?.data?.transactionID,
                         });
                         Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                        Log.info('[API_DEBUG] Starting persistence', false, {
+                            operation: 'removal',
+                            appState: AppState.currentState, // 'active', 'background', 'inactive'
+                        });
                         endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
                         if (requestToProcess.queueFlushedData) {
@@ -313,6 +327,10 @@ function process(): Promise<void> {
                         });
                         // Still remove the request even if flush fails
                         Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                        Log.info('[API_DEBUG] Starting persistence', false, {
+                            operation: 'removal',
+                            appState: AppState.currentState, // 'active', 'background', 'inactive'
+                        });
                         endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
                         if (requestToProcess.queueFlushedData) {
@@ -326,6 +344,10 @@ function process(): Promise<void> {
             }
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+            Log.info('[API_DEBUG] Starting persistence', false, {
+                operation: 'removal',
+                appState: AppState.currentState, // 'active', 'background', 'inactive'
+            });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
             if (requestToProcess.queueFlushedData) {

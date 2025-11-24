@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
+import {AppState} from 'react-native';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -157,11 +158,27 @@ function endRequestAndRemoveFromQueue(requestToRemove: Request) {
 
     persistedRequests = requests;
 
+    Log.info('[API_DEBUG] Starting persistence', false, {
+        operation: 'removal',
+        appState: AppState.currentState, // 'active', 'background', 'inactive'
+    });
+
     Onyx.multiSet({
         [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
         [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
     }).then(() => {
         Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
+
+        Log.info('[API_DEBUG] PersistedRequests.endRequestAndRemoveFromQueue - TRACK_EXPENSE removal PERSISTED', false, {
+            command: requestToRemove.command,
+            transactionID: requestToRemove?.data?.transactionID,
+            timestamp: Date.now(),
+        });
+
+        Log.info('[API_DEBUG] Persistence completed', false, {
+            operation: 'removal',
+            appState: AppState.currentState,
+        });
     });
 }
 
@@ -275,8 +292,8 @@ function rollbackOngoingRequest() {
         return;
     }
 
-    const rolledBackRequest = {...ongoingRequest, isRollback: true};
-    const newPersistedRequests = [rolledBackRequest, ...persistedRequests];
+    // Prepend ongoingRequest to persistedRequests
+    persistedRequests.unshift({...ongoingRequest, isRollback: true});
 
     const isTrackExpense = ongoingRequest.command === WRITE_COMMANDS.TRACK_EXPENSE;
     
@@ -284,7 +301,6 @@ function rollbackOngoingRequest() {
         ongoingRequestCommand: ongoingRequest.command,
         transactionID: ongoingRequest?.data?.transactionID,
         queueLengthBefore: persistedRequests.length,
-        queueLengthAfter: newPersistedRequests.length,
         isTrackExpense,
     });
     
@@ -292,31 +308,27 @@ function rollbackOngoingRequest() {
         Log.warn('[API_DEBUG] PersistedRequests.rollbackOngoingRequest - TRACK_EXPENSE being rolled back, saving to Onyx to persist across backgrounding', {
             transactionID: ongoingRequest?.data?.transactionID,
             queueLengthBefore: persistedRequests.length,
-            queueLengthAfter: newPersistedRequests.length,
         });
     }
 
-    // CRITICAL FIX: Save to Onyx immediately so rolled-back request persists across app backgrounding
-    // Without this, the rolled-back request is lost when app backgrounds (in-memory state is lost)
-    Onyx.multiSet({
-        [ONYXKEYS.PERSISTED_REQUESTS]: newPersistedRequests,
-        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null, // Clear ongoing request
+    Log.info('[API_DEBUG] Starting persistence', false, {
+        operation: 'rollback',
+        appState: AppState.currentState, // 'active', 'background', 'inactive'
     });
 
-    // Update in-memory state
-    persistedRequests = newPersistedRequests;
+
+    // Update in-memory state 
     ongoingRequest = null;
 
     Log.info('[API_DEBUG] PersistedRequests.rollbackOngoingRequest - Ongoing request rolled back and saved to Onyx', false, {
-        command: rolledBackRequest.command,
-        transactionID: rolledBackRequest?.data?.transactionID,
+        ongoingRequest,
         queueLength: persistedRequests.length,
         isTrackExpense,
     });
     
     if (isTrackExpense) {
         Log.info('[API_DEBUG] PersistedRequests.rollbackOngoingRequest - TRACK_EXPENSE rolled back and saved to Onyx successfully', false, {
-            transactionID: rolledBackRequest?.data?.transactionID,
+            ongoingRequest,
             queueLength: persistedRequests.length,
         });
     }
