@@ -19,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -161,9 +162,7 @@ function MoneyRequestReportTransactionList({
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout: shouldUseNarrowLayoutByDefault, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const shouldUseNarrowLayout = shouldUseNarrowLayoutByDefault && (superWideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
@@ -177,7 +176,11 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const addExpenseDropdownOptions = useMemo(
+        () => getAddExpenseDropdownOptions(report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [report?.reportID, policy, lastDistanceExpenseType],
+    );
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
