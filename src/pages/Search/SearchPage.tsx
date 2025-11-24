@@ -119,7 +119,7 @@ function SearchPage({route}: SearchPageProps) {
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -431,7 +431,7 @@ function SearchPage({route}: SearchPageProps) {
                         return hasDynamicExternalWorkflow(policy);
                     });
 
-                    if (hasDEWPolicy && !isDEWSubmitBetaEnabled) {
+                    if (hasDEWPolicy && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }
@@ -622,7 +622,7 @@ function SearchPage({route}: SearchPageProps) {
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
-        isDEWSubmitBetaEnabled,
+        isDEWBetaEnabled,
         styles.fontWeightNormal,
         styles.textWrap,
         beginExportWithTemplate,
