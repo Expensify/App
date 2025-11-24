@@ -66,7 +66,7 @@ Yes! Select multiple expenses and click **Edit Multiple** to make bulk changes b
 
 A Workspace admin can view **Outstanding, Approved, and Paid** expenses if they were submitted under the Workspace they manage. Unreported expenses remain invisible until added to a report.
 
-Admins can edit **tags** and **categories**, but can only modify the amount, date, or merchant name if the report is **Outstanding**. For company card reconciliation, refer to [this article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation).
+Admins can edit **tags** and **categories**, but can only modify the amount, date, or merchant name if the report is **Outstanding**. Reports can be rejected back to the last approver to put them back in an outstanding state. For company card reconciliation, refer to [this article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation).
 
 ## Can I search for expenses in the mobile app?
 
