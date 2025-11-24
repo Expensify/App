@@ -930,7 +930,7 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[];
     reports?: Report[];
     policies?: Policy[];
@@ -2255,7 +2255,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
  */
 function hasExpenses(
     reportID?: string,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>,
 ): boolean {
     if (transactions) {
@@ -2269,7 +2269,7 @@ function hasExpenses(
  */
 function isClosedExpenseReportWithNoExpenses(
     report: OnyxEntry<Report>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>,
 ): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
@@ -4497,7 +4497,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
@@ -4640,7 +4640,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
@@ -4941,7 +4941,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  */
 function getLinkedTransaction(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[],
 ): OnyxEntry<Transaction> | SearchTransaction {
     let transactionID: string | undefined;
@@ -4998,7 +4998,7 @@ function getTransactionReportName({
     reports,
 }: {
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[];
     reports?: Report[];
 }): string {
@@ -5629,7 +5629,7 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[],
     isReportArchived?: boolean,
     reports?: Report[],
@@ -8959,7 +8959,7 @@ function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -8973,7 +8973,7 @@ function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -9007,7 +9007,7 @@ function hasNoticeTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
@@ -9020,7 +9020,7 @@ function hasNoticeTypeViolations(
 function hasAnyViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: SearchTransaction[],
 ) {
     return (
@@ -9046,13 +9046,13 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportTransactions?: Transaction[] | SearchTransaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return hasAnyViolations(reportID, transactionViolations, reportTransactions as SearchTransaction[]);
 }
 
@@ -10408,7 +10408,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  */
 function hasHeldExpenses(
     iouReportID?: string,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     allReportTransactions?: SearchTransaction[],
 ): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
@@ -10421,7 +10421,7 @@ function hasHeldExpenses(
  */
 function hasOnlyHeldExpenses(
     iouReportID?: string,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated - SearchTransaction
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     allReportTransactions?: SearchTransaction[],
 ): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
