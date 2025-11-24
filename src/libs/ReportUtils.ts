@@ -4267,7 +4267,11 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
         return !reportField?.deletable;
     }
 
-    return reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    if (reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+        return !reportField?.deletable;
+    }
+
+    return false;
 }
 
 /**
