@@ -228,7 +228,7 @@ function Search({
     const styles = useThemeStyles();
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -973,7 +973,7 @@ function Search({
                     shouldPreventLongPressRow={isChat || isTask}
                     isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}
-                    isDEWBetaEnabled={isDEWSubmitBetaEnabled}
+                    isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <View style={[!isTask && styles.pr8, styles.flex1]}>
