@@ -220,10 +220,8 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
-
     linkTo(navigationRef.current, route, options);
 }
-
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
