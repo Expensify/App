@@ -12,7 +12,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -27,6 +26,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -70,6 +70,7 @@ import {
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
     isAdminRoom,
+    isAnnounceRoom,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -150,6 +151,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -685,7 +687,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const prevOnyxReportID = prevReport?.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
         const isRemovalExpectedForReportType =
-            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport) || isAdminRoom(prevReport));
+            isEmpty(report) &&
+            (isMoneyRequest(prevReport) ||
+                isMoneyRequestReport(prevReport) ||
+                isPolicyExpenseChat(prevReport) ||
+                isGroupChat(prevReport) ||
+                isAdminRoom(prevReport) ||
+                isAnnounceRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;

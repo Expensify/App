@@ -12,6 +12,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -268,10 +269,12 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -694,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        reportName: 'レポート名',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -798,18 +802,33 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'ウェブアプリに進む',
     },
     validateCodeModal: {
-        successfulSignInTitle: 'アブラカダブラ、サインインしました！',
+        successfulSignInTitle: dedent(`
+            アブラカダブラ、
+            サインイン完了！
+        `),
         successfulSignInDescription: '元のタブに戻って続行してください。',
         title: 'こちらがあなたのマジックコードです',
-        description: '元のデバイスでリクエストされたコードを入力してください',
-        doNotShare: 'コードを他の人と共有しないでください。Expensifyがそれを求めることはありません！',
+        description: dedent(`
+            最初にリクエストしたデバイスで
+            表示されたコードを入力してください
+        `),
+        doNotShare: dedent(`
+            コードは誰にも教えないでください。
+            Expensify がそれを求めることは決してありません！
+        `),
         or: '、または',
         signInHere: 'ここでサインインしてください',
         expiredCodeTitle: 'マジックコードの有効期限が切れました',
         expiredCodeDescription: '元のデバイスに戻り、新しいコードをリクエストしてください。',
         successfulNewCodeRequest: 'コードが要求されました。デバイスを確認してください。',
-        tfaRequiredTitle: '二要素認証が必要です',
-        tfaRequiredDescription: 'サインインしようとしている場所で、二要素認証コードを入力してください。',
+        tfaRequiredTitle: dedent(`
+            二要素認証
+            必須
+        `),
+        tfaRequiredDescription: dedent(`
+            サインインしようとしている場所で
+            二要素認証コードを入力してください。
+        `),
         requestOneHere: 'こちらでリクエストしてください。',
     },
     moneyRequestConfirmationList: {
@@ -1471,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '保留しますか、それとも却下しますか？',
             educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
             holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
+            approveExpenseTitle: '保留中の経費はあなたに割り当てられたまま、他の経費を承認できます。',
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
@@ -1595,7 +1615,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: 'オプションを表示するために検索',
     },
     contacts: {
-        contactMethod: '連絡方法',
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
@@ -1846,8 +1865,11 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Expensifyにログインする際に認証アプリはもう必要ありません。',
         stepCodes: 'リカバリーコード',
         keepCodesSafe: 'これらのリカバリーコードを安全に保管してください！',
-        codesLoseAccess:
-            '認証アプリへのアクセスを失い、これらのコードを持っていない場合、アカウントへのアクセスを失います。\n\n注: 二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。',
+        codesLoseAccess: dedent(`
+            認証アプリへのアクセスを失い、これらのコードもない場合、アカウントにアクセスできなくなります。
+
+            注意: 二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+        `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください。',
         stepVerify: '確認する',
         scanCode: 'QRコードを使用してスキャンしてください',
@@ -2400,19 +2422,20 @@ ${date} - ${merchant}に${amount}`,
             addExpenseApprovalsTask: {
                 title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `チームの支出を確認し、管理するために*経費承認を追加*しましょう。\n` +
-                    '\n' +
-                    `手順は以下の通りです：\n` +
-                    '\n' +
-                    '1. *ワークスペース* に移動します。\n' +
-                    '2. 自分のワークスペースを選択します。\n' +
-                    '3. *その他の機能* をクリックします。\n' +
-                    '4. *ワークフロー* を有効にします。\n' +
-                    '5. ワークスペースエディターで *ワークフロー* に移動します。\n' +
-                    '6. *承認を追加* を有効にします。\n' +
-                    `7. あなたが経費承認者として設定されます。チームを招待した後、管理者に変更することもできます。\n` +
-                    '\n' +
-                    `[その他の機能に移動](${workspaceMoreFeaturesLink})。`,
+                    dedent(`
+                        チームの支出を確認して適切に管理するために、*経費承認を追加*しましょう。
+
+                        手順は次のとおりです:
+
+                        1. *ワークスペース*に移動します。
+                        2. 自分のワークスペースを選択します。
+                        3. *その他の機能*をクリックします。
+                        4. *ワークフロー*を有効にします。
+                        5. ワークスペースエディターの*ワークフロー*に移動します。
+                        6. *承認を追加*を有効にします。
+                        7. あなたが経費の承認者として設定されます。チームを招待した後は、任意の管理者に変更できます。
+
+                        [その他の機能に移動](${workspaceMoreFeaturesLink})。`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[ワークスペースの作成](${workspaceConfirmationLink})`,
@@ -2421,193 +2444,210 @@ ${date} - ${merchant}に${amount}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペースの作成](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*ワークスペースを作成します* には、経費を追跡し、領収書をスキャンし、チャットなどを行います。\n' +
-                    '\n' +
-                    '1. *ワークスペース* > *新しいワークスペース*をクリックします。\n' +
-                    '\n' +
-                    `*新しいワークスペースの準備ができました！* [確認する](${workspaceSettingsLink})。`,
+                    dedent(`
+                        経費の追跡、領収書のスキャン、チャットなどを行うには、*ワークスペースを作成*してください。
+
+                        1. *Workspaces* > *New workspace* をクリックします。
+
+                        *新しいワークスペースの準備ができました！* [確認する](${workspaceSettingsLink}).`),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `[カテゴリーの設定](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*カテゴリーを設定します* と、チームは簡単な報告のために経費をコード化できます。\n' +
-                    '\n' +
-                    '1. *ワークスペース*をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *カテゴリー*をクリックします。\n' +
-                    '4. 不要なカテゴリーを無効にします。\n' +
-                    '5. 右上に自分のカテゴリーを追加します。\n' +
-                    '\n' +
-                    `[ワークスペースカテゴリー設定へ](${workspaceCategoriesLink})。\n` +
-                    '\n' +
-                    `![カテゴリーを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *カテゴリを設定*して、チームが簡単にレポートできるよう経費にコードを割り当てましょう。
+
+                        1. *ワークスペース* をクリックします。
+                        3. ワークスペースを選択します。
+                        4. *カテゴリ* をクリックします。
+                        5. 不要なカテゴリを無効にします。
+                        6. 右上から独自のカテゴリを追加します。
+
+                        [ワークスペースのカテゴリ設定に移動](${workspaceCategoriesLink}).
+
+                        ![カテゴリを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
             },
             combinedTrackSubmitExpenseTask: {
                 title: '経費を提出する',
-                description:
-                    '*経費を提出する* には、金額を入力するか、領収書をスキャンします。\n' +
-                    '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *経費の作成*を選択します。\n' +
-                    '3. 金額を入力するか、領収書をスキャンします。\n' +
-                    `4. 上司のメールアドレスまたは電話番号を追加します。\n` +
-                    '5. *作成*をクリックします。\n' +
-                    '\n' +
-                    'これで完了です！',
+                description: dedent(`
+                    金額を入力するか領収書をスキャンして、*経費を提出* しましょう。
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *経費を作成* を選択します。
+                    3. 金額を入力するか、領収書をスキャンします。
+                    4. 上司のメールアドレスまたは電話番号を追加します。
+                    5. *作成* をクリックします。
+
+                    これで完了です！
+                `),
             },
             adminSubmitExpenseTask: {
                 title: '経費を提出する',
-                description:
-                    '*経費を提出する* には、金額を入力するか、領収書をスキャンします。\n' +
-                    '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *経費の作成*を選択します。\n' +
-                    '3. 金額を入力するか、領収書をスキャンします。\n' +
-                    '4. 詳細を確認します。\n' +
-                    '5. *作成*をクリックします。\n' +
-                    '\n' +
-                    `これで完了です！`,
+                description: dedent(`
+                    金額を入力するか、領収書をスキャンして、*経費を申請*します。
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *経費を作成* を選択します。
+                    3. 金額を入力するか、領収書をスキャンします。
+                    4. 詳細を確認します。
+                    5. *作成* をクリックします。
+
+                    これで完了です！
+                `),
             },
             trackExpenseTask: {
                 title: '経費を追跡する',
-                description:
-                    '*経費を追跡する* には、あなたが領収書を持っているかどうかにかかわらず、いかなる通貨でも可能です。\n' +
-                    '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *経費の作成*を選択します。\n' +
-                    '3. 金額を入力するか、領収書をスキャンします。\n' +
-                    '4. *個人*スペースを選択します。\n' +
-                    '5. *作成*をクリックします。\n' +
-                    '\n' +
-                    'これで完了です！はい、それほど簡単です。',
+                description: dedent(`
+                    領収書があってもなくても、どの通貨でも*経費を記録*できます。
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *経費を作成* を選択します。
+                    3. 金額を入力するか、領収書をスキャンします。
+                    4. 自分の*個人*スペースを選択します。
+                    5. *作成* をクリックします。
+
+                    これで完了です！ そう、とても簡単です。
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}と接続すると、経費の自動コーディングと同期が可能になり、月末の結算が容易になります。\n` +
-                    '\n' +
-                    '1. *ワークスペース*をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *会計*をクリックします。\n' +
-                    `4. ${integrationName}を探します。\n` +
-                    '5. *接続*をクリックします。\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[会計に移動する](${workspaceAccountingLink}).\n\n![${integrationName}と接続する](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[会計に移動する](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
+
+                        1. *Workspaces* をクリックします。
+                        2. ワークスペースを選択します。
+                        3. *Accounting* をクリックします。
+                        4. ${integrationName} を見つけます。
+                        5. *Connect* をクリックします。
+
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? dedent(`[会計に移動](${workspaceAccountingLink}).
+
+                                      ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[会計に移動](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[あなたの法人カード](${corporateCardLink})を接続する`,
                 description: ({corporateCardLink}) =>
-                    `法人カードを接続すると、経費を自動的にインポートし、コード化することができます。\n` +
-                    '\n' +
-                    '1. *ワークスペース*をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *法人カード*をクリックします。\n' +
-                    '4. プロンプトに従ってカードを接続します。\n' +
-                    '\n' +
-                    `[私の法人カードを接続する](${corporateCardLink})。`,
+                    dedent(`
+                        法人カードを接続して、経費を自動で取り込み・仕訳しましょう。
+
+                        1. *Workspaces* をクリックします。
+                        2. ワークスペースを選択します。
+                        3. *Corporate cards* をクリックします。
+                        4. 表示される手順に従ってカードを接続します。
+
+                        [法人カードの接続に進む](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[あなたのチーム](${workspaceMembersLink})を招待する`,
                 description: ({workspaceMembersLink}) =>
-                    '*あなたのチームを招待します* と、彼らは今日から経費の追跡を開始できます。\n' +
-                    '\n' +
-                    '1. *ワークスペース*をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *メンバー* > *メンバーを招待*をクリックします。\n' +
-                    '4. メールアドレスまたは電話番号を入力します。\n' +
-                    '5. 必要に応じてカスタム招待メッセージを追加します！\n' +
-                    '\n' +
-                    `[ワークスペースメンバーへ](${workspaceMembersLink})。\n` +
-                    '\n' +
-                    `![あなたのチームを招待](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *チームを招待*して Expensify で今日から経費の記録を始めてもらいましょう。
+
+                        1. *ワークスペース* をクリックします。
+                        3. 自分のワークスペースを選択します。
+                        4. *メンバー* > *メンバーを招待* をクリックします。
+                        5. メールアドレスまたは電話番号を入力します。
+                        6. 必要に応じてカスタム招待メッセージを追加します。
+
+                        [ワークスペースのメンバーに移動する](${workspaceMembersLink})。
+
+                        ![チームを招待](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `[カテゴリー](${workspaceCategoriesLink})と[タグ](${workspaceTagsLink})を設定する`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*カテゴリーとタグを設定します* と、チームは経費をコード化して容易に報告できます。\n' +
-                    '\n' +
-                    `[会計ソフトウェアを接続する](${workspaceAccountingLink})ことで自動的にインポートするか、[ワークスペース設定](${workspaceCategoriesLink})で手動で設定しませんか。`,
+                    dedent(`
+                        *カテゴリとタグを設定* すると、チームが経費にコードを付け、簡単にレポートできるようになります。
+
+                        [会計ソフトを連携](${workspaceAccountingLink})して自動的にインポートするか、[ワークスペース設定](${workspaceCategoriesLink})で手動で設定します。`),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `[タグ](${workspaceTagsLink})を設定する`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'タグを使用して、プロジェクト、クライアント、場所、部署などの追加の経費詳細を追加します。複数のレベルのタグが必要な場合は、Controlプランにアップグレードできます。\n' +
-                    '\n' +
-                    '1. *ワークスペース*をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *その他の機能*をクリックします。\n' +
-                    '4. *タグ*を有効にします。\n' +
-                    '5. ワークスペースエディターで*タグ*に移動します。\n' +
-                    '6. *+タグを追加*をクリックして、自分のタグを作成します。\n' +
-                    '\n' +
-                    `[その他の機能へ](${workspaceMoreFeaturesLink})。\n` +
-                    '\n' +
-                    `![タグを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        タグを使用して、プロジェクト、クライアント、所在地、部門などの経費の詳細を追加します。複数レベルのタグが必要な場合は、Control プランにアップグレードできます。
+
+                        1. *Workspaces* をクリックします。
+                        3. ワークスペースを選択します。
+                        4. *More features* をクリックします。
+                        5. *Tags* を有効にします。
+                        6. ワークスペースエディターの *Tags* に移動します。
+                        7. 独自のタグを作成するには *+ Add tag* をクリックします。
+
+                        [その他の機能に移動](${workspaceMoreFeaturesLink}).
+
+                        ![タグを設定](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `あなたの[ 会計士 ](${workspaceMembersLink})を招待`,
                 description: ({workspaceMembersLink}) =>
-                    '*あなたの会計士を招待* して、ワークスペースで協力し、企業経費を管理しましょう。\n' +
-                    '\n' +
-                    '1. *ワークスペース* をクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. *メンバー* をクリックします。\n' +
-                    '4. *メンバーを招待* をクリックします。\n' +
-                    '5. 会計士のメールアドレスを入力します。\n' +
-                    '\n' +
-                    `[今すぐ会計士を招待](${workspaceMembersLink})。`,
+                    dedent(`
+                        *会計士を招待*して、ワークスペースで共同作業し、ビジネス経費を管理しましょう。
+
+                        1. *Workspaces* をクリックします。
+                        2. ワークスペースを選択します。
+                        3. *Members* をクリックします。
+                        4. *Invite member* をクリックします。
+                        5. 会計士のメールアドレスを入力します。
+
+                        [今すぐ会計士を招待](${workspaceMembersLink})。`),
             },
             startChatTask: {
                 title: 'チャットを開始する',
-                description:
-                    '*チャットを開始する* には、メールアドレスまたは電話番号を使用して誰とでもチャットできます。\n' +
-                    '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *チャットを開始*を選択します。\n' +
-                    '3. メールアドレスまたは電話番号を入力します。\n' +
-                    '\n' +
-                    '彼らがまだExpensifyを使用していない場合は、自動的に招待されます。\n' +
-                    '\n' +
-                    'すべてのチャットは、ダイレクトに返信できるメールまたはテキストにも変換されます。',
+                description: dedent(`
+                    メールアドレスまたは電話番号を使って、誰とでも*チャットを開始*しましょう。
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *チャットを開始* を選択します。
+                    3. メールアドレスまたは電話番号を入力します。
+
+                    相手がまだ Expensify を使用していない場合は、自動的に招待されます。
+
+                    すべてのチャットは、相手が直接返信できるメールまたはテキストメッセージにもなります。
+                `),
             },
             splitExpenseTask: {
                 title: '経費を分割する',
-                description:
-                    '1人以上の相手と*経費を分割*します。' +
-                    '\n' +
-                    `${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。` +
-                    '2.「*Start chat*」を選択します。' +
-                    '3. メールアドレスまたは電話番号を入力します..' +
-                    '4. チャットでグレーの*+*ボタンをクリック > *経費を分割*。' +
-                    '5. *Manual*、*Scan*、または*Distance* を選択して経費を作成します。' +
-                    '\n' +
-                    '必要なら詳細を追加しても、そのまま送信しても構いません。さあ、精算してもらいましょう！',
+                description: dedent(`
+                    1人または複数人と*割り勘*します。
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *チャットを開始* を選択します。
+                    3. メールアドレスまたは電話番号を入力します。
+                    4. チャット内の灰色の *+* ボタンをクリックし、*割り勘* を選択します。
+                    5. *手動*、*スキャン*、または*距離*を選択して経費を作成します。
+
+                    必要なら詳細を追加しても、そのまま送信してもOKです。返金してもらいましょう！
+                `),
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペース設定](${workspaceSettingsLink})を確認する`,
                 description: ({workspaceSettingsLink}) =>
-                    'ワークスペース設定を確認および更新する方法は次のとおりです：\n' +
-                    '1. ワークスペースをクリックします。\n' +
-                    '2. あなたのワークスペースを選択します。\n' +
-                    '3. 設定を確認および更新します。\n' +
-                    `[ワークスペースに移動します。](${workspaceSettingsLink})`,
+                    dedent(`
+                        ワークスペースの設定を確認して更新する手順は次のとおりです:
+                        1. 「Workspaces」をクリックします。
+                        2. ワークスペースを選択します。
+                        3. 設定を確認して更新します。
+                        [ワークスペースに移動](${workspaceSettingsLink})`),
             },
             createReportTask: {
                 title: '初めてのレポートを作成する',
-                description:
-                    'レポートを作成する方法は次のとおりです：\n' +
-                    '\n' +
-                    '1. 緑色の*+*ボタンをクリックします。\n' +
-                    '2. *レポートの作成*を選択します。\n' +
-                    '3. *経費を追加*をクリックします。\n' +
-                    '4. 最初の経費を追加します。\n' +
-                    '\n' +
-                    'これで完了です！',
+                description: dedent(`
+                    レポートを作成する方法は次のとおりです：
+
+                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    2. *レポートを作成* を選択します。
+                    3. *経費を追加* をクリックします。
+                    4. 最初の経費を追加します。
+
+                    これで完了です！
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2620,8 +2660,10 @@ ${date} - ${merchant}に${amount}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage:
-                '# 無料トライアルが開始しました！さぁ、セットアップを始めましょう。\n👋 こんにちは、Expensify セットアップスペシャリストの私です。ワークスペースを作成したので、30日間の無料トライアルを最大限利用し、下記の手順に従ってください。',
+            onboardingManageTeamMessage: dedent(`
+                # 無料トライアルが開始されました！セットアップを始めましょう。
+                👋 こんにちは。私はあなたのExpensifyのセットアップ担当です。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
+            `),
             onboardingTrackWorkspaceMessage:
                 '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
@@ -3237,6 +3279,9 @@ ${date} - ${merchant}に${amount}`,
         whatsYourAddress: '住所は何ですか？',
         whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
         whatsYourLast: 'あなたの社会保障番号の最後の4桁は何ですか？',
+        whatsYourNationality: 'あなたの市民権の国はどこですか？',
+        whatsTheOwnersNationality: '所有者の市民権の国はどこですか？',
+        countryOfCitizenship: '市民権の国',
         dontWorry: 'ご安心ください、私たちは個人の信用調査を行いません！',
         last4: 'SSNの下4桁',
         whyDoWeAsk: 'なぜこれを尋ねるのですか？',
@@ -3331,8 +3376,11 @@ ${date} - ${merchant}に${amount}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: '署名者、認定ユーザー、および実質的所有者のためのCodice Fiscale。',
         PDSandFSG: 'PDS + FSG開示書類',
-        PDSandFSGDescription:
-            '私たちのCorpayとの提携は、API接続を利用して、彼らの広範な国際銀行パートナーのネットワークを活用し、Expensifyでのグローバル払い戻しを実現します。オーストラリアの規制に従い、Corpayの金融サービスガイド（FSG）と製品開示声明（PDS）を提供しています。\n\nFSGとPDSの文書には、Corpayが提供する製品とサービスに関する詳細情報と重要な情報が含まれているため、注意深くお読みください。これらの文書は、将来の参考のために保管してください。',
+        PDSandFSGDescription: dedent(`
+            Expensify における Global Reimbursements を支えるため、Corpay との提携では API 接続を利用し、同社の幅広い国際銀行パートナー網を活用しています。オーストラリアの規制に基づき、Corpay の Financial Services Guide（FSG）および Product Disclosure Statement（PDS）を提供いたします。
+
+            FSG と PDS には、Corpay が提供する商品およびサービスの詳細および重要な情報が記載されていますので、注意深くお読みください。今後の参照のために保管してください。
+        `),
         pleaseUpload: '事業体の取締役としての身元を確認するために、追加の書類を以下にアップロードしてください。',
         enterSignerInfo: '署名者情報を入力してください',
         thisStep: 'このステップは完了しました',
@@ -4144,30 +4192,42 @@ ${date} - ${merchant}に${amount}`,
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: '経費報告書',
-                        reimbursableDescription: '実費は、経費報告書としてNetSuiteにエクスポートされます。',
-                        nonReimbursableDescription: '会社のカード経費は、経費報告書としてNetSuiteにエクスポートされます。',
+                        reimbursableDescription: dedent(`
+                            立替経費は、以下で指定された NetSuite アカウントに仕訳としてエクスポートされます。
+
+                            各カードに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            会社カードの経費は、以下で指定されたNetSuiteアカウントに仕訳としてエクスポートされます。
+
+                            各カードごとに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: '仕入先請求書',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            立替経費は、以下で指定された NetSuite アカウントに仕訳としてエクスポートされます。
+
+                            各カードに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            会社カードの経費は、以下で指定されたNetSuiteアカウントに仕訳としてエクスポートされます。
+
+                            各カードごとに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: '仕訳帳エントリ',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            立替経費は、以下で指定された NetSuite アカウントに仕訳としてエクスポートされます。
+
+                            各カードに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            会社カードの経費は、以下で指定されたNetSuiteアカウントに仕訳としてエクスポートされます。
+
+                            各カードごとに特定のベンダーを設定したい場合は、*Settings > Domains > Company Cards* に移動してください。
+                        `),
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5122,6 +5182,7 @@ ${date} - ${merchant}に${amount}`,
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
@@ -5790,7 +5851,7 @@ ${date} - ${merchant}に${amount}`,
                 billableDescription: '経費は多くの場合、クライアントに再請求されます。',
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eレシート',
                 eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
@@ -6097,6 +6158,32 @@ ${date} - ${merchant}に${amount}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}件の払い戻し`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `税 "${oldValue}" の名前を "${newValue}" に変更しました`;
+                }
+                case 'code': {
+                    return `税 "${taxName}" のコードを "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'rate': {
+                    return `税 "${taxName}" の税率を "${oldValue}" から "${newValue}" に変更しました`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `税 "${taxName}" を無効にしました` : `税 "${taxName}" を有効にしました`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -6181,7 +6268,10 @@ ${date} - ${merchant}に${amount}`,
                 subtitleWithOnlyCreateButton: '下の緑色のボタンを使用してレポートを作成してください。',
             },
             emptyInvoiceResults: {
-                title: 'まだ請求書を作成していません。',
+                title: dedent(`
+                    まだ請求書を
+                    作成していません
+                `),
                 subtitle: '請求書を送信するか、Expensifyの試用版を利用して詳細を確認してください。',
                 subtitleWithOnlyCreateButton: '以下の緑色のボタンを使用して請求書を送信してください。',
             },
@@ -6746,17 +6836,16 @@ ${date} - ${merchant}に${amount}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
         receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = '領収書が必要です';
-            if (formattedLimit ?? category) {
-                message += '終了';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += 'カテゴリ制限';
-                }
+            if (formattedLimit && category) {
+                return `カテゴリの上限${formattedLimit}を超える場合は領収書が必要`;
             }
-            return message;
+            if (formattedLimit) {
+                return `${formattedLimit}を超える場合は領収書が必要です`;
+            }
+            if (category) {
+                return `カテゴリ上限超過時は領収書が必要`;
+            }
+            return '領収書が必要です';
         },
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止された経費:';
@@ -7180,7 +7269,10 @@ ${date} - ${merchant}に${amount}`,
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力して、コパイロットを追加してください。1～2分以内に届くはずです。`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `コパイロットを更新するために、${contactMethod}に送信されたマジックコードを入力してください。`,
         notAllowed: 'ちょっと待ってください…',
-        noAccessMessage: 'コパイロットとして、このページにアクセスする権限がありません。申し訳ありません！',
+        noAccessMessage: dedent(`
+            コパイロットには、このページへのアクセス権がありません。
+            申し訳ありません！
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `${accountOwnerEmail} の<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副操縦士</a>として、あなたはこの行動を取る許可を持っていません。申し訳ありません！`,
         copilotAccess: 'Copilotアクセス',
@@ -7327,7 +7419,7 @@ ${date} - ${merchant}に${amount}`,
         },
         modal: {
             title: '私たちを試してみてください',
-            description: '製品ツアーをすばやく見て、すぐに追いつきましょう。途中で止まる必要はありません！',
+            description: '短いプロダクトツアーで、すぐに使い方を把握しましょう。',
             confirmText: 'テストドライブを開始',
             helpText: 'Skip',
             employee: {
@@ -7486,6 +7578,16 @@ ${date} - ${merchant}に${amount}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>ドメイン <strong>${domainName}</strong> は正常に検証され、SAML やその他のセキュリティ機能を設定できるようになりました。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML シングルサインオン (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> は、<strong>${domainName}</strong> のメールアドレスを持つメンバーのExpensifyへのログイン方法をより細かく管理できるセキュリティ機能です。有効にするには、権限のある会社の管理者であることを確認する必要があります。</muted-text>`,
+            fasterAndEasierLogin: 'より速く、より簡単なログイン',
+            moreSecurityAndControl: 'さらなるセキュリティと管理',
+            onePasswordForAnything: 'すべてを1つのパスワードで',
+        },
+        goToDomain: 'ドメインに移動',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

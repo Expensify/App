@@ -12,6 +12,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -268,10 +269,12 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -688,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        reportName: '报告名称',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -790,18 +794,32 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: '继续到网页应用程序',
     },
     validateCodeModal: {
-        successfulSignInTitle: '魔法咒语，  \n您已登录！',
+        successfulSignInTitle: dedent(`
+            Abracadabra，你已登录！
+        `),
         successfulSignInDescription: '返回到原始标签页继续。',
         title: '这是您的魔法代码',
-        description: '请输入从最初请求的设备上获取的代码',
-        doNotShare: '不要与任何人分享您的代码。Expensify 永远不会向您索要代码！',
+        description: dedent(`
+            请在最初请求的设备上
+            输入代码
+        `),
+        doNotShare: dedent(`
+            不要与任何人分享你的验证码。
+            Expensify 绝不会向你索取它！
+        `),
         or: '，或',
         signInHere: '只需在这里登录',
         expiredCodeTitle: '魔法代码已过期',
         expiredCodeDescription: '返回原始设备并请求新代码',
         successfulNewCodeRequest: '请求的代码已发送。请检查您的设备。',
-        tfaRequiredTitle: '需要双重身份验证',
-        tfaRequiredDescription: '请输入您尝试登录时的双因素认证代码。',
+        tfaRequiredTitle: dedent(`
+            双重身份验证
+            必需
+        `),
+        tfaRequiredDescription: dedent(`
+            请输入双重身份验证代码
+            在您尝试登录的地方。
+        `),
         requestOneHere: '在这里请求一个。',
     },
     moneyRequestConfirmationList: {
@@ -1449,6 +1467,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '应该保留还是拒绝？',
             educationalText: '如果你还没准备好批准或支付一笔报销，可以选择保留或拒绝。',
             holdExpenseTitle: '保留报销，以便在批准或支付之前要求更多细节。',
+            approveExpenseTitle: '在保留的报销保持分配给你的同时，批准其他报销。',
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
             rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
@@ -1571,7 +1590,6 @@ const translations: TranslationDeepObject<typeof en> = {
         placeholderText: '搜索以查看选项',
     },
     contacts: {
-        contactMethod: '联系方式',
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
@@ -1820,7 +1838,11 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: '您将不再需要验证器应用程序来登录Expensify。',
         stepCodes: '恢复代码',
         keepCodesSafe: '请妥善保管这些恢复代码！',
-        codesLoseAccess: '如果您失去了对身份验证器应用的访问权限并且没有这些代码，您将失去对账户的访问权限。\n\n注意：设置双因素身份验证会将您从所有其他活动会话中注销。',
+        codesLoseAccess: dedent(`
+            如果你无法使用身份验证器应用且没有这些代码，你将失去对账户的访问权限。
+
+            注意：设置双重身份验证将使你退出所有其他活跃会话。
+        `),
         errorStepCodes: '请在继续之前复制或下载代码',
         stepVerify: '验证',
         scanCode: '使用您的设备扫描二维码',
@@ -2372,19 +2394,20 @@ ${merchant}的${amount} - ${date}`,
             addExpenseApprovalsTask: {
                 title: '添加费用审批',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
-                    '\n' +
-                    `操作步骤如下：\n` +
-                    '\n' +
-                    '1. 前往 *工作区*。\n' +
-                    '2. 选择你的工作区。\n' +
-                    '3. 点击 *更多功能*。\n' +
-                    '4. 启用 *工作流*。\n' +
-                    '5. 在工作区编辑器中进入 *工作流*。\n' +
-                    '6. 启用 *添加审批*。\n' +
-                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
-                    '\n' +
-                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
+                    dedent(`
+                        *添加费用审批*，以审查你团队的支出并保持可控。
+
+                        操作如下：
+
+                        1. 前往*工作区*。
+                        2. 选择你的工作区。
+                        3. 点击*更多功能*。
+                        4. 启用*工作流程*。
+                        5. 在工作区编辑器中进入*工作流程*。
+                        6. 启用*添加审批*。
+                        7. 你将被设为费用审批人。邀请团队后，可将其更改为任一管理员。
+
+                        [带我前往更多功能](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
@@ -2393,190 +2416,210 @@ ${merchant}的${amount} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `创建一个[工作区](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    `*创建一个工作区*以跟踪支持、扫描收据、聊天等。\n\n1. 点击 *工作区* > *新建工作区*。\n\n*您的新工作区已准备就绪！* [查看](${workspaceSettingsLink})。`,
+                    dedent(`
+                        *创建一个工作区* 来跟踪费用、扫描收据、聊天等。
+
+                        1. 点击 *工作区* > *新建工作区*。
+
+                        *你的新工作区已就绪！* [查看](${workspaceSettingsLink}).`),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `设置[分类](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*设置分类*，以便您的团队可以对支出进行编码，以便于报告。\n' +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *分类*。\n' +
-                    '4. 禁用所有不需要的分类。\n' +
-                    '5. 在右上角添加自己的分类。\n' +
-                    '\n' +
-                    `[带我到工作区分类设置](${workspaceCategoriesLink})。\n` +
-                    '\n' +
-                    `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *设置类别*，以便你的团队可以为费用进行编码，便于报告。
+
+                        1. 点击 *工作区*。
+                        3. 选择你的工作区。
+                        4. 点击 *类别*。
+                        5. 禁用你不需要的任何类别。
+                        6. 在右上角添加你自己的类别。
+
+                        [带我前往工作区类别设置](${workspaceCategoriesLink})。
+
+                        ![设置类别](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`),
             },
             combinedTrackSubmitExpenseTask: {
                 title: '提交一笔支出',
-                description:
-                    '*通过输入金额或扫描收据*提交一笔支出。\n' +
-                    '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *创建支出*。\n' +
-                    '3. 输入金额或扫描收据。\n' +
-                    `4. 添加您上司的电子邮件或电话号码。\n` +
-                    '5. 点击 *创建*。\n' +
-                    '\n' +
-                    '您已经完成！',
+                description: dedent(`
+                    通过输入金额或扫描收据来*提交一笔费用*。
+
+                    1. 点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。
+                    2. 选择*创建费用*。
+                    3. 输入金额或扫描收据。
+                    4. 添加你老板的电子邮箱或电话号码。
+                    5. 点击*创建*。
+
+                    就完成了！
+                `),
             },
             adminSubmitExpenseTask: {
                 title: '提交一笔支出',
-                description:
-                    '*通过输入金额或扫描收据*提交一笔支出。\n' +
-                    '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *创建支出*。\n' +
-                    '3. 输入金额或扫描收据。\n' +
-                    '4. 确认详情。\n' +
-                    '5. 点击 *创建*。\n' +
-                    '\n' +
-                    `您已经完成！`,
+                description: dedent(`
+                    通过输入金额或扫描收据来*提交一笔费用*。
+
+                    1. 点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。
+                    2. 选择*创建费用*。
+                    3. 输入金额或扫描收据。
+                    4. 确认详情。
+                    5. 点击*创建*。
+
+                    就完成了！
+                `),
             },
             trackExpenseTask: {
                 title: '跟踪一笔支出',
-                description:
-                    '*跟踪一笔支出*，无论是什么货币，也无论您是否有收据。\n' +
-                    '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *创建支出*。\n' +
-                    '3. 输入金额或扫描收据。\n' +
-                    '4. 选择您的 *个人*空间。\n' +
-                    '5. 点击 *创建*。\n' +
-                    '\n' +
-                    '您已经完成！是的，就这么简单。',
+                description: dedent(`
+                    *记录一笔费用*，支持任何货币，无论是否有收据。
+
+                    1. 点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。
+                    2. 选择*创建费用*。
+                    3. 输入金额或扫描收据。
+                    4. 选择你的*个人*空间。
+                    5. 点击*创建*。
+
+                    这样就完成了！没错，就是这么简单。
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '到'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '到'} ${integrationName}，实现自动费用编码和同步，让月末结账变得轻而易举。\n` +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *会计*。\n' +
-                    `4. 找到 ${integrationName}。\n` +
-                    '5. 点击 *连接*。\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[带我到会计页面](${workspaceAccountingLink})。\n\n![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[带我到会计页面](${workspaceAccountingLink})。`
-                    }`,
+                    dedent(`
+                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '至'} ${integrationName}，实现自动费用编码与同步，让月末结账轻松无忧。
+
+                        1. 点击*工作区*。
+                        2. 选择您的工作区。
+                        3. 点击*会计*。
+                        4. 找到 ${integrationName}。
+                        5. 点击*连接*。
+
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? dedent(`[前往会计](${workspaceAccountingLink}).
+
+![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[前往会计](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `连接您的公司卡以自动导入和编码支出。\n` +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *公司卡*。\n' +
-                    '4. 按照提示连接您的卡。\n' +
-                    '\n' +
-                    `[带我去连接我的公司卡](${corporateCardLink})。`,
+                    dedent(`
+                        连接您的公司信用卡，以自动导入并进行费用编码。
+
+                        1. 点击*工作区*。
+                        2. 选择您的工作区。
+                        3. 点击*公司信用卡*。
+                        4. 按照提示连接您的卡片。
+
+                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*邀请您的团队*到 Expensify，使他们可以从今天开始跟踪支出。\n' +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *成员* > *邀请成员*。\n' +
-                    '4. 输入电子邮件或电话号码。 \n' +
-                    '5. 如有需要，可添加自定义邀请信息！\n' +
-                    '\n' +
-                    `[带我到工作区成员](${workspaceMembersLink})。\n` +
-                    '\n' +
-                    `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *邀请你的团队* 加入 Expensify，使他们今天就能开始跟踪费用。
+
+                        1. 点击 *工作空间*。
+                        3. 选择你的工作空间。
+                        4. 点击 *成员* > *邀请成员*。
+                        5. 输入电子邮件或电话号码。
+                        6. 如果需要，可以添加自定义邀请消息！
+
+                        [带我前往工作空间成员](${workspaceMembersLink}).
+
+                        ![邀请你的团队](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`),
             },
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `设置[分类](${workspaceCategoriesLink})和[标签](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*设置分类和标签*，以便您的团队可以对支出进行编码，以便于报告。\n' +
-                    '\n' +
-                    `通过[连接您的会计软件](${workspaceAccountingLink})自动导入它们，或在您的[工作区设置](${workspaceCategoriesLink})中手动设置。`,
+                    dedent(`
+                        *设置类别和标签*，让您的团队可以为费用编码，轻松生成报表。
+
+                        可通过[连接您的会计软件](${workspaceAccountingLink})自动导入，或在[工作区设置](${workspaceCategoriesLink})中手动设置。`),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `设置[标签](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    '使用标签添加额外的支出详情，例如项目、客户、地点和部门。如果您需要多级标签，可以升级到 Control 计划。\n' +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *更多功能*。\n' +
-                    '4. 启用 *标签*。\n' +
-                    '5. 导航到工作区编辑器中的 *标签*。\n' +
-                    '6. 点击 *+添加标签*以创建自己的标签。\n' +
-                    '\n' +
-                    `[带我到更多功能](${workspaceMoreFeaturesLink})。\n` +
-                    '\n' +
-                    `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        使用标签为报销添加更多详细信息，例如项目、客户、地点和部门。如果需要多级标签，可以升级到 Control 方案。
+
+                        1. 点击 *工作区（Workspaces）*。
+                        3. 选择你的工作区。
+                        4. 点击 *更多功能（More features）*。
+                        5. 启用 *标签（Tags）*。
+                        6. 在工作区编辑器中前往 *标签（Tags）*。
+                        7. 点击 *+ 添加标签（+ Add tag）* 来创建你自己的标签。
+
+                        [前往更多功能](${workspaceMoreFeaturesLink})。
+
+                        ![设置标签](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`),
             },
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `邀请您的[会计](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*邀请您的会计* 与您同步合作，并管理您的商务支出。\n' +
-                    '\n' +
-                    '1. 点击 *工作区*。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 点击 *成员*。\n' +
-                    '4. 点击 *邀请成员*。\n' +
-                    '5. 输入您会计的邮箱地址。\n' +
-                    '\n' +
-                    `[立即邀请您的会计](${workspaceMembersLink})。`,
+                    dedent(`
+                        *邀请您的会计* 在您的工作区中协作并管理您的业务费用。
+
+                        1. 点击 *Workspaces*。
+                        2. 选择您的工作区。
+                        3. 点击 *Members*。
+                        4. 点击 *Invite member*。
+                        5. 输入您会计的电子邮件地址。
+
+                        [立即邀请您的会计](${workspaceMembersLink})。`),
             },
             startChatTask: {
                 title: '开始聊天',
-                description:
-                    '*通过任何人的电子邮件或电话号码*开始聊天。\n' +
-                    '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *开始聊天*。\n' +
-                    '3. 输入电子邮件或电话号码。\n' +
-                    '\n' +
-                    '如果他们尚未使用 Expensify，他们将自动被邀请。\n' +
-                    '\n' +
-                    '每次聊天也会转化为一封电子邮件或短信，他们可以直接回复。',
+                description: dedent(`
+                    使用对方的电子邮件或电话号码，与任何人*开始聊天*。
+
+                    1. 点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。
+                    2. 选择*开始聊天*。
+                    3. 输入电子邮件或电话号码。
+
+                    如果他们尚未使用 Expensify，将会自动收到邀请。
+
+                    每次聊天也会同时变成电子邮件或短信，他们可以直接回复。
+                `),
             },
             splitExpenseTask: {
                 title: '拆分支出',
-                description:
-                    '与一人或多人一起*分摊费用*。' +
-                    '\n' +
-                    `点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。` +
-                    '2. 选择*开始聊天*。' +
-                    '3. 输入电子邮件地址或电话号码..' +
-                    '4. 在聊天中点击灰色的*+*按钮 > *拆分费用*。' +
-                    '5. 通过选择*手动*、*扫描*或*距离*来创建费用。' +
-                    '\n' +
-                    '如果你愿意，可以补充更多细节，或者直接提交。让我们帮你尽快拿到报销款！',
+                description: dedent(`
+                    与一个或多个人一起*分摊费用*。
+
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    2. 选择*开始聊天*。
+                    3. 输入电子邮件或电话号码。
+                    4. 在聊天中点击灰色的*+*按钮 > *分摊费用*。
+                    5. 通过选择*手动*、*扫描*或*距离*来创建费用。
+
+                    如果愿意，可以添加更多细节，或者直接发送即可。让我们帮你拿回这笔钱！
+                `),
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `查看您的[工作区设置](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '以下是查看和更新您工作区设置的方法：\n' +
-                    '\n' +
-                    '1. 点击工作区。\n' +
-                    '2. 选择您的工作区。\n' +
-                    '3. 查看和更新您的设置。\n' +
-                    `[前往您的工作区。](${workspaceSettingsLink})`,
+                    dedent(`
+                        以下是查看和更新工作区设置的方法：
+                        1. 点击“工作区”。
+                        2. 选择你的工作区。
+                        3. 查看并更新你的设置。
+                        [前往你的工作区。](${workspaceSettingsLink})`),
             },
             createReportTask: {
                 title: '创建您的第一份报告',
-                description:
-                    '以下是创建报告的方法：\n' +
-                    '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *创建报告*。\n' +
-                    '3. 点击 *添加支出*。\n' +
-                    '4. 添加您的第一笔支出。\n' +
-                    '\n' +
-                    '您已经完成！',
+                description: dedent(`
+                    以下是创建报告的方法：
+
+                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    2. 选择 *创建报告*。
+                    3. 点击 *添加费用*。
+                    4. 添加您的第一笔费用。
+
+                    完成了！
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2589,8 +2632,10 @@ ${merchant}的${amount} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage:
-                '# 您的免费试用已经开始！让我们帮您完成设置。\n👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请充分利用 30 天免费试用，并按照下面的步骤操作！',
+            onboardingManageTeamMessage: dedent(`
+                您的免费试用已开始！让我们为您完成设置。
+                👋 您好，我是您的 Expensify 设置专员。既然您已创建了一个工作区，请按照以下步骤操作，充分利用为期 30 天的免费试用！
+            `),
             onboardingTrackWorkspaceMessage:
                 '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
@@ -3200,6 +3245,9 @@ ${merchant}的${amount} - ${date}`,
         whatsYourAddress: '你的地址是什么？',
         whatAreTheLast: '业主社会安全号码的最后四位数字是什么？',
         whatsYourLast: '您的社会安全号码的最后四位数字是什么？',
+        whatsYourNationality: '您的公民身份所属国家是？',
+        whatsTheOwnersNationality: '业主的公民身份所属国家是？',
+        countryOfCitizenship: '公民身份国家',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         last4: 'SSN的后四位',
         whyDoWeAsk: '我们为什么要求这个？',
@@ -3292,8 +3340,11 @@ ${merchant}的${amount} - ${date}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: '签署人、授权用户和实益所有人的税号。',
         PDSandFSG: 'PDS + FSG 披露文件',
-        PDSandFSGDescription:
-            '我们与 Corpay 的合作利用了 API 连接，以利用其庞大的国际银行合作伙伴网络来支持 Expensify 的全球报销。根据澳大利亚法规，我们向您提供 Corpay 的金融服务指南 (FSG) 和产品披露声明 (PDS)。\n\n请仔细阅读 FSG 和 PDS 文件，因为它们包含 Corpay 提供的产品和服务的完整详细信息和重要信息。请保留这些文件以备将来参考。',
+        PDSandFSGDescription: dedent(`
+            我们与 Corpay 的合作通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 的全球报销功能提供支持。根据澳大利亚法规，我们向您提供 Corpay 的《金融服务指南（FSG）》和《产品披露声明（PDS）》。
+
+            请仔细阅读 FSG 和 PDS 文件，因为其中包含 Corpay 所提供产品与服务的完整细节及重要信息。请保留这些文件以备日后查阅。
+        `),
         pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体董事的身份。',
         enterSignerInfo: '输入签署人信息',
         thisStep: '此步骤已完成',
@@ -4086,30 +4137,42 @@ ${merchant}的${amount} - ${date}`,
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: '费用报告',
-                        reimbursableDescription: '自付费用将作为费用报告导出到NetSuite。',
-                        nonReimbursableDescription: '公司卡费用将作为费用报告导出到NetSuite。',
+                        reimbursableDescription: dedent(`
+                            自付费用将作为会计分录导出到下方指定的 NetSuite 账户。
+
+                            如果您希望为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            公司卡费用将作为日记账分录导出到下方指定的 NetSuite 账户。
+
+                            如果你想为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: '供应商账单',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            自付费用将作为会计分录导出到下方指定的 NetSuite 账户。
+
+                            如果您希望为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            公司卡费用将作为日记账分录导出到下方指定的 NetSuite 账户。
+
+                            如果你想为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: '日记条目',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            自付费用将作为会计分录导出到下方指定的 NetSuite 账户。
+
+                            如果您希望为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            公司卡费用将作为日记账分录导出到下方指定的 NetSuite 账户。
+
+                            如果你想为每张卡设置特定的供应商，请前往 *Settings > Domains > Company Cards*。
+                        `),
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5049,6 +5112,7 @@ ${merchant}的${amount} - ${date}`,
             issueCard: '发卡',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
+                inviteNewMember: '邀请新成员',
                 findMember: '查找成员',
                 chooseCardType: '选择卡类型',
                 physicalCard: '实体卡',
@@ -5709,7 +5773,7 @@ ${merchant}的${amount} - ${date}`,
                 billableDescription: '费用通常会重新计费给客户。',
                 nonBillable: '非计费',
                 nonBillableDescription: '费用有时会重新计入客户账单。',
-                eReceipts: 'eReceipts',
+                eReceipts: '电子收据',
                 eReceiptsHint: `电子收据是自动创建的[用于大多数美元贷记交易](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '参与者跟踪',
                 attendeeTrackingHint: '跟踪每笔费用的每人成本。',
@@ -6005,6 +6069,32 @@ ${merchant}的${amount} - ${date}`,
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `将所有费用的人工审批限额更改为${newLimit}（之前为${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `此工作区的${enabled ? '已启用' : '已禁用'}笔报销`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税项 "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已删除税项 "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `将税项 "${oldValue}" 重命名为 "${newValue}"`;
+                }
+                case 'code': {
+                    return `将税项 "${taxName}" 的代码从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'rate': {
+                    return `将税项 "${taxName}" 的税率从 "${oldValue}" 更改为 "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? `已禁用税项 "${taxName}"` : `已启用税项 "${taxName}"`}`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -6089,7 +6179,10 @@ ${merchant}的${amount} - ${date}`,
                 subtitleWithOnlyCreateButton: '使用下面的绿色按钮创建报告。',
             },
             emptyInvoiceResults: {
-                title: '您还没有创建任何发票',
+                title: dedent(`
+                    您还没有创建任何
+                    发票
+                `),
                 subtitle: '发送发票或试用Expensify以了解更多信息。',
                 subtitleWithOnlyCreateButton: '使用下面的绿色按钮发送发票。',
             },
@@ -6646,17 +6739,16 @@ ${merchant}的${amount} - ${date}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
         receiptNotSmartScanned: '收据和费用详情手动添加。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = '需要收据';
-            if (formattedLimit ?? category) {
-                message += '结束';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += '类别限制';
-                }
+            if (formattedLimit && category) {
+                return `超过${formattedLimit}的类别限额需要提供收据`;
             }
-            return message;
+            if (formattedLimit) {
+                return `超过${formattedLimit}需要收据`;
+            }
+            if (category) {
+                return `超出类别限额需提供收据`;
+            }
+            return '需要收据';
         },
         prohibitedExpense: ({prohibitedExpenseTypes}) => {
             const preMessage = '禁止的费用：';
@@ -7065,7 +7157,9 @@ ${merchant}的${amount} - ${date}`,
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以添加副驾驶。验证码应在一两分钟内到达。`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以更新您的副驾驶。`,
         notAllowed: '慢着...',
-        noAccessMessage: '作为副驾驶员，您无权访问此页面。抱歉！',
+        noAccessMessage: dedent(`
+            作为副驾驶，你无权访问此页面。抱歉！
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `作为 ${accountOwnerEmail} 的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶员</a>，您无权执行此操作。对不起！`,
         copilotAccess: 'Copilot访问权限',
@@ -7212,7 +7306,7 @@ ${merchant}的${amount} - ${date}`,
         },
         modal: {
             title: '试用我们吧',
-            description: '快速浏览产品，迅速上手。无需中途停留！',
+            description: '进行一次简短的产品导览，快速上手。',
             confirmText: '开始试用',
             helpText: 'Skip',
             employee: {
@@ -7361,6 +7455,16 @@ ${merchant}的${amount} - ${date}`,
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML 单点登录 (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> 是一项安全功能，可让您更好地控制使用 <strong>${domainName}</strong> 邮箱的成员如何登录 Expensify。要启用它，您需要验证自己是授权的公司管理员。</muted-text>`,
+            fasterAndEasierLogin: '更快、更简单的登录',
+            moreSecurityAndControl: '更强的安全性与控制',
+            onePasswordForAnything: '一个密码搞定一切',
+        },
+        goToDomain: '前往域',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

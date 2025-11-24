@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -257,10 +258,12 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -579,6 +582,7 @@ const translations = {
         businessName: 'Business name',
         clear: 'Clear',
         type: 'Type',
+        reportName: 'Report name',
         action: 'Action',
         expenses: 'Expenses',
         totalSpend: 'Total spend',
@@ -787,18 +791,33 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
-        successfulSignInTitle: "Abracadabra,\nyou're signed in!",
+        successfulSignInTitle: dedent(`
+            Abracadabra,
+            you're signed in!
+        `),
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: "Here's your magic code",
-        description: 'Please enter the code from the device\nwhere it was originally requested',
-        doNotShare: 'Do not share your code with anyone.\nExpensify will never ask you for it!',
+        description: dedent(`
+            Please enter the code from the device
+            where it was originally requested
+        `),
+        doNotShare: dedent(`
+            Do not share your code with anyone.
+            Expensify will never ask you for it!
+        `),
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
-        tfaRequiredTitle: 'Two-factor authentication\nrequired',
-        tfaRequiredDescription: "Please enter the two-factor authentication code\nwhere you're trying to sign in.",
+        tfaRequiredTitle: dedent(`
+            Two-factor authentication
+            required
+        `),
+        tfaRequiredDescription: dedent(`
+            Please enter the two-factor authentication code
+            where you're trying to sign in.
+        `),
         requestOneHere: 'request one here.',
     },
     moneyRequestConfirmationList: {
@@ -1452,6 +1471,7 @@ const translations = {
             educationalTitle: 'Should you hold or reject?',
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
+            approveExpenseTitle: 'Approve other expenses while held expenses stay assigned to you.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
             rejectExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
             reasonPageTitle: 'Reject expense',
@@ -1702,7 +1722,6 @@ const translations = {
         placeholderText: 'Search to see options',
     },
     contacts: {
-        contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
@@ -1956,8 +1975,11 @@ const translations = {
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
-        codesLoseAccess:
-            "If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.",
+        codesLoseAccess: dedent(`
+            If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+            Note: Setting up two-factor authentication will log you out of all other active sessions.
+        `),
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2499,19 +2521,21 @@ const translations = {
             addExpenseApprovalsTask: {
                 title: 'Add expense approvals',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
-                    '\n' +
-                    `Here's how:\n` +
-                    '\n' +
-                    '1. Go to *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *More features*.\n' +
-                    '4. Enable *Workflows*.\n' +
-                    '5. Navigate to *Workflows* in the workspace editor.\n' +
-                    '6. Enable *Add approvals*.\n' +
-                    `7. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
-                    '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                    dedent(`
+                        *Add expense approvals* to review your team's spend and keep it under control.
+
+                        Here's how:
+
+                        1. Go to *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Workflows*.
+                        5. Navigate to *Workflows* in the workspace editor.
+                        6. Enable *Add approvals*.
+                        7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
+
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
+                    `),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
@@ -2520,199 +2544,227 @@ const translations = {
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
-                    '\n' +
-                    '1. Click *Workspaces* > *New workspace*.\n' +
-                    '\n' +
-                    `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
+                    dedent(`
+                        *Create a workspace* to track expenses, scan receipts, chat, and more.
+
+                        1. Click *Workspaces* > *New workspace*.
+
+                        *Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).
+                    `),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*Set up categories* so your team can code expenses for easy reporting.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Categories*.\n' +
-                    "4. Disable any categories you don't need.\n" +
-                    '5. Add your own categories in the top right.\n' +
-                    '\n' +
-                    `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
-                    '\n' +
-                    `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *Set up categories* so your team can code expenses for easy reporting.
+
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *Categories*.
+                        5. Disable any categories you don't need.
+                        6. Add your own categories in the top right.
+
+                        [Take me to workspace category settings](${workspaceCategoriesLink}).
+
+                        ![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    `4. Add your boss's email or phone number.\n` +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    'And you’re done!',
+                description: dedent(`
+                    *Submit an expense* by entering an amount or scanning a receipt.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Add your boss's email or phone number.
+                    5. Click *Create*.
+
+                    And you're done!
+                `),
             },
             adminSubmitExpenseTask: {
                 title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details.\n' +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    `And you're done!`,
+                description: dedent(`
+                    *Submit an expense* by entering an amount or scanning a receipt.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Confirm details.
+                    5. Click *Create*.
+
+                    And you're done!
+                `),
             },
             trackExpenseTask: {
                 title: 'Track an expense',
-                description:
-                    '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Choose your *personal* space.\n' +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    'And you’re done! Yep, it’s that easy.',
+                description: dedent(`
+                    *Track an expense* in any currency, whether you have a receipt or not.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Choose your *personal* space.
+                    5. Click *Create*.
+
+                    And you're done! Yep, it's that easy.
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Connect${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' to'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Accounting*.\n' +
-                    `4. Find ${integrationName}.\n` +
-                    '5. Click *Connect*.\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Take me to accounting](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+                        Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Accounting*.
+                        4. Find ${integrationName}.
+                        5. Click *Connect*.
+
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? dedent(
+                                      `[Take me to accounting](${workspaceAccountingLink}).
+
+                                      ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
+                                  )
+                                : `[Take me to accounting](${workspaceAccountingLink}).`
+                        }
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `Connect your corporate card to automatically import and code expenses.\n` +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Corporate cards*.\n' +
-                    '4. Follow the prompts to connect your card.\n' +
-                    '\n' +
-                    `[Take me to connect my corporate cards](${corporateCardLink}).`,
+                    dedent(`
+                        Connect your corporate card to automatically import and code expenses.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Corporate cards*.
+                        4. Follow the prompts to connect your card.
+
+                        [Take me to connect my corporate cards](${corporateCardLink}).
+                    `),
             },
 
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Members* > *Invite member*.\n' +
-                    '4. Enter emails or phone numbers. \n' +
-                    '5. Add a custom invite message if you’d like!\n' +
-                    '\n' +
-                    `[Take me to workspace members](${workspaceMembersLink}).\n` +
-                    '\n' +
-                    `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *Invite your team* to Expensify so they can start tracking expenses today.
+
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *Members* > *Invite member*.
+                        5. Enter emails or phone numbers.
+                        6. Add a custom invite message if you'd like!
+
+                        [Take me to workspace members](${workspaceMembersLink}).
+
+                        ![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
+                    `),
             },
 
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Set up [categories](${workspaceCategoriesLink}) and [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
-                    '\n' +
-                    `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
+                    dedent(`
+                        *Set up categories and tags* so your team can code expenses for easy reporting.
+
+                        Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).
+                    `),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Set up [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *More features*.\n' +
-                    '4. Enable *Tags*.\n' +
-                    '5. Navigate to *Tags* in the workspace editor.\n' +
-                    '6. Click *+ Add tag* to make your own.\n' +
-                    '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                    '\n' +
-                    `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
+
+                        1. Click *Workspaces*.
+                        3. Select your workspace.
+                        4. Click *More features*.
+                        5. Enable *Tags*.
+                        6. Navigate to *Tags* in the workspace editor.
+                        7. Click *+ Add tag* to make your own.
+
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
+
+                        ![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
+                    `),
             },
 
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Members*.\n' +
-                    '4. Click *Invite member*.\n' +
-                    "5. Enter your accountant's email address.\n" +
-                    '\n' +
-                    `[Invite your accountant now](${workspaceMembersLink}).`,
+                    dedent(`
+                        *Invite your accountant* to collaborate on your workspace and manage your business expenses.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Members*.
+                        4. Click *Invite member*.
+                        5. Enter your accountant's email address.
+
+                        [Invite your accountant now](${workspaceMembersLink}).
+                    `),
             },
 
             startChatTask: {
                 title: 'Start a chat',
-                description:
-                    '*Start a chat* with anyone using their email or phone number.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Start chat*.\n' +
-                    '3. Enter an email or phone number.\n' +
-                    '\n' +
-                    'If they’re not using Expensify already, they’ll be invited automatically.\n' +
-                    '\n' +
-                    'Every chat will also turn into an email or text that they can respond to directly.',
+                description: dedent(`
+                    *Start a chat* with anyone using their email or phone number.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Start chat*.
+                    3. Enter an email or phone number.
+
+                    If they're not using Expensify already, they'll be invited automatically.
+
+                    Every chat will also turn into an email or text that they can respond to directly.
+                `),
             },
 
             splitExpenseTask: {
                 title: 'Split an expense',
-                description:
-                    '*Split expenses* with one or more people.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Start chat*.\n' +
-                    '3. Enter emails or phone numbers.\n' +
-                    '4. Click the grey *+* button in the chat > *Split expense*.\n' +
-                    '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
-                    '\n' +
-                    'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
+                description: dedent(`
+                    *Split expenses* with one or more people.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Start chat*.
+                    3. Enter emails or phone numbers.
+                    4. Click the grey *+* button in the chat > *Split expense*.
+                    5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.
+
+                    Feel free to add more details if you want, or just send it off. Let's get you paid back!
+                `),
             },
 
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    "Here's how to review and update your workspace settings:\n" +
-                    '1. Click Workspaces.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Review and update your settings.\n' +
-                    `[Go to your workspace.](${workspaceSettingsLink})`,
+                    dedent(`
+                        Here's how to review and update your workspace settings:
+                        1. Click Workspaces.
+                        2. Select your workspace.
+                        3. Review and update your settings.
+                        [Go to your workspace.](${workspaceSettingsLink})
+                    `),
             },
             createReportTask: {
                 title: 'Create your first report',
-                description:
-                    'Here’s how to create a report:\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create report*.\n' +
-                    '3. Click *Add expense*.\n' +
-                    '4. Add your first expense.\n' +
-                    '\n' +
-                    'And you’re done!',
+                description: dedent(`
+                    Here's how to create a report:
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create report*.
+                    3. Click *Add expense*.
+                    4. Add your first expense.
+
+                    And you're done!
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2725,8 +2777,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
-            onboardingManageTeamMessage:
-                "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!",
+            onboardingManageTeamMessage: dedent(`
+                # Your free trial has started! Let's get you set up.
+                👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
+            `),
             onboardingTrackWorkspaceMessage:
                 '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -3347,6 +3401,9 @@ const translations = {
         whatsYourAddress: "What's your address?",
         whatAreTheLast: "What are the last 4 digits of the owner's Social Security Number?",
         whatsYourLast: 'What are the last 4 digits of your Social Security Number?',
+        whatsYourNationality: 'What is your country of citizenship?',
+        whatsTheOwnersNationality: "What's the owner's country of citizenship?",
+        countryOfCitizenship: 'Country of citizenship',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4: 'Last 4 of SSN',
         whyDoWeAsk: 'Why do we ask for this?',
@@ -3441,8 +3498,11 @@ const translations = {
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
         PDSandFSG: 'PDS + FSG disclosure paperwork',
-        PDSandFSGDescription:
-            "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
+        PDSandFSGDescription: dedent(`
+            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).
+
+            Please read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
+        `),
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
@@ -4267,25 +4327,29 @@ const translations = {
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Vendor bills',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Company card expenses will export as bills payable to the NetSuite vendor specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Journal entries',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Company card expenses will export as journal entries to the NetSuite account specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5240,6 +5304,7 @@ const translations = {
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
+                inviteNewMember: 'Invite new member',
                 findMember: 'Find member',
                 chooseCardType: 'Choose a card type',
                 physicalCard: 'Physical card',
@@ -6228,6 +6293,32 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements for this workspace`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `renamed the tax "${oldValue}" to "${newValue}"`;
+                }
+                case 'code': {
+                    return `changed the tax code for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'rate': {
+                    return `changed the tax rate for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'disabled' : 'enabled'} the tax "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -6312,7 +6403,10 @@ const translations = {
                 subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
             },
             emptyInvoiceResults: {
-                title: "You haven't created any \ninvoices yet",
+                title: dedent(`
+                    You haven't created any
+                    invoices yet
+                `),
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
@@ -6875,17 +6969,19 @@ const translations = {
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt and expense details added manually.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Receipt required';
-            if (formattedLimit ?? category) {
-                message += ' over';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += ' category limit';
-                }
+            if (formattedLimit && category) {
+                return `Receipt required over ${formattedLimit} category limit`;
             }
-            return message;
+
+            if (formattedLimit) {
+                return `Receipt required over ${formattedLimit}`;
+            }
+
+            if (category) {
+                return `Receipt required over category limit`;
+            }
+
+            return 'Receipt required';
         },
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
@@ -7306,7 +7402,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        noAccessMessage: dedent(`
+            As a copilot, you don't have access to
+            this page. Sorry!
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `As a <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
         copilotAccess: 'Copilot access',
@@ -7453,7 +7552,7 @@ const translations = {
         },
         modal: {
             title: 'Take us for a test drive',
-            description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
+            description: 'Take a quick product tour to get up to speed fast.',
             confirmText: 'Start test drive',
             helpText: 'Skip',
             employee: {
@@ -7497,6 +7596,16 @@ const translations = {
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
         },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML Single Sign-On (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is a security feature that gives you more control over how members with <strong>${domainName}</strong> emails log into Expensify. To enable it, you'll need to verify yourself as an authorized company admin.</muted-text>`,
+            fasterAndEasierLogin: 'Faster and easier login',
+            moreSecurityAndControl: 'More security and control',
+            onePasswordForAnything: 'One password for everything',
+        },
+        goToDomain: 'Go to domain',
     },
 };
 
