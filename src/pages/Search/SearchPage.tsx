@@ -635,15 +635,6 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        beginExportWithTemplate,
-        integrationsExportTemplates,
-        csvExportLayouts,
-        policies,
-        bulkPayButtonOptions,
-        onBulkPaySelected,
-        selectedPolicyIDs,
-        selectedReportIDs,
-        selectedTransactionReportIDs,
         expensifyIcons,
     ]);
 
