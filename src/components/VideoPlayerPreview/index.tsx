@@ -1,14 +1,14 @@
 import {useNavigation} from '@react-navigation/native';
-import type {SourceLoadEventPayload} from 'expo-video';
+import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +52,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Expand'] as const);
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -92,16 +93,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
-    // `onSourceLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
+    // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
-    const onSourceLoaded = (event: SourceLoadEventPayload) => {
-        const track = event.availableVideoTracks.at(0);
-
-        if (!track) {
-            return;
-        }
-
-        setMeasuredDimensions({width: track.size.width, height: track.size.height});
+    const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
+        setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
     };
 
     const handleOnPress = () => {
@@ -136,7 +131,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
-                        onSourceLoaded={onSourceLoaded}
+                        onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
@@ -146,7 +141,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
-                            src={Expensicons.Expand}
+                            src={expensifyIcons.Expand}
                             style={[styles.videoExpandButton]}
                             tooltipText={translate('videoPlayer.expand')}
                             onPress={onShowModalPress}

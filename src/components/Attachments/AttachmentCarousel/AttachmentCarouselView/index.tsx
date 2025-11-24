@@ -13,8 +13,8 @@ import type {UpdatePageProps} from '@components/Attachments/AttachmentCarousel/t
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,6 +62,7 @@ function AttachmentCarouselView({
 }: AttachmentCarouselViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
     const canUseTouchScreen = canUseTouchScreenUtil();
     const {isFullScreenRef} = useFullScreenContext();
     const isPagerScrolling = useSharedValue(false);
@@ -239,7 +240,7 @@ function AttachmentCarouselView({
         >
             {page === -1 ? (
                 <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
+                    icon={illustrations.ToddBehindCloud}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}
