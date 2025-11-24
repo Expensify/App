@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -65,10 +65,10 @@ function ReportLayoutPage() {
                 title={translate('reportLayout.reportLayout')}
                 onBackButtonPress={goBack}
             />
-            <Text style={[styles.textLabel, styles.mh5, styles.mv3]}>{translate('reportLayout.groupByLabel')}</Text>
+            <Text style={[styles.textLabel, styles.textSupporting, styles.mh5, styles.mv3]}>{translate('reportLayout.groupByLabel')}</Text>
             <SelectionList
                 data={layoutOptions}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectGroupBy}
                 initiallyFocusedItemKey={layoutOptions.find((option) => option.isSelected)?.keyForList}
             />
