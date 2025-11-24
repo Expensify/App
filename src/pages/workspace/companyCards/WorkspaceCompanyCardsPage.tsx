@@ -4,6 +4,7 @@ import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -86,6 +87,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     useEffect(() => {
         fetchCompanyCards();
@@ -209,7 +211,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
-                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
+                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken || !isAllowedToIssueCompanyCard}
                         />
                     )}
                 </WorkspacePageWithSections>
