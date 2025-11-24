@@ -1369,7 +1369,7 @@ function changeTransactionsReport(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
-            value: affectedReportID === reportID ? reportNextStep : affectedReport.nextStep ?? null,
+            value: affectedReportID === reportID ? reportNextStep : (affectedReport.nextStep ?? null),
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
