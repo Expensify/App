@@ -154,6 +154,7 @@ type GetValidReportsConfig = {
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -238,7 +239,6 @@ type PreviewConfig = {
     isDisabled?: boolean | null;
     selected?: boolean;
     isSelected?: boolean;
-    shouldUnreadBeBold?: boolean;
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
