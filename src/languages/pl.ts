@@ -698,6 +698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
         reportName: 'Nazwa raportu',
+        test: 'Test',
+        deny: 'Odrzuć',
+        approve: 'Zatwierdź',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -799,6 +802,150 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: 'Spróbuj ponownie',
         or: ', lub',
         continueInWeb: 'przejdź do aplikacji internetowej',
+    },
+    multifactorAuthentication: {
+        smsOtpForm: {
+            error: {
+                pleaseFillSmsOtp: 'Proszę wprowadzić kod wysłany przez SMS',
+                incorrectSmsOtp: 'Nieprawidłowy kod. Proszę spróbować ponownie.',
+            },
+        },
+        approveTransaction: {
+            headerButtonTitle: 'Zatwierdź transakcję',
+            pageTitle: 'Proszę zatwierdzić tę transakcję',
+            pageContent: 'Transakcja Expensify Card wymaga Twojej aprobaty, proszę przejrzyj ją poniżej.',
+            transactionDetails: 'Szczegóły transakcji',
+            denyTransactionButton: 'Odrzuć transakcję',
+            denyTransactionContent: 'Transakcja zostanie odrzucona, jeśli zamkniesz ten ekran.',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometria (Nie zarejestrowano)',
+            biometricsRegistered: 'Biometria (Zarejestrowano)',
+            biometricsTest: 'Testowanie biometrii',
+            notificationTitle: 'Uwierzytelnianie powiodło się',
+            notificationFallbackContent: 'Pomyślnie uwierzytelniono przy użyciu magicznego kodu + 2FA.',
+            fallbackPageTitle: 'Zweryfikujmy, że to Ty',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}.`,
+            fallbackPage2FAContent: 'Proszę wprowadzić kod z aplikacji uwierzytelniającej.',
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić kod wysłany na ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Weryfikacja twarzy/odcisku palca',
+            revokeContent:
+                'Weryfikacja twarzy/odcisku palca jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu będzie wymagało magicznego kodu podczas następnej weryfikacji twarzy/odcisku palca na dowolnym urządzeniu.',
+            reEnableContent:
+                'Weryfikacja twarzy/odcisku palca jest skonfigurowana na jednym lub więcej urządzeniach, ale wymaga magicznego kodu do ponownego włączenia. Następnie możesz cofnąć dostęp tutaj.',
+            confirmationContent: 'Będziesz potrzebować magicznego kodu podczas następnej weryfikacji twarzy/odcisku palca na dowolnym urządzeniu.',
+            bottomButtonContent: 'Cofnij dostęp',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Zweryfikuj się twarzą lub odciskiem palca',
+            enableBiometricsPromptContent: 'Włącz szybką, bezpieczną weryfikację używając swojej twarzy lub odcisku palca—nie wymaga hasła ani kodu.',
+            enablePasskeyPromptTitle: 'Zweryfikuj się kluczem dostępu',
+            enablePasskeyPromptContent: 'Włącz szybką, bezpieczną weryfikację używając klucza dostępu - nie wymaga hasła ani kodu.',
+        },
+        uiText: {
+            transactionApproved: {
+                headerTitle: 'Transakcja zatwierdzona',
+                title: 'Transakcja zatwierdzona',
+            },
+            transactionDenied: {
+                headerTitle: 'Transakcja odrzucona',
+                title: 'Transakcja odrzucona',
+            },
+            outOfTime: {
+                headerTitle: 'Transakcja odrzucona',
+                title: 'Skończył ci się czas!',
+            },
+        },
+        /** Messages and titles displayed after multifactorial authentication operations */
+        statusMessage: {
+            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `Pomyślnie ${authorization ? 'autoryzowano wyzwanie' : 'uwierzytelniono'}${because ? ` za pomocą ${because}` : ''}`,
+            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `Twoja ${authorization ? 'autoryzacja' : 'autentykacja'} ${because ? `nie powiodła się: ${because}` : 'zakończyła się niepowodzeniem'}`,
+            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autoryzacja' : 'Uwierzytelnianie'} zakończone pomyślnie`,
+            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autoryzacja' : 'Uwierzytelnianie'} nie powiodła się`,
+            successTitleGeneral: 'Operacja zakończona pomyślnie',
+            failedTitleGeneral: 'Operacja nie powiodła się',
+        },
+        /** Title indicating multifactorial authentication registration status */
+        title: ({registered = true}: {registered?: boolean}) => `Uwierzytelnianie wieloskładnikowe (${registered ? 'Zarejestrowane' : 'Niezarejestrowane'})`,
+        reason: {
+            /** Success messages for multifactorial authentication operations */
+            success: {
+                keySavedInSecureStore: 'Klucz został pomyślnie zapisany w SecureStore',
+                keyRetrievedFromSecureStore: 'Klucz został pomyślnie pobrany z SecureStore',
+                keyNotInSecureStore: 'Nie znaleziono klucza w SecureStore',
+                keyPairGenerated: 'Para kluczy została pomyślnie wygenerowana',
+                tokenReceived: 'Token został pomyślnie odebrany',
+                tokenSigned: 'Token został pomyślnie podpisany',
+                verificationSuccess: 'Weryfikacja zakończona pomyślnie',
+                keyDeletedFromSecureStore: 'Klucz został pomyślnie usunięty z SecureStore',
+            },
+            /** Error messages for multifactorial authentication operation failures */
+            error: {
+                unableToSaveKey: 'Nie udało się zapisać klucza w SecureStore',
+                unableToRetrieve: 'Nie udało się pobrać klucza z SecureStore',
+                unableToDelete: 'Nie udało się usunąć klucza z SecureStore',
+                badToken: 'Nieprawidłowy lub brakujący token',
+                tokenMissing: 'Brak tokenu',
+                keyMissing: 'Brak klucza',
+                signatureMissing: 'Brak podpisu',
+                challengeIsAlreadySigned: 'Wyzwanie zostało już podpisane',
+                challengeRejected: 'Wyzwanie odrzucone przez API',
+                validateCodeMissing: 'Brak kodu weryfikacyjnego',
+                otpMissing: 'Brak kodu OTP',
+                keyMissingOnTheBE: 'Klucz zapisany lokalnie, ale nie znaleziony na serwerze',
+                multifactorAuthenticationNotSupported: 'To urządzenie nie obsługuje uwierzytelniania wieloskładnikowego',
+                badRequest: 'Nieprawidłowe żądanie',
+                fallbackNotAllowed: 'Urządzenie nie obsługuje biometrii, a metoda zastępcza nie jest dozwolona',
+                biometricsNotAllowed: 'Akcje biometryczne nie są dozwolone w tym scenariuszu',
+            },
+            /** Error messages specific to Expo's SecureStore */
+            expoErrors: {
+                notInForeground: 'Aplikacja musi być na pierwszym planie',
+                alreadyInProgress: 'Uwierzytelnianie jest już w toku',
+                canceled: 'Uwierzytelnianie anulowane przez użytkownika',
+                generic: 'Wystąpił błąd',
+                keyExists: 'Taki klucz już istnieje',
+                noAuthentication: 'Brak dostępnych metod uwierzytelniania',
+                oldAndroid: 'Ta funkcja nie jest obsługiwana na Twoim urządzeniu',
+            },
+            /** Generic status messages */
+            generic: {
+                notRequested: 'Nie wysłano jeszcze żadnego żądania',
+                apiError: 'Wystąpił błąd API',
+                authFactorsError: 'Błąd czynników uwierzytelniających',
+                authFactorsSufficient: 'Czynniki uwierzytelniające zostały zweryfikowane',
+            },
+        },
+        /** API response messages */
+        apiResponse: {
+            registrationRequired: 'Wymagana rejestracja',
+            challengeGenerated: 'Wyzwanie zostało pomyślnie wygenerowane',
+            noPublicKey: 'Nie podano klucza publicznego',
+            keyAlreadyRegistered: 'Ten klucz publiczny jest już zarejestrowany',
+            validationCodeRequired: 'Podaj kod weryfikacyjny',
+            validationCodeInvalid: 'Nieprawidłowy kod weryfikacyjny',
+            otpCodeInvalid: 'Nieprawidłowy kod OTP',
+            otpCodeRequired: 'Podaj kod OTP',
+            multifactorAuthenticationSuccess: 'Rejestracja uwierzytelniania wieloskładnikowego zakończona pomyślnie',
+            noTransactionID: 'Nie podano identyfikatora transakcji',
+            userNotRegistered: 'Nie znaleziono rejestracji użytkownika',
+            unableToAuthorize: 'Nie udało się autoryzować przy użyciu podanych danych',
+            userAuthorized: 'Użytkownik pomyślnie autoryzowany',
+            badRequest: 'Nieprawidłowe żądanie',
+            signatureInvalid: 'Podpis jest nieprawidłowy',
+            unknownResponse: 'Nierozpoznany typ odpowiedzi',
+            noPublicKeysRegistered: 'Brak zarejestrowanych kluczy publicznych',
+            revokedAccess: 'Pomyślnie cofnięto dostęp na wszystkich urządzeniach',
+        },
+        /** User input prompts during multifactorial authentication flows */
+        provideValidateCode: 'Wprowadź kod weryfikacyjny, aby kontynuować',
+        provideOTPCode: 'Wprowadź jednorazowe hasło, aby kontynuować',
+        softPromptTitle: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
+        softPromptDescription: 'Włącz szybkie i bezpieczne potwierdzanie tożsamości za pomocą twarzy lub odcisku palca — bez haseł i kodów.',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
         reportName: '报告名称',
+        test: '测试',
+        deny: '拒绝',
+        approve: '批准',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -792,6 +795,147 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: '再试一次',
         or: '，或',
         continueInWeb: '继续到网页应用程序',
+    },
+    multifactorAuthentication: {
+        smsOtpForm: {
+            error: {
+                pleaseFillSmsOtp: '请输入通过短信发送的代码',
+                incorrectSmsOtp: '代码不正确。请重试。',
+            },
+        },
+        approveTransaction: {
+            headerButtonTitle: '批准交易',
+            pageTitle: '请批准此交易',
+            pageContent: 'Expensify Card交易需要您的批准，请在下面查看。',
+            transactionDetails: '交易详情',
+            denyTransactionButton: '拒绝交易',
+            denyTransactionContent: '如果您关闭此屏幕，交易将被拒绝。',
+        },
+        biometrics: {
+            biometricsNotRegistered: '生物识别（未注册）',
+            biometricsRegistered: '生物识别（已注册）',
+            biometricsTest: '测试生物识别',
+            notificationTitle: '身份验证成功',
+            notificationFallbackContent: '您已使用魔法代码 + 2FA成功进行身份验证。',
+            fallbackPageTitle: '让我们验证是否是您本人',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的魔法代码。`,
+            fallbackPage2FAContent: '请输入您的身份验证器代码。',
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的代码。`,
+        },
+        revokePage: {
+            headerTitle: '面部/指纹验证',
+            revokeContent: '在一个或多个设备上启用了面部/指纹验证。撤销访问将需要魔法代码以在任何设备上进行下一次面部/指纹验证。',
+            reEnableContent: '在一个或多个设备上设置了面部/指纹验证，但需要魔法代码才能重新启用。之后，您可以在此处撤销访问。',
+            confirmationContent: '在任何设备上进行下一次面部/指纹验证时将需要魔法代码。',
+            bottomButtonContent: '撤销访问',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: '使用面部或指纹验证身份',
+            enableBiometricsPromptContent: '启用使用您的面部或指纹进行快速、安全的验证—无需密码或代码。',
+            enablePasskeyPromptTitle: '使用密钥验证身份',
+            enablePasskeyPromptContent: '启用使用密钥进行快速、安全的验证 - 无需密码或代码。',
+        },
+        uiText: {
+            transactionApproved: {
+                headerTitle: '交易已批准',
+                title: '交易已批准',
+            },
+            transactionDenied: {
+                headerTitle: '交易被拒绝',
+                title: '交易被拒绝',
+            },
+            outOfTime: {
+                headerTitle: '交易被拒绝',
+                title: '你的时间用完了！',
+            },
+        },
+        /** Messages and titles displayed after multifactorial authentication operations */
+        statusMessage: {
+            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `您已成功${authorization ? '授权挑战' : '完成身份验证'}${because ? `（使用 ${because}）` : ''}`,
+            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) => `您的${authorization ? '授权' : '身份验证'}${because ? `失败：${because}` : '未成功'}`,
+            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? '授权' : '身份验证'}成功`,
+            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? '授权' : '身份验证'}失败`,
+            successTitleGeneral: '操作成功',
+            failedTitleGeneral: '操作失败',
+        },
+        /** Title indicating multifactorial authentication registration status */
+        title: ({registered = true}: {registered?: boolean}) => `多因素身份验证（${registered ? '已注册' : '未注册'}）`,
+        reason: {
+            /** Success messages for multifactorial authentication operations */
+            success: {
+                keySavedInSecureStore: '密钥已成功保存到 SecureStore',
+                keyRetrievedFromSecureStore: '已成功从 SecureStore 获取密钥',
+                keyNotInSecureStore: 'SecureStore 中未找到密钥',
+                keyPairGenerated: '密钥对已成功生成',
+                tokenReceived: '令牌已成功接收',
+                tokenSigned: '令牌已成功签名',
+                verificationSuccess: '验证已成功完成',
+                keyDeletedFromSecureStore: '密钥已成功从 SecureStore 删除',
+            },
+            /** Error messages for multifactorial authentication operation failures */
+            error: {
+                unableToSaveKey: '无法将密钥保存到 SecureStore',
+                unableToRetrieve: '无法从 SecureStore 获取密钥',
+                unableToDelete: '无法从 SecureStore 删除密钥',
+                badToken: '令牌无效或缺失',
+                tokenMissing: '缺少令牌',
+                keyMissing: '缺少密钥',
+                signatureMissing: '缺少签名',
+                challengeIsAlreadySigned: '挑战已被签名',
+                challengeRejected: 'API 拒绝了挑战请求',
+                validateCodeMissing: '缺少验证码',
+                otpMissing: '缺少一次性密码 (OTP)',
+                keyMissingOnTheBE: '密钥已保存在本地，但在服务器上未找到',
+                multifactorAuthenticationNotSupported: '此设备不支持多因素身份验证',
+                badRequest: '请求无效',
+                fallbackNotAllowed: '此设备不支持生物识别，且不允许使用替代方式',
+                biometricsNotAllowed: '此场景不允许使用生物识别操作',
+            },
+            /** Error messages specific to Expo's SecureStore */
+            expoErrors: {
+                notInForeground: '应用程序必须在前台运行',
+                alreadyInProgress: '身份验证正在进行中',
+                canceled: '用户已取消身份验证',
+                generic: '发生错误',
+                keyExists: '此密钥已存在',
+                noAuthentication: '无可用的身份验证方式',
+                oldAndroid: '此功能在您的设备上不受支持',
+            },
+            /** Generic status messages */
+            generic: {
+                notRequested: '尚未发起请求',
+                apiError: '发生 API 错误',
+                authFactorsError: '身份验证因素出错',
+                authFactorsSufficient: '身份验证因素验证成功',
+            },
+        },
+        /** API response messages */
+        apiResponse: {
+            registrationRequired: '需要注册',
+            challengeGenerated: '挑战已成功生成',
+            noPublicKey: '未提供公钥',
+            keyAlreadyRegistered: '该公钥已注册',
+            validationCodeRequired: '请输入验证码',
+            validationCodeInvalid: '验证码无效',
+            otpCodeInvalid: '一次性密码无效',
+            otpCodeRequired: '请输入一次性密码',
+            multifactorAuthenticationSuccess: '多因素身份验证注册成功',
+            noTransactionID: '未提供交易 ID',
+            userNotRegistered: '未找到用户注册信息',
+            unableToAuthorize: '使用提供的凭证授权失败',
+            userAuthorized: '用户授权成功',
+            badRequest: '请求无效',
+            signatureInvalid: '签名无效',
+            unknownResponse: '无法识别的响应类型',
+            noPublicKeysRegistered: '当前没有已注册的公钥',
+            revokedAccess: '已成功撤销所有设备的访问权限',
+        },
+        /** User input prompts during multifactorial authentication flows */
+        provideValidateCode: '请输入您的验证码以继续',
+        provideOTPCode: '请输入一次性密码以继续',
+        softPromptTitle: '请通过人脸或指纹验证身份',
+        softPromptDescription: '启用人脸或指纹验证，实现快速、安全的身份确认，无需密码或验证码。',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

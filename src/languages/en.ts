@@ -692,6 +692,9 @@ const translations = {
         copyToClipboard: 'Copy to clipboard',
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
+        test: 'Test',
+        deny: 'Deny',
+        approve: 'Approve',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -789,6 +792,149 @@ const translations = {
         tryAgain: 'Try again',
         or: ', or',
         continueInWeb: 'continue to the web app',
+    },
+    multifactorAuthentication: {
+        smsOtpForm: {
+            error: {
+                pleaseFillSmsOtp: 'Please enter the code sent via SMS',
+                incorrectSmsOtp: 'Incorrect code. Please try again.',
+            },
+        },
+        approveTransaction: {
+            headerButtonTitle: 'Approve transaction',
+            pageTitle: 'Please approve this transaction',
+            pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
+            transactionDetails: 'Transaction Details',
+            denyTransactionButton: 'Deny transaction',
+            denyTransactionContent: 'The transaction will be denied if you close this screen.',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometrics (Not registered)',
+            biometricsRegistered: 'Biometrics (Registered)',
+            biometricsTest: 'Testing Biometrics',
+            notificationTitle: 'Authentication successful',
+            notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
+            fallbackPageTitle: "Let's verify it's you",
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
+            fallbackPage2FAContent: 'Please enter your authenticator code.',
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Face/fingerprint verification',
+            revokeContent:
+                'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            reEnableContent: 'Face/fingerprint verification is set up on one or more devices, but requires a magic code to re-enable. After that, you can revoke access here.',
+            confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
+            bottomButtonContent: 'Revoke access',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verify yourself with your face or fingerprint',
+            enableBiometricsPromptContent: 'Enable quick, secure verification using your face or fingerprint—no passwords or codes required.',
+            enablePasskeyPromptTitle: 'Verify yourself with a passkey',
+            enablePasskeyPromptContent: 'Enable quick, secure verification using a passkey - no passwords or codes required.',
+        },
+        uiText: {
+            transactionApproved: {
+                headerTitle: 'Transaction approved',
+                title: 'Transaction approved',
+            },
+            transactionDenied: {
+                headerTitle: 'Transaction denied',
+                title: 'Transaction denied',
+            },
+            outOfTime: {
+                headerTitle: 'Transaction denied',
+                title: 'You ran out of time!',
+            },
+        },
+        /** Messages and titles displayed after multifactorial authentication operations */
+        statusMessage: {
+            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `You have successfully ${authorization ? 'authorized the challenge' : 'authenticated'}${because ? ` using ${because}` : ''}`,
+            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `Your ${authorization ? 'authorization' : 'authentication'} ${because ? `failed: ${because}` : 'was unsuccessful'}`,
+            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Authorization' : 'Authentication'} successful`,
+            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Authorization' : 'Authentication'} failed`,
+            successTitleGeneral: 'Operation successful',
+            failedTitleGeneral: 'Operation failed',
+        },
+        /** Title indicating multifactorial authentication registration status */
+        title: ({registered = true}: {registered?: boolean}) => `Multifactor Authentication (${registered ? 'Registered' : 'Not registered'})`,
+        reason: {
+            /** Success messages for multifactorial authentication operations */
+            success: {
+                keySavedInSecureStore: 'Key successfully saved in SecureStore',
+                keyRetrievedFromSecureStore: 'Key successfully retrieved from SecureStore',
+                keyNotInSecureStore: 'No key found in SecureStore',
+                keyPairGenerated: 'Key pair successfully generated',
+                tokenReceived: 'Token received successfully',
+                tokenSigned: 'Token signed successfully',
+                verificationSuccess: 'Verification completed successfully',
+                keyDeletedFromSecureStore: 'Key successfully deleted from SecureStore',
+            },
+            /** Error messages for multifactorial authentication operation failures */
+            error: {
+                unableToSaveKey: 'Failed to save key in SecureStore',
+                unableToRetrieve: 'Failed to retrieve key from SecureStore',
+                unableToDelete: 'Failed to delete key from SecureStore',
+                badToken: 'Invalid or missing token',
+                tokenMissing: 'Token is missing',
+                keyMissing: 'Key is missing',
+                signatureMissing: 'Signature is missing',
+                challengeIsAlreadySigned: 'Challenge has already been signed',
+                challengeRejected: 'Challenge rejected by API',
+                validateCodeMissing: 'Validation code is missing',
+                otpMissing: 'OTP code is missing',
+                keyMissingOnTheBE: 'Key is stored locally but not found on server',
+                multifactorAuthenticationNotSupported: 'This device does not support multifactorial authentication',
+                badRequest: 'Bad request',
+                fallbackNotAllowed: 'This device does not support biometrics and fallback is not allowed',
+                biometricsNotAllowed: 'The biometrics actions are not allowed for this scenario',
+            },
+            /** Error messages specific to Expo's SecureStore */
+            expoErrors: {
+                notInForeground: 'Application must be in the foreground',
+                alreadyInProgress: 'Authentication already in progress',
+                canceled: 'Authentication canceled by user',
+                generic: 'An error occurred',
+                keyExists: 'This key already exists',
+                noAuthentication: 'No authentication methods available',
+                oldAndroid: 'This feature is not supported on your device',
+            },
+            /** Generic status messages */
+            generic: {
+                notRequested: 'No request made yet',
+                apiError: 'API error occurred',
+                authFactorsError: 'Authentication factors error',
+                authFactorsSufficient: 'Authentication factors verified',
+            },
+        },
+        /** API response messages */
+        apiResponse: {
+            registrationRequired: 'Registration is required',
+            challengeGenerated: 'Challenge generated successfully',
+            noPublicKey: 'Public key not provided',
+            keyAlreadyRegistered: 'This public key is already registered',
+            validationCodeRequired: 'Please provide a validation code',
+            validationCodeInvalid: 'Invalid validation code',
+            otpCodeInvalid: 'Invalid OTP code',
+            otpCodeRequired: 'Please provide an OTP code',
+            multifactorAuthenticationSuccess: 'Multi-factor authentication registration successful',
+            noTransactionID: 'Transaction ID not provided',
+            userNotRegistered: 'User registration not found',
+            unableToAuthorize: 'Authorization failed with provided credentials',
+            userAuthorized: 'User authorized successfully',
+            badRequest: 'Invalid request',
+            signatureInvalid: 'Signature is invalid',
+            unknownResponse: 'Unrecognized response type',
+            noPublicKeysRegistered: 'No public keys are currently registered',
+            revokedAccess: 'Successfully revoked access on all devices',
+        },
+        /** User input prompts during multifactorial authentication flows */
+        provideValidateCode: 'Enter your verification code to continue',
+        provideOTPCode: 'Enter your one-time password to continue',
+        softPromptTitle: 'Verify yourself with your face or fingerprint',
+        softPromptDescription: 'Enable quick, secure verification using your face or fingerprint - no passwords or codes required.',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

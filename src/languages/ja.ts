@@ -698,6 +698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
         reportName: 'レポート名',
+        test: 'テスト',
+        deny: '拒否',
+        approve: '承認',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -800,6 +803,148 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: 'もう一度試してください。',
         or: '、または',
         continueInWeb: 'ウェブアプリに進む',
+    },
+    multifactorAuthentication: {
+        smsOtpForm: {
+            error: {
+                pleaseFillSmsOtp: 'SMSで送信されたコードを入力してください',
+                incorrectSmsOtp: 'コードが間違っています。もう一度お試しください。',
+            },
+        },
+        approveTransaction: {
+            headerButtonTitle: 'トランザクションを承認',
+            pageTitle: 'このトランザクションを承認してください',
+            pageContent: 'Expensify Cardのトランザクションには承認が必要です。以下で確認してください。',
+            transactionDetails: 'トランザクション詳細',
+            denyTransactionButton: 'トランザクションを拒否',
+            denyTransactionContent: 'この画面を閉じると、トランザクションが拒否されます。',
+        },
+        biometrics: {
+            biometricsNotRegistered: '生体認証（未登録）',
+            biometricsRegistered: '生体認証（登録済み）',
+            biometricsTest: '生体認証のテスト',
+            notificationTitle: '認証成功',
+            notificationFallbackContent: 'マジックコード + 2FAを使用して正常に認証しました。',
+            fallbackPageTitle: '本人確認をさせてください',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
+            fallbackPage2FAContent: '認証アプリのコードを入力してください。',
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたコードを入力してください。`,
+        },
+        revokePage: {
+            headerTitle: '顔/指紋認証',
+            revokeContent: '1つ以上のデバイスで顔/指紋認証が有効になっています。アクセスの取り消しには、任意のデバイスでの次回の顔/指紋認証にマジックコードが必要になります。',
+            reEnableContent: '1つ以上のデバイスで顔/指紋認証が設定されていますが、再有効化にはマジックコードが必要です。その後、ここでアクセスを取り消すことができます。',
+            confirmationContent: '任意のデバイスでの次回の顔/指紋認証にマジックコードが必要になります。',
+            bottomButtonContent: 'アクセスを取り消す',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: '顔または指紋で本人確認',
+            enableBiometricsPromptContent: '顔または指紋を使用した迅速で安全な認証を有効にします—パスワードやコードは不要です。',
+            enablePasskeyPromptTitle: 'パスキーで本人確認',
+            enablePasskeyPromptContent: 'パスキーを使用した迅速で安全な認証を有効にします—パスワードやコードは不要です。',
+        },
+        uiText: {
+            transactionApproved: {
+                headerTitle: '取引が承認されました',
+                title: '取引が承認されました',
+            },
+            transactionDenied: {
+                headerTitle: '取引が拒否されました',
+                title: '取引が拒否されました',
+            },
+            outOfTime: {
+                headerTitle: '取引が拒否されました',
+                title: '時間切れです！',
+            },
+        },
+        /** Messages and titles displayed after multifactorial authentication operations */
+        statusMessage: {
+            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `${authorization ? 'チャレンジを正常に承認しました' : '認証に成功しました'}${because ? `（${because}を使用）` : ''}`,
+            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `あなたの${authorization ? '承認' : '認証'}は${because ? `失敗しました：${because}` : '失敗しました'}`,
+            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? '承認' : '認証'}に成功しました`,
+            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? '承認' : '認証'}に失敗しました`,
+            successTitleGeneral: '操作が成功しました',
+            failedTitleGeneral: '操作が失敗しました',
+        },
+        /** Title indicating multifactorial authentication registration status */
+        title: ({registered = true}: {registered?: boolean}) => `多要素認証（${registered ? '登録済み' : '未登録'}）`,
+        reason: {
+            /** Success messages for multifactorial authentication operations */
+            success: {
+                keySavedInSecureStore: 'キーをSecureStoreに正常に保存しました',
+                keyRetrievedFromSecureStore: 'キーをSecureStoreから正常に取得しました',
+                keyNotInSecureStore: 'SecureStoreにキーが見つかりません',
+                keyPairGenerated: '鍵ペアを正常に生成しました',
+                tokenReceived: 'トークンを正常に受信しました',
+                tokenSigned: 'トークンを正常に署名しました',
+                verificationSuccess: '認証が正常に完了しました',
+                keyDeletedFromSecureStore: 'キーをSecureStoreから正常に削除しました',
+            },
+            /** Error messages for multifactorial authentication operation failures */
+            error: {
+                unableToSaveKey: 'SecureStoreにキーを保存できませんでした',
+                unableToRetrieve: 'SecureStoreからキーを取得できませんでした',
+                unableToDelete: 'SecureStoreからキーを削除できませんでした',
+                badToken: 'トークンが無効または存在しません',
+                tokenMissing: 'トークンが見つかりません',
+                keyMissing: 'キーが見つかりません',
+                signatureMissing: '署名が見つかりません',
+                challengeIsAlreadySigned: 'このチャレンジはすでに署名されています',
+                challengeRejected: 'チャレンジがAPIによって拒否されました',
+                validateCodeMissing: '検証コードが見つかりません',
+                otpMissing: 'OTPコードが見つかりません',
+                keyMissingOnTheBE: 'キーはローカルに保存されていますが、サーバー上に見つかりません',
+                multifactorAuthenticationNotSupported: 'このデバイスは多要素認証をサポートしていません',
+                badRequest: '無効なリクエストです',
+                fallbackNotAllowed: 'このデバイスは生体認証をサポートしておらず、代替手段は許可されていません',
+                biometricsNotAllowed: 'このシナリオでは生体認証は許可されていません',
+            },
+            /** Error messages specific to Expo's SecureStore */
+            expoErrors: {
+                notInForeground: 'アプリはフォアグラウンドで実行されている必要があります',
+                alreadyInProgress: '認証はすでに進行中です',
+                canceled: 'ユーザーによって認証がキャンセルされました',
+                generic: 'エラーが発生しました',
+                keyExists: 'このキーはすでに存在します',
+                noAuthentication: '利用可能な認証方法がありません',
+                oldAndroid: 'この機能はお使いのデバイスではサポートされていません',
+            },
+            /** Generic status messages */
+            generic: {
+                notRequested: 'まだリクエストが行われていません',
+                apiError: 'APIエラーが発生しました',
+                authFactorsError: '認証要素でエラーが発生しました',
+                authFactorsSufficient: '認証要素が正常に検証されました',
+            },
+        },
+        /** API response messages */
+        apiResponse: {
+            registrationRequired: '登録が必要です',
+            challengeGenerated: 'チャレンジが正常に生成されました',
+            noPublicKey: '公開鍵が指定されていません',
+            keyAlreadyRegistered: 'この公開鍵はすでに登録されています',
+            validationCodeRequired: '検証コードを入力してください',
+            validationCodeInvalid: '無効な検証コードです',
+            otpCodeInvalid: '無効なOTPコードです',
+            otpCodeRequired: 'OTPコードを入力してください',
+            multifactorAuthenticationSuccess: '多要素認証の登録が正常に完了しました',
+            noTransactionID: 'トランザクションIDが指定されていません',
+            userNotRegistered: 'ユーザー登録が見つかりません',
+            unableToAuthorize: '指定された認証情報で承認に失敗しました',
+            userAuthorized: 'ユーザーが正常に承認されました',
+            badRequest: '無効なリクエストです',
+            signatureInvalid: '署名が無効です',
+            unknownResponse: '不明なレスポンスタイプです',
+            noPublicKeysRegistered: '現在登録されている公開鍵はありません',
+            revokedAccess: 'すべてのデバイスでアクセスが正常に取り消されました',
+        },
+        /** User input prompts during multifactorial authentication flows */
+        provideValidateCode: '続行するには検証コードを入力してください',
+        provideOTPCode: '続行するにはワンタイムパスワードを入力してください',
+        softPromptTitle: '顔認証または指紋で本人確認を行ってください',
+        softPromptDescription: '顔認証または指紋を使用して、パスワードやコードなしで迅速かつ安全に本人確認を行えます。',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

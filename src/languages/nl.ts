@@ -697,6 +697,9 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        test: 'Test',
+        deny: 'Weigeren',
+        approve: 'Goedkeuren',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -798,6 +801,150 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: 'Probeer het opnieuw',
         or: ', of',
         continueInWeb: 'doorgaan naar de webapp',
+    },
+    multifactorAuthentication: {
+        smsOtpForm: {
+            error: {
+                pleaseFillSmsOtp: 'Voer de via SMS verzonden code in',
+                incorrectSmsOtp: 'Onjuiste code. Probeer het opnieuw.',
+            },
+        },
+        approveTransaction: {
+            headerButtonTitle: 'Transactie goedkeuren',
+            pageTitle: 'Goedkeur deze transactie alstublieft',
+            pageContent: 'Een Expensify Card transactie vereist uw goedkeuring, controleer deze hieronder.',
+            transactionDetails: 'Transactiedetails',
+            denyTransactionButton: 'Transactie weigeren',
+            denyTransactionContent: 'De transactie wordt geweigerd als u dit scherm sluit.',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometrie (Niet geregistreerd)',
+            biometricsRegistered: 'Biometrie (Geregistreerd)',
+            biometricsTest: 'Biometrie testen',
+            notificationTitle: 'Verificatie geslaagd',
+            notificationFallbackContent: 'U heeft zich succesvol geverifieerd met magic code + 2FA.',
+            fallbackPageTitle: 'Laten we verifiëren dat u het bent',
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
+            fallbackPage2FAContent: 'Voer alstublieft uw authenticatorcode in.',
+            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de code in die is verzonden naar ${contactMethod}.`,
+        },
+        revokePage: {
+            headerTitle: 'Gezicht/vingerafdruk verificatie',
+            revokeContent:
+                'Gezicht/vingerafdruk verificatie is ingeschakeld op een of meer apparaten. Het intrekken van toegang vereist een magic code voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
+            reEnableContent:
+                'Gezicht/vingerafdruk verificatie is ingesteld op een of meer apparaten, maar vereist een magic code om opnieuw in te schakelen. Daarna kunt u hier toegang intrekken.',
+            confirmationContent: 'U heeft een magic code nodig voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
+            bottomButtonContent: 'Toegang intrekken',
+        },
+        prompts: {
+            enableBiometricsPromptTitle: 'Verifieer uzelf met uw gezicht of vingerafdruk',
+            enableBiometricsPromptContent: 'Schakel snelle, veilige verificatie in met uw gezicht of vingerafdruk—geen wachtwoorden of codes vereist.',
+            enablePasskeyPromptTitle: 'Verifieer uzelf met een passkey',
+            enablePasskeyPromptContent: 'Schakel snelle, veilige verificatie in met een passkey - geen wachtwoorden of codes vereist.',
+        },
+        uiText: {
+            transactionApproved: {
+                headerTitle: 'Transactie goedgekeurd',
+                title: 'Transactie goedgekeurd',
+            },
+            transactionDenied: {
+                headerTitle: 'Transactie geweigerd',
+                title: 'Transactie geweigerd',
+            },
+            outOfTime: {
+                headerTitle: 'Transactie geweigerd',
+                title: 'Je tijd is op!',
+            },
+        },
+        /** Messages and titles displayed after multifactorial authentication operations */
+        statusMessage: {
+            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `Je hebt de ${authorization ? 'uitdaging succesvol geautoriseerd' : 'authenticatie succesvol voltooid'}${because ? ` met ${because}` : ''}`,
+            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
+                `Je ${authorization ? 'autorisatie' : 'authenticatie'} ${because ? `is mislukt: ${because}` : 'is niet gelukt'}`,
+            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autorisatie' : 'Authenticatie'} geslaagd`,
+            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autorisatie' : 'Authenticatie'} mislukt`,
+            successTitleGeneral: 'Handeling geslaagd',
+            failedTitleGeneral: 'Handeling mislukt',
+        },
+        /** Title indicating multifactorial authentication registration status */
+        title: ({registered = true}: {registered?: boolean}) => `Multifactorauthenticatie (${registered ? 'Geregistreerd' : 'Niet geregistreerd'})`,
+        reason: {
+            /** Success messages for multifactorial authentication operations */
+            success: {
+                keySavedInSecureStore: 'Sleutel succesvol opgeslagen in SecureStore',
+                keyRetrievedFromSecureStore: 'Sleutel succesvol opgehaald uit SecureStore',
+                keyNotInSecureStore: 'Geen sleutel gevonden in SecureStore',
+                keyPairGenerated: 'Sleutelpaar succesvol gegenereerd',
+                tokenReceived: 'Token succesvol ontvangen',
+                tokenSigned: 'Token succesvol ondertekend',
+                verificationSuccess: 'Verificatie succesvol voltooid',
+                keyDeletedFromSecureStore: 'Sleutel succesvol verwijderd uit SecureStore',
+            },
+            /** Error messages for multifactorial authentication operation failures */
+            error: {
+                unableToSaveKey: 'Sleutel kon niet worden opgeslagen in SecureStore',
+                unableToRetrieve: 'Sleutel kon niet worden opgehaald uit SecureStore',
+                unableToDelete: 'Sleutel kon niet worden verwijderd uit SecureStore',
+                badToken: 'Ongeldig of ontbrekend token',
+                tokenMissing: 'Token ontbreekt',
+                keyMissing: 'Sleutel ontbreekt',
+                signatureMissing: 'Handtekening ontbreekt',
+                challengeIsAlreadySigned: 'Uitdaging is al ondertekend',
+                challengeRejected: 'Uitdaging afgewezen door de API',
+                validateCodeMissing: 'Verificatiecode ontbreekt',
+                otpMissing: 'OTP-code ontbreekt',
+                keyMissingOnTheBE: 'Sleutel lokaal opgeslagen maar niet gevonden op de server',
+                multifactorAuthenticationNotSupported: 'Dit apparaat ondersteunt geen multifactorauthenticatie',
+                badRequest: 'Ongeldig verzoek',
+                fallbackNotAllowed: 'Dit apparaat ondersteunt geen biometrie en terugval is niet toegestaan',
+                biometricsNotAllowed: 'Biometrische acties zijn niet toegestaan voor dit scenario',
+            },
+            /** Error messages specific to Expo's SecureStore */
+            expoErrors: {
+                notInForeground: 'De app moet op de voorgrond draaien',
+                alreadyInProgress: 'Authenticatie is al bezig',
+                canceled: 'Authenticatie geannuleerd door gebruiker',
+                generic: 'Er is een fout opgetreden',
+                keyExists: 'Deze sleutel bestaat al',
+                noAuthentication: 'Geen beschikbare authenticatiemethoden',
+                oldAndroid: 'Deze functie wordt niet ondersteund op je apparaat',
+            },
+            /** Generic status messages */
+            generic: {
+                notRequested: 'Nog geen verzoek verzonden',
+                apiError: 'Er is een API-fout opgetreden',
+                authFactorsError: 'Fout in authenticatiefactoren',
+                authFactorsSufficient: 'Authenticatiefactoren succesvol geverifieerd',
+            },
+        },
+        /** API response messages */
+        apiResponse: {
+            registrationRequired: 'Registratie vereist',
+            challengeGenerated: 'Uitdaging succesvol gegenereerd',
+            noPublicKey: 'Geen openbare sleutel opgegeven',
+            keyAlreadyRegistered: 'Deze openbare sleutel is al geregistreerd',
+            validationCodeRequired: 'Voer een verificatiecode in',
+            validationCodeInvalid: 'Ongeldige verificatiecode',
+            otpCodeInvalid: 'Ongeldige OTP-code',
+            otpCodeRequired: 'Voer een OTP-code in',
+            multifactorAuthenticationSuccess: 'Multifactorauthenticatie succesvol geregistreerd',
+            noTransactionID: 'Transactie-ID niet opgegeven',
+            userNotRegistered: 'Gebruikersregistratie niet gevonden',
+            unableToAuthorize: 'Autorisatie mislukt met de opgegeven gegevens',
+            userAuthorized: 'Gebruiker succesvol geautoriseerd',
+            badRequest: 'Ongeldig verzoek',
+            signatureInvalid: 'Ongeldige handtekening',
+            unknownResponse: 'Onbekend type antwoord',
+            noPublicKeysRegistered: 'Geen openbare sleutels geregistreerd',
+            revokedAccess: 'Toegang op alle apparaten succesvol ingetrokken',
+        },
+        /** User input prompts during multifactorial authentication flows */
+        provideValidateCode: 'Voer je verificatiecode in om door te gaan',
+        provideOTPCode: 'Voer je eenmalig wachtwoord in om door te gaan',
+        softPromptTitle: 'Verifieer jezelf met je gezicht of vingerafdruk',
+        softPromptDescription: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk – geen wachtwoorden of codes nodig.',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
