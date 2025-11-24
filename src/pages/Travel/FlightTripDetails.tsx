@@ -2,8 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -27,9 +25,8 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass']);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass'] as const);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
