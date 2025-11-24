@@ -119,8 +119,10 @@ function BaseVideoPlayer({
         return hasError && !isOffline;
     }, [hasError, isOffline]);
     const shouldShowLoadingIndicator = useMemo(() => {
-        return (!isPlaying || isFirstLoad) && !isOffline && !hasError && (isLoading || (status === 'idle' && isFirstLoad));
-    }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, status]);
+        // We want to show LoadingIndicator when video's loading and paused, except when it's loading
+        // for the first time, then playing/loading may vary. Video should be online and without errors.
+        return (isLoading || isFirstLoad) && (!isPlaying || (isFirstLoad && !shouldUseSharedVideoElement)) && !isOffline && !hasError;
+    }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, shouldUseSharedVideoElement]);
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
     }, [bufferedPosition, currentTime, isOffline]);
