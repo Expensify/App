@@ -80,7 +80,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Hourglass', 'Exclamation'] as const);
     const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -523,7 +523,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Hourglass}
+                                                            src={expensifyIcons.Hourglass}
                                                             fill={theme.icon}
                                                         />
 
@@ -536,7 +536,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 return (
                                                     <View style={alertViewStyle}>
                                                         <Icon
-                                                            src={Expensicons.Exclamation}
+                                                            src={expensifyIcons.Exclamation}
                                                             fill={theme.icon}
                                                         />
 
