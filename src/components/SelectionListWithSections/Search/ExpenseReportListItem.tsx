@@ -27,6 +27,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -64,8 +65,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
         );
-    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
+    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen, isDEWBetaEnabled]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(reportItem as unknown as TItem);
