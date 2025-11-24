@@ -2175,6 +2175,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         optimisticData.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.SET,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             value: buildNextStepNew({
                 report: iou.report,
                 predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
@@ -3686,6 +3687,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStep = buildNextStepNew({
         report: iouReport,
         predictedNextStatus,
@@ -3960,6 +3962,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStep = buildNextStepNew({report: iouReport, predictedNextStatus, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, policy});
 
     // STEP 5: Build Onyx Data
@@ -7282,8 +7285,6 @@ type SplitBillActionsParams = {
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 

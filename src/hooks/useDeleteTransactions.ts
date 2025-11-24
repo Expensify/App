@@ -176,6 +176,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             archivedReportsIdSet,
             isBetaEnabled,
             allSnapshots,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
+            transactionViolations,
         ],
     );
 

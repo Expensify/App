@@ -869,6 +869,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1119,6 +1122,9 @@ describe('actions/IOU', () => {
                         },
                         shouldGenerateTransactionThreadReport: true,
                         isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1342,6 +1348,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            transactionViolations: {},
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1501,6 +1510,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
             return (
                 waitForBatchedUpdates()
@@ -1995,6 +2007,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2017,6 +2032,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2056,6 +2074,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
 
             await waitForBatchedUpdates();
@@ -2090,6 +2111,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
             });
 
             await waitForBatchedUpdates();
@@ -2123,6 +2147,7 @@ describe('actions/IOU', () => {
                     validWaypoints: {},
                 },
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2141,6 +2166,7 @@ describe('actions/IOU', () => {
                     validWaypoints: {},
                 },
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2314,6 +2340,7 @@ describe('actions/IOU', () => {
                             tag: '',
                             existingSplitChatReportID: '',
                             isASAPSubmitBetaEnabled: false,
+                            transactionViolations: {},
                         },
                     );
                     return waitForBatchedUpdates();
@@ -2647,6 +2674,7 @@ describe('actions/IOU', () => {
                 created: '',
                 existingSplitChatReportID: workspaceReportID,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -2695,6 +2723,7 @@ describe('actions/IOU', () => {
                 created: '',
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -2710,6 +2739,7 @@ describe('actions/IOU', () => {
                 created: '',
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -2764,6 +2794,7 @@ describe('actions/IOU', () => {
                 ...draftTransaction,
                 comment: '',
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -2808,6 +2839,7 @@ describe('actions/IOU', () => {
                 created: '',
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -2872,7 +2904,7 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, RORY_EMAIL);
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, {}, RORY_EMAIL);
 
             await waitForBatchedUpdates();
 
@@ -2967,6 +2999,9 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: iouAction,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -3069,6 +3104,9 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -3184,6 +3222,9 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -3229,6 +3270,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
             return waitForBatchedUpdates()
                 .then(
@@ -3468,6 +3512,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3602,6 +3649,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3831,6 +3881,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3932,6 +3985,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -4170,6 +4226,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -4735,6 +4794,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
             }
 
@@ -4803,6 +4865,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -5064,6 +5129,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5181,6 +5249,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5373,6 +5444,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6316,6 +6390,9 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -7047,6 +7124,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -7133,6 +7213,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
             }
             await waitForBatchedUpdates();
@@ -8020,6 +8103,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8113,6 +8199,9 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
 
@@ -8163,6 +8252,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8256,6 +8348,9 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
 
@@ -8311,6 +8406,9 @@ describe('actions/IOU', () => {
                     },
                     shouldGenerateTransactionThreadReport: true,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
 
@@ -8413,6 +8511,9 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
 
@@ -9168,6 +9269,9 @@ describe('actions/IOU', () => {
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                hasViolations: false,
             });
 
             // Then: Verify the result structure and key values
@@ -9295,6 +9399,9 @@ describe('actions/IOU', () => {
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                hasViolations: false,
             });
 
             // Then: Verify the result uses existing chat report
@@ -9376,6 +9483,9 @@ describe('actions/IOU', () => {
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                hasViolations: false,
             });
 
             // Then: Verify policy expense chat handling
