@@ -13670,7 +13670,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     // Make API call
     API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
-    return urlToNavigateBack!;
+    return urlToNavigateBack;
 }
 
 function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
