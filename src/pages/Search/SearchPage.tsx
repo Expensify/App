@@ -1008,6 +1008,12 @@ function SearchPage({route}: SearchPageProps) {
                             confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
                             shouldShowCancelButton={false}
                         />
+                        {!!isRejectEducationalModalVisible && (
+                            <HoldOrRejectEducationalModal
+                                onClose={dismissModalAndUpdateUseReject}
+                                onConfirm={dismissModalAndUpdateUseReject}
+                            />
+                        )}
                     </View>
                 )}
             </>
