@@ -48,9 +48,13 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                         >
                             {value ?? ''}
                         </Text>
-                        <View style={[styles.reportActionContextMenuMiniButton, styles.overflowHidden, styles.buttonHoveredBG]}>
-                            <CopyTextToClipboard urlToCopy={value ?? ''} />
-                        </View>
+                        <CopyTextToClipboard
+                            urlToCopy={value ?? ''}
+                            styles={styles.copyableTextFieldButton}
+                            iconStyles={styles.t0}
+                            shouldHaveActiveBackground
+                            shouldUseButtonBackground
+                        />
                     </View>
                     {shouldDisplayShowMoreButton && (
                         <Button
