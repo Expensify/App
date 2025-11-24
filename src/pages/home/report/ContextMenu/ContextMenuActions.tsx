@@ -232,7 +232,7 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'Pencil', 'ThreeDots'>;
+    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'Pencil' | 'ThreeDots'>;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download'>;
     onPress: OnPress;

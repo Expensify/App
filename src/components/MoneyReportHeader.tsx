@@ -699,7 +699,7 @@ function MoneyReportHeader({
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {

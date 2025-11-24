@@ -11,6 +11,7 @@ import {getTransactionType, isExpensifyCardTransaction, isPending} from '@libs/T
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 const getTypeIcon = (icons: Record<'Car', IconAsset>, type?: string) => {
