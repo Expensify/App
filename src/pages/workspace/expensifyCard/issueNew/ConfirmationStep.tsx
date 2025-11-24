@@ -12,9 +12,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
-import AccountUtils from '@libs/AccountUtils';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -76,7 +76,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     useEffect(() => {
         const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
         const hasValidateCodeError = validateCodeAction?.errorFields?.[validateCodeErrorField];
-        
+
         if (hasValidateCodeError && !isValidateCodeActionModalVisible) {
             setIsValidateCodeActionModalVisible(true);
         }
@@ -87,14 +87,14 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         if (!isSuccessful || isValidateCodeActionModalVisible) {
             return;
         }
-        
+
         // Call redirect directly since onModalHide won't be triggered when modal was never shown
         if (backTo) {
             Navigation.goBack(backTo);
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
         }
-        
+
         clearIssueNewCardFlow(policyID);
     }, [isSuccessful, isValidateCodeActionModalVisible, backTo, policyID]);
 
