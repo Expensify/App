@@ -92,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -361,7 +361,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowCardReconciliationOption
                 ? [
                       {
-                          icon: Expensicons.ExpensifyCard,
+                          icon: icons.ExpensifyCard,
                           iconRight: icons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
@@ -434,6 +434,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         datetimeToRelative,
         icons.ArrowRight,
+        icons.ExpensifyCard,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
