@@ -394,6 +394,7 @@ function SettlementButton({
         latestBankItem,
         activeAdminPolicies,
         checkForNecessaryAction,
+        icons,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
