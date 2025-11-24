@@ -10,7 +10,7 @@ import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Growl from '@libs/Growl';
+import {setIsReady} from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
@@ -101,7 +101,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     );
 
     useEffect(() => {
-        Growl.setIsReady();
+        setIsReady();
     }, []);
 
     useEffect(() => {
