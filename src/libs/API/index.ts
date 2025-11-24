@@ -146,8 +146,26 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
+    // Log TRACK_EXPENSE in processRequest
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] API.processRequest - TRACK_EXPENSE received', false, {
+            command: request.command,
+            type,
+            transactionID: request?.data?.transactionID,
+            apiRequestType: request?.data?.apiRequestType,
+            willPushToSequentialQueue: type === CONST.API_REQUEST_TYPE.WRITE,
+        });
+    }
+
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        // Log TRACK_EXPENSE before pushing to SequentialQueue
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            Log.info('[API_DEBUG] API.processRequest - About to push TRACK_EXPENSE to SequentialQueue', false, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+            });
+        }
         pushToSequentialQueue(request);
         return Promise.resolve();
     }
@@ -174,7 +192,32 @@ function write<TCommand extends WriteCommand>(
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
+
+    // Log TRACK_EXPENSE specifically
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const transactionID: string | undefined = (apiCommandParameters as any)?.transactionID;
+        Log.info('[API_DEBUG] API.write - TRACK_EXPENSE called', false, {
+            command,
+            transactionID,
+            hasOnyxData: !!onyxData,
+            hasOptimisticData: !!onyxData.optimisticData,
+            hasSuccessData: !!onyxData.successData,
+            hasFailureData: !!onyxData.failureData,
+        });
+    }
+
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
+    // Log TRACK_EXPENSE after prepareRequest
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] API.write - TRACK_EXPENSE request prepared, about to processRequest', false, {
+            command: request.command,
+            transactionID: request?.data?.transactionID,
+            apiRequestType: request?.data?.apiRequestType,
+        });
+    }
+
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 

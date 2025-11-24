@@ -133,6 +133,17 @@ function process(): Promise<void> {
     }
 
     const persistedRequests = getAllPersistedRequests();
+    
+    // Log TRACK_EXPENSE in queue
+    const trackExpenseInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+    if (trackExpenseInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.process - TRACK_EXPENSE found in queue', false, {
+            queueLength: persistedRequests.length,
+            trackExpenseIndex: persistedRequests.findIndex((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE),
+            transactionID: trackExpenseInQueue?.data?.transactionID,
+        });
+    }
+    
     if (persistedRequests.length === 0) {
         Log.info('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
@@ -141,17 +152,177 @@ function process(): Promise<void> {
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
+        // Check if TRACK_EXPENSE is still in queue but wasn't selected
+        if (trackExpenseInQueue) {
+            Log.warn('[API_DEBUG] SequentialQueue.process - TRACK_EXPENSE in queue but processNextPersistedRequest returned null!', {
+                transactionID: trackExpenseInQueue?.data?.transactionID,
+                queueLength: persistedRequests.length,
+            });
+        }
         return Promise.resolve();
+    }
+
+    // Log what request is being processed
+    Log.info('[API_DEBUG] SequentialQueue.process - Request selected for processing', false, {
+        command: requestToProcess.command,
+        transactionID: requestToProcess?.data?.transactionID,
+        requestID: requestToProcess?.requestID,
+        isTrackExpense: requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE,
+    });
+
+    // Log if TRACK_EXPENSE is still in queue but not being processed
+    if (trackExpenseInQueue && requestToProcess.command !== WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.warn('[API_DEBUG] SequentialQueue.process - TRACK_EXPENSE in queue but different request being processed', {
+            trackExpenseTransactionID: trackExpenseInQueue?.data?.transactionID,
+            processingCommand: requestToProcess.command,
+            processingTransactionID: requestToProcess?.data?.transactionID,
+            queueLength: persistedRequests.length,
+        });
+    }
+
+    // Log if TRACK_EXPENSE is being processed
+    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] SequentialQueue.process - About to process TRACK_EXPENSE', false, {
+            transactionID: requestToProcess?.data?.transactionID,
+            requestID: requestToProcess?.requestID,
+        });
+    }
+
+    // Log when request is about to be processed
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    Log.info('[API_DEBUG] SequentialQueue - Processing request', false, {
+        command: requestToProcess.command,
+        transactionID: requestToProcess?.data?.transactionID,
+        requestID: requestToProcess?.requestID,
+    });
+
+    // Log specifically for TRACK_EXPENSE
+    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] SequentialQueue - Processing TRACK_EXPENSE', false, {
+            command: requestToProcess.command,
+            transactionID: requestToProcess?.data?.transactionID,
+            requestID: requestToProcess?.requestID,
+            apiRequestType: requestToProcess?.data?.apiRequestType,
+        });
     }
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            // Log all API responses, especially for update commands
+            const isUpdateCommand = requestToProcess.command?.includes('UPDATE') || requestToProcess.command?.includes('CREATE') || requestToProcess.command?.includes('DELETE');
+            const isError = response?.jsonCode !== 200;
+
+            if (isUpdateCommand || requestToProcess.command === WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY) {
+                if (isError) {
+                    Log.warn('[API_DEBUG] SequentialQueue - API response error', {
+                        command: requestToProcess.command,
+                        jsonCode: response?.jsonCode,
+                        requestID: response?.requestID,
+                        transactionID: requestToProcess?.data?.transactionID,
+                        errorMessage: response?.message,
+                        errorTitle: response?.title,
+                        errorType: response?.type,
+                        hasOnyxData: !!response?.onyxData,
+                        onyxDataCount: response?.onyxData?.length ?? 0,
+                    });
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    Log.info('[API_DEBUG] SequentialQueue - API response success', false, {
+                        command: requestToProcess.command,
+                        jsonCode: response?.jsonCode,
+                        requestID: response?.requestID,
+                        transactionID: requestToProcess?.data?.transactionID,
+                        hasOnyxData: !!response?.onyxData,
+                        onyxDataCount: response?.onyxData?.length ?? 0,
+                    });
+                }
+            }
+
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
             if (response?.shouldPauseQueue) {
                 Log.info("[SequentialQueue] Handled 'shouldPauseQueue' in response. Pausing the queue.");
                 pause();
+            }
+
+            // For WRITE requests, ensure queued Onyx updates are flushed before removing the request
+            // This is critical because WRITE requests queue their updates and they're only flushed when the queue finishes.
+            // If the app backgrounds before the queue finishes, updates would be lost.
+            const apiRequestType = requestToProcess?.data?.apiRequestType;
+            const isWriteRequest = apiRequestType === CONST.API_REQUEST_TYPE.WRITE;
+            const isTrackExpense = requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE;
+
+            // Log for debugging
+            if (isTrackExpense) {
+                Log.info('[API_DEBUG] SequentialQueue - TRACK_EXPENSE response received', false, {
+                    command: requestToProcess.command,
+                    apiRequestType,
+                    isWriteRequest,
+                    transactionID: requestToProcess?.data?.transactionID,
+                    jsonCode: response?.jsonCode,
+                });
+            }
+
+            if (isWriteRequest || isTrackExpense) {
+                Log.info('[API_DEBUG] SequentialQueue - Flushing queued Onyx updates for WRITE request before removing from queue', false, {
+                    command: requestToProcess.command,
+                    transactionID: requestToProcess?.data?.transactionID,
+                });
+                // Flush queued updates synchronously before removing the request
+                const flushPromise = flushOnyxUpdatesQueue();
+                if (!flushPromise) {
+                    // If flush returns undefined (queue paused), still proceed with removing request
+                    Log.info('[API_DEBUG] SequentialQueue - Queue paused, proceeding to remove request', false, {
+                        command: requestToProcess.command,
+                        transactionID: requestToProcess?.data?.transactionID,
+                    });
+                    Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                    endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+                    if (requestToProcess.queueFlushedData) {
+                        Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
+                        saveQueueFlushedData(...requestToProcess.queueFlushedData);
+                    }
+
+                    sequentialQueueRequestThrottle.clear();
+                    return process();
+                }
+
+                return flushPromise
+                    .then(() => {
+                        Log.info('[API_DEBUG] SequentialQueue - Queued Onyx updates flushed, removing request', false, {
+                            command: requestToProcess.command,
+                            transactionID: requestToProcess?.data?.transactionID,
+                        });
+                        Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                        endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+                        if (requestToProcess.queueFlushedData) {
+                            Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
+                            saveQueueFlushedData(...requestToProcess.queueFlushedData);
+                        }
+
+                        sequentialQueueRequestThrottle.clear();
+                        return process();
+                    })
+                    .catch((error) => {
+                        Log.warn(`[API_DEBUG] SequentialQueue - Error flushing queued Onyx updates: ${String(error)}`, {
+                            command: requestToProcess.command,
+                            transactionID: requestToProcess?.data?.transactionID,
+                        });
+                        // Still remove the request even if flush fails
+                        Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
+                        endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+                        if (requestToProcess.queueFlushedData) {
+                            Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
+                            saveQueueFlushedData(...requestToProcess.queueFlushedData);
+                        }
+
+                        sequentialQueueRequestThrottle.clear();
+                        return process();
+                    });
             }
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
@@ -166,9 +337,34 @@ function process(): Promise<void> {
             return process();
         })
         .catch((error: RequestError) => {
+            // Log TRACK_EXPENSE errors/cancellations
+            if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+                Log.info('[API_DEBUG] SequentialQueue - TRACK_EXPENSE error/cancellation', false, {
+                    command: requestToProcess.command,
+                    transactionID: requestToProcess?.data?.transactionID,
+                    errorName: error.name,
+                    errorMessage: error.message,
+                    isRequestCancelled: error.name === CONST.ERROR.REQUEST_CANCELLED,
+                    isDuplicateRecord: error.message === CONST.ERROR.DUPLICATE_RECORD,
+                    shouldFailAllRequests,
+                });
+            }
+
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
+                // Special handling for TRACK_EXPENSE: if cancelled, roll back to queue instead of removing
+                if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE && error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                    Log.info('[API_DEBUG] SequentialQueue - TRACK_EXPENSE cancelled, rolling back instead of removing to allow retry', false, {
+                        error: String(error),
+                        errorName: error.name,
+                        transactionID: requestToProcess?.data?.transactionID,
+                    });
+                    rollbackOngoingPersistedRequest();
+                    sequentialQueueRequestThrottle.clear();
+                    return process();
+                }
+
                 if (shouldFailAllRequests) {
                     Onyx.update(requestToProcess.failureData ?? []);
                 }
@@ -210,6 +406,18 @@ function process(): Promise<void> {
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
 function flush(shouldResetPromise = true) {
+    // Log TRACK_EXPENSE in queue when flush is called
+    const persistedRequests = getAllPersistedRequests();
+    const trackExpenseInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+    if (trackExpenseInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.flush - TRACK_EXPENSE in queue when flush called', false, {
+            queueLength: persistedRequests.length,
+            transactionID: trackExpenseInQueue?.data?.transactionID,
+            isQueuePaused,
+            isSequentialQueueRunning,
+        });
+    }
+
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
@@ -221,16 +429,34 @@ function flush(shouldResetPromise = true) {
         return;
     }
 
-    if (getAllPersistedRequests().length === 0 && isEmpty()) {
+    const allRequests = getAllPersistedRequests();
+    if (allRequests.length === 0 && isEmpty()) {
         Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
         return;
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
-    if (!isClientTheLeader()) {
+    const isLeader = isClientTheLeader();
+    if (!isLeader) {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.');
+        // Log TRACK_EXPENSE if not leader
+        if (trackExpenseInQueue) {
+            Log.info('[API_DEBUG] SequentialQueue.flush - TRACK_EXPENSE in queue but client not leader', false, {
+                transactionID: trackExpenseInQueue?.data?.transactionID,
+                queueLength: allRequests.length,
+            });
+        }
         return;
+    }
+
+    // Log TRACK_EXPENSE before setting isSequentialQueueRunning
+    if (trackExpenseInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.flush - About to call process() for TRACK_EXPENSE', false, {
+            transactionID: trackExpenseInQueue?.data?.transactionID,
+            queueLength: allRequests.length,
+            shouldResetPromise,
+        });
     }
 
     isSequentialQueueRunning = true;
@@ -250,6 +476,21 @@ function flush(shouldResetPromise = true) {
         // an existing connection already made in PersistedRequests.ts.
         reuseConnection: false,
         callback: () => {
+            // Log TRACK_EXPENSE when Onyx callback fires
+            const requestsInCallback = getAllPersistedRequests();
+            const trackExpenseInCallback = requestsInCallback.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+            if (trackExpenseInCallback) {
+                Log.info('[API_DEBUG] SequentialQueue.flush - Onyx callback fired, TRACK_EXPENSE still in queue, calling process()', false, {
+                    transactionID: trackExpenseInCallback?.data?.transactionID,
+                    queueLength: requestsInCallback.length,
+                });
+            } else if (trackExpenseInQueue) {
+                Log.warn('[API_DEBUG] SequentialQueue.flush - Onyx callback fired but TRACK_EXPENSE NOT in queue anymore!', {
+                    transactionID: trackExpenseInQueue?.data?.transactionID,
+                    queueLength: requestsInCallback.length,
+                });
+            }
+
             Onyx.disconnect(connection);
             process().finally(() => {
                 Log.info('[SequentialQueue] Finished processing queue.');
@@ -342,10 +583,28 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
 
+    // Log TRACK_EXPENSE when it's added to the queue
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added to queue', false, {
+            command: newRequest.command,
+            transactionID: newRequest?.data?.transactionID,
+            apiRequestType: newRequest?.data?.apiRequestType,
+            hasConflictResolver: !!checkAndFixConflictingRequest,
+        });
+    }
+
     if (checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
         const {conflictAction} = checkAndFixConflictingRequest(requests);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
+
+        // Log TRACK_EXPENSE conflict action
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE conflict action', false, {
+                conflictActionType: conflictAction.type,
+                transactionID: newRequest?.data?.transactionID,
+            });
+        }
 
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
@@ -356,17 +615,55 @@ function push(newRequest: OnyxRequest) {
         savePersistedRequest(newRequest);
     }
 
+    // Log TRACK_EXPENSE after save
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        const allRequests = getAllPersistedRequests();
+        const trackExpenseInQueue = allRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+        Log.info('[API_DEBUG] SequentialQueue.push - After savePersistedRequest, checking queue state', false, {
+            command: newRequest.command,
+            transactionID: newRequest?.data?.transactionID,
+            isOffline: isOffline(),
+            isSequentialQueueRunning,
+            isQueuePaused,
+            queueLength: allRequests.length,
+            trackExpenseInQueue: !!trackExpenseInQueue,
+            willCallFlush: !isOffline() && (!isSequentialQueueRunning || true), // Always log
+        });
+    }
+
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOffline()) {
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added but offline, will process when online', false, {
+                transactionID: newRequest?.data?.transactionID,
+            });
+        }
         return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(() => flush(true));
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added but queue running, will flush when ready', false, {
+                transactionID: newRequest?.data?.transactionID,
+            });
+        }
+        isReadyPromise.then(() => {
+            if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+                Log.info('[API_DEBUG] SequentialQueue.push - Queue ready, calling flush for TRACK_EXPENSE', false, {
+                    transactionID: newRequest?.data?.transactionID,
+                });
+            }
+            flush(true);
+        });
         return;
     }
 
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        Log.info('[API_DEBUG] SequentialQueue.push - Calling flush immediately for TRACK_EXPENSE', false, {
+            transactionID: newRequest?.data?.transactionID,
+        });
+    }
     flush(true);
 }
 
