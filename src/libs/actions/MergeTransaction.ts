@@ -97,8 +97,7 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
  */
 function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
     const transactionsArray = Object.values(transactions ?? {});
-    const targetOriginalTransactionID = targetTransaction?.comment?.originalTransactionID;
-    const targetOriginalTransaction = targetOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetOriginalTransactionID}`] : undefined;
+    const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`]
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
         if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
@@ -148,8 +147,7 @@ function getTransactionsForMerging({
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
-        const targetOriginalTransactionID = targetTransaction?.comment?.originalTransactionID;
-        const targetOriginalTransaction = targetOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetOriginalTransactionID}`] : undefined;
+        const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`]
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;
