@@ -41,6 +41,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -76,12 +77,12 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     isSelected: selectedApproverEmail === email,
                     login: email,
                     value: accountID,
-                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, formatPhoneNumber]);
+    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, expensifyIcons.FallbackAvatar]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

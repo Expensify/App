@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -23,7 +22,7 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -34,6 +33,7 @@ function useReportActionAvatars({
     shouldUseCardFeed = false,
     accountIDs = [],
     policyID: passedPolicyID,
+    policy: policyProp,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
@@ -44,11 +44,13 @@ function useReportActionAvatars({
     shouldUseCardFeed?: boolean;
     accountIDs?: number[];
     policyID?: string;
+    policy?: OnyxInputOrEntry<Policy>;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
 }) {
-    const {FallbackAvatar} = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber} = useLocalize();
@@ -95,7 +97,10 @@ function useReportActionAvatars({
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 
     const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
-    const policy = usePolicy(policyID);
+    const policyFromOnyx = usePolicy(policyID);
+    // When the search hash changes, policy from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to policyProp while the data is being fetched.
+    const policy = policyFromOnyx ?? policyProp;
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -119,7 +124,7 @@ function useReportActionAvatars({
         return {
             id,
             type: CONST.ICON_TYPE_AVATAR,
-            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            source: personalDetails?.[id]?.avatar ?? expensifyIcons.FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
             fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
         };
@@ -212,7 +217,7 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
+        getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? expensifyIcons.FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
@@ -238,7 +243,7 @@ function useReportActionAvatars({
     };
 
     const userFallbackAvatar: IconType = {
-        source: avatar ?? FallbackAvatar,
+        source: avatar ?? expensifyIcons.FallbackAvatar,
         id: accountID,
         name: defaultDisplayName ?? fallbackDisplayName,
         type: CONST.ICON_TYPE_AVATAR,

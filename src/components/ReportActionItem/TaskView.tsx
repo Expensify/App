@@ -49,7 +49,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     useEffect(() => {
         setTaskReport(report);
@@ -149,7 +149,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <View style={styles.taskRightIconContainer}>
                                                     <Icon
                                                         additionalStyles={[styles.alignItemsCenter]}
-                                                        src={Expensicons.ArrowRight}
+                                                        src={expensifyIcons.ArrowRight}
                                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                     />
                                                 </View>

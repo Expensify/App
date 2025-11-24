@@ -3585,6 +3585,9 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
+                pendingFields: {
+                    reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
             },
         },
     ];
@@ -3608,6 +3611,15 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     ];
 
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportID: null,
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3658,6 +3670,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                                   notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                               },
                           },
+                          pendingFields: {
+                              reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          },
                       },
         },
     ];
@@ -3686,6 +3701,15 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     }
 
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportID: null,
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3851,13 +3875,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
-}
-
-/** Invites people to a room via concierge whisper */
-function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
-    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
-
-    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
@@ -6089,7 +6106,6 @@ export {
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
     inviteToRoom,
-    inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
     leaveRoom,
