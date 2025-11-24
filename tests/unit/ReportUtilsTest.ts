@@ -59,6 +59,7 @@ import {
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
@@ -9533,6 +9534,94 @@ describe('ReportUtils', () => {
         expect(reasonForOptionList).toBe(null);
 
         await Onyx.clear();
+    });
+
+    describe('getOutstandingChildRequest', () => {
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(12),
+            harvesting: {
+                enabled: false,
+            },
+            type: CONST.POLICY.TYPE.TEAM,
+        };
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+        });
+
+        it('should return hasOutstandingChildRequest as true if the expense report is open report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should return empty object if the expense report is not open report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return empty object if harvesting is enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {harvesting: {enabled: true}});
+
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return true if the current user is the manger of the iou report and the total spend is not zero', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                managerID: currentUserAccountID,
+                total: 100,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should return false if the current user is not the manger of the iou report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                ownerAccountID: currentUserAccountID,
+                total: 100,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return false if the total spend is zero', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                managerID: currentUserAccountID,
+                total: 0,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
     });
 
     it('should stop surfacing a GBR for a workspace once it is archived', async () => {

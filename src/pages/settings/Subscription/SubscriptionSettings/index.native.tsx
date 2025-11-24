@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -37,10 +37,11 @@ function SubscriptionSettings() {
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
-    const illustrations = useThemeIllustrations();
+    const themeIllustrations = useThemeIllustrations();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
+    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU'] as const);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
@@ -89,7 +90,7 @@ function SubscriptionSettings() {
                 {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                     <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                         <Icon
-                            src={illustrations.ExpensifyApprovedLogo}
+                            src={themeIllustrations.ExpensifyApprovedLogo}
                             width={variables.modalTopIconWidth}
                             height={variables.menuIconSize}
                         />
@@ -100,14 +101,14 @@ function SubscriptionSettings() {
                         {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
                             <OptionItem
                                 title="subscription.details.payPerUse"
-                                icon={Illustrations.SubscriptionPPU}
+                                icon={illustrations.SubscriptionPPU}
                                 style={[styles.mt5, styles.flex0]}
                                 isDisabled
                             />
                         ) : (
                             <OptionItem
                                 title="subscription.details.annual"
-                                icon={Illustrations.SubscriptionAnnual}
+                                icon={illustrations.SubscriptionAnnual}
                                 style={[styles.mt5, styles.flex0]}
                                 isDisabled
                             />

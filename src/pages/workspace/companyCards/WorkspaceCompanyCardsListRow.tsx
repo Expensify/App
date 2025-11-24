@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -29,6 +29,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
     const styles = useThemeStyles();
     const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex3]}>
@@ -68,7 +69,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
             </View>
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={expensifyIcons.ArrowRight}
                     fill={theme.icon}
                     additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                     medium

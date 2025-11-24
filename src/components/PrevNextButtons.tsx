@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type PrevNextButtonsProps = {
@@ -25,6 +25,7 @@ type PrevNextButtonsProps = {
 function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, onPrevious}: PrevNextButtonsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow'] as const);
 
     return (
         <View style={styles.flexRow}>
@@ -38,7 +39,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
-                        src={Expensicons.BackArrow}
+                        src={expensifyIcons.BackArrow}
                         small
                         fill={theme.icon}
                         isButtonIcon
@@ -55,7 +56,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
-                        src={Expensicons.ArrowRight}
+                        src={expensifyIcons.ArrowRight}
                         small
                         fill={theme.icon}
                         isButtonIcon

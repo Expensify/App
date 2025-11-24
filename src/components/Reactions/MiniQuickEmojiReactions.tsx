@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -41,6 +41,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['AddReaction'] as const);
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
@@ -87,7 +88,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     <Icon
                         width={variables.iconSizeMedium}
                         height={variables.iconSizeMedium}
-                        src={Expensicons.AddReaction}
+                        src={expensifyIcons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}

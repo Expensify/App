@@ -91,7 +91,6 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     onSelectRow={onCustomListSelected}
                     headerMessage={headerMessage}
                     ListItem={RadioListItem}
-                    isRowMultilineSupported
                     initiallyFocusedOptionKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

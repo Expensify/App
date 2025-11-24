@@ -1,4 +1,6 @@
+import {renderHook} from '@testing-library/react-native';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
 
@@ -6,7 +8,8 @@ describe('UserAvatarUtils', () => {
     describe('getAvatar', () => {
         it('should return default avatar if the url is for default avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            const defaultAvatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const defaultAvatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1, defaultAvatars: avatars.current});
 
             expect(typeof defaultAvatar).toBe('function');
             // Both defaultAvatar and defaultAvatarUrl must be `defaultAvatars.Avatar7`
@@ -15,26 +18,30 @@ describe('UserAvatarUtils', () => {
 
         it('should return the same url if url is not for default avatar', () => {
             const avatarURL = 'https://test.com/images/some_avatar.png';
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: avatarURL, accountID: 1, defaultAvatars: avatars.current});
 
             expect(avatar).toEqual('https://test.com/images/some_avatar.png');
         });
 
         it('should return default avatar for Concierge URLs', () => {
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.CONCIERGE_ICON_URL, accountID: CONST.ACCOUNT_ID.CONCIERGE});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.CONCIERGE_ICON_URL, accountID: CONST.ACCOUNT_ID.CONCIERGE, defaultAvatars: avatars.current});
             expect(avatar).toBeDefined();
         });
 
         it('should return default avatar SVG for default avatar URL', () => {
-            const avatar = UserAvatarUtils.getAvatar({avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png', accountID: 2});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png', accountID: 2, defaultAvatars: avatars.current});
             expect(typeof avatar).toBe('function');
             expect(avatar).toBe(defaultAvatars.Avatar2);
         });
 
         it('should return default avatar SVG for default avatar URL regardless of accountEmail or accountId provided', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/user/default-avatar_5.png';
-            const avatarByEmail = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5, accountEmail: 'alice@example.com'});
-            const avatarById = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatarByEmail = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5, accountEmail: 'alice@example.com', defaultAvatars: avatars.current});
+            const avatarById = UserAvatarUtils.getAvatar({avatarSource: defaultAvatarURL, accountID: 5, defaultAvatars: avatars.current});
 
             expect(avatarByEmail).toBe(defaultAvatars.Avatar5);
             expect(avatarById).toBe(defaultAvatars.Avatar5);
@@ -181,25 +188,29 @@ describe('UserAvatarUtils', () => {
     describe('getSmallSizeAvatar', () => {
         it('should add _128 suffix to CloudFront avatars', () => {
             const source = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatar.png';
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
             expect(result).toBe('https://d2k5nsl2zxldvw.cloudfront.net/images/avatar_128.png');
         });
 
         it('should not add _128 to non-CloudFront URLs', () => {
             const source = 'https://example.com/avatar.png';
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
             expect(result).toBe(source);
         });
 
         it('should not duplicate _128 suffix', () => {
             const source = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatar_128.png';
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
             expect(result).toBe(source);
         });
 
         it('should return SVG component as-is for default avatars', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_5.png';
-            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: defaultAvatarURL, accountID: 5});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getSmallSizeAvatar({avatarSource: defaultAvatarURL, accountID: 5, defaultAvatars: avatars.current});
             expect(typeof result).toBe('function'); // SVG component
         });
     });
@@ -207,19 +218,22 @@ describe('UserAvatarUtils', () => {
     describe('getFullSizeAvatar', () => {
         it('should remove _128 suffix from avatar URLs', () => {
             const source = 'https://example.com/avatar_128.png';
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
             expect(result).toBe('https://example.com/avatar.png');
         });
 
         it('should return avatar as-is if no _128 suffix', () => {
             const source = 'https://example.com/avatar.png';
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: source, accountID: 1, defaultAvatars: avatars.current});
             expect(result).toBe(source);
         });
 
         it('should return SVG component as-is for default avatars', () => {
             const defaultAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_3.png';
-            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: defaultAvatarURL, accountID: 3});
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const result = UserAvatarUtils.getFullSizeAvatar({avatarSource: defaultAvatarURL, accountID: 3, defaultAvatars: avatars.current});
             expect(typeof result).toBe('function'); // SVG component
             expect(result).toBe(defaultAvatars.Avatar3);
         });

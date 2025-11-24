@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1342,7 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `verplaatste uitgave van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'verplaatste uitgave naar persoonlijke ruimte',
-        tagSelection: 'Selecteer een tag om uw uitgaven beter te organiseren.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecteer ${policyTagListName ?? 'een tag'} om je uitgaven beter te organiseren.`,
         categorySelection: 'Selecteer een categorie om uw uitgaven beter te organiseren.',
         error: {
             invalidCategoryLength: 'De categorienaam overschrijdt 255 tekens. Verkort deze of kies een andere categorie.',

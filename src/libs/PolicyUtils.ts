@@ -514,6 +514,16 @@ function escapeTagName(tag: string) {
 }
 
 /**
+ * Checks if a tag list name is the default 'Tag' name
+ */
+function isDefaultTagName(tagName: string | undefined): boolean {
+    if (!tagName) {
+        return false;
+    }
+    return tagName.trim().toLowerCase() === CONST.POLICY.DEFAULT_TAG_NAME.trim().toLowerCase();
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
@@ -1725,6 +1735,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    isDefaultTagName,
 };
 
 export type {MemberEmailsToAccountIDs};

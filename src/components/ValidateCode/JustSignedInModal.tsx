@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +19,7 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -43,7 +44,7 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>

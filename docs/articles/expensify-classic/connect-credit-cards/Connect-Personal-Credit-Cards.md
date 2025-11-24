@@ -61,7 +61,7 @@ You can customize how imported card transactions appear:
 
 # Removing a Card
 
-**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on an Open report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Processing, Approved, Reimbursed, or Closed).
+**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on a Draft report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Outstanding, Approved, Paid, or Done).
 
 1. Go to **Settings > Account > Wallet**.
 2. Under **Imported Card Feeds**, click the red trashcan icon next to the card.

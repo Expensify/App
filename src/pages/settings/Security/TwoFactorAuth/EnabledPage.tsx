@@ -3,11 +3,13 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +27,7 @@ function EnabledPage() {
 
     const [isVisible, setIsVisible] = useState(false);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {
@@ -40,7 +43,7 @@ function EnabledPage() {
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={ShieldYellow}
                     containerStyles={[styles.twoFactorAuthSection, styles.mb0]}
                 >
                     <View style={styles.mv3}>

@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
-import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
 
@@ -27,8 +27,9 @@ type AvatarWithIndicatorProps = {
     isLoading?: boolean;
 };
 
-function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon, isLoading = true}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
+    const defaultAvatars = useDefaultAvatars();
 
     return (
         <Tooltip text={tooltipText}>
@@ -39,8 +40,8 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
                     <>
                         <Avatar
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={getSmallSizeAvatar({avatarSource: source, accountID})}
-                            fallbackIcon={fallbackIcon}
+                            source={getSmallSizeAvatar({avatarSource: source, accountID, defaultAvatars})}
+                            fallbackIcon={fallbackIcon ?? defaultAvatars.FallbackAvatar}
                             avatarID={accountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />
