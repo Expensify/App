@@ -20,9 +20,9 @@ import {
 import CONST from '@src/CONST';
 import {
     getAmount,
-    getOriginalTransactionWithSplitInfo,
     getTransactionViolationsOfTransaction,
     isDistanceRequest,
+    isExpenseSplit,
     isManagedCardTransaction,
     isPerDiemRequest,
     isTransactionPendingDelete,
@@ -64,7 +64,7 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
     }
 
     // Do not allow merging two split expenses
-    if (getOriginalTransactionWithSplitInfo(transaction1, originalTransaction1).isExpenseSplit && getOriginalTransactionWithSplitInfo(transaction2, originalTransaction2).isExpenseSplit) {
+    if (isExpenseSplit(transaction1, originalTransaction1) && isExpenseSplit(transaction2, originalTransaction2)) {
         return false;
     }
 
@@ -97,7 +97,7 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
  */
 function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
     const transactionsArray = Object.values(transactions ?? {});
-    const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`]
+    const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`];
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
         if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
@@ -147,7 +147,7 @@ function getTransactionsForMerging({
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
-        const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`]
+        const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`];
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;

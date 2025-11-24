@@ -16,16 +16,7 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {
-    getAttendeesListDisplayString,
-    getCurrency,
-    getOriginalTransactionWithSplitInfo,
-    getReimbursable,
-    getWaypoints,
-    isDistanceRequest,
-    isManagedCardTransaction,
-    isMerchantMissing,
-} from './TransactionUtils';
+import {getAttendeesListDisplayString, getCurrency, getReimbursable, getWaypoints, isDistanceRequest, isExpenseSplit, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -226,11 +217,11 @@ function getMergeableDataAndConflictFields(
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(targetTransaction, originalTargetTransaction);
-            if (isManagedCardTransaction(targetTransaction) || isExpenseSplit) {
+            const isTargetExpenseSplit = isExpenseSplit(targetTransaction, originalTargetTransaction);
+            if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                if (isExpenseSplit) {
+                if (isTargetExpenseSplit) {
                     mergeableData.originalTransactionID = targetTransaction?.comment?.originalTransactionID;
                 }
                 continue;
@@ -386,7 +377,7 @@ function selectTargetAndSourceTransactionsForMerge(
     // Card takes precedence over split expense
     if (
         isManagedCardTransaction(originalSourceTransaction) ||
-        (getOriginalTransactionWithSplitInfo(originalSourceTransaction, originalTransactionForSourceTransaction).isExpenseSplit && !isManagedCardTransaction(originalTargetTransaction))
+        (isExpenseSplit(originalSourceTransaction, originalTransactionForSourceTransaction) && !isManagedCardTransaction(originalTargetTransaction))
     ) {
         return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
