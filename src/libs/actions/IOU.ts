@@ -14175,7 +14175,7 @@ function updateSplitTransactions({
             }
 
             if (isReverseSplitOperation) {
-                delete transactionChanges.amount;
+                delete transactionChanges.transactionID;
             }
 
             if (Object.keys(transactionChanges).length > 0) {
