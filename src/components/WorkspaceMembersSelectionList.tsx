@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -12,7 +13,6 @@ import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {FallbackAvatar} from './Icon/Expensicons';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
@@ -41,6 +41,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const orderedApprovers = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
@@ -64,7 +65,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         keyForList: email,
                         isSelected: selectedApprover === email,
                         login: email,
-                        icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                        icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                         rightElement: (
                             <MemberRightIcon
                                 role={employee.role}
@@ -82,7 +83,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return sortAlphabetically(filteredApprovers, 'text', localeCompare);
-    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover]);
+    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover, expensifyIcons.FallbackAvatar]);
 
     const handleOnSelectRow = (approver: SelectionListApprover) => {
         setApprover(approver.login);
