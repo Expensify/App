@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
+        reportName: 'Berichtsname',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1493,6 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Solltest du halten oder ablehnen?',
             educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
             holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
+            approveExpenseTitle: 'Genehmige eine Ausgabe, um sie vor der Zahlung weitere Details anzufordern.',
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
@@ -3306,6 +3308,9 @@ ${
         whatsYourAddress: 'Wie lautet Ihre Adresse?',
         whatAreTheLast: 'Was sind die letzten 4 Ziffern der Sozialversicherungsnummer des Eigentümers?',
         whatsYourLast: 'Was sind die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsYourNationality: 'Was ist Ihr Staatsangehörigkeitsland?',
+        whatsTheOwnersNationality: 'Was ist das Staatsangehörigkeitsland des Eigentümers?',
+        countryOfCitizenship: 'Staatsangehörigkeitsland',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4: 'Letzte 4 der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
@@ -5233,6 +5238,7 @@ ${
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
+                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
@@ -5914,8 +5920,8 @@ ${
                 billableDescription: 'Spesen werden meist an Kunden weiterberechnet.',
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
-                eReceipts: 'eReceipts',
-                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
+                eReceipts: 'eQuittungen',
+                eReceiptsHint: `eQuittungen werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
@@ -6254,6 +6260,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7439,14 +7446,13 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Willkommen bei New Expensify!',
-        subtitle: 'Es enthält alles, was du an unserem klassischen Erlebnis liebst, mit einer ganzen Reihe von Verbesserungen, die dein Leben noch einfacher machen:',
+        subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
         confirmText: "Los geht's!",
         features: {
-            chat: 'Chatte zu jeder Ausgabe, um Fragen schnell zu klären',
-            search: 'Leistungsstärkere Suche auf Mobilgeräten, im Web und auf dem Desktop',
-            concierge: 'Integrierte Concierge-KI zur Automatisierung Ihrer Ausgaben',
+            chat: '<strong>Chatten Sie direkt über jede Ausgabe</strong>, jeden Bericht oder Arbeitsbereich',
+            scanReceipt: '<strong>Belege scannen</strong> und Rückerstattung erhalten',
+            crossPlatform: 'Erledigen Sie <strong>alles</strong> von Ihrem Telefon oder Browser aus',
         },
-        helpText: '2-Minuten-Demo ausprobieren',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

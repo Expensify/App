@@ -383,4 +383,7 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
 } as const;
