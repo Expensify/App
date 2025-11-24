@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
@@ -108,6 +109,8 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -164,7 +167,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         >
                             {({hovered}) => (
                                 <Icon
-                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
                                     small
@@ -180,7 +183,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
+                        isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}

@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -55,6 +55,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
+
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
@@ -109,7 +111,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             >
                                 {({hovered}) => (
                                     <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                         fill={theme.icon}
                                         additionalStyles={!hovered && styles.opacitySemiTransparent}
                                         small

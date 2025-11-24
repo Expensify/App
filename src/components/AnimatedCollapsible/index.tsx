@@ -2,11 +2,12 @@ import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -68,6 +69,7 @@ function AnimatedCollapsible({
     const contentHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = React.useState(isExpanded);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
 
     useEffect(() => {
         hasExpanded.set(isExpanded);
@@ -87,7 +89,7 @@ function AnimatedCollapsible({
             if (!finished || target) {
                 return;
             }
-            runOnJS(setIsRendered)(false);
+            scheduleOnRN(setIsRendered, false);
         });
     }, []);
 
@@ -120,7 +122,7 @@ function AnimatedCollapsible({
                     >
                         {({hovered}) => (
                             <Icon
-                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                 fill={theme.icon}
                                 additionalStyles={!hovered && styles.opacitySemiTransparent}
                                 small

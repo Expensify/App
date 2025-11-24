@@ -4,7 +4,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
@@ -13,6 +12,7 @@ import ActionCell from '@components/SelectionListWithSections/Search/ActionCell'
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,8 +33,8 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, TransactionViolation} from '@src/types/onyx';
-import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {PersonalDetails, Report, TransactionViolation} from '@src/types/onyx';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -55,10 +55,10 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     onButtonPress?: () => void;
 
     /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
+    from?: PersonalDetails;
 
     /** The personal details of the user paying the request */
-    to?: SearchPersonalDetails;
+    to?: PersonalDetails;
 
     /** formatted "to" value used for displaying and sorting on Reports page */
     formattedTo?: string;
@@ -74,9 +74,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** information about whether to show the description, that is provided on Reports page */
     shouldShowDescription?: boolean;
-
-    /** Type of transaction */
-    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
@@ -163,6 +160,7 @@ function TransactionItemRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -566,7 +564,7 @@ function TransactionItemRow({
                             {({hovered}) => {
                                 return (
                                     <Icon
-                                        src={Expensicons.ArrowRight}
+                                        src={expensifyIcons.ArrowRight}
                                         fill={theme.icon}
                                         additionalStyles={!hovered && styles.opacitySemiTransparent}
                                         small
