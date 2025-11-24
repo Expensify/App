@@ -236,6 +236,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1322,7 +1323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `将费用从个人空间移动到${workspaceName ?? `与${reportName}聊天`}`,
         movedToPersonalSpace: '将费用移至个人空间',
-        tagSelection: '选择一个标签以更好地组织您的支出。',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `选择${policyTagListName ?? '一个标签'}以更好地管理您的支出。`,
         categorySelection: '选择一个类别以更好地组织您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',

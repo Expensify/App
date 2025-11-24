@@ -161,6 +161,7 @@ function AttachmentPickerWithMenuItems({
         selector: reportSummariesOnyxSelector,
     });
     const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID), [accountID, report?.policyID, reportSummaries]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Collapse', 'Expand'] as const);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -442,7 +443,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Collapse}
+                                                        src={expensifyIcons.Collapse}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>
@@ -466,7 +467,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Expand}
+                                                        src={expensifyIcons.Expand}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>

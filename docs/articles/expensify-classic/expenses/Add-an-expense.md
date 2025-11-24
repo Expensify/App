@@ -144,7 +144,7 @@ Add your expenses to a report to submit them for approval and reimbursement.
 3. Check the box next to each expense to select them.
 4. Click **Add to Report** in the upper-right corner.
 5. Choose one of the following options:
-   - **Auto-Report** – Adds expenses to an open report or creates a new one if none exist.
+   - **Auto-Report** – Adds expenses to a draft report or creates a new one if none exist.
    - **New Report** – Creates a brand-new report with the selected expenses.
    - **Existing Report** – Adds expenses to a report you choose.
    - **None** – Removes selected expenses from any report, as long as the report hasn’t been submitted.
