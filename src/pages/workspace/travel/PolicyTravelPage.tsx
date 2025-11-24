@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -72,7 +73,9 @@ function WorkspaceTravelPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.popToSidebar}
                 />
-                <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
+                <ScrollViewWithContext addBottomSafeAreaPadding>
+                    <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
+                </ScrollViewWithContext>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
