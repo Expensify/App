@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        viewReport: 'Rapport bekijken',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6436,9 +6437,7 @@ ${
         },
         has: 'Heeft',
         groupBy: 'Groep per',
-        moneyRequestReport: {
-            emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Dit rapport heeft geen uitgaven.', accessPlaceHolder: 'Open voor details'},
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
         expenseType: 'Uitgavetype',

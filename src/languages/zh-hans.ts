@@ -692,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
         reportName: '报告名称',
+        viewReport: '查看报告',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -6300,9 +6301,7 @@ ${
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {
-            emptyStateTitle: '此报告没有费用。',
-        },
+        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', accessPlaceHolder: '打开以查看详情'},
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',

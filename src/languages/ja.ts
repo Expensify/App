@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
         reportName: 'レポート名',
+        viewReport: 'レポートを表示',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6389,9 +6390,7 @@ ${
         },
         has: '含む',
         groupBy: 'グループ',
-        moneyRequestReport: {
-            emptyStateTitle: 'このレポートには経費がありません。',
-        },
+        moneyRequestReport: {emptyStateTitle: 'このレポートには経費がありません。', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
         expenseType: '経費タイプ',

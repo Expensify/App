@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
         reportName: 'Nome del report',
+        viewReport: 'Visualizza rendiconto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6453,9 +6454,7 @@ ${
         },
         has: 'Ha',
         groupBy: 'Gruppo per',
-        moneyRequestReport: {
-            emptyStateTitle: 'Questo report non ha spese.',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Questo report non ha spese.', accessPlaceHolder: 'Apri per i dettagli'},
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
         expenseType: 'Tipo di spesa',
