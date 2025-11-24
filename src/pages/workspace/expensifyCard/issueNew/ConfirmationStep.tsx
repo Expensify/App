@@ -72,15 +72,16 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         setIsValidateCodeActionModalVisible(false);
     }, [isSuccessful]);
 
-    // If there's a validateCode error after using extended access, show the modal so the user can see the error
-    useEffect(() => {
-        const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
-        const hasValidateCodeError = validateCodeAction?.errorFields?.[validateCodeErrorField];
+    // If there's a validateCode error after using extended access, show the modal immediately so the user can see the error
+    // We compute these values outside the useEffect so we can use them to hide errors from the main screen
+    const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
+    const hasValidateCodeError = !!validateCodeAction?.errorFields?.[validateCodeErrorField];
 
+    useEffect(() => {
         if (hasValidateCodeError && !isValidateCodeActionModalVisible) {
             setIsValidateCodeActionModalVisible(true);
         }
-    }, [validateCodeAction?.errorFields, data?.cardType, isValidateCodeActionModalVisible]);
+    }, [hasValidateCodeError, isValidateCodeActionModalVisible]);
 
     // If the card was issued successfully using extended access (without showing the modal), handle the redirect
     useEffect(() => {
@@ -113,7 +114,9 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         }
     };
 
-    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
+    // Don't show validateCode errors on the main screen - they should only appear in the modal
+    // This prevents the error from flashing on screen before the modal opens
+    const errorMessage = hasValidateCodeError ? '' : (getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : ''));
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
@@ -206,10 +209,16 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
                     sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
+                    validateCodeActionErrorField={validateCodeErrorField}
                     validateError={validateError}
                     clearError={() => clearIssueNewCardError(policyID)}
-                    onClose={() => setIsValidateCodeActionModalVisible(false)}
+                    onClose={() => {
+                        setIsValidateCodeActionModalVisible(false);
+                        // If the modal was opened due to an error , allow going back
+                        if (hasValidateCodeError) {
+                            handleBackButtonPress();
+                        }
+                    }}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
