@@ -7,8 +7,8 @@ import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +41,7 @@ function BasePicker<TPickerValue>({
 }: BasePickerProps<TPickerValue>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
 
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -97,12 +98,12 @@ function BasePicker<TPickerValue>({
         return () => (
             <Icon
                 fill={theme.icon}
-                src={Expensicons.DownArrow}
+                src={expensifyIcons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles, theme.icon]);
+    }, [icon, size, styles, theme.icon, expensifyIcons.DownArrow]);
 
     useImperativeHandle(ref, () => ({
         /**
