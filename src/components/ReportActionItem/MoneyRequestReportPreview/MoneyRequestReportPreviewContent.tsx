@@ -605,6 +605,14 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW_REPORT]: (
+            <Button
+                text={translate('common.viewReport')}
+                onPress={() => {
+                    openReportFromPreview();
+                }}
+            />
+        ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: (
             <ButtonWithDropdownMenu
                 onPress={() => {}}
