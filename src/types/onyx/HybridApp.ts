@@ -56,6 +56,9 @@ type HybridApp = {
      * Indicates if user is singing in with SAML
      */
     signingInWithSAML?: boolean;
+
+    /** Timestamp when the transition from OldDot started (in milliseconds) */
+    transitionStartTimestamp?: number;
 };
 
 export default HybridApp;
