@@ -354,7 +354,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
-            expect(result).toMatchObject({
+            expect(result).toEqual({
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 amountLessThan: '-12345',
