@@ -63,7 +63,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 translationKey: 'domain.samlFeatureList.onePasswordForAnything',
             },
         ],
-        [illustrations],
+        [illustrations.OpenSafe, illustrations.ShieldYellow, illustrations.LockClosed],
     );
 
     if (isLoadingOnyxValue(domainResults, isAdminResults, domainSettingsResults)) {
