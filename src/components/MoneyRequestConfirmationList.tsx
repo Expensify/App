@@ -351,6 +351,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+        // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
     }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID]);
 
     const distance = getDistanceInMeters(transaction, unit);
