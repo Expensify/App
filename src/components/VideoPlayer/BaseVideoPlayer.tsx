@@ -107,10 +107,6 @@ function BaseVideoPlayer({
         return status === 'error' && !isOffline;
     }, [isOffline, status]);
 
-    const isBuffering = useMemo(() => {
-        return bufferedPosition <= 0;
-    }, [bufferedPosition]);
-
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
@@ -122,6 +118,9 @@ function BaseVideoPlayer({
     const shouldShowLoadingIndicator = useMemo(() => {
         return !isPlaying && !isOffline && !hasError && (isLoading || (status === 'idle' && isFirstLoad));
     }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, status]);
+    const shouldShowOfflineIndicator = useMemo(() => {
+        return isOffline && currentTime + bufferedPosition <= 0;
+    }, [bufferedPosition, currentTime, isOffline]);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
         videoViewRef,
@@ -477,10 +476,11 @@ function BaseVideoPlayer({
                                     shouldUseGoBackButton={false}
                                 />
                             )}
-                            {!isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {shouldShowOfflineIndicator && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowLoadingIndicator &&
-                                !(hasError && !isOffline) &&
+                                !shouldShowOfflineIndicator &&
+                                !hasError &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                     <VideoPlayerControls
                                         duration={duration || 0}
