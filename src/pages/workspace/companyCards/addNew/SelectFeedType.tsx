@@ -121,6 +121,7 @@ function SelectFeedType() {
             </View>
 
             <SelectionList
+                key={typeSelected ? 'feed-type-loaded' : 'feed-type-loading'}
                 ListItem={RadioListItem}
                 data={finalData}
                 onSelectRow={({value}) => {
