@@ -9,8 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -29,7 +27,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb'] as const);
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -108,7 +106,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 ))}
             </View>
             <Icon
-                src={Expensicons.ArrowRight}
+                src={expensifyIcons.ArrowRight}
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />

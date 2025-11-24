@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
@@ -144,7 +145,7 @@ function MoneyRequestReportPreviewContent({
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location'] as const);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -488,7 +489,7 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
@@ -736,7 +737,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.BackArrow}
+                                                            src={expensifyIcons.BackArrow}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon
@@ -756,7 +757,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.ArrowRight}
+                                                            src={expensifyIcons.ArrowRight}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon
