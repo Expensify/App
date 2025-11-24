@@ -278,7 +278,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             default:
                 return undefined;
         }
-    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons]);
+    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons.ArrowRight]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
