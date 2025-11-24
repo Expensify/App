@@ -23,7 +23,9 @@
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
-            "@selectors/*": ["./src/selectors/*"]
+            "@selectors/*": ["./src/selectors/*"],
+
+            "@mfa/api": ["./__mocks__/mfa-api/index.ts"]
         }
     },
     "ts-node": {
