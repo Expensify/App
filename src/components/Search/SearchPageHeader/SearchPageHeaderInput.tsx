@@ -114,7 +114,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
         setTextInputValue(newValue);
         setAutocompleteQueryValue(newValue);
-    }, [isDefaultQuery, queryText, shouldShowQuery]);
+    }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
