@@ -188,18 +188,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {bankAccountID} = policy?.achAccount ?? {};
-        const bankAccount = bankAccountID
-            ? bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID]
-            : Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
+        const bankAccount =
+            bankAccountID && policy?.achAccount?.reimburser === currentUserLogin
+                ? bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID]
+                : Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
 
-        const bankName = policy?.achAccount?.bankName ?? bankAccount?.accountData?.additionalData?.bankName ?? '';
-        const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
+        const accountData = bankAccount?.accountData ?? {};
+        const bankName = accountData?.additionalData?.bankName ?? '';
+        const addressName = accountData?.addressName ?? '';
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
-        const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const state = accountData.state ?? '';
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
 
-        const shouldShowBankAccount = bankAccountID
+        const shouldShowBankAccount = bankAccountID && policy?.achAccount?.reimburser === currentUserLogin
             ? policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO && (policy?.achAccount?.reimburser === currentUserLogin || !isAccountInSetupState)
             : !!bankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
@@ -305,46 +306,66 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     ) : (
                         <>
-                            {shouldShowBankAccount && (
-                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
-                                    <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
-                                </View>
+                            {shouldShowBankAccount ? (
+                                <>
+                                    <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
+                                        <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
+                                    </View>
+                                    <MenuItem
+                                        title={bankTitle}
+                                        description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
+                                        onPress={() => {
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                        }}
+                                        displayInDefaultIconColor
+                                        icon={bankIcon.icon}
+                                        iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                        iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                        iconStyles={bankIcon.iconStyles}
+                                        disabled={isOffline || !isPolicyAdmin}
+                                        badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
+                                        badgeIcon={isAccountInSetupState ? icons.DotIndicator : undefined}
+                                        badgeSuccess={isAccountInSetupState ? true : undefined}
+                                        shouldShowRightIcon={isAccountInSetupState}
+                                        shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                        brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    />
+                                </>
+                            ) : (
+                                <MenuItem
+                                    title={translate('bankAccount.addBankAccount')}
+                                    titleStyle={styles.textStrong}
+                                    onPress={() => {
+                                        if (isAccountLocked) {
+                                            showLockedAccountModal();
+                                            return;
+                                        }
+                                        if (
+                                            !isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))
+                                        ) {
+                                            setIsUpdateWorkspaceCurrencyModalOpen(true);
+                                            return;
+                                        }
+                                        if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
+                                            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                            return;
+                                        }
+                                        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                    }}
+                                    icon={icons.Plus}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    disabled={isOffline || !isPolicyAdmin}
+                                    shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
                             )}
-                            <MenuItem
-                                title={shouldShowBankAccount ? bankTitle : translate('bankAccount.addBankAccount')}
-                                titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
-                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                onPress={() => {
-                                    if (isAccountLocked) {
-                                        showLockedAccountModal();
-                                        return;
-                                    }
-                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
-                                        setIsUpdateWorkspaceCurrencyModalOpen(true);
-                                        return;
-                                    }
-
-                                    if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                        return;
-                                    }
-
-                                    navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-                                }}
-                                icon={shouldShowBankAccount ? bankIcon.icon : icons.Plus}
-                                iconHeight={shouldShowBankAccount ? (bankIcon.iconHeight ?? bankIcon.iconSize) : 20}
-                                iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
-                                iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
-                                disabled={isOffline || !isPolicyAdmin}
-                                badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
-                                badgeIcon={isAccountInSetupState ? icons.DotIndicator : undefined}
-                                badgeSuccess={isAccountInSetupState ? true : undefined}
-                                shouldShowRightIcon={isAccountInSetupState}
-                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                displayInDefaultIconColor={shouldShowBankAccount}
-                                brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
                             {shouldShowBankAccount && !isAccountInSetupState && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
