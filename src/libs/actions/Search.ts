@@ -723,7 +723,11 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
         }
     });
 
-    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)}, {optimisticData, successData, failureData, finallyData});
+    API.write(
+        WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
+        {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)},
+        {optimisticData, successData, failureData, finallyData},
+    );
 }
 
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
