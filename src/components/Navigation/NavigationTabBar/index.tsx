@@ -171,14 +171,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
-                const {q, rawQuery, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q, rawQuery);
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                const queryJSON = buildSearchQueryJSON(q);
                 if (queryJSON) {
                     const query = buildSearchQueryString(queryJSON);
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
                             query,
-                            rawQuery,
                             ...rest,
                         }),
                     );

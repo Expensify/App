@@ -23,8 +23,6 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
-    const defaultSearchQuery = SearchQueryUtils.buildSearchQueryString();
-
     return (
         <FreezeWrapper>
             <Stack.Navigator
@@ -35,7 +33,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
                 <Stack.Screen
                     name={SCREENS.SEARCH.ROOT}
                     getComponent={loadSearchPage}
-                    initialParams={{q: defaultSearchQuery}}
+                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                     options={{animation: Animations.NONE}}
                 />
                 <Stack.Screen
