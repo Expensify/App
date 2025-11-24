@@ -54,6 +54,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
+    onTap,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
@@ -151,6 +152,17 @@ function BaseVideoPlayer({
 
         debouncedHideControl();
     }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
+
+    useEffect(() => {
+        if (!onTap) {
+            return;
+        }
+        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            onTap(true);
+        } else if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE) {
+            onTap(false);
+        }
+    }, [controlStatusState, onTap]);
 
     const stopWheelPropagation = useCallback((ev: WheelEvent) => ev.stopPropagation(), []);
 
