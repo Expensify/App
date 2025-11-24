@@ -706,8 +706,8 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
     const transactionIDToRejectReportAction: Record<
         string,
         {
-            rejectedActionReportActionID: string;
-            rejectedCommentReportActionID: string;
+            rejectedActionReportActionID: number;
+            rejectedCommentReportActionID: number;
         }
     > = {};
     transactionIDs.forEach((transactionID) => {
@@ -717,13 +717,13 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
             successData.push(...data.successData);
             failureData.push(...data.failureData);
             transactionIDToRejectReportAction[transactionID] = {
-                rejectedActionReportActionID: data.parameters.rejectedActionReportActionID,
-                rejectedCommentReportActionID: data.parameters.rejectedCommentReportActionID,
+                rejectedActionReportActionID: Number(data.parameters.rejectedActionReportActionID),
+                rejectedCommentReportActionID: Number(data.parameters.rejectedCommentReportActionID),
             };
         }
     });
 
-    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment}, {optimisticData, successData, failureData, finallyData});
+    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK, {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)}, {optimisticData, successData, failureData, finallyData});
 }
 
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
