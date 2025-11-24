@@ -186,7 +186,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories, transactionViolations]);
 
     const footerContent = useMemo(() => {
         return (

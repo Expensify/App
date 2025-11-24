@@ -422,13 +422,23 @@ function IOURequestStepScan({
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                         transactionViolations,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
+        [
+            backToReport,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
+            iouType,
+            report,
+            transactions,
+            shouldGenerateTransactionThreadReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+        ],
     );
 
     const navigateToConfirmationStep = useCallback(

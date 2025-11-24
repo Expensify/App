@@ -167,7 +167,7 @@ function SubmitDetailsPage({
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
             });
         }

@@ -367,7 +367,17 @@ function IOURequestStepScan({
                 }
             });
         },
-        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
+        [
+            transactions,
+            iouType,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backToReport,
+            shouldGenerateTransactionThreadReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+        ],
     );
 
     const navigateToConfirmationStep = useCallback(

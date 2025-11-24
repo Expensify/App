@@ -221,6 +221,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionID,
         transactionDetails?.currency,
         isBetaEnabled,
+        transactionViolations,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.login,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(

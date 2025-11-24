@@ -576,9 +576,9 @@ type BuildOnyxDataForMoneyRequestParams = {
     participant?: Participant;
     shouldGenerateTransactionThreadReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    currentUserAccountIDParam?: number;
-    currentUserEmailParam?: string;
-    hasViolations?: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -617,6 +617,7 @@ type CreateSplitsAndOnyxDataParams = {
     transactionParams: CreateSplitsTransactionParams;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -3996,6 +3997,9 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
         },
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
     });
 
     return {
@@ -6789,6 +6793,7 @@ function createSplitsAndOnyxData({
     },
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
+    transactionViolations,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7168,6 +7173,7 @@ function createSplitsAndOnyxData({
                   transactionTags: tag,
               })
             : {};
+        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations);
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
@@ -7198,6 +7204,9 @@ function createSplitsAndOnyxData({
                 },
                 personalDetailListAction: oneOnOnePersonalDetailListAction,
             },
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations,
         });
 
         const individualSplit = {
@@ -7273,6 +7282,9 @@ type SplitBillActionsParams = {
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 
 /**
@@ -7299,6 +7311,7 @@ function splitBill({
     taxAmount = 0,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
+    transactionViolations,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7323,6 +7336,7 @@ function splitBill({
         },
         policyRecentlyUsedCategories,
         isASAPSubmitBetaEnabled,
+        transactionViolations,
     });
 
     const parameters: SplitBillParams = {
@@ -7380,6 +7394,7 @@ function splitBillAndOpenReport({
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
+    transactionViolations,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7404,6 +7419,7 @@ function splitBillAndOpenReport({
             taxAmount,
         },
         policyRecentlyUsedCategories,
+        transactionViolations,
     });
 
     const parameters: SplitBillParams = {
@@ -7805,6 +7821,7 @@ function completeSplitBill(
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
     isASAPSubmitBetaEnabled: boolean,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -7979,12 +7996,16 @@ function completeSplitBill(
         } else {
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
+        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations);
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam: sessionAccountID,
+            currentUserEmailParam: sessionEmail ?? '',
+            hasViolations,
             optimisticParams: {
                 chat: {
                     report: oneOnOneChatReport,
@@ -8173,6 +8194,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             policyRecentlyUsedCategories,
             isASAPSubmitBetaEnabled,
+            transactionViolations,
         });
         onyxData = splitOnyxData;
 

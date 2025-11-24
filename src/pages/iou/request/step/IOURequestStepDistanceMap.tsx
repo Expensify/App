@@ -444,6 +444,7 @@ function IOURequestStepDistanceMap({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
     ]);
 
     const getError = () => {

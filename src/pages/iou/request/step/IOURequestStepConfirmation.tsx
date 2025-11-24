@@ -630,6 +630,7 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
+            transactionViolations,
         ],
     );
 
@@ -686,6 +687,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
+            hasViolations,
         ],
     );
 
@@ -826,6 +828,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
+            transactionViolations,
         ],
     );
 
@@ -920,6 +923,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -947,6 +951,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -1088,6 +1093,7 @@ function IOURequestStepConfirmation({
             isUnreported,
             isASAPSubmitBetaEnabled,
             receiverParticipantAccountID,
+            transactionViolations,
         ],
     );
 

@@ -301,6 +301,7 @@ function IOURequestStepDistanceManual({
             customUnitRateID,
             navigateToConfirmationPage,
             personalPolicy?.autoReporting,
+            transactionViolations,
         ],
     );
 

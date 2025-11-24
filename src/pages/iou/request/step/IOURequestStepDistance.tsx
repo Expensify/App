@@ -443,6 +443,7 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
     ]);
 
     const getError = () => {
