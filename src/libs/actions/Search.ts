@@ -431,12 +431,12 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
 
 function updateSearchResultsWithIsFromOneTransactionReport(hash: number, transactionID: string, isFromOneTransactionReport: boolean) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
+    const onyxUpdate = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                 isFromOneTransactionReport,
             },
-        },
+        } as Partial<Transaction>,
     };
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
