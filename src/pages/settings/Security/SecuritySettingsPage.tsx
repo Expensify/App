@@ -6,7 +6,9 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
@@ -22,7 +24,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -55,6 +57,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -169,13 +172,13 @@ function SecuritySettingsPage() {
         if (isAccountLocked) {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.unlockAccount',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
             });
         } else {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.reportSuspiciousActivity',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
         }
@@ -206,6 +209,7 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        icons.UserLock,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,
@@ -396,7 +400,7 @@ function SecuritySettingsPage() {
                                     {!isDelegateAccessRestricted && (
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
-                                            icon={Expensicons.UserPlus}
+                                            icon={icons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
                                                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);

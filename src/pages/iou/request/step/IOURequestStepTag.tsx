@@ -2,11 +2,11 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import {EmptyStateExpenses} from '@components/Icon/Illustrations';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -52,6 +52,7 @@ function IOURequestStepTag({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
 
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -146,7 +147,7 @@ function IOURequestStepTag({
                 <View style={[styles.flex1]}>
                     <WorkspaceEmptyStateSection
                         shouldStyleAsCard={false}
-                        icon={EmptyStateExpenses}
+                        icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                         containerStyle={[styles.flex1, styles.justifyContentCenter]}

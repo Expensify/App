@@ -9,6 +9,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+// eslint-disable-next-line no-restricted-imports
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -122,7 +124,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -346,7 +348,7 @@ function WorkspacesListPage() {
 
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
-                    icon: icons.Exit,
+                    icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {
@@ -367,7 +369,7 @@ function WorkspacesListPage() {
 
             if (isAdmin) {
                 threeDotsMenuItems.push({
-                    icon: icons.Copy,
+                    icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
                     onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
@@ -375,7 +377,7 @@ function WorkspacesListPage() {
 
             if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
-                    icon: icons.Star,
+                    icon: Expensicons.Star,
                     text: translate('workspace.common.setAsDefault'),
                     onSelected: () => {
                         if (!item.policyID || !activePolicyID) {
@@ -387,7 +389,7 @@ function WorkspacesListPage() {
             }
             if (isOwner) {
                 threeDotsMenuItems.push({
-                    icon: icons.Trashcan,
+                    icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
                     onSelected: () => {
@@ -414,7 +416,7 @@ function WorkspacesListPage() {
 
             if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
                 threeDotsMenuItems.push({
-                    icon: icons.Transfer,
+                    icon: Expensicons.Transfer,
                     text: translate('workspace.people.transferOwner'),
                     onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
@@ -464,6 +466,7 @@ function WorkspacesListPage() {
             );
         },
         [
+            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
@@ -532,7 +535,7 @@ function WorkspacesListPage() {
                         type: policyInfo.type,
                         iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
                         errors: undefined,
@@ -561,7 +564,7 @@ function WorkspacesListPage() {
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
@@ -569,7 +572,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace, icons]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -666,7 +669,7 @@ function WorkspacesListPage() {
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={icons.Plus}
+                icon={Expensicons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
         );
