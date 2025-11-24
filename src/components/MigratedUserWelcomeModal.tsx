@@ -66,7 +66,6 @@ function MigratedUserWelcomeModal() {
         canBeMissing: true,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
