@@ -38,7 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask', 'FallbackAvatar'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserAccountID = getCurrentUserAccountID();
@@ -86,7 +86,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
                 <Avatar
                     source={icon.source}
@@ -123,7 +123,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
-                            disabled={icon.source === Expensicons.FallbackAvatar}
+                            disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}
