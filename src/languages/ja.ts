@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        reportName: 'レポート名',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -3279,6 +3280,9 @@ ${
         whatsYourAddress: '住所は何ですか？',
         whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
         whatsYourLast: 'あなたの社会保障番号の最後の4桁は何ですか？',
+        whatsYourNationality: 'あなたの市民権の国はどこですか？',
+        whatsTheOwnersNationality: '所有者の市民権の国はどこですか？',
+        countryOfCitizenship: '市民権の国',
         dontWorry: 'ご安心ください、私たちは個人の信用調査を行いません！',
         last4: 'SSNの下4桁',
         whyDoWeAsk: 'なぜこれを尋ねるのですか？',
@@ -5848,7 +5852,7 @@ ${
                 billableDescription: '経費は多くの場合、クライアントに再請求されます。',
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eレシート',
                 eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
@@ -6180,6 +6184,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
