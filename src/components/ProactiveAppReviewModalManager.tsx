@@ -6,7 +6,7 @@ import * as User from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ProactiveAppReviewResponse} from '@src/types/onyx/ProactiveAppReview';
+import type {ProactiveAppReviewResponse} from '@src/types/onyx/AppReview';
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
 const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying Expensify. What's your favorite thing about the app? Thanks!";
