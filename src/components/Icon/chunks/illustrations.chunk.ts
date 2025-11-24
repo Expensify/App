@@ -253,7 +253,6 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
-    PalmTree,
 };
 
 /**
