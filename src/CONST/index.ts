@@ -175,6 +175,7 @@ const EMAIL = {
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
+    QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
 const CONST = {
@@ -953,6 +954,7 @@ const CONST = {
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
+    SAML_REDIRECT_URL: 'expensify://open',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -1634,6 +1636,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        MENTION_SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
@@ -2635,6 +2638,7 @@ const CONST = {
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
         MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
+        QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
     ENVIRONMENT: {
@@ -3808,6 +3812,7 @@ const CONST = {
         EMAIL.SVFG,
         EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
+        EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
@@ -6688,6 +6693,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TOTAL_AMOUNT: 'amount',
+            TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
@@ -6697,6 +6703,8 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
+            AVATAR: 'avatar',
+            STATUS: 'status',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

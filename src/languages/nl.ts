@@ -696,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        reportName: 'Rapportnaam',
         showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
@@ -5891,7 +5892,7 @@ ${
                 billableDescription: 'Uitgaven worden meestal doorberekend aan klanten.',
                 nonBillable: 'Niet-factureerbaar',
                 nonBillableDescription: 'Uitgaven worden soms opnieuw gefactureerd aan klanten.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eRecepten',
                 eReceiptsHint: `eRecepten worden automatisch aangemaakt [voor de meeste USD-krediettransacties](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Deelnemer tracking',
                 attendeeTrackingHint: 'Volg de kosten per persoon voor elke uitgave.',

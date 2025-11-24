@@ -344,6 +344,7 @@ function WorkspacesListPage() {
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
                     icon: icons.Exit,
+                    icon: icons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {

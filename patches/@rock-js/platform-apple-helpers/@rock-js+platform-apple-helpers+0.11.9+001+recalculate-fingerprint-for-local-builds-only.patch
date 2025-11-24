@@ -1,0 +1,13 @@
+diff --git a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/buildApp.js b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/buildApp.js
+index 50937a5..c825b22 100644
+--- a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/buildApp.js
++++ b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/utils/buildApp.js
+@@ -35,7 +35,7 @@ export async function buildApp({ args, projectConfig, pluginConfig, platformName
+             xcodeProject = newProjectConfig.xcodeProject;
+             sourceDir = newProjectConfig.sourceDir;
+         }
+-        if (didInstallPods) {
++        if (didInstallPods && args.local) {
+             // After installing pods the fingerprint likely changes.
+             // We update the artifact name to reflect the new fingerprint and store proper entry in the local cache.
+             artifactNameToSave = await formatArtifactName({
