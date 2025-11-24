@@ -4,12 +4,12 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -47,6 +47,7 @@ function CardListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -57,7 +58,7 @@ function CardListItem<TItem extends ListItem>({
     }, [item, onCheckboxPress, onSelectRow]);
 
     const ownersAvatar = {
-        source: item.cardOwnerPersonalDetails?.avatar ?? FallbackAvatar,
+        source: item.cardOwnerPersonalDetails?.avatar ?? expensifyIcons.FallbackAvatar,
         id: item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         type: CONST.ICON_TYPE_AVATAR,
         name: item.cardOwnerPersonalDetails?.displayName ?? '',

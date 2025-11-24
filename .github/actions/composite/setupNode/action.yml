@@ -6,10 +6,6 @@ inputs:
     description: "Indicates if node is set up for hybrid app"
     required: false
     default: 'false'
-  IS_DESKTOP_BUILD:
-    description: "Indicates if node is set up for desktop app"
-    required: false
-    default: 'false'
 
 outputs:
   cache-hit:
@@ -27,9 +23,7 @@ runs:
       with:
         node-version-file: '.nvmrc'
         cache: npm
-        cache-dependency-path: |
-          normalized-package-lock.json
-          desktop/package-lock.json
+        cache-dependency-path: normalized-package-lock.json
 
     - id: cache-node-modules
       # v4
@@ -46,14 +40,6 @@ runs:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
 
-    - id: cache-desktop-node-modules
-      if: inputs.IS_DESKTOP_BUILD == 'true'
-      # v4
-      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
-      with:
-        path: desktop/node_modules
-        key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
-
     - name: Remove ND node_modules if needed for hybrid app build
       if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
       shell: bash
@@ -66,11 +52,3 @@ runs:
         timeout_minutes: 30
         max_attempts: 3
         command: npm ci
-
-    - name: Install node packages for desktop submodule
-      if: inputs.IS_DESKTOP_BUILD == 'true' && steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
-      uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-      with:
-        timeout_minutes: 30
-        max_attempts: 3
-        command: cd desktop && npm ci

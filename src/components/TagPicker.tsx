@@ -143,7 +143,6 @@ function TagPicker({
             textInputValue={searchValue}
             headerMessage={headerMessage}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}

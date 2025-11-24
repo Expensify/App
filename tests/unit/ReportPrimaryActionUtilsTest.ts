@@ -753,7 +753,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(true);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -773,7 +773,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -798,7 +798,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(false);
     });
 });
 
@@ -1191,7 +1191,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
             expect(result).toBe(true);
         });
 
@@ -1224,7 +1224,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1254,7 +1254,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1284,7 +1284,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
     });

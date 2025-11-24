@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type PerDiemEReceiptProps = {
@@ -52,6 +52,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
         canBeMissing: true,
     });
@@ -109,7 +110,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
                         width={variables.eReceiptWordmarkWidth}
                         height={variables.eReceiptWordmarkHeight}
                         fill={secondaryColor}
-                        src={Expensicons.ExpensifyWordmark}
+                        src={icons.ExpensifyWordmark}
                     />
                     <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                 </View>

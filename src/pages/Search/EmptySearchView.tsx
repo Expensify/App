@@ -11,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -148,12 +147,12 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Alert'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
             {
-                icon: PiggyBank,
+                icon: illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
             },
             {
@@ -161,7 +160,7 @@ function EmptySearchViewContent({
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.Alert],
+        [illustrations.PiggyBank, illustrations.Alert],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -292,7 +291,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(

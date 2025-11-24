@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
@@ -21,6 +21,8 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
+
     const height = styles.headerBarHeight.height;
     const radius = 20;
     const circleY = height / 2;
@@ -39,7 +41,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                     >
                         <Icon
                             fill={theme.icon}
-                            src={Expensicons.BackArrow}
+                            src={expensifyIcons.BackArrow}
                         />
                     </PressableWithFeedback>
                 )}
@@ -56,13 +58,17 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         r={radius}
                     />
                     <Rect
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         x="55"
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         y={circleTopY + 8}
                         width="30%"
                         height="8"
                     />
                     <Rect
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         x="55"
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         y={circleBottomY - 12}
                         width="40%"
                         height="8"
