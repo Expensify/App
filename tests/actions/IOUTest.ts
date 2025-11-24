@@ -10053,7 +10053,7 @@ describe('actions/IOU', () => {
             expect(fullMessage).toBe('Waiting for Senior Manager User to approve %expenses.');
         });
 
-        it('should refer an admin as "you" in optimistic next step message when admin takes control and approves', async () => {
+        it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
             // Admin takes control
             const takeControlAction = {
                 reportActionID: 'takeControl2',
