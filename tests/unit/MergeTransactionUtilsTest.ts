@@ -768,7 +768,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, mergeTransaction: undefined});
 
             // Then it should return an object with the field value
             expect(result).toEqual({
@@ -785,7 +785,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 2500;
 
             // When we get updated values for amount field
-            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, mergeTransaction: undefined});
 
             // Then it should include both amount and currency
             expect(result).toEqual({
@@ -816,7 +816,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Distance Merchant';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, mergeTransaction: undefined});
 
             // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({
