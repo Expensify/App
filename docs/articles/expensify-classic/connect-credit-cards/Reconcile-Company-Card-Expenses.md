@@ -51,7 +51,7 @@ Use the **Unapproved Total** and **Approved Total** columns to locate expenses t
 ## Add Unreported or Deleted Expenses to a Report
 1. Filter the expenses to display only Unreported or Deleted expenses.
 2. Select all relevant expenses and click **Add to a Report** > **Auto Report**.
-3. If an draft report exists in the cardholder’s account, the expenses will be added to it. Otherwise, a new report will be created.
+3. If a draft report exists in the cardholder’s account, the expenses will be added to it. Otherwise, a new report will be created.
 
 ---
 
