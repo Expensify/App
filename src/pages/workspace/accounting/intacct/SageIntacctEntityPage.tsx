@@ -5,6 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
+// eslint-disable-next-line no-restricted-syntax
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -18,6 +19,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const entityID = config?.entity ?? '';
     const {translate} = useLocalize();
 
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
 
     const sections = [
