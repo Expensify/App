@@ -448,7 +448,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
-        icons.ExpensifyCard,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

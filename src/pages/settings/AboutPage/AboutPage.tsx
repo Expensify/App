@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
@@ -56,7 +54,6 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: PalmTree} = useMemoizedLazyAsset(() => loadIllustration('PalmTree' as IllustrationName));
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
