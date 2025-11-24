@@ -2,11 +2,11 @@ import React, {useCallback, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
-import * as User from '@libs/actions/User';
+import {respondToProactiveAppReview} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ProactiveAppReviewResponse} from '@src/types/onyx/AppReview';
+import type {AppReviewResponse} from '@src/types/onyx/AppReview';
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
 const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying Expensify. What's your favorite thing about the app? Thanks!";
@@ -18,11 +18,11 @@ function ProactiveAppReviewModalManager() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const handleResponse = useCallback(
-        (response: ProactiveAppReviewResponse, message?: string) => {
+        (response: AppReviewResponse, message?: string) => {
             setIsModalVisible(false);
 
             // Call the action which will create optimistic comment (if message provided) and call API
-            User.respondToProactiveAppReview(response, message, conciergeReportID);
+            respondToProactiveAppReview(response, message, conciergeReportID);
 
             // Navigate to Concierge DM if we have a report ID and this wasn't a skip
             if (conciergeReportID && response !== 'skip') {

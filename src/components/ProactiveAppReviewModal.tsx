@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
-import * as Illustrations from './Icon/Illustrations';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
@@ -26,6 +26,7 @@ type ProactiveAppReviewModalProps = {
 function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: ProactiveAppReviewModalProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
 
     return (
         <Modal
@@ -38,7 +39,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
                 {/* Todd with phones illustration */}
                 <View style={[styles.alignItemsCenter, styles.mb3]}>
                     <ImageSVG
-                        src={Illustrations.ToddWithPhones}
+                        src={illustrations.ToddWithPhones}
                         contentFit="contain"
                         width={200}
                         height={200}
