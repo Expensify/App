@@ -260,6 +260,7 @@ const SCREENS = {
         REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
         DOMAIN: 'Domain',
+        MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -830,6 +831,17 @@ const SCREENS = {
         VERIFIED: 'Domain_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
+    },
+    MULTIFACTOR_AUTHENTICATION: {
+        MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
+        AUTHENTICATOR: 'Multifactor_Authentication_Authenticator',
+        SMS_OTP: 'Multifactor_Authentication_Sms_Top',
+        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
+        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        APPROVE_TRANSACTION: 'Multifactor_Authentication_Approve_Transaction',
+        PROMPT: 'Multifactor_Authentication_Prompt',
+        REVOKE: 'Multifactor_Authentication_Revoke',
+        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },
 } as const;
 

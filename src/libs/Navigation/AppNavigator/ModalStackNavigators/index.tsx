@@ -20,6 +20,7 @@ import type {
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
+    MultifactorAuthenticationParamList,
     NewChatNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     NewTaskNavigatorParamList,
@@ -939,6 +940,18 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
 });
 
+const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFAFactorMagicCodePage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHENTICATOR]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFAFactorAuthenticatorPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.SMS_OTP]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFAFactorSmsOtpPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFABiometricsTestPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFANotificationPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFAApproveTransactionPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFAPromptPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/MFARevokePage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: () => require<ReactComponentModule>('../../../../pages/ErrorPage/NotFoundPage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -986,4 +999,5 @@ export {
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
     WorkspacesDomainModalStackNavigator,
+    MultifactorAuthenticationStackNavigator,
 };
