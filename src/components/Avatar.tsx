@@ -100,7 +100,7 @@ function Avatar({
     if (isWorkspace) {
         fallbackAvatar = getDefaultWorkspaceAvatar(name);
     } else {
-        fallbackAvatar = fallbackIcon === undefined ? defaultAvatars.FallbackAvatar : fallbackIcon;
+        fallbackAvatar = !!fallbackIcon || defaultAvatars.FallbackAvatar;
     }
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
