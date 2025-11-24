@@ -700,7 +700,6 @@ function changeTransactionsReport(
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
     policyCategories?: OnyxEntry<PolicyCategories>,
-    nextStepsCollection?: OnyxCollection<ReportNextStep>,
 ) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -803,22 +802,6 @@ function changeTransactionsReport(
 
     let transactionsMoved = false;
     let shouldFixViolations = false;
-    const getReportByID = (reportIDParam: string | undefined): OnyxEntry<Report> | undefined => {
-        if (!reportIDParam) {
-            return undefined;
-        }
-
-        if (reportIDParam === newReport?.reportID) {
-            return newReport;
-        }
-
-        if (reportIDParam === selfDMReport?.reportID) {
-            return selfDMReport;
-        }
-
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDParam}`];
-    };
-    const reopenedReports: Record<string, {stateNum?: number; statusNum?: number; unheldTotal?: number}> = {};
 
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -904,9 +887,7 @@ function changeTransactionsReport(
 
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
-        const shouldEvaluatePolicyViolations = isPaidGroupPolicy(policy) && policy?.id && policyCategories;
-
-        if (shouldEvaluatePolicyViolations) {
+        if (isPaidGroupPolicy(policy) && policy?.id) {
             const violationData = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 currentTransactionViolations[transaction.transactionID] ?? [],
@@ -1237,21 +1218,14 @@ function changeTransactionsReport(
     for (const [reportIDToUpdate, total] of Object.entries(updatedReportTotals)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: reportKey,
-            value: optimisticReportUpdate,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total},
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: reportKey,
-            value: {
-                total: existingReport?.total,
-                ...(shouldReopenReport && {
-                    stateNum: existingReport?.stateNum,
-                    statusNum: existingReport?.statusNum,
-                    unheldTotal: existingReport?.unheldTotal,
-                }),
-            },
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
         });
     }
 
@@ -1312,82 +1286,101 @@ function changeTransactionsReport(
         }
     }
 
-    // 9. Update next step for all affected reports
+    // 9. Update next steps for all affected reports
     const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
-    const destinationReport = destinationReportID
-        ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
-          (destinationReportID === newReport?.reportID ? newReport : undefined) ??
-          (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
-        : undefined;
-    const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
-    const nextStepReport = {
-        ...destinationReport,
-        reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
-        total: destinationTotal,
-    };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const affectedReportIDs = new Set<string>();
 
-    // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: nextStepReport,
-        policy,
-        currentUserAccountIDParam: accountID,
-        currentUserEmailParam: email,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-        shouldFixViolations,
-    });
-    const optimisticNextStep = buildOptimisticNextStep({
-        report: nextStepReport,
-        policy,
-        currentUserAccountIDParam: accountID,
-        currentUserEmailParam: email,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-        shouldFixViolations,
-    });
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: optimisticNextStepDeprecated,
-    });
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            nextStep: optimisticNextStep,
-            pendingFields: {
-                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+    Object.keys(updatedReportTotals).forEach((reportIDToUpdate) => affectedReportIDs.add(reportIDToUpdate));
+    if (destinationReportID) {
+        affectedReportIDs.add(destinationReportID);
+    }
+
+    affectedReportIDs.forEach((affectedReportID) => {
+        const affectedReport =
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
+            (affectedReportID === newReport?.reportID ? newReport : undefined) ??
+            (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+
+        if (!affectedReport) {
+            return;
+        }
+
+        const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;
+        const updatedReport = {
+            ...affectedReport,
+            total: updatedTotal,
+            reportID: affectedReport.reportID ?? affectedReportID,
+        };
+
+        let predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
+        if (updatedTotal === 0 && updatedReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
+        }
+
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
+        const shouldFixViolationsForReport = affectedReportID === destinationReportID ? shouldFixViolations : false;
+
+        const optimisticNextStepForCollection = buildNextStepNew({
+            report: updatedReport,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            predictedNextStatus,
+            shouldFixViolations: shouldFixViolationsForReport,
+        });
+        const optimisticNextStepForReport = buildOptimisticNextStep({
+            report: updatedReport,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            predictedNextStatus,
+            shouldFixViolations: shouldFixViolationsForReport,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
+            value: optimisticNextStepForCollection,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
+            value: {
+                nextStep: optimisticNextStepForReport,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
-        },
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            pendingFields: {
-                nextStep: null,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
             },
-        },
-    });
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: reportNextStep,
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            nextStep: nextStepReport.nextStep ?? null,
-            pendingFields: {
-                nextStep: null,
+        });
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
+            value: affectedReportID === reportID ? reportNextStep : affectedReport.nextStep ?? null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
+            value: {
+                nextStep: affectedReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
             },
-        },
+        });
     });
 
     const parameters: ChangeTransactionsReportParams = {
