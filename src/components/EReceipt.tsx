@@ -16,8 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
@@ -43,13 +41,13 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark'] as const);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 
     const isLoadedRef = useRef(false);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody'] as const);
 
     const {
         amount: transactionAmount,
@@ -160,7 +158,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 width={variables.eReceiptWordmarkWidth}
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
-                                                src={Expensicons.ExpensifyWordmark}
+                                                src={icons.ExpensifyWordmark}
                                             />
                                         </View>
                                     </View>

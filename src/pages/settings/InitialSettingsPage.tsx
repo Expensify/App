@@ -87,7 +87,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Emoji', 'CreditCard', 'Wallet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Emoji', 'CreditCard', 'Wallet'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -266,7 +266,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: Expensicons.ExpensifyLogoNew,
+            icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -288,7 +288,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, surveyCompletedWithinLastMonth]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, tryNewDot?.classicRedirect?.dismissed, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth]);
 
     /**
      * Return a list of menu items data for general section
@@ -315,7 +315,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.whatIsNew',
-                    icon: Expensicons.TreasureChest,
+                    icon: icons.TreasureChest,
                     iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.WHATS_NEW_URL,
@@ -343,14 +343,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
+                    icon: icons.Exit,
                     action: () => {
                         signOut(false);
                     },
                 },
             ],
         };
-    }, [icons.NewWindow, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
+    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, signOut]);
 
     /**
      * Return JSX.Element with menu items
