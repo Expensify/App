@@ -1,4 +1,5 @@
-import {PixelRatio} from 'react-native';
+import { PixelRatio } from 'react-native';
+
 
 /**
  * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
@@ -384,4 +385,16 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
+    simpleSmartScanWidth: 204,
+    simpleSmartScanHeight: 204,
 } as const;
