@@ -976,6 +976,7 @@ function Search({
                     shouldPreventLongPressRow={isChat || isTask}
                     isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}
+                    isDEWBetaEnabled={isDEWSubmitBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <View style={[!isTask && styles.pr8, styles.flex1]}>

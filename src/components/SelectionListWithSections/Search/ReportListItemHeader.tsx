@@ -59,6 +59,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -208,6 +211,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isExpanded,
     isHovered,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -239,6 +243,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
         );
     };
     return !isLargeScreenWidth ? (
