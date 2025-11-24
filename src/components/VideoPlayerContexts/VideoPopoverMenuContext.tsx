@@ -3,11 +3,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-<<<<<<< HEAD
-=======
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
->>>>>>> 62117e045ba7e55799d841a82543e7d7956eb6ab
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
