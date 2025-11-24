@@ -7,6 +7,7 @@ import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
+import {getReportOrDraftReport, isSelfDM} from './ReportUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
 type MileageRate = {
@@ -348,6 +349,20 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
+function isSubmittingTrackedDistanceExpenseToP2P({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    const linkedTrackedExpenseReportID = transaction?.linkedTrackedExpenseReportID;
+    if (!linkedTrackedExpenseReportID) {
+        return false;
+    }
+
+    const isSelfDMReport = isSelfDM(getReportOrDraftReport(linkedTrackedExpenseReportID));
+    if (isSelfDMReport && !policy && !policyDraft) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
@@ -374,7 +389,8 @@ function getRate({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
+    const mileageRate =
+        isCustomUnitRateIDForP2P(transaction) || isSubmittingTrackedDistanceExpenseToP2P({transaction, policy, policyDraft}) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
