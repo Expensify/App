@@ -157,27 +157,27 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
     useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
         // Return a Record with all requested illustration names
         const mockIllustrations: Record<string, unknown> = {};
-        names.forEach((name) => {
+        for (const name of names) {
             mockIllustrations[name] = {
                 src: `mock-${name}`,
                 testID: `mock-illustration-${name}`,
                 height: 20,
                 width: 20,
             };
-        });
+        }
         return mockIllustrations;
     }),
     useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
         // Return a Record with all requested icon names
         const mockIcons: Record<string, unknown> = {};
-        names.forEach((name) => {
+        for (const name of names) {
             mockIcons[name] = {
                 src: `mock-${name}`,
                 testID: `mock-expensify-icon-${name}`,
                 height: 20,
                 width: 20,
             };
-        });
+        }
         return mockIcons;
     }),
     default: jest.fn(() => {
@@ -228,15 +228,15 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
 
-        Object.keys(data).forEach((key) => {
+        for (const key of Object.keys(data)) {
             const value = data[key];
 
             if (value === undefined) {
-                return;
+                continue;
             }
 
             formData.append(key, value as string | Blob);
-        });
+        }
 
         return Promise.resolve(formData);
     }),

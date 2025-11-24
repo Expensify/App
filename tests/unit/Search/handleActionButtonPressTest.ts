@@ -63,6 +63,7 @@ const mockReportItemWithHold = {
         phoneNumber: '',
         validated: false,
     },
+    shouldShowYear: false,
     transactions: [
         {
             report: {
@@ -82,17 +83,20 @@ const mockReportItemWithHold = {
                 actionName: 'IOU',
                 created: '2024-12-04',
             },
+            holdReportAction: {
+                reportActionID: '2101164516657897891',
+                actionName: 'HOLD',
+                created: '2024-12-05',
+            },
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
             amount: -1200,
             canDelete: true,
-            canHold: false,
-            canUnhold: true,
             category: '',
             comment: {
                 comment: '',
-                hold: '3042630993757922770',
+                hold: '2101164516657897891',
             },
             created: '2024-12-04',
             currency: 'USD',
@@ -111,7 +115,6 @@ const mockReportItemWithHold = {
             tag: '',
             transactionID: '1049531721038862176',
             transactionThreadReportID: '2957345659269055',
-            transactionType: 'cash',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
@@ -174,13 +177,12 @@ const mockReportItemWithHold = {
                 actionName: 'IOU',
                 created: '2024-12-04',
             },
+            holdReportAction: undefined,
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
             amount: -12300,
             canDelete: true,
-            canHold: true,
-            canUnhold: false,
             category: '',
             comment: {
                 comment: '',
@@ -200,7 +202,6 @@ const mockReportItemWithHold = {
             tag: '',
             transactionID: '5345995386715609966',
             transactionThreadReportID: '740282333335072',
-            transactionType: 'cash',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',

@@ -7,14 +7,15 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
@@ -59,6 +61,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const ancestors = useAncestors(report);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
@@ -71,10 +74,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             source: fileSource,
             headerTitle: validateFileName,
             originalFileName: validateFileName,
-            fallbackSource: FallbackAvatar,
+            fallbackSource: expensifyIcons.FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName]);
+    }, [reportAttachmentsContext, fileSource, validateFileName, expensifyIcons.FallbackAvatar]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -108,14 +111,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
-
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -137,7 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);

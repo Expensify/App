@@ -134,14 +134,14 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             return;
         }
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             const login = option.login ?? '';
             const accountID = option.accountID;
             if (!login.toLowerCase().trim() || !accountID) {
-                return;
+                continue;
             }
             invitedEmailsToAccountIDs[login] = accountID;
-        });
+        }
         inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
     }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
