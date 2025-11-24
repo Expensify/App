@@ -292,7 +292,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
