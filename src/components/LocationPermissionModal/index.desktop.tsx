@@ -2,8 +2,10 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -19,7 +21,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptLocationMarker'] as const);
+    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -133,7 +135,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={illustrations.ReceiptLocationMarker}
+            iconSource={ReceiptLocationMarker}
             iconFill={false}
             iconWidth={140}
             iconHeight={120}
