@@ -20,3 +20,15 @@
 - Upstream PR/issue: 🛑
 - E/App issue: No issue, this patch adjust the library for our needs.
 - PR introducing patch: https://github.com/Expensify/App/pull/69863
+
+### [expo-secure-store+14.2.4+002+add-function-to-assert-device-security.patch](expo-secure-store+14.2.4+002+add-function-to-assert-device-security.patch)
+
+- Reason:
+
+    ```
+    The method `canUseDeviceCredentialsAuthentication` was added to check whether the device has device credentials enabled.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: No issue, this patch adjust the library for our needs.
+- PR introducing patch: https://github.com/Expensify/App/pull/72681
