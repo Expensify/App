@@ -20,19 +20,15 @@ function HybridAppHandler() {
         (hybridAppSettings: HybridAppSettings) => {
             const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-            setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot)
-                .then(() => {
-                    endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
+            setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
+                if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                    return;
+                }
 
-                    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                        return;
-                    }
+                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
 
-                    setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-                })
-                .catch(() => {
-                    endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, true);
-                });
+                setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            });
         },
         [setSplashScreenState, splashScreenState, tryNewDot],
     );
@@ -42,26 +38,21 @@ function HybridAppHandler() {
             return;
         }
 
-        getHybridAppSettings()
-            .then((hybridAppSettings: HybridAppSettings | null) => {
-                if (!hybridAppSettings) {
-                    // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
-                    Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
-                    endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, true);
-                    return;
-                }
+        getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
+            if (!hybridAppSettings) {
+                // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
+                Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
+                return;
+            }
 
-                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
-                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
-                });
-
-                finalizeTransitionFromOldDot(hybridAppSettings);
-            })
-            .catch(() => {
-                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, true);
+            startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
+                name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
             });
+
+            finalizeTransitionFromOldDot(hybridAppSettings);
+        });
     }, [finalizeTransitionFromOldDot, isLoadingTryNewDot]);
 
     return null;
