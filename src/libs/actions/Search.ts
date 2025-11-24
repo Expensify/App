@@ -755,8 +755,6 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
             });
         }
     });
-
-    playSound(SOUNDS.SUCCESS);
 }
 
 function deleteMoneyRequestOnSearch(
