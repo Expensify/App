@@ -2100,6 +2100,10 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Vereis extra goedkeuring voordat een betaling wordt geautoriseerd.',
         makeOrTrackPaymentsTitle: 'Betalingen maken of volgen',
         makeOrTrackPaymentsDescription: 'Voeg een geautoriseerde betaler toe voor betalingen gedaan in Expensify of volg betalingen die elders zijn gedaan.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met uw <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         editor: {
             submissionFrequency: 'Kies hoe lang Expensify moet wachten voordat foutloze uitgaven worden gedeeld.',
         },
