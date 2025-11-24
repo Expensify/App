@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
+        reportName: 'Berichtsname',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -5919,8 +5920,8 @@ ${
                 billableDescription: 'Spesen werden meist an Kunden weiterberechnet.',
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
-                eReceipts: 'eReceipts',
-                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
+                eReceipts: 'eQuittungen',
+                eReceiptsHint: `eQuittungen werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
