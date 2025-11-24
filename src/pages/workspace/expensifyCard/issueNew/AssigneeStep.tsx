@@ -70,8 +70,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const currency = useCurrencyForExpensifyCard({policyID});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -137,7 +138,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -149,7 +150,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, icons.FallbackAvatar, formatPhoneNumber]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber, expensifyIcons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
