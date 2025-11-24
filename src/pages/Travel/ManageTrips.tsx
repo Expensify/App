@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -6,31 +6,35 @@ import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Illustrations.Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
 function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+    const illustrations = useMemoizedLazyIllustrations(['Alert', 'PiggyBank'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.Alert, illustrations.PiggyBank],
+    );
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
