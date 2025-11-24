@@ -1,0 +1,103 @@
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+index 822caa5..efed05c 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+@@ -75,6 +75,15 @@ open class SecureStoreModule : Module() {
+       }
+     }
+ 
++    Function("canUseDeviceCredentialsAuthentication") {
++      return@Function try {
++        authenticationHelper.assertDeviceSecurity()
++        true
++      } catch (e: AuthenticationException) {
++        false
++      }
++    }
++
+     OnCreate {
+       authenticationHelper = AuthenticationHelper(reactContext, appContext.legacyModuleRegistry)
+       hybridAESEncryptor = HybridAESEncryptor(reactContext, mAESEncryptor)
+diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
+index 96d69b5..940c360 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.d.ts
++++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
+@@ -236,4 +236,11 @@ export declare function getItem(key: string, options?: SecureStoreOptions): [str
+  * @platform ios
+  */
+ export declare function canUseBiometricAuthentication(): boolean;
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export declare function canUseDeviceCredentialsAuthentication(): boolean;
+ //# sourceMappingURL=SecureStore.d.ts.map
+diff --git a/node_modules/expo-secure-store/build/SecureStore.js b/node_modules/expo-secure-store/build/SecureStore.js
+index 4399e5e..a12995b 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.js
++++ b/node_modules/expo-secure-store/build/SecureStore.js
+@@ -189,6 +189,15 @@ export function getItem(key, options = {}) {
+ export function canUseBiometricAuthentication() {
+     return ExpoSecureStore.canUseBiometricAuthentication();
+ }
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export function canUseDeviceCredentialsAuthentication() {
++    return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
++}
+ function ensureValidKey(key) {
+     if (!isValidKey(key)) {
+         throw new Error(`Invalid key provided to SecureStore. Keys must not be empty and contain only alphanumeric characters, ".", "-", and "_".`);
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+index e12e027..4e20a94 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+@@ -118,6 +118,10 @@ public final class SecureStoreModule: Module {
+     Function("canUseBiometricAuthentication") { () -> Bool in
+       return areBiometricsEnabled()
+     }
++
++    Function("canUseDeviceCredentialsAuthentication") { () -> Bool in
++      return areDeviceCredentialsEnabled()
++    }
+   }
+ 
+   private func askForAuth(prompt: String) async throws {
+@@ -183,6 +187,10 @@ public final class SecureStoreModule: Module {
+     #endif
+   }
+ 
++  private func areDeviceCredentialsEnabled() -> Bool {
++    return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil)
++  }
++
+   private func get(with key: String, options: SecureStoreOptions) throws -> String?
+   {
+     guard let key = validate(for: key) else {
+diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
+index ccfd2a9..40327b7 100644
+--- a/node_modules/expo-secure-store/src/SecureStore.ts
++++ b/node_modules/expo-secure-store/src/SecureStore.ts
+@@ -313,6 +313,16 @@ export function canUseBiometricAuthentication(): boolean {
+   return ExpoSecureStore.canUseBiometricAuthentication();
+ }
+ 
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export function canUseDeviceCredentialsAuthentication(): boolean {
++  return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
++}
++
+ function ensureValidKey(key: string) {
+   if (!isValidKey(key)) {
+     throw new Error(
