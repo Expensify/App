@@ -934,6 +934,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
+        visibilityVisible: {
+            ...visibility.visible,
+        },
+
         loadingVBAAnimation: {
             width: 140,
             height: 140,
@@ -1835,7 +1839,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
