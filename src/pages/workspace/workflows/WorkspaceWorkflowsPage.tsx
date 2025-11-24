@@ -55,6 +55,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {BankAccount} from '@src/types/onyx';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -187,22 +188,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy?.approvalMode, approvalWorkflows]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {bankAccountID} = policy?.achAccount ?? {};
-        const bankAccount =
-            bankAccountID && policy?.achAccount?.reimburser === currentUserLogin
-                ? bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID]
-                : Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
-
-        const accountData = bankAccount?.accountData ?? {};
-        const bankName = accountData?.additionalData?.bankName ?? '';
-        const addressName = accountData?.addressName ?? '';
+        const isBankAccountFullySetup = policy?.achAccount && policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id) as BankAccount;
+        const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.additionalData?.bankName ?? '');
+        const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
+        const accountData = isBankAccountFullySetup ? policy?.achAccount : bankAccountConnectedToWorkspace?.accountData;
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
-        const state = accountData.state ?? '';
+        const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
 
-        const shouldShowBankAccount = bankAccountID && policy?.achAccount?.reimburser === currentUserLogin
-            ? policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO && (policy?.achAccount?.reimburser === currentUserLogin || !isAccountInSetupState)
-            : !!bankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowBankAccount = (isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
