@@ -4,6 +4,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -30,21 +31,6 @@ import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
-const ExpensifyFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.MagnifyingGlassReceipt,
-        translationKey: 'migratedUserWelcomeModal.features.search',
-    },
-    {
-        icon: Illustrations.ConciergeBot,
-        translationKey: 'migratedUserWelcomeModal.features.concierge',
-    },
-    {
-        icon: Illustrations.ChatBubbles,
-        translationKey: 'migratedUserWelcomeModal.features.chat',
-    },
-];
-
 function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,20 +41,21 @@ function MigratedUserWelcomeModal() {
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
             {
+                icon: Illustrations.MagnifyingGlassReceipt,
+                translationKey: 'migratedUserWelcomeModal.features.search',
+            },
+            {
+                icon: Illustrations.ConciergeBot,
+                translationKey: 'migratedUserWelcomeModal.features.concierge',
+            },
+            {
                 icon: Illustrations.ChatBubbles,
                 translationKey: 'migratedUserWelcomeModal.features.chat',
-            },
-            {
-                icon: Illustrations.Flash,
-                translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
-            },
-            {
-                icon: illustrations.ExpensifyMobileApp,
-                translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
             },
         ],
         [illustrations.ExpensifyMobileApp],
@@ -112,10 +99,9 @@ function MigratedUserWelcomeModal() {
             helpText={translate('migratedUserWelcomeModal.helpText')}
             onHelp={() => {
                 Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
-                const isAdmin = !!account?.adminsRoomReportID;
                 const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
                 const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
-                const helpUrl = isAdmin ? adminUrl : employeeUrl;
+                const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
                 openExternalLink(helpUrl);
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
