@@ -231,15 +231,12 @@ function Search({
     const isDEWSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
 
     const handleDEWModalOpen = useCallback(() => {
-        if (isDEWSubmitBetaEnabled) {
-            return;
-        }
         if (onDEWModalOpen) {
             onDEWModalOpen();
         } else {
             setIsDEWModalVisible(true);
         }
-    }, [onDEWModalOpen, isDEWSubmitBetaEnabled]);
+    }, [onDEWModalOpen]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
