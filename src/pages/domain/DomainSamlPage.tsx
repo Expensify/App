@@ -5,7 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {LaptopOnDeskWithCoffeeAndKey, OpenSafe, ShieldYellow} from '@components/Icon/Illustrations';
+import {LaptopOnDeskWithCoffeeAndKey, OpenSafe} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -29,7 +29,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed', 'ShieldYellow'] as const);
 
     const samlFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -38,7 +38,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
             },
             {
-                icon: ShieldYellow,
+                icon: illustrations.ShieldYellow,
                 translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
             },
             {
@@ -46,7 +46,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 translationKey: 'domain.samlFeatureList.onePasswordForAnything',
             },
         ],
-        [illustrations.LockClosed],
+        [illustrations.LockClosed, illustrations.ShieldYellow],
     );
 
     const accountID = route.params.accountID;
