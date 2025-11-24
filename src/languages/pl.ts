@@ -2020,6 +2020,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: 'Konto bankowe udostępnione!',
         shareBankAccountSuccessDescription: 'Wybrani administratorzy otrzymają wiadomość z potwierdzeniem od Concierge.',
         shareBankAccountFailure: 'Wystąpił nieoczekiwany błąd podczas próby udostępnienia konta bankowego. Spróbuj ponownie.',
+        shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
+        shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

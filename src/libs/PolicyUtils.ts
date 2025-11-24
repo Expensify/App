@@ -200,7 +200,7 @@ function getActiveAllAdminsFromWorkspaces(
         getAdminEmployees(policy).forEach((admin) => {
             const accountID = admin.email ? getAccountIDsByLogins([admin.email]).at(0) : undefined;
             const isBankAlreadyShared = !!(bankAccountID && accountID && bankAccountShareDetails?.[`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${accountID}`]);
-            if (!admin?.email || adminMap.has(admin.email) || isBankAlreadyShared || currentBankAccount?.accountData?.sharees?.includes(admin?.email)) {
+            if (currentUserLogin === admin?.email || !admin?.email || adminMap.has(admin.email) || isBankAlreadyShared || currentBankAccount?.accountData?.sharees?.includes(admin?.email)) {
                 return;
             }
             const personalDetails = getPersonalDetailByEmail(admin.email);
@@ -223,6 +223,66 @@ function getActiveAllAdminsFromWorkspaces(
         });
     });
     return Array.from(adminMap.values());
+}
+
+/** Return true if there is at least one eligible admin in active policies */
+function hasEligibleActiveAdminFromWorkspaces(
+    policies: OnyxCollection<Policy> | null,
+    currentUserLogin: string | undefined,
+    bankAccountID: string | undefined,
+    bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
+): boolean {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+
+    if (!activePolicies) {
+        return false;
+    }
+
+    // Normalize sharees to a Set for O(1) lookups
+    const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
+
+    // Precompute key prefix once
+    const shareKeyPrefix = bankAccountID ? `${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_` : undefined;
+
+    // Track seen admins to avoid duplicates
+    const seenAdmins = new Set<string>();
+
+    for (const policy of Object.values(activePolicies)) {
+        const admins = getAdminEmployees(policy);
+        for (const admin of admins) {
+            const email = admin?.email;
+
+            // same skips as original
+            if (!email || email === currentUserLogin || seenAdmins.has(email) || alreadySharedSharees.has(email)) {
+                continue;
+            }
+
+            let isBankAlreadyShared = false;
+            if (bankAccountID && shareKeyPrefix) {
+                const accountID = getAccountIDsByLogins([email]).at(0);
+                if (accountID) {
+                    isBankAlreadyShared = !!bankAccountShareDetails?.[`${shareKeyPrefix}${accountID}`];
+                }
+            }
+
+            if (isBankAlreadyShared) {
+                seenAdmins.add(email);
+                continue;
+            }
+
+            const personalDetails = getPersonalDetailByEmail(email);
+            if (!personalDetails) {
+                seenAdmins.add(email);
+                continue;
+            }
+
+            // Found at least one eligible admin -> done
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
@@ -1659,6 +1719,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     getUberConnectionErrorDirectlyFromPolicy,

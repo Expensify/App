@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
+    getActiveAllAdminsFromWorkspaces,
     getActivePolicies,
     getCustomUnitsForDuplication,
     getManagerAccountID,
@@ -1304,6 +1305,94 @@ describe('PolicyUtils', () => {
             };
             const result = hasOnlyPersonalPolicies(policies);
             expect(result).toBe(true);
+        });
+    });
+
+    describe('getActiveAllAdminsFromWorkspaces', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return empty array if no admins in policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, '1', undefined);
+            expect(result).toHaveLength(0);
+        });
+        it('should return array with admins', () => {
+            const currentUserLogin = adminEmail;
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, '1', undefined);
+            expect(result).toHaveLength(1);
+        });
+        it('should not return user with already shared bank account', async () => {
+            const bankAccountID = '1';
+            const currentUserLogin = adminEmail;
+            const bankAccountShareDetails = {
+                [`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${adminAccountID}`]: {
+                    addressName: '1',
+                    accountName: '1',
+                    shareeEmail: 'string',
+                    shareComplete: true,
+                    bankAccountID: 123,
+                    routingNumber: '123',
+                    accountNumber: '1',
+                    allowDebit: false,
+                    processor: 'string',
+                    validating: true,
+                },
+            };
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, bankAccountID, bankAccountShareDetails);
+            expect(result).toHaveLength(0);
+        });
+        it('should not return current user for sharing account', async () => {
+            const bankAccountID = '1';
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
+                    pendingAction: undefined,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getActiveAllAdminsFromWorkspaces(policies, adminEmail, bankAccountID, undefined);
+            expect(result).toHaveLength(1);
         });
     });
 });

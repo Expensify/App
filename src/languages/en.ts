@@ -2129,6 +2129,8 @@ const translations = {
         shareBankAccountSuccess: 'Bank account shared!',
         shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
         shareBankAccountFailure: 'An unexpected error occurred while trying to share bank account. Please try again.',
+        shareBankAccountEmptyTitle: 'No admins available',
+        shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

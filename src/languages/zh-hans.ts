@@ -1993,6 +1993,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: '已共享银行账户！',
         shareBankAccountSuccessDescription: '选定的管理员将收到来自礼宾部的确认消息。',
         shareBankAccountFailure: '尝试共享银行账户时发生意外错误。请重试。',
+        shareBankAccountEmptyTitle: '暂无管理员可用',
+        shareBankAccountEmptyDescription: '没有可与您共享此银行账户的工作区管理员。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

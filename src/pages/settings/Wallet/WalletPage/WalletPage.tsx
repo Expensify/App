@@ -22,6 +22,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,7 +39,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
@@ -73,11 +74,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: false});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Hourglass', 'Exclamation', 'Wallet', 'Star', 'UserPlus', 'Trashcan', 'Globe'] as const);
 
     const theme = useTheme();
@@ -116,6 +120,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [isLoadingPaymentMethods, network.isOffline, shouldShowLoadingSpinner]);
 
     const debounceSetShouldShowLoadingSpinner = debounce(updateShouldShowLoadingSpinner, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
+    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(
+        allPolicies,
+        currentUserLogin,
+        paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString(),
+        bankAccountShareDetails,
+    );
 
     /**
      * Set position of the payment menu
@@ -629,7 +639,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 numberOfLinesTitle={0}
                             />
                         )}
-                        {shouldShowShareButton && (
+                        {shouldShowShareButton && hasEligibleActiveAdmin && (
                             <MenuItem
                                 title={translate('common.share')}
                                 icon={expensifyIcons.UserPlus}

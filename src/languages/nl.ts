@@ -2023,6 +2023,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: 'Bankrekening gedeeld!',
         shareBankAccountSuccessDescription: 'De geselecteerde beheerders ontvangen een bevestigingsbericht van Concierge.',
         shareBankAccountFailure: 'Er is een onverwachte fout opgetreden bij het delen van de bankrekening. Probeer het opnieuw.',
+        shareBankAccountEmptyTitle: 'Geen beheerders beschikbaar',
+        shareBankAccountEmptyDescription: 'Er zijn geen werkruimtebeheerders waarmee u deze bankrekening kunt delen.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

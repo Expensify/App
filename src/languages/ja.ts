@@ -2020,6 +2020,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: '銀行口座を共有しました！',
         shareBankAccountSuccessDescription: '選択した管理者にはコンシェルジュから確認メッセージが届きます',
         shareBankAccountFailure: '銀行口座の共有中に予期しないエラーが発生しました。もう一度お試しください。',
+        shareBankAccountEmptyTitle: '管理者がいません',
+        shareBankAccountEmptyDescription: 'この銀行口座を共有できるワークスペース管理者がいません',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

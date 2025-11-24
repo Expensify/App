@@ -2020,6 +2020,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: 'Conta bancária compartilhada!',
         shareBankAccountSuccessDescription: 'Os administradores selecionados receberão uma mensagem de confirmação do Concierge.',
         shareBankAccountFailure: 'Ocorreu um erro inesperado ao tentar compartilhar a conta bancária. Tente novamente.',
+        shareBankAccountEmptyTitle: 'Nenhum administrador disponível',
+        shareBankAccountEmptyDescription: 'Não há administradores de espaço de trabalho com quem você possa compartilhar esta conta bancária.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -22,6 +23,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import {clearShareBankAccount, clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +35,7 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ShareBank'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
 
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -46,6 +48,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
+    const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -63,11 +66,20 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
             }
-
+            setIsAlertVisible(false);
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions],
     );
+
+    useEffect(() => {
+        return () => {
+            if (isLoading) {
+                return;
+            }
+            clearShareBankAccount();
+        };
+    }, [isLoading]);
 
     useEffect(() => {
         if (isOffline) {
@@ -84,7 +96,12 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     }, [sharedBankAccountData?.admins]);
 
     const handleConfirm = useCallback(() => {
-        if (selectedOptions.length === 0 || !bankAccountID) {
+        if (!bankAccountID) {
+            return;
+        }
+
+        if (selectedOptions.length === 0) {
+            setIsAlertVisible(true);
             return;
         }
 
@@ -122,6 +139,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const toggleSelectAll = useCallback(() => {
         const someSelected = selectedOptions.length > 0;
+        setIsAlertVisible(false);
 
         if (someSelected) {
             setSelectedOptions([]);
@@ -144,8 +162,9 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         () => (
             <FormAlertWithSubmitButton
                 isLoading={isLoading}
+                isAlertVisible={isAlertVisible}
                 shouldRenderFooterAboveSubmit
-                isDisabled={!selectedOptions.length}
+                isDisabled={!admins?.length}
                 buttonText={translate('common.share')}
                 onSubmit={handleConfirm}
                 footerContent={
@@ -161,7 +180,8 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         ),
         [
             isLoading,
-            selectedOptions.length,
+            isAlertVisible,
+            admins?.length,
             translate,
             handleConfirm,
             sharedBankAccountData?.errors,
@@ -173,20 +193,26 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         ],
     );
 
-    const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
-    const onButtonPress = () => {
-        if (!isLoading) {
-            clearShareBankAccount();
-        }
-        goBack();
-    };
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('walletPage.shareBankAccountEmptyTitle')}
+                subtitle={translate('walletPage.shareBankAccountEmptyDescription')}
+            />
+        ),
+        [illustrations.Telescope, translate],
+    );
 
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
             <HeaderWithBackButton
                 title={translate(shouldShowSuccess ? 'walletPage.bankAccountShared' : 'walletPage.shareBankAccount')}
-                onBackButtonPress={shouldShowSuccess ? onButtonPress : goBack}
+                onBackButtonPress={onButtonPress}
             />
             {shouldShowSuccess ? (
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -213,10 +239,10 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     selectAllStyle={styles.mutedNormalTextLabel}
                     headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
                     shouldShowTextInputAfterHeader
-                    shouldShowListEmptyContent={false}
                     shouldUpdateFocusedIndex
                     shouldShowHeaderMessageAfterHeader
                     headerMessage={headerMessage}
+                    listEmptyContent={listEmptyContent}
                     ListItem={UserListItem}
                     shouldUseDefaultRightHandSideCheckmark
                     onSelectRow={toggleOption}

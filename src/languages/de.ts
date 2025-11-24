@@ -2031,6 +2031,8 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountSuccess: 'Bankkonto geteilt!',
         shareBankAccountSuccessDescription: 'Die ausgewählten Administratoren erhalten eine Bestätigungsnachricht vom Concierge.',
         shareBankAccountFailure: 'Beim Versuch, das Bankkonto freizugeben, ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        shareBankAccountEmptyTitle: 'Keine Administratoren verfügbar',
+        shareBankAccountEmptyDescription: 'Es gibt keine Workspace-Administratoren, mit denen Sie dieses Bankkonto teilen können.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
