@@ -151,7 +151,17 @@ function IOURequestStepUpgrade({
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
+    }, [
+        isCategorizing,
+        isReporting,
+        currentUserPersonalDetails?.localCurrencyCode,
+        isDistanceRateUpgrade,
+        adminParticipant,
+        activePolicyID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        introSelected,
+    ]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 

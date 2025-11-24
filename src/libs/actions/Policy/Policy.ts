@@ -189,7 +189,7 @@ type BuildPolicyDataOptions = {
     currentUserAccountIDParam?: number;
     // Note: Mark this param as required after migrating completely
     currentUserEmailParam?: string;
-    allReports?: OnyxCollection<Report>;
+    allReportsParam?: OnyxCollection<Report>;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2041,7 +2041,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         activePolicyIDParam,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        allReports,
+        allReportsParam,
     } = options;
     const introSelected = introSelectedParam ?? deprecatedIntroSelected;
     const activePolicyID = activePolicyIDParam ?? deprecatedActivePolicyID;
@@ -2368,7 +2368,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     }
 
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        Object.values(allReports ?? {})
+        Object.values(allReportsParam ?? {})
             .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
             .forEach((iouReport) => {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2487,7 +2487,7 @@ function createWorkspace(options: BuildPolicyDataOptions): CreateWorkspaceParams
 
     // Publish a workspace created event if this is their first policy
     if (getAdminPolicies().length === 0) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     return params;
