@@ -1,5 +1,7 @@
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowSplit from '@assets/images/arrow-split.svg';
+import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
@@ -200,6 +202,8 @@ import Zoom from '@assets/images/zoom.svg';
 export {
     Android,
     Apple,
+    ArrowSplit,
+    ArrowCollapse,
     AttachmentNotFound,
     Bank,
     Bill,
