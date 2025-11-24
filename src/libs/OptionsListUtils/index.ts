@@ -1599,7 +1599,7 @@ function getUserToInviteContactOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
 
     const sanitizedPhoneLogin = isValidPhoneNumber ? addSMSDomainIfPhoneNumber(parsedPhoneNumber.number?.e164 ?? normalizedPhoneNumber) : '';
-    const login = email ? effectiveSearchValue : sanitizedPhoneLogin ?? searchValue;
+    const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
     const normalizedLoginToExclude = addSMSDomainIfPhoneNumber(login).toLowerCase();
 
     const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails);
