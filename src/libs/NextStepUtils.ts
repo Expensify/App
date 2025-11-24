@@ -1019,7 +1019,13 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    isCurrentUserPayer
+                    isPayer(
+                        {
+                            accountID: currentUserAccountIDParam,
+                            email: currentUserEmailParam,
+                        },
+                        report,
+                    )
                         ? {
                               text: `you`,
                               type: 'strong',
