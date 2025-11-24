@@ -67,6 +67,7 @@ import {
     isDM,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
+    isOpenExpenseReport,
     isProcessingReport,
     isReportOwner,
     navigateOnDeleteExpense,
@@ -434,7 +435,7 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    if (shouldBlockSubmit && isReportOwner(moneyRequestReport)) {
+    if (shouldBlockSubmit && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
@@ -474,7 +475,7 @@ function MoneyReportHeader({
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
-                if (currentSearchQueryJSON) {
+                if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals,
@@ -780,7 +781,7 @@ function MoneyReportHeader({
                     }
                     startSubmittingAnimation();
                     submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
-                    if (currentSearchQueryJSON) {
+                    if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
                             shouldCalculateTotals,
