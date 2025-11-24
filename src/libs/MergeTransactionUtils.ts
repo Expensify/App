@@ -356,17 +356,18 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 }
 
 /**
- * Determines the correct target and source transaction IDs for merging based on transaction types.
+ * Determines the correct target and source transactions for merging based on transaction types.
  *
  * Rules:
- * - If one transaction is a card transaction, it becomes the target (card transactions take priority)
- * - If both are cash transactions, the first parameter becomes the target
- * - Users can only merge two cash expenses or one cash/one card expense
+ * - The target transaction (transaction to keep) is selected based on the following priority: card transaction > split expense > cash transaction
  * - Users cannot merge two card expenses
+ * - Users cannot merge two split expenses
+ * - Users can merge any other combinations
  *
- * @param targetTransaction - The first transaction in the merge operation
- * @param sourceTransaction - The second transaction in the merge operation
- * @returns An object containing the determined targetTransactionID and sourceTransactionID
+ * @param originalTargetTransaction - The transaction where the merge action is started from
+ * @param originalSourceTransaction - The selected transaction to be merged with the target transaction
+ * @param originalTransactionForSourceTransaction - The original transaction of the source transaction
+ * @returns An object containing the determined targetTransaction and sourceTransaction
  */
 function selectTargetAndSourceTransactionsForMerge(
     originalTargetTransaction: OnyxEntry<Transaction>,
