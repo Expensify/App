@@ -33,8 +33,8 @@ type Props = {
     /** Whether the item should be highlighted */
     shouldHighlight: boolean;
 
-    /** Whether it should return height style */
-    shouldApplyHeightStyle?: boolean;
+    /** Whether it should return height and border radius styles */
+    shouldApplyOtherStyles?: boolean;
 
     /** The base backgroundColor used for the highlight animation, defaults to theme.appBG
      * @default theme.appBG
@@ -66,7 +66,7 @@ export default function useAnimatedHighlightStyle({
     height,
     highlightColor,
     backgroundColor,
-    shouldApplyHeightStyle = true,
+    shouldApplyOtherStyles = true,
     skipInitialFade = false,
 }: Props) {
     const [startHighlight, setStartHighlight] = useState(false);
@@ -84,9 +84,8 @@ export default function useAnimatedHighlightStyle({
 
         return {
             backgroundColor: interpolateColor(repeatableValue, [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
-            ...(shouldApplyHeightStyle && {height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto'}),
             opacity: interpolate(nonRepeatableValue, [0, 1], [0, 1]),
-            borderRadius,
+            ...(shouldApplyOtherStyles && {height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto', borderRadius}),
         };
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
