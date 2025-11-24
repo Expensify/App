@@ -379,6 +379,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				498240F82C49553900C15857 /* Run Fullstory Asset Uploader */,
+				3E1F28A92C7B4D1E00AB89CD /* Upload Sentry Source Maps */,
 				5124824122A346BD617AD428 /* [CP] Embed Pods Frameworks */,
 				D687A4E020266C9380167930 /* [CP] Copy Pods Resources */,
 				072FAC2AE1685E6A5862C00A /* [CP-User] [RNFB] Core Configuration */,
@@ -604,6 +605,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"$CONFIGURATION\" != \"DebugDevelopment\" ]; then\n  \"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\nelse\n  echo \"Skipping FullStory Asset Uploader phase for DebugDevelopment scheme.\"\nfi\n";
+		};
+		3E1F28A92C7B4D1E00AB89CD /* Upload Sentry Source Maps */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload Sentry Source Maps";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bash -l -c \"${PROJECT_DIR}/sentry-upload-sourcemaps.sh\"\n";
 		};
 		5124824122A346BD617AD428 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;

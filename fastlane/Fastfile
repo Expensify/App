@@ -431,7 +431,8 @@ platform :ios do
           "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
           "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
         }
-      }
+      },
+      xcargs: "SENTRY_AUTH_TOKEN='#{ENV['SENTRY_AUTH_TOKEN']}'"
     )
 
     setIOSBuildOutputsInEnv()
