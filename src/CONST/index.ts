@@ -1672,6 +1672,7 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_SOURCE_ROUTE: 'source_route',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_EXCESSIVE_DURATION: 'excessive_duration',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
