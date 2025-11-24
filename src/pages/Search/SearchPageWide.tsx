@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -72,6 +72,14 @@ function SearchPageWide({
     const theme = useTheme();
     const {translate} = useLocalize();
 
+    const offlineIndicatorStyle = useMemo(() => {
+        if (shouldShowFooter) {
+            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
+        }
+
+        return [styles.mtAuto];
+    }, [shouldShowFooter, styles]);
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
@@ -82,6 +90,7 @@ function SearchPageWide({
                 shouldEnableMaxHeight
                 headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 shouldShowOfflineIndicatorInWideScreen={!!searchResults}
+                offlineIndicatorStyle={offlineIndicatorStyle}
             >
                 <FullPageNotFoundView
                     shouldForceFullScreen
