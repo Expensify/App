@@ -4943,6 +4943,7 @@ function getLinkedTransaction(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     transactions?: SearchTransaction[],
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
 ): OnyxEntry<Transaction> | SearchTransaction {
     let transactionID: string | undefined;
 
