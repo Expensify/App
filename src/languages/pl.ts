@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        reportName: 'Nazwa raportu',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -5880,7 +5881,7 @@ ${
                 billableDescription: 'Wydatki są najczęściej ponownie fakturowane klientom',
                 nonBillable: 'Niepodlegające fakturowaniu',
                 nonBillableDescription: 'Wydatki są czasami ponownie fakturowane klientom.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'ePokwitowania',
                 eReceiptsHint: `ePokwitowania są tworzone automatycznie [dla większości transakcji kredytowych w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
