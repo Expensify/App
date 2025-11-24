@@ -125,7 +125,6 @@ function MoneyRequestReportPreviewContent({
     onPress,
     forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
-    const Expensicons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'BackArrow', 'ArrowRight'] as const);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);

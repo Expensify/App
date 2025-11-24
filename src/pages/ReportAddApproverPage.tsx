@@ -32,7 +32,6 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
 
 function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
-    const {FallbackAvatar} = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
@@ -82,7 +81,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, expensifyIcons.FallbackAvatar]);
+    }, [employeeList, report, policy, personalDetails, formatPhoneNumber, selectedApproverEmail, expensifyIcons.FallbackAvatar, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
