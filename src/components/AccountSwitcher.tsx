@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +24,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
@@ -55,6 +57,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CaretUpDown'] as const);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
@@ -219,7 +222,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
+                                            src={expensifyIcons.CaretUpDown}
                                             height={variables.iconSizeSmall}
                                             width={variables.iconSizeSmall}
                                         />
