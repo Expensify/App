@@ -94,6 +94,11 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
     },
+    Fingerprint: {
+        file: require<LottieViewProps['source']>('@assets/animations/Fingerprint.lottie'),
+        w: 204,
+        h: 204,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
