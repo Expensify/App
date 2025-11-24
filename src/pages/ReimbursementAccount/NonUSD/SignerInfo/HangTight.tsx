@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -32,6 +34,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
     const error = getLatestErrorMessage(reimbursementAccount);
+    const {asset: Pillow} = useMemoizedLazyAsset(() => loadIllustration('Pillow' as IllustrationName));
 
     const handleSendReminder = () => {
         if (!signerEmail || !policyID) {
@@ -66,7 +69,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     <Icon
                         width={144}
                         height={132}
-                        src={Illustrations.Pillow}
+                        src={Pillow}
                     />
                 </View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
