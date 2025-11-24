@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,6 +11,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
@@ -37,6 +39,7 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -112,7 +115,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                     )}
                     {isPerDiemRequest ? (
                         <Icon
-                            src={Expensicons.CalendarSolid}
+                            src={icons.CalendarSolid}
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}

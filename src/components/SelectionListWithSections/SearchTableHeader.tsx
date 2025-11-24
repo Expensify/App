@@ -1,17 +1,20 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
-    translationKey: TranslationPaths;
+    translationKey: TranslationPaths | undefined;
+    icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
 };
@@ -126,7 +129,45 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
+const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] => [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+        translationKey: undefined,
+        icon: profileIcon,
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        translationKey: 'common.date',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
+        translationKey: 'common.status',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+        translationKey: 'common.reportName',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+        translationKey: 'common.from',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
+        translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+];
+
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return getExpenseHeaders(groupBy);
@@ -136,6 +177,8 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return getExpenseReportHeaders(profileIcon);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
@@ -176,6 +219,9 @@ function SearchTableHeader({
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
+    // Only load Profile icon when it's needed for EXPENSE_REPORT type
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? (['Profile'] as const) : ([] as const));
+
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             return columns.includes(columnName);
@@ -183,11 +229,11 @@ function SearchTableHeader({
         [columns],
     );
 
+    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
+
     if (displayNarrowVersion) {
         return;
     }
-
-    const columnConfig = getSearchColumns(type, groupBy);
 
     if (!columnConfig) {
         return;

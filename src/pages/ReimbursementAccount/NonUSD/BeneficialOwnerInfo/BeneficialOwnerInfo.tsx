@@ -20,6 +20,7 @@ import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
 import Documents from './BeneficialOwnerDetailsFormSubSteps/Documents';
 import Last4SSN from './BeneficialOwnerDetailsFormSubSteps/Last4SSN';
 import Name from './BeneficialOwnerDetailsFormSubSteps/Name';
+import Nationality from './BeneficialOwnerDetailsFormSubSteps/Nationality';
 import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipPercentage';
 import BeneficialOwnersList from './BeneficialOwnersList';
 
@@ -46,7 +47,7 @@ type BeneficialOwnerDetailsFormProps = SubStepProps & {
     setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
-const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
+const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, Nationality, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
 
 function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
@@ -172,18 +173,18 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
-            if (screenIndex === 5) {
+            if (screenIndex === 6) {
                 // User is on documents sub step and is not from US (no SSN needed)
                 if (beneficialOwnerAddressCountryValue !== CONST.COUNTRY.US) {
-                    moveTo(3, false);
+                    moveTo(4, false);
                     return;
                 }
             }
 
-            if (screenIndex === 6) {
+            if (screenIndex === 7) {
                 // User is on confirmation screen and is GB (no SSN or documents needed)
                 if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerAddressCountryValue === CONST.COUNTRY.GB) {
-                    moveTo(3, false);
+                    moveTo(4, false);
                     return;
                 }
             }

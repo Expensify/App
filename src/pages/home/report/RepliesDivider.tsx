@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +15,7 @@ type RepliesDividerProps = {
 };
 
 function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Thread'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -25,7 +26,7 @@ function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             <Icon
-                src={Expensicons.Thread}
+                src={icons.Thread}
                 fill={theme.icon}
                 width={variables.iconSizeExtraSmall}
                 height={variables.iconSizeExtraSmall}
