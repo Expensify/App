@@ -114,7 +114,7 @@ function AvatarButtonWithIcon({
                             imageStyles={[styles.alignSelfCenter, avatarStyle]}
                             source={source}
                             avatarID={avatarID}
-                            fallbackIcon={fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon}
+                            fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                             size={size}
                             type={type}
                             name={name}

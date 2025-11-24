@@ -372,7 +372,7 @@ function Button({
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             {!isSplitButton ? (
                                 <Icon
-                                    src={iconRight === undefined ? expensifyIcons.ArrowRight : iconRight}
+                                    src={iconRight ?? expensifyIcons.ArrowRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     extraSmall={extraSmall}
                                     small={small}
@@ -382,7 +382,7 @@ function Button({
                                 />
                             ) : (
                                 <Icon
-                                    src={iconRight === undefined ? expensifyIcons.ArrowRight : iconRight}
+                                    src={iconRight ?? expensifyIcons.ArrowRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     extraSmall={extraSmall}
                                     small={small}

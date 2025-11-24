@@ -264,7 +264,7 @@ function AvatarWithImagePicker({
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}
-                                        fallbackIcon={fallbackIcon === undefined ? expensifyIcons.FallbackAvatar : fallbackIcon}
+                                        fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
                                         editIcon={editIcon}
