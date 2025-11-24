@@ -17,9 +17,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const config = policy?.connections?.intacct?.config;
     const entityID = config?.entity ?? '';
     const {translate} = useLocalize();
-
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const sections = [
         {
