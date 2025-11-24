@@ -49,8 +49,6 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         setFailedToLoad(true);
     }, [onLoadError]);
 
-    const handleError = useCallback(() => null, []);
-
     const thumbnail = useMemo(
         () => (
             <Suspense fallback={loadingIndicator}>
@@ -66,7 +64,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     onLoad={handleOnLoad}
                     onLoadSuccess={handleOnLoadSuccess}
                     onLoadError={handleOnLoadError}
-                    error={handleError}
+                    error={() => null}
                 >
                     <View pointerEvents="none">
                         <Thumbnail pageIndex={0} />
@@ -74,7 +72,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </Document>
             </Suspense>
         ),
-        [loadingIndicator, isAuthTokenRequired, previewSourceURL, onPassword, handleOnLoad, handleOnLoadSuccess, handleOnLoadError, handleError],
+        [loadingIndicator, isAuthTokenRequired, previewSourceURL, onPassword, handleOnLoad, handleOnLoadSuccess, handleOnLoadError],
     );
 
     if (!ready || pdfInitializationFailed) {

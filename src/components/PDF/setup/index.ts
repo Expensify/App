@@ -1,10 +1,10 @@
 import {useEffect} from 'react';
 import {cancelIdle, requestIdle} from './requestIdle';
-import type {EnsurePdfJsInitialized, UsePreloadLazyModules} from './types';
+import type {PDFSetupPromise, UsePreloadLazyModules} from './types';
 
-let pdfSetupPromise: Promise<unknown> | null = null;
+let pdfSetupPromise: PDFSetupPromise = null;
 
-function ensurePdfJsInitialized(): EnsurePdfJsInitialized {
+function ensurePdfJsInitialized(): PDFSetupPromise {
     if (pdfSetupPromise) {
         return pdfSetupPromise;
     }
@@ -13,15 +13,20 @@ function ensurePdfJsInitialized(): EnsurePdfJsInitialized {
         import(/* webpackPrefetch: true */ 'react-pdf'),
         // eslint-disable-next-line import/extensions
         import(/* webpackPrefetch: true */ 'pdfjs-dist/build/pdf.worker.min.mjs'),
-    ]).then(([reactPdfModule, pdfWorkerSource]) => {
-        const {pdfjs} = reactPdfModule;
+    ])
+        .then(([reactPdfModule, pdfWorkerSource]) => {
+            const {pdfjs} = reactPdfModule;
 
-        if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-            pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-        }
+            if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+                pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+            }
 
-        return pdfjs;
-    });
+            return pdfjs;
+        })
+        .catch((err) => {
+            pdfSetupPromise = null;
+            throw err;
+        });
 
     return pdfSetupPromise;
 }

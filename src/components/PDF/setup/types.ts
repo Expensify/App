@@ -1,5 +1,5 @@
-type EnsurePdfJsInitialized = Promise<unknown> | null;
+type PDFSetupPromise = Promise<unknown> | null;
 
 type UsePreloadLazyModules = void;
 
-export type {EnsurePdfJsInitialized, UsePreloadLazyModules};
+export type {PDFSetupPromise, UsePreloadLazyModules};

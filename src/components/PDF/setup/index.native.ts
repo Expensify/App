@@ -1,6 +1,6 @@
-import type {EnsurePdfJsInitialized, UsePreloadLazyModules} from './types';
+import type {PDFSetupPromise, UsePreloadLazyModules} from './types';
 
-function ensurePdfJsInitialized(): EnsurePdfJsInitialized {
+function ensurePdfJsInitialized(): PDFSetupPromise {
     return Promise.resolve();
 }
 
