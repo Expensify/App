@@ -421,7 +421,7 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
     }
 
     if (field === 'taxValue') {
-        return getTaxName(policy, transaction) ?? '';
+        return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
     }
 
     return SafeString(fieldValue);
