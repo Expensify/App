@@ -1,5 +1,6 @@
 import * as SentryReact from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
+import {Platform} from 'react-native';
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
     enableTimeToInitialDisplay: true,
@@ -14,8 +15,11 @@ const tracingIntegration = Sentry.reactNativeTracingIntegration({
     shouldCreateSpanForRequest,
 });
 
-const browserTracingIntegration = SentryReact.browserTracingIntegration({
-    shouldCreateSpanForRequest,
-});
+const browserTracingIntegration =
+    Platform.OS === 'android' || Platform.OS === 'ios'
+        ? undefined
+        : SentryReact.browserTracingIntegration({
+              shouldCreateSpanForRequest,
+          });
 
 export {navigationIntegration, tracingIntegration, browserTracingIntegration};

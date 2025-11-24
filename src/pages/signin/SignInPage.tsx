@@ -301,26 +301,16 @@ function SignInPage({ref}: SignInPageProps) {
     }));
     useHandleBackButton(navigateBack);
 
-    const funcThrowSentryError = () => {
-        Sentry.captureException(new Error('Test Sentry - Mobile App Error'));
-        Alert.alert(
-            'Test Alert',
-            JSON.stringify(
-                {
-                    env: CONFIG.ENVIRONMENT,
-                    sentryConfig: Sentry?.getClient()?.getOptions(),
-                },
-                null,
-                2,
-            ),
-        );
+    const throwAlert = () => {
+        Sentry.captureException(new Error('Test Alert Source Maps'));
+        Alert.alert('Test Alert', JSON.stringify({env: CONFIG.ENVIRONMENT, SentryOptions: Sentry.getClient()?.getOptions()}));
     };
 
     return (
         <ColorSchemeWrapper>
             <Button
-                text="Test Sentry"
-                onPress={funcThrowSentryError}
+                text="Throw Alert"
+                onPress={throwAlert}
             />
             <CustomStatusBarAndBackground isNested />
             <LoginProvider>
