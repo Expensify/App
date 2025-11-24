@@ -127,9 +127,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         <AnchorForCommentsOnly
             href={attrHref}
             // Unless otherwise specified open all links in
-            // a new window. On Desktop this means that we will
-            // skip the default Save As... download prompt
-            // and defer to whatever browser the user has.
+            // a new window.
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}

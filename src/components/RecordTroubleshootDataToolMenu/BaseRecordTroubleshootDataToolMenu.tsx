@@ -50,8 +50,6 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     zipRef: RefObject<InstanceType<typeof JSZip>>;
     /** A method to download the zip archive */
     onDownloadZip?: () => void;
-    /** It's a desktop-only prop, as it's impossible to download two files simultaneously */
-    showDownloadButton?: boolean;
     /** Path used to display location of saved file */
     displayPath?: string;
 };
@@ -81,7 +79,6 @@ function BaseRecordTroubleshootDataToolMenu({
     pathToBeUsed,
     zipRef,
     onDownloadZip,
-    showDownloadButton = false,
     displayPath,
 }: BaseRecordTroubleshootDataToolMenuProps) {
     const {translate} = useLocalize();
@@ -239,19 +236,6 @@ function BaseRecordTroubleshootDataToolMenu({
                     });
                 });
             });
-        } else {
-            // Desktop
-            onStopProfiling(true, newFileName).then(() => {
-                getAppInfo().then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
-                        setIsDisabled(false);
-                    });
-                });
-            });
         }
     };
 
@@ -290,15 +274,6 @@ function BaseRecordTroubleshootDataToolMenu({
                         />
                     </TestToolRow>
                 </>
-            )}
-            {showDownloadButton && !!file?.path && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
-                    <Button
-                        small
-                        text={translate('common.download')}
-                        onPress={onDownloadZip}
-                    />
-                </TestToolRow>
             )}
         </>
     );

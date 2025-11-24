@@ -66,15 +66,15 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
 }
 
 /**
- * Get a production grade config for web or desktop
+ * Get a production grade config for web
  */
-const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
+const getCommonConfiguration = ({file = '.env'}: Environment): Configuration => {
     const isDevelopment = file === '.env' || file === '.env.development';
 
     if (!isDevelopment) {
         const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
-        console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
-        console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}'}`);
+        console.debug(`[SENTRY WEB] Release: ${releaseName}`);
+        console.debug(`[SENTRY WEB] Assets Path: './dist/**/*.{js,map}'`);
     }
 
     return {
@@ -100,10 +100,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 template: 'web/index.html',
                 filename: 'index.html',
                 splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
-                isWeb: platform === 'web',
+                isWeb: true,
                 isProduction: file === '.env.production',
                 isStaging: file === '.env.staging',
-                useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
+                useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (['.env.production', '.env.staging'].includes(file)),
             }),
             new PreloadWebpackPlugin({
                 rel: 'preload',
@@ -160,9 +160,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                       }),
                   ]
                 : []),
-            ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
+            new CustomVersionFilePlugin(),
             new DefinePlugin({
-                ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+                process: {env: {}},
                 // Define EXPO_OS for web platform to fix expo-modules-core warning
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process.env.EXPO_OS': JSON.stringify('web'),
@@ -190,9 +190,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                               name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
                           },
                           sourcemaps: {
-                              // Use relative path from project root - works for both web (dist/) and desktop (desktop/dist/www/)
-                              assets: platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}',
-                              filesToDeleteAfterUpload: platform === 'desktop' ? './desktop/dist/www/**/*.map' : './dist/**/*.map',
+                              // Use relative path from project root - works for both web (dist/)
+                              assets: './dist/**/*.{js,map}',
+                              filesToDeleteAfterUpload: './dist/**/*.map',
                           },
                           debug: false,
                           telemetry: false,
@@ -296,7 +296,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 'react-native-config': 'react-web-config',
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'react-native$': 'react-native-web',
-                // Module alias for web & desktop
+                // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@assets': path.resolve(__dirname, '../../assets'),
@@ -320,26 +320,18 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@desktop': path.resolve(__dirname, '../../desktop'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@selectors': path.resolve(__dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
             // without this, web will try to use native implementations and break in not very obvious ways.
-            // This is also why we have to use .website.js for our own web-specific files...
-            // Because desktop also relies on "web-specific" module implementations
-            // This also skips packing web only dependencies to desktop and vice versa
             extensions: [
                 '.web.js',
-                ...(platform === 'desktop' ? ['.desktop.js'] : []),
                 '.website.js',
                 '.js',
                 '.jsx',
                 '.web.ts',
-                ...(platform === 'desktop' ? ['.desktop.ts'] : []),
                 '.website.ts',
-                ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
                 '.website.tsx',
                 '.ts',
                 '.web.tsx',

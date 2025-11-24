@@ -219,8 +219,8 @@ function SidebarOrderedReportsContextProvider({
         // case we re-generate the list a 2nd time with the current report included.
 
         // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
-        // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
-        // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
+        // requirement for web. Consider a case, where we have report with expenses and we click on
+        // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
             (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&

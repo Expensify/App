@@ -7,7 +7,6 @@ import {beginAppleSignIn} from '@libs/actions/Session';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
@@ -18,14 +17,12 @@ import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 const getConfig = (config: NativeConfig, key: string, defaultValue: string) => (config?.[key] ?? defaultValue).trim();
 
 type AppleSignInDivProps = {
-    isDesktopFlow: boolean;
     onPointerDown?: () => void;
 };
 
 type SingletonAppleSignInButtonProps = AppleSignInDivProps;
 
 type AppleSignInProps = {
-    isDesktopFlow?: boolean;
     onPointerDown?: () => void;
     // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
@@ -63,7 +60,7 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
 /**
  * Apple Sign In button for Web.
  */
-function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
+function AppleSignInDiv({onPointerDown}: AppleSignInDivProps) {
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
@@ -81,20 +78,7 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
         };
     }, [preferredLocale]);
 
-    return isDesktopFlow ? (
-        <div
-            id="appleid-signin"
-            data-mode="center-align"
-            data-type="continue"
-            data-color="white"
-            data-border="false"
-            data-border-radius="50"
-            data-width={CONST.SIGN_IN_FORM_WIDTH}
-            data-height="52"
-            style={{cursor: 'pointer'}}
-            onPointerDown={onPointerDown}
-        />
-    ) : (
+    return(
         <div
             id="appleid-signin"
             data-mode="logo-only"
@@ -112,20 +96,19 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isDesktopFlow, onPointerDown}: SingletonAppleSignInButtonProps) {
+function SingletonAppleSignInButton({onPointerDown}: SingletonAppleSignInButtonProps) {
     const isFocused = useIsFocused();
     if (!isFocused) {
         return null;
     }
     return (
         <AppleSignInDiv
-            isDesktopFlow={isDesktopFlow}
             onPointerDown={onPointerDown}
         />
     );
 }
 
-function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
+function AppleSignIn({onPointerDown}: AppleSignInProps) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
         if (window.appleAuthScriptLoaded) {
@@ -147,7 +130,6 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
 
     return (
         <SingletonAppleSignInButton
-            isDesktopFlow={isDesktopFlow}
             onPointerDown={onPointerDown}
         />
     );

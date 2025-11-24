@@ -12,7 +12,7 @@ jest.doMock('react-native', () => {
 
     // Tests will run with the app in a typical small screen size by default. We do this since the react-native test renderer
     // runs against index.native.js source and so anything that is testing a component reliant on withWindowDimensions()
-    // would be most commonly assumed to be on a mobile phone vs. a tablet or desktop style view. This behavior can be
+    // would be most commonly assumed to be on a mobile phone vs. a tablet style view. This behavior can be
     // overridden by explicitly setting the dimensions inside a test via Dimensions.set()
     let dimensions: Record<string, number> = {
         width: 300,

@@ -246,9 +246,6 @@ function ReportActionAvatarSubscript({
                 >
                     <View
                         style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}
-                        // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                        // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                        dataSet={{dragArea: false}}
                     >
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
@@ -280,9 +277,6 @@ function ReportActionAvatarSubscript({
                         styles.dFlex,
                         styles.justifyContentCenter,
                     ]}
-                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                    dataSet={{dragArea: false}}
                 >
                     <Icon
                         src={getCardFeedIcon(subscriptCardFeed, illustrations)}

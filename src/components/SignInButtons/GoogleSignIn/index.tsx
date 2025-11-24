@@ -11,7 +11,6 @@ import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
 
 type GoogleSignInProps = {
-    isDesktopFlow?: boolean;
     // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
     onPointerDown?: () => void;
@@ -19,7 +18,6 @@ type GoogleSignInProps = {
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
 const mainId = 'google-sign-in-main';
-const desktopId = 'google-sign-in-desktop';
 
 const signIn = (response: Response, preferredLocale?: Locale) => {
     beginGoogleSignIn(response.credential, preferredLocale);
@@ -31,7 +29,7 @@ const signIn = (response: Response, preferredLocale?: Locale) => {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
+function GoogleSignIn({onPointerDown}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
@@ -49,13 +47,6 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 size: 'large',
                 type: 'icon',
                 shape: 'circle',
-            });
-            google.accounts.id.renderButton(document.getElementById(desktopId), {
-                theme: 'outline',
-                size: 'large',
-                type: 'standard',
-                shape: 'pill',
-                width: '300px',
             });
         }
     }, [preferredLocale]);
@@ -75,16 +66,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
 
     // willChangeTransform is used to prevent the icon cut in safari when the overflow hidden and width given to the parent
     // ref: https://stackoverflow.com/questions/75306089/safari-when-using-border-radius-and-overflow-hidden-to-parent-and-the-child-th
-    return isDesktopFlow ? (
-        <View style={styles.googlePillButtonContainer}>
-            <div
-                id={desktopId}
-                role={CONST.ROLE.BUTTON}
-                aria-label={translate('common.signInWithGoogle')}
-                onPointerDown={onPointerDown}
-            />
-        </View>
-    ) : (
+    return (
         <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}

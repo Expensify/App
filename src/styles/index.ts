@@ -5725,7 +5725,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                     backgroundSize: '100% 100%',
                     backgroundRepeat: 'no-repeat',
                 }),
-                // fallback for the desktop and other browsers that this svg doesn't work with
+                // fallback for the other browsers that this svg doesn't work with
                 ...(!isSafariOrChromeBrowser && {
                     borderWidth: 2,
                     borderStyle: 'dashed',

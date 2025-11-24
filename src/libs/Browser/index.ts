@@ -9,7 +9,6 @@ import type {
     IsMobileWebKit,
     IsModernSafari,
     IsSafari,
-    OpenRouteInDesktopApp,
 } from './types';
 
 const getBrowser: GetBrowser = () => '';
@@ -32,6 +31,4 @@ const isModernSafari: IsModernSafari = () => false;
 
 const isMobileSafariOnIos26: IsMobileSafariOnIos26 = () => false;
 
-const openRouteInDesktopApp: OpenRouteInDesktopApp = () => {};
-
-export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isModernSafari, isMobileSafariOnIos26, isMobileChrome, isChromeIOS, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isModernSafari, isMobileSafariOnIos26, isMobileChrome, isChromeIOS};

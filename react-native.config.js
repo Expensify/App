@@ -15,7 +15,7 @@ if (!isHybrid) {
     };
 }
 
-// Exclude node-mac-permissions from mobile and web builds since it's only needed for macOS desktop
+// Exclude node-mac-permissions from mobile and web builds since it's not needed
 config.dependencies['node-mac-permissions'] = {
     platforms: {
         android: null,
