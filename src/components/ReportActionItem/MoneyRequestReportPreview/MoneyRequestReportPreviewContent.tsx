@@ -90,7 +90,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import NoSharedMoneyRequestReportPreview from './AccessMoneyRequestReportPreviewPlaceHolder';
+import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -730,7 +730,7 @@ function MoneyRequestReportPreviewContent({
                                                                     <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
                                                                 </View>
                                                             )}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
+                                                            {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                                                         </View>
                                                     )
                                                 )}
@@ -814,7 +814,7 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowAccessPlaceHolder && !shouldShowEmptyPlaceholder && <NoSharedMoneyRequestReportPreview />}
+                                            {shouldShowAccessPlaceHolder && !shouldShowEmptyPlaceholder && <AccessMoneyRequestReportPreviewPlaceHolder />}
                                             {shouldShowEmptyPlaceholder && !shouldShowAccessPlaceHolder && <EmptyMoneyRequestReportPreview />}
                                         </View>
                                     )}
