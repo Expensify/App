@@ -8,7 +8,8 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
@@ -21,8 +22,10 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -100,6 +103,7 @@ type HeaderViewProps = {
 function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
@@ -109,6 +113,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -150,7 +155,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const subscriptionPlan = useSubscriptionPlan();
+    const ancestors = useAncestors(report);
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
     const shouldShowSubtitle = () => {
@@ -205,10 +213,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial) && !isReportArchived,
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID) && !isReportArchived,
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
+        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
@@ -272,7 +280,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     >
                                         <View>
                                             <Icon
-                                                src={BackArrow}
+                                                src={expensifyIcons.BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -296,6 +304,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
+                                                shouldParseFullTitle={shouldParseFullTitle}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
@@ -369,7 +378,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID);
+                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

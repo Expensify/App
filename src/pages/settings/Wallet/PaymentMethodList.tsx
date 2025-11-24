@@ -7,10 +7,12 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -191,6 +193,7 @@ function PaymentMethodList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
@@ -214,8 +217,8 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
-            assignedCardsSorted.forEach((card) => {
-                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
+            for (const card of assignedCardsSorted) {
+                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card)) {
@@ -236,14 +239,14 @@ function PaymentMethodList({
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                        iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                             pressHandler({
@@ -258,7 +261,7 @@ function PaymentMethodList({
                                 cardID: card.cardID,
                             }),
                     });
-                    return;
+                    continue;
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
@@ -270,11 +273,15 @@ function PaymentMethodList({
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        if (
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
+                            Object.keys(assignedCardsGroupedItem.errors).length > 0
+                        ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
                     }
-                    return;
+                    continue;
                 }
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
@@ -297,7 +304,7 @@ function PaymentMethodList({
                     errors: card.errors,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     icon,
@@ -305,7 +312,7 @@ function PaymentMethodList({
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
                 });
-            });
+            }
             return assignedCardsGrouped;
         }
 
@@ -350,7 +357,7 @@ function PaymentMethodList({
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
-                iconRight: itemIconRight ?? Expensicons.ThreeDots,
+                iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
             };
         });
@@ -372,6 +379,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         StyleUtils,
+        expensifyIcons.ThreeDots,
     ]);
 
     const onPressItem = useCallback(() => {
@@ -436,6 +444,7 @@ function PaymentMethodList({
                     pendingAction={item.pendingAction}
                     errors={item.errors}
                     errorRowStyles={styles.ph6}
+                    shouldShowErrorMessages={false}
                     canDismissError={item.canDismissError}
                 >
                     <MenuItem
