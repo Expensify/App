@@ -8625,6 +8625,13 @@ exports.colors = [
 
 // eslint-disable-next-line complexity
 function useColors() {
+	// NB: In an Electron preload script, document will be defined but not fully
+	// initialized. Since we know we're in Chrome, we'll just detect this case
+	// explicitly
+	if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
+		return true;
+	}
+
 	// Internet Explorer and Edge do not support colors.
 	if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
 		return false;
@@ -8728,6 +8735,11 @@ function load() {
 	} catch (error) {
 		// Swallow
 		// XXX (@Qix-) should we be logging these?
+	}
+
+	// If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+	if (!r && typeof process !== 'undefined' && 'env' in process) {
+		r = process.env.DEBUG;
 	}
 
 	return r;
