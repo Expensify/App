@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import CONST from '@src/CONST';
@@ -21,7 +22,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import Parser from '@libs/Parser';
 
 jest.mock('@react-navigation/native');
 
