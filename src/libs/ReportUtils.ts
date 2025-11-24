@@ -75,6 +75,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -928,7 +929,7 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    transactions?: Transaction[];
+    transactions?: SearchTransaction[];
     reports?: Report[];
     policies?: Policy[];
     isReportArchived?: boolean;
@@ -2250,7 +2251,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
         return !!transactions?.find((transaction) => transaction?.reportID === reportID);
     }
@@ -2260,7 +2261,7 @@ function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<Ony
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -4483,7 +4484,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4625,7 +4626,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
@@ -4783,6 +4784,21 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
     );
 }
 
+function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolean {
+    if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
+        return false;
+    }
+    const isAdmin = isPolicyAdmin(report.policyID, allPolicies);
+    const isActionOwner = isActionCreator(reportAction);
+    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+
+    if (isIOUReport(report)) {
+        return isActionOwner || isManager;
+    }
+
+    return isAdmin || isActionOwner || isManager;
+}
+
 function canHoldUnholdReportAction(
     report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
@@ -4806,11 +4822,12 @@ function canHoldUnholdReportAction(
     const isClosed = isClosedReport(report);
     const isSubmitted = isProcessingReport(report);
 
-    const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning(transaction) && (isSubmitted || isActionOwner);
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && (isSubmitted || isActionOwner);
+
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
     return {canHoldRequest, canUnholdRequest};
@@ -4907,7 +4924,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  *
  * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> | Transaction {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: SearchTransaction[]): OnyxEntry<Transaction> | SearchTransaction {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
@@ -4962,7 +4979,7 @@ function getTransactionReportName({
     reports,
 }: {
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
-    transactions?: Transaction[];
+    transactions?: SearchTransaction[];
     reports?: Report[];
 }): string {
     if (isReversedTransaction(reportAction)) {
@@ -5592,7 +5609,7 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    transactions?: Transaction[],
+    transactions?: SearchTransaction[],
     isReportArchived?: boolean,
     reports?: Report[],
     policies?: Policy[],
@@ -8639,7 +8656,10 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | un
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'> &
+type ReportEmptyStateSummary = Pick<
+    Report,
+    'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'pendingFields' | 'errors'
+> &
     Pick<Report, 'reportID'>;
 
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
@@ -8657,6 +8677,7 @@ function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | un
         total: report.total ?? undefined,
         nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
         pendingAction: report.pendingAction ?? undefined,
+        pendingFields: report.pendingFields ?? undefined,
         errors: report.errors ?? undefined,
     };
 }
@@ -8695,7 +8716,7 @@ function hasEmptyReportsForPolicy(
         }
 
         // Exclude reports that are being deleted or have errors
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             return false;
         }
 
@@ -8737,7 +8758,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
             continue;
         }
 
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             continue;
         }
 
@@ -8912,7 +8933,7 @@ function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    reportTransactions?: Transaction[],
+    reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
@@ -8925,7 +8946,7 @@ function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    reportTransactions?: Transaction[],
+    reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, shouldShowInReview));
@@ -8958,7 +8979,7 @@ function hasNoticeTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
-    reportTransactions?: Transaction[],
+    reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
@@ -8967,7 +8988,7 @@ function hasNoticeTypeViolations(
 /**
  * Checks to see if a report contains any type of violation
  */
-function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: Transaction[]) {
+function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: SearchTransaction[]) {
     return (
         hasViolations(reportID, transactionViolations, undefined, reportTransactions) ||
         hasNoticeTypeViolations(reportID, transactionViolations, true, reportTransactions) ||
@@ -8991,12 +9012,12 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
-    reportTransactions?: Transaction[],
+    reportTransactions?: Transaction[] | SearchTransaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, reportTransactions);
+    return hasAnyViolations(reportID, transactionViolations, reportTransactions as SearchTransaction[]);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
@@ -10349,7 +10370,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
 /**
  * Check if Report has any held expenses
  */
-function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
+function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
     const transactions = allReportTransactions ?? iouReportTransactions;
     return transactions.some((transaction) => isOnHoldTransactionUtils(transaction));
@@ -10358,7 +10379,7 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transacti
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
+function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
@@ -11110,7 +11131,7 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(iouReport.policyID);
-    const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled;
+    const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled && isOpenReport(iouReport);
     if (shouldBeManuallySubmitted) {
         return {
             hasOutstandingChildRequest: true,
