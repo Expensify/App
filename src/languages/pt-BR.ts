@@ -5898,7 +5898,7 @@ ${
                 billableDescription: 'Despesas são mais frequentemente refaturadas para clientes.',
                 nonBillable: 'Não faturável',
                 nonBillableDescription: 'Despesas são ocasionalmente refaturadas para clientes',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Recibos eletrônicos',
                 eReceiptsHint: `Os recibos eletrônicos são criados automaticamente [para a maioria das transações de crédito em dólares](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Rastreamento de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa para cada despesa.',

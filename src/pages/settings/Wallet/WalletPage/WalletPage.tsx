@@ -9,6 +9,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -84,6 +86,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Hourglass', 'Exclamation', 'Wallet', 'Star', 'UserPlus', 'Trashcan', 'Globe'] as const);
 
+    const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -377,7 +380,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
+            icon={MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter

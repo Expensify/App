@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -65,6 +65,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
     const [selectedItemIndex, setSelectedItemIndex] = useState(defaultSelectedIndex);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
@@ -180,7 +181,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={expensifyIcons.DownArrow}
                         shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
                         isSplitButton={isSplitButton}
                         testID={testID}
@@ -220,7 +221,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         inline={shouldUseShortForm}
                                         width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
-                                        src={Expensicons.DownArrow}
+                                        src={expensifyIcons.DownArrow}
                                         additionalStyles={shouldUseShortForm ? [styles.pRelative, styles.t0] : undefined}
                                         fill={success ? theme.buttonSuccessText : theme.icon}
                                     />
