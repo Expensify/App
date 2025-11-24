@@ -1,14 +1,21 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import useNativeBiometrics from '@hooks/MultifactorAuthentication/useNativeBiometrics';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import MFA from '@libs/MultifactorAuthentication/Biometrics/MFA';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -23,9 +30,22 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setup} = useNativeBiometrics();
+
+    useEffect(() => MFA.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
+
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    const biometricsTitle = translate('multifactorAuthentication.title', {registered: setup.isLocalPublicKeyInAuth});
 
     return (
         <>
@@ -71,6 +91,17 @@ function TestToolMenu() {
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
                             onPress={() => expireSessionWithDelay()}
                         />
+                    </TestToolRow>
+
+                    {/* Allows to test the Biometrics flow */}
+                    <TestToolRow title={biometricsTitle}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('common.test')}
+                                onPress={() => navigateToBiometricsTestPage()}
+                            />
+                        </View>
                     </TestToolRow>
                 </>
             )}
