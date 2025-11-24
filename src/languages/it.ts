@@ -2100,6 +2100,10 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: "Richiedi un'approvazione aggiuntiva prima di autorizzare un pagamento.",
         makeOrTrackPaymentsTitle: 'Effettua o traccia pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o traccia i pagamenti effettuati altrove.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Un flusso di approvazione personalizzato è abilitato su questo workspace. Per rivedere o modificare questo flusso di lavoro, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Un flusso di approvazione personalizzato è abilitato su questo workspace. Per rivedere o modificare questo flusso di lavoro, contatta <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Scegli quanto tempo Expensify dovrebbe aspettare prima di condividere le spese senza errori.',
         },
