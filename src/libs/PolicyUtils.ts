@@ -514,6 +514,16 @@ function escapeTagName(tag: string) {
 }
 
 /**
+ * Checks if a tag list name is the default 'Tag' name
+ */
+function isDefaultTagName(tagName: string | undefined): boolean {
+    if (!tagName) {
+        return false;
+    }
+    return tagName.trim().toLowerCase() === CONST.POLICY.DEFAULT_TAG_NAME.trim().toLowerCase();
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
@@ -670,9 +680,9 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
 
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
-function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    Object.values(allPolicies ?? {})?.forEach((policy) => {
+    Object.values(policies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }
@@ -1725,6 +1735,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    isDefaultTagName,
 };
 
 export type {MemberEmailsToAccountIDs};

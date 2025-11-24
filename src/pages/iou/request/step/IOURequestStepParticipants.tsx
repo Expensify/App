@@ -20,6 +20,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
@@ -73,7 +74,7 @@ function IOURequestStepParticipants({
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     const participants = initialTransaction?.participants;
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -135,6 +136,7 @@ function IOURequestStepParticipants({
     const isCorporateCard = isCorporateCardTransaction(initialTransaction);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     }, []);
 
@@ -200,7 +202,11 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             } else {
-                Navigation.navigate(iouConfirmationPageRoute);
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(iouConfirmationPageRoute);
+                });
             }
         });
     }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, isActivePolicyRequest, backTo]);
@@ -236,7 +242,7 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
 
                 if (transactions.length > 0) {
                     for (const transaction of transactions) {
@@ -283,7 +289,6 @@ function IOURequestStepParticipants({
             trackExpense,
             initialTransactionID,
             lastSelectedDistanceRates,
-            localeCompare,
             personalPolicy?.autoReporting,
         ],
     );
@@ -354,7 +359,11 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(route, {compareParams: false});
             } else {
-                Navigation.navigate(route);
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(route);
+                });
             }
         });
     }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);

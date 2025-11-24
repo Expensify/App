@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -374,7 +376,7 @@ const translations: TranslationDeepObject<typeof en> = {
         password: 'Senha',
         magicCode: 'Código mágico',
         twoFactorCode: 'Código de dois fatores',
-        workspaces: 'Workspaces',
+        workspaces: 'Espaços de trabalho',
         inbox: 'Caixa de entrada',
         success: 'Sucesso',
         group: 'Grupo',
@@ -695,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        reportName: 'Nome do relatório',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1337,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moveu a despesa do espaço pessoal para ${workspaceName ?? `conversar com ${reportName}`}`,
         movedToPersonalSpace: 'movido despesa para o espaço pessoal',
-        tagSelection: 'Selecione uma tag para organizar melhor seus gastos.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecione ${policyTagListName ?? 'uma etiqueta'} para organizar melhor suas despesas.`,
         categorySelection: 'Selecione uma categoria para organizar melhor seus gastos.',
         error: {
             invalidCategoryLength: 'O nome da categoria excede 255 caracteres. Por favor, reduza-o ou escolha uma categoria diferente.',
@@ -1484,6 +1487,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Você deve reter ou rejeitar?',
             educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
             holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
+            approveExpenseTitle: 'Aprove outras despesas enquanto as despesas retidas permanecem atribuídas a você.',
             heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
@@ -3286,6 +3290,9 @@ ${
         whatsYourAddress: 'Qual é o seu endereço?',
         whatAreTheLast: 'Quais são os últimos 4 dígitos do Número de Seguro Social do proprietário?',
         whatsYourLast: 'Quais são os últimos 4 dígitos do seu Número de Seguro Social?',
+        whatsYourNationality: 'Qual é o seu país de cidadania?',
+        whatsTheOwnersNationality: 'Qual é o país de cidadania do proprietário?',
+        countryOfCitizenship: 'País de cidadania',
         dontWorry: 'Não se preocupe, não fazemos nenhuma verificação de crédito pessoal!',
         last4: 'Últimos 4 do SSN',
         whyDoWeAsk: 'Por que pedimos isso?',
@@ -3592,7 +3599,7 @@ ${
             expensifyCard: 'Expensify Card',
             companyCards: 'Cartões corporativos',
             workflows: 'Fluxos de Trabalho',
-            workspace: 'Workspace',
+            workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
@@ -5204,6 +5211,7 @@ ${
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
+                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
@@ -5883,7 +5891,7 @@ ${
                 billableDescription: 'Despesas são mais frequentemente refaturadas para clientes.',
                 nonBillable: 'Não faturável',
                 nonBillableDescription: 'Despesas são ocasionalmente refaturadas para clientes',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Recibos eletrônicos',
                 eReceiptsHint: `Os recibos eletrônicos são criados automaticamente [para a maioria das transações de crédito em dólares](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Rastreamento de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa para cada despesa.',
@@ -6197,6 +6205,7 @@ ${
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ativado' : 'desativado'} reembolsos para este espaço de trabalho`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6221,6 +6230,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
